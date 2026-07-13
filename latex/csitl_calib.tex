@@ -15,10 +15,10 @@
 \newcommand{\lray}{\Lambda_{\rm R}}
 \newcommand{\sa}{\sigma_\alpha}
 
-\title{Calibration of the CryspLight optical model on \csitl{}:\\
+\title{Calibration of the CryspLight optical model on \csitl{} and cold pure CsI:\\
 the absorption/scattering split of the measured extinction}
 \author{J.J.~G\'omez-Cadenas \and Claude (Anthropic)}
-\date{July 13, 2026 \\[2mm] \small Version 0.1 --- calibration note (phase 1)}
+\date{July 13, 2026 \\[2mm] \small Version 0.2 --- calibration note (phase 1)}
 
 \begin{document}
 \maketitle
@@ -44,8 +44,16 @@ Applied to the CRYSP geometry ($48\times48\times37.2$~mm$^3$, thick Teflon, grea
 $8\times8$ SiPM array), the calibrated parameters predict that $88.8\%$ of the emitted
 scintillation light reaches the sensors ($84.6$--$93.4\%$ across the split bracket
 $f = 0.85$--$0.95$) --- about $2.5\times$ more than the naive reading of the measured
-``absorption length'' would give. All numbers regenerate from
-\texttt{scripts/csitl\_calib.jl} + \texttt{runs/csitl\_calib.toml}.
+``absorption length'' would give.
+We then calibrate \emph{cold pure CsI} on the CRYSP measurement itself
+(Soleti et al.~\cite{soleti2024}, $3\times3\times20$~mm$^3$ crystals at 104~K): with the
+intrinsic yield fixed at $10^5$~photons/MeV, the measured photoelectron count requires a
+$\sim$10\% bulk effect, degenerate along a $(\lext, f)$ line that a single measurement
+cannot break; adopting the \csitl{} analogue ($\lext = 0.3$~m, $f = 0.9$) as the default,
+the CRYSP-geometry collection is $83.0\%$, with a documented 62--83\% bracket pending a
+bare-crystal re-measurement or a transmittance scan. All numbers regenerate from
+\texttt{scripts/csitl\_calib.jl} and \texttt{scripts/soleti\_calib.jl} with their
+\texttt{runs/*.toml} campaigns.
 \end{abstract}
 
 \tableofcontents
@@ -307,6 +315,90 @@ procedure of this note; a bare-vs-wrapped ladder on a CRYSP crystal would be the
 most informative measurement.
 
 %=====================================================================
+\section{Cold pure CsI: calibration on the CRYSP measurement}
+\label{sec:coldcsi}
+
+Cold pure CsI --- the actual CRYSP detector material, kept separate from \csitl{}
+throughout (\texttt{data/csi.toml}) --- has no published bulk-optics data at its
+340--350~nm cryogenic emission. Its calibration anchor is the CRYSP measurement
+itself~\cite{soleti2024}: two $3\times3\times20$~mm$^3$ AMCRYS crystals (1.1~$X_0$,
+aspect ratio $\sim$7, polished), wrapped in \emph{three layers of 80~$\mu$m PTFE tape}
+(unsaturated: $R \approx 0.93$--0.97), each read by a single $3\times3$~mm$^2$
+S13360-3025CS covering the full end face in \emph{dry contact} (air gap), at $T=104$~K
+with a $^{22}$Na source. Measured: $N_{\rm pe} = 4596$ at 511~keV (crystal~2:
+$\sim$4383), energy resolution 6.30\% FWHM, $\tau \simeq 810$~ns.
+
+\subsection{Anchor and setup}
+
+Taking the intrinsic yield as fixed at $Y = 10^5$~photons/MeV (robust across the
+literature), the measured collection efficiency is
+\begin{equation}
+  \varepsilon_{\rm det} = \frac{N_{\rm pe}}{Y \cdot E \cdot {\rm PDE}}
+  = \frac{4596}{10^5 \cdot 0.511 \cdot 0.17} = 0.529
+  \qquad (\text{crystal 2: } 0.505),
+\end{equation}
+with the cryo-spectrum-weighted ${\rm PDE} = 17\%$ as the dominant systematic (the
+cryogenic PDE of this MPPC is not directly measured). The simulation
+(\texttt{runs/soleti\_calib.toml}): the $3\times3\times20$ box, full-face readout through
+an air gap ($n_{\rm coupling}=1$, escape cone $30.9^\circ$), five faces PTFE
+(back-painted Lambertian, $\sa = 1.3^\circ$), 511~keV deposits distributed exponentially
+along the axis (attenuation 23~mm, entering the face opposite the sensor), ${\rm PDE}=1$.
+Two consistency checks come out well: with a near-transparent bulk our model gives
+$\varepsilon = 0.56$--0.60, in agreement with the Geant4 LUT-model estimate of 0.58
+quoted in~\cite{soleti2024} (two independent transport codes, same answer); and
+$Y = 10^5$ then \emph{requires} a $\sim$10\% bulk effect to reach the measured 0.529.
+
+\subsection{A one-measurement degeneracy}
+
+Scanning $(\lext, f, R_{\rm wrap})$, the measured $\varepsilon$ is reproduced along a
+degeneracy line; three representative solutions:
+\begin{center}
+\begin{tabular}{cccc}
+  \toprule
+  $\lext$ & $f$ & $R_{\rm wrap}$ & CRYSP-geometry collection \\
+  \midrule
+  0.3~m & 0.9 & 0.93 & 82.9\% \\
+  1~m   & 0.5 & 0.95--0.97 & 63.9\% \\
+  3~m   & 0   & 0.93 & 62.2\% \\
+  \bottomrule
+\end{tabular}
+\end{center}
+The last column is the point: the degeneracy is harmless in the small crystal but
+propagates to a 20-point spread in the CRYSP geometry (scattering rescues trapped light;
+absorption does not). We attempted to break it with the published energy resolution via
+the depth dependence of $\varepsilon$: the result is a null with its own value ---
+$\varepsilon(z)$ is flat to $<0.5\%$ FWHM for \emph{all three} solutions (the diffuse
+wrap fully homogenizes the light in this geometry), so the resolution budget cannot
+discriminate, and conversely the uniform-collection assumption used in the intrinsic
+resolution extraction of~\cite{soleti2024} is validated.
+
+\subsection{Adopted default and how to break the degeneracy}
+
+We adopt $\boxed{\lext = 0.3~\text{m},\; f = 0.9}$
+($\labs = 3$~m, $\lray = 0.33$~m) as the default --- not as the simplest option but as
+the \emph{coherent} one: the same producer family (AMCRYS/Kharkov) shows
+$\lext \approx 0.31$~m at 550~nm in \csitl{} with $f \approx 0.9$, and a scattering
+length flat between 340 and 550~nm is the signature of defect/inclusion (Mie-type)
+scattering rather than molecular Rayleigh ($\propto \lambda^{-4}$); with no dopant band,
+the metre-scale absorption is natural in the pure crystal. One physical picture, one
+parameter set, both materials. The resulting CRYSP baseline is
+\textbf{83.0\% collection} ($\sim$42\,000 photons at the sensor plane per 511~keV
+photopeak; $\sim$11--13k photoelectrons at ${\rm PDE} = 0.25$--0.30), with the
+\textbf{62--83\% bracket} kept in force until the degeneracy is broken. Ranked breakers,
+the first two in-house:
+\begin{enumerate}
+  \item \textbf{re-measure the same $3\times3\times20$ crystals bare} (no PTFE) --- the
+    Brose trick: the bare/wrapped ratio separates wall escape from bulk physics;
+  \item \textbf{a spectrophotometer transmittance scan} of a pure CsI sample at
+    340--350~nm (Knyazev-style): $\lext$ measured directly pins $f$ from the existing
+    wrapped point;
+  \item a global fit adding published cryo-CsI setups of different aspect
+    ratios~\cite{ding2022,wang2024};
+  \item the forthcoming CRYSP SiPM matrices / monolithic crystals: transverse light-map
+    shapes are strongly $f$-sensitive.
+\end{enumerate}
+
+%=====================================================================
 \section{Caveats and next steps}
 \label{sec:caveats}
 
@@ -336,10 +428,14 @@ most informative measurement.
 
 \begin{itemize}
   \item \texttt{scripts/csitl\_calib.jl} + \texttt{runs/csitl\_calib.toml} --- the
-    campaign (grid, cases, targets);
-  \item \texttt{data/csitl.toml} --- the calibrated parameters, provenance in comments;
-  \item \texttt{runs/point\_csitl\_teflon.toml} --- the CRYSP-geometry application;
-  \item \texttt{output/csitl\_calib/summary.csv} --- grid results;
+    \csitl{} campaign (grid, cases, targets);
+  \item \texttt{scripts/soleti\_calib.jl} + \texttt{runs/soleti\_calib.toml} --- the
+    cold-CsI campaign (Sec.~\ref{sec:coldcsi});
+  \item \texttt{data/csitl.toml}, \texttt{data/csi.toml} --- the calibrated parameters,
+    provenance in comments;
+  \item \texttt{runs/point\_csitl\_teflon.toml}, \texttt{runs/point\_csi\_teflon.toml}
+    --- the CRYSP-geometry applications;
+  \item \texttt{output/csitl\_calib/}, \texttt{output/soleti\_calib/} --- grid results;
   \item the package test suite (\texttt{Pkg.test}) enforces the transport anchors.
 \end{itemize}
 
@@ -370,8 +466,18 @@ IEEE Trans.\ Nucl.\ Sci.\ \textbf{55} (2008) 2432.
 
 \bibitem{soleti2024}
 S.~R.~Soleti \emph{et al.} (CRYSP),
-``Cryogenic CsI as a potential PET material,''
+``Cryogenic cesium iodide as a potential PET material,''
 arXiv:2406.13598 (2024).
+
+\bibitem{ding2022}
+K.~Ding, J.~Liu, Y.~Yang and D.~Chernyak,
+``First operation of undoped CsI directly coupled with SiPMs at 77~K,''
+Eur.\ Phys.\ J.\ C \textbf{82} (2022) 344.
+
+\bibitem{wang2024}
+L.~Wang \emph{et al.},
+``Reactor neutrino physics potentials of cryogenic pure-CsI crystal,''
+Eur.\ Phys.\ J.\ C \textbf{84} (2024) 440.
 
 \end{thebibliography}
 

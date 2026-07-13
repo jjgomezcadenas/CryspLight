@@ -1,0 +1,934 @@
+Scintillation characteristics of an undoped CsI crystal at low-temperature for dark
+matter search
+W. K. Kima,b , H. Y. Leec , K. W. Kimb , Y. J. Kod , J. A. Jeonb , H. J. Kime , H. S. Leea,b
+a University of Science and Technology (UST), Daejeon, 34113, Republic of Korea
+b Center for Underground Physics, Institute for Basic Science (IBS), Daejeon, 34126, Republic of Korea
+c Center for Exotic Nuclear Studies, Institute for Basic Science (IBS), Daejeon, 34126, Republic of Korea
+d Department of Physics, Jeju National University, Jeju, 63243, Republic of Korea
+
+arXiv:2312.07957v3 [physics.ins-det] 31 Jul 2025
+
+e Department of Physics, Kyungpook National University, Daegu, 41566, Republic of Korea
+
+Abstract
+The scintillation characteristics of 1 g undoped CsI crystal were studied by directly coupling two silicon photomultipliers
+(SiPMs) over a temperature range from room temperature to 86 K. The scintillation decay time and light output were
+measured using x-ray and gamma-ray peaks from a 109 Cd radioactive source. An increase in decay time was observed as
+the temperature decreased from room temperature to 86 K, ranging from 76 ns to 605 ns. The light output also increased,
+reaching 26.2 ± 1.3 photoelectrons per keV electron-equivalent at 86 K. Leveraging the significantly enhanced scintillation
+light output of the undoped CsI crystal at low temperatures, coupling it with SiPMs results in a promising detector for
+rare event searches. Both cesium and iodine have an odd number of protons, making them suitable targets for probing
+dark matter-proton spin-dependent interactions. This study evaluates the sensitivity of the proposed detector to such
+interactions, incorporating the Migdal effect and assuming 200 kg of undoped CsI crystals for dark matter searches. The
+results indicate that undoped CsI coupled with SiPM can achieve world-competitive sensitivity for low-mass dark matter
+detection, particularly in the context of dark matter-proton spin-dependent interactions.
+Keywords:
+Dark matter, undoped CsI, SiPM, Low temperature measurement
+
+1. Introduction
+Scintillating crystals are widely employed in the search
+for rare event interactions such as dark matter [1, 2, 3,
+4, 5, 6] or coherent elastic neutrino-nucleus scattering
+(CEνNS) [7, 8]. Since event rates are larger at low energy,
+low threshold detectors are essential for dark matter or
+CEνNS detection. In the case of scintillators, higher light
+yields are strongly associated with lower energy thresholds.
+The introduction of dopants during crystal growth, such
+as thallium in halide crystals (i.e., CsI(Tl) and NaI(Tl)),
+enhances radiative recombination and improves light emission efficiency. These doped crystals have been widely
+utilized at room temperature, coupled with photomultipliers, for dark matter and CEνNS detection experiments [7, 8, 9, 10, 11, 12, 13, 14]. The highest reported
+light yields from doped NaI(Tl) crystals were 22 photoelectrons (PE) per keV [8] with a novel crystal encapsulation
+technique [15]. There have been reports suggesting that
+undoped CsI and NaI crystals exhibit higher light yields
+at low temperatures with PMTs [16, 17, 18, 19, 20, 21, 22]
+or silicom photomultipliers (SiPMs) [23]. At the liquid
+
+Email addresses: hylee@ibs.re.kr (H. Y. Lee),
+kwkim@ibs.re.kr (K. W. Kim), hyunsulee@ibs.re.kr (H. S. Lee)
+Preprint submitted to Astroparticle Physics
+
+nitrogen temperature of 77 K, the undoped CsI crystal,
+coupled with SiPMs and a wavelength shifter, achieved a
+light yield of 30.1 PE/keV [24].
+We investigate the scintillation characteristics of an undoped CsI crystal to assess their temperature-dependent
+behavior. To maximize the light collection efficiency of the
+undoped CsI crystal, two SiPMs are directly attached to
+the crystal. In a temperature range between 86 K and
+293 K, we measured the light yield, scintillation decay
+time, and energy resolution. Due to the exhibition of high
+dark count rates and crosstalks [25, 26], we have carefully
+analyzed and corrected effects of them on the analysis of
+measurements.
+The technique for radiopure CsI crystal growth [27,
+28, 29] has been developed for the KIMS experiment,
+which used CsI(Tl) crystals coupled with photomultipliers (PMTs) for WIMP dark matter search [30, 31, 32].
+The production of 200 kg undoped CsI crystals can be performed at the Institute for Basic Science (IBS), Korea,
+which offers a powder purification facility [33, 34, 35] and
+Kyropoulos crystal growers [36], installed and employed
+for the growth of radiopure NaI(Tl) crystals [37, 38]. Additionally, about 400 kg of purified CsI powder remnants
+from the KIMS CsI(Tl) crystal growing have been stored
+at the Yangyang underground laboratory. We conducted
+August 1, 2025
+
+a feasibility study for rare event searches by measuring the
+characteristics of a small size undoped CsI crystal. Based
+on the high light yield observed from these measurements
+and the low-background CsI crystal growing technology,
+we evaluate the dark matter detection sensitivities of a future experiment using a detector based on undoped CsI
+crystals coupled to SiPMs. In the low-mass dark matter
+region for the dark matter-proton spin-dependent interaction, this detector can reach a world competitive sensitivity, exploring a new dark matter parameter space.
+
+as depicted in Fig. 2. The liquid nitrogen dewar is connected to the copper plate through a thermal link composed of multiple copper wires. The CsI-SiPMs setup was
+mounted on the copper plate and covered with a radiation
+shield made of iron to protect against external radiation
+heat. Rubber insulators were introduced to prevent the
+conduction of heat from the readout board, as shown in
+Fig. 1 (b). To control the temperatures of the CsI crystal,
+two heaters were incorporated on the copper plate. Two
+PT-1000 temperature sensors were employed to monitor
+the temperature inside the chamber using the temperature control unit of Lake Shore Model 336. One sensor
+was placed in close proximity to the crystal, while the
+other was positioned at the edge of the copper plate. The
+temperature control unit regulates the heater to manage
+crystal (or system) temperature variations, maintaining a
+stability level of 0.1 degree. We optimized the thermal
+connection performance between the nitrogen dewar and
+copper plate to achieve a minimum temperature closer to
+77 K while ensuring efficient heat transfer to the crystal
+to increase its temperature when necessary. In this setup,
+we successfully reached a temperature of 86 K with both
+SiPMs and readout boards in operation.
+
+2. Scintillation characteristics of the undoped CsI
+crystal
+2.1. Experimental setup
+The detector assembly used in this study consists of an
+undoped CsI crystal from the Institute for Scintillation
+Materials (ISMA) in Ukraine and two SiPMs from Hamamatsu Photonics. The undoped CsI crystal has dimensions
+of 5.8 mm × 5.9 mm × 7.0 mm with a mass of 1.0 g, as illustrated in Fig. 1 (a). Two SiPMs (model number S133602172) with an active area of 6.0 mm × 6.0 mm were directly attached to two ends of the crystal. The crystal and
+the SiPMs were mechanically attached without any optical
+coupling due to uncertainties regarding the optical grease
+and optical pad clarities, which were not guaranteed for
+temperature below −60 ◦ C. This SiPM consists of 14,400
+micropixel arrays, each of size 50 µm × 50 µm, covered
+with a quartz window. The entire assembly was tightly
+wrapped with soft polytetrafluoroethylene (PTFE) sheets
+and connected to homemade readout boards (customization available from NOTICE Korea 1 ) equipped with electronics for signal readout, pre-amplification, and bias voltage supply, as depicted in Fig. 1 (b).
+
+HV Power Supply
+(KEITHLEY 2635B
+SYSTEM SourceMeter)
+
+LN2 Dewar
+Pre-amp Power Supply
+(KEYSIGHT E3630A)
+
+Temperature
+Controller
+(Lake Shore Model336)
+
+PC
+
+Readout
+&
+Pre-amp
+Board
+
+Copper
+Plate
+
+Heater
+
+FADC
+(NOTICE FADC125 MHz)
+
+PT 1000
+
+CsI
+SiPM
+
+Insulator
+
+Radiation Shield
+Vacuum Chamber
+
+Vacuum
+Pump
+
+Figure 2: Schematic drawing of the experimental setup.
+5.8 mm
+7.0 mm
+
+A KEITHLEY 2635B SYSTEM SourceMeter is employed to provide the SiPM bias voltage through the readout boards, which are operated with a low-voltage supply using a KEYSIGHT E3630A. The homemade readout
+electronics amplifies the SiPM signals, and the amplified
+signals are digitized using a 125 MHz, 12-bit flash-analogto-digital converter (FADC) supplied by NOTICE Korea.
+
+5.9 mm
+
+(a)
+
+(b)
+
+(c)
+
+Figure 1: A 5.8 mm × 5.9 mm × 7.0 mm undoped CsI crystal is
+employed for the experiment (a). The crystal is coupled with two
+SiPMs, enclosed with multiple layers of soft polytetrafluoroethylene
+(PTFE) sheets, and connected to readout boards (b). Crystal and
+SiPM are in contact with a copper plate for heat transfer, while the
+readout board is positioned on an insulator to prevent heat transfer
+to the detector (c). The entire assembly is placed inside a cryostat
+chamber.
+
+2.2. Measurements
+The performance of the SiPM is affected by the overvoltage, defined as ∆V = Vbias − Vbreakdown , where Vbreakdown
+is the breakdown voltage. Data were collected using six
+different overvoltages ranging from 3 V to 8 V, with a 1 V
+interval at room temperature. The gain, represented by
+the maximum height of single photoelectron pulses, was
+evaluated at each overvoltage. Since the photo detection
+efficiency (PDE) of SiPM varies with gain or overvolt-
+
+The CsI-SiPMs setup was installed inside a cryostat vacuum chamber equipped with a temperature control unit,
+1 http://www.noticekorea.com
+
+2
+
+age [39, 40, 41, 42, 43, 44, 45], we maintained a consistent
+overvoltage for the temperature-dependent measurements.
+The temperature range for detector testing spanned
+from 86 K to 293 K (room temperature). Although data
+were taken across this temperature range, we encountered
+difficulties stabilizing the temperature at several specific
+points such as at 120, 250, and 260 K. These points were
+therefore excluded from the analysis to avoid introducing
+uncertainties. Additionally, due to the limitations of the
+present setup, complete elimination of heat from the readout board was not achievable, resulting in a minimum temperature of 86 K, which is above the aimed temperature of
+77 K.
+We characterized the scintillation of an undoped CsI
+crystal using a 109 Cd source that emits 22.1 keV and
+25.0 keV x-rays as well as an 88.0 keV γ-rays. Because
+of the energy resolution, the 22.1 keV and 25.0 keV x-ray
+peaks overlapped and were roughly adjusted to around
+23.0 keV, as shown in Fig. 3. Energy calibrations were performed using the 88.0 keV position. At low temperatures,
+the 23.0 keV peak is utilized after confirming the linearity
+of the two peaks. This decision is due to the saturation
+of the signal corresponding to the energy of the 88.0 keV
+peak in our electronics, caused by increasing gain at low
+temperatures.
+
+Dark Count Rate (kHz)
+
+10 3
+
+Counts
+
+2
+
+10
+
+80
+
+10 −1
+200
+250
+Temperature (K)
+
+300
+
+temperatures [26, 25, 46]. The rate is calculated by dividing the number of clusters, which are isolated pulse
+typically equivalent to single photoelectrons, identified in
+the pedestal regions by the corresponding time interval
+from the offline analysis. Since the DCR depends on both
+temperature and bias voltage, we assessed the DCR by
+varying temperature and overvoltage, as shown in Fig. 4.
+The DCR increases with higher overvoltage and exhibits a
+dramatic decrease at lower temperatures. For instance, at
+room temperature, the DCR is about 700 kHz with ∆V =
+5 V and decreased to 0.2 kHz at 150 K. Below 150 K, the
+DCR drops further, resulting in poor statistical reliability, therefore, data in this region were not included in the
+analysis.
+Crosstalk refers to the probability that a secondary
+photon, emitted during the avalanche generation process
+in one pixel following a true photon hit, triggers another pixel, resulting in multiple photoelectron events.
+Crosstalk can be categorized into internal Crosstalk (iCT)
+and external Crosstalk (eCT), depending on where the
+secondary avalanche occurs. iCT occurs when the secondary avalanche happens in a nearby pixel within the
+same SiPM, while eCT occurs when the emitted luminescence escapes from the SiPM and fires another SiPM at
+a distance [24]. Crosstalk is independent of temperature
+variation but highly dependent on bias voltage [25, 26].
+Both iCT and eCT probabilities were measured at room
+temperature.
+The iCT probability is estimated from the charge distribution of DCR, as shown in Fig. 3 of Ref. [25]. We can easily identify single-photoelectron and multi-photoelectron
+events to evaluate the crosstalk probability as the ratio
+of the number of charge-weighted multi-photoelectrons to
+single-photoelectrons. This measurement was first performed with a single SiPM turned on. Then, the same
+measurement was repeated with both SiPMs turned on.
+
+10
+
+60
+
+10 0
+
+Figure 4: Dark count rate as a function of temperature for three
+different overvoltages.
+
+3
+
+40
+
+10 1
+
+10 −2 150
+
+10
+
+20
+
+10 2
+
+∆V = 3 V
+∆V = 5 V
+∆V = 8 V
+
+100
+
+Energy (keV)
+
+Figure 3: Energy spectrum of the 109 Cd calibration source, measured
+at 150 K with ∆V = 5 V. The red triangles mark the two energy
+peaks at 23.0 keV and 88.0 keV.
+
+2.2.1. Dark count rate & Crosstalk
+Two critical factors in understanding SiPM data are the
+dark count rate (DCR) and crosstalk. We measured the
+DCR and crosstalk using a 1.6 µs time window located
+prior to the event-triggered position in the recorded signal
+data. This time window, referred to as the pedestal region,
+is chosen to exclude the influence of the scintillation event
+and SiPM after-pulses.
+The DCR is a significant noise source, particularly at
+room temperature, while it decreases significantly at lower
+3
+
+QDCR = (qSP E · DCR · T ),
+
+In this case, a higher crosstalk probability was observed
+compared to the single SiPM measurement, indicating the
+presence of eCT due to the secondary avalanche in the adjacent SiPM. The ratio between these two probabilities is
+used to estimate eCT. Table 1 summarizes the measured
+crosstalk probabilities at different overvoltages, averaged
+over the two SiPMs. Due to the increasing gain of the
+SiPM with higher overvoltages, the crosstalk probability
+also rises.
+
+where QT ot is the total charge within the timing window
+of this analysis (denoted as T ), which is 16 µs, qSP E denotes the charge of SPE, and piCT (peCT ) indicates the
+internal (external) crosstalk probability of the SiPM as
+summarized in Table 1. Ecal represents the energy from
+the 109 Cd source, either 23.0 or 88.0 keV.
+The emission wavelength of the undoped CsI crystal is
+peaked at 310 nm at room temperature and measured to be
+temperature dependent and equal to 340 nm at 77 K [47].
+At this wavelength, SiPMs have an almost twice higher
+PDE of roughly 30% than that of typical PMTs, which
+have a PDE of less than 15%. This results in an increased
+light yield compared to PMT measurements [48]. Similar results were reported by other groups [24], achieving a
+light yield of 30.1 PE/keV at 77 K with SiPMs coupled to
+undoped CsI crystals and a wavelength shifter from 340 nm
+to 420 nm.
+
+Overvoltage (V)
+
+iCT (%)
+
+eCT (%)
+
+3
+
+11.9 ± 0.3
+
+7.6 ± 0.4
+
+4
+
+13.9 ± 0.3
+
+8.8 ± 0.2
+
+5
+
+27.3 ± 0.3
+
+8.1 ± 0.2
+
+6
+
+54.5 ± 0.4
+
+10.6 ± 0.2
+
+7
+
+71.2 ± 2.2
+
+14.2 ± 0.3
+
+8
+
+90.8 ± 7.8
+
+33.6 ± 0.3
+
+Relative Light Yield (a.u.)
+
+Table 1: Crosstalk probability of SiPM measured at different overvoltages at room temperature. iCT and eCT represent internal and
+external crosstsalk respectively.
+
+2.2.2. Light yield & Energy resolution
+The light yield of the undoped CsI crystal was measured
+using the 109 Cd source for temperatures ranging from 86 K
+to 293 K. To maintain a consistent gain across different
+temperatures, overvoltage was kept constant. The results,
+shown in Fig. 5, are presented alongside previous measurements using typical PMTs [16, 17], with all three datasets
+normalized to have the same value at 280 K. We show data
+at 5 V overvoltage for the temperature-dependent analysis, as measurements at higher overvoltages become less
+reliable due to increased crosstalk and DCR at elevated
+temperatures. The observed increase in light yield at lower
+temperatures aligns with earlier measurements. At 86 K,
+the total light yields for overvoltages of 3 V and 5 V are
+21.3 ± 0.8 and 22.9 ± 0.8 PE/keV, respectively. The highest yield of 26.2 ± 1.3 PE/keV was obtained at the same
+temperature with overvoltages of 8 V, corresponding to the
+voltage with the highest gain. The contributions from
+DCR and crosstalk are considered in the light yield estimation and the errors associated with these values are included as systematic uncertainties. The light yield is calculated as the charge integrated in the analysis time window
+divided by the charge of a single photoelectron (SPE) and
+the energy of the peak from the radioactive source. Any
+charge contributed by the DCR should be subtracted from
+the total charge only to account charges from scintillation
+events. Additionally, the crosstalk probability should be
+corrected to account effective charge produced by singlephotoelectron. This process can be described as following,
+LightY ield =
+
+THIS WORK ∆V = 5 V
+C. Amsler 2001 (PMT)
+S. Park 2021 (PMT)
+
+150
+100
+50
+0
+
+100
+
+150
+200
+250
+Temperature (K)
+
+300
+
+Figure 5: The relative light yield of CsI, normalized to have same
+value at 280 K, is depicted as a temperature-dependent function.
+The data are presented for ∆V = 5 V (blue filled circles), with a
+value of 0.88 ± 0.02 PE/keV at 280 K. Additionally, for comparison,
+two previous measurements conducted using PMT are overlaid in
+green open triangle [16] and red open square [17]. The overall trend
+aligns with the results from other measurements.
+
+We estimated the standard deviation of the mixed
+23.0 keV peak with a Gaussian fit to evaluate the resolution, calculated as the standard deviation divided by
+energy. As shown in Fig 6, the improved resolution at
+low temperatures demonstrates the enhancement of light
+output.
+2.2.3. Decay time
+We investigated the temperature-dependent variation of
+the scintillation decay time of the undoped CsI crystal with
+overvoltage of 5 V for SiPM. The accumulated waveforms
+at each temperature were fitted with a single exponential
+function.
+
+QT ot − QDCR
+1
+·
+, (1)
+qSP E · (1 + piCT ) · (1 + peCT ) Ecal
+4
+
+Resolution (%)
+
+20
+15
+10
+100
+
+150
+200
+Temperature (K)
+
+Figure 6: Energy resolution (Standard deviation/Energy) of 23.0 keV
+mixed peak from 22.1 keV and 25.0 keV x-rays of the 109 Cd source
+at different temperatures with ∆V = 5 V.
+
+f (t) = A exp(−(t − t0 )/τ ),
+
+(2)
+Figure 7: Accumulated waveforms of the peak from 109 Cd with ∆ V
+= 5 V are shown at temperatures of 293 K, 200 K, 150 K, and 86 K,
+depicted in panels (a) to (d). The red dashed line represents the
+fitted exponential function, and the decay constant is described in
+each plot.
+
+where τ is the decay constant. A and t0 represent the
+normalization factor and the rising edge position of the
+scintillation, respectively.
+The waveforms and fitted results for the four selected
+temperatures, presented in Fig. 7, revealed an undesired
+undershoot in the signal generated by our SiPM readout
+electronics. The undershoot varied from event to event and
+appeared to be influenced by both the signal amplitude
+and baseline fluctuations, likely due to non-idealities in
+the readout system. Given the uncertainty in applying a
+reliable, event-independent correction model, we instead
+limited the waveform fitting to a short time window and
+applied a single exponential to avoid misestimating the
+decay time due to the undershoot, even though previous
+PMT measurements indicate the presence of two decay
+components[16, 17].
+The temperature-dependent decay time of the undoped
+CsI crystal is shown in Fig. 8 and compared with previous
+PMT measurements[16, 17]. Our measurements demonstrate a well-agreed trend of increased decay time at low
+temperatures. Slightly faster decay times in our measurements at all temperatures result from evaluating the decay
+time within a short time range, to exclude the severe undershoot previously described. The measured decay time
+is 76.0 ± 6.0 ns at room temperature and 605.2 ± 3.2 ns
+at 86 K. Generally, a longer decay time is advantageous
+for identifying nuclear recoil events using pulse shape discrimination (PSD). We plan to test PSD capability with
+a neutron source at liquid nitrogen temperatures in the
+future.
+
+3. 200 kg undoped CsI crystals for the dark matter
+search
+Following up on the high light yield of the undoped
+CsI crystal at liquid nitrogen temperature, we consider
+future dark matter search experiments with 200 kg of undoped CsI crystals coupled with SiPM arrays, especially
+to search for low-mass dark matter with spin-dependent
+interactions. Both cesium and iodine have non-zero proton spin due to their odd proton numbers, providing an
+advantage for searching for WIMP-proton spin-dependent
+interactions.
+The low-background CsI crystal growth technique was
+successfully developed for the KIMS CsI(Tl) dark matter
+search experiments [27, 49]. The primary sources of internal background in CsI crystals were identified as 137 Cs and
+87
+Rb. The presence of 137 Cs is mainly attributed to water
+used in the chemical process of cesium extraction. By employing purified water, the contamination of 137 Cs can be
+reduced by one order of magnitude in the CsI powder [28].
+The 87 Rb nuclei are extracted using the recrystallization
+method, taking advantage of the different solubility of RbI
+and CsI in water [49]. About 400 kg of remnant CsI powder, left over from the KIMS CsI(Tl) crystal growth process, has been stored at the Yangyang underground lab5
+
+800
+Decay Time (ns)
+
+around 10% increase in light output at 77 K compared to
+86 K. In the low-energy data acquisition setup, where two
+SiPM arrays are attached to two ends of the crystal, we can
+impose a requirement for coincident photoelectrons in the
+two SiPM arrays to minimize noise triggering while achieving the minimum thresholds, corresponding to an energy
+threshold of roughly 0.08 keV. In contrast to PMT measurements, where PMT-induced noise from Cherenkov radiation of charged particles passing through quartz or glass
+materials can dominate low-energy events and increase the
+analysis threshold [51], such noise is less frequent in SiPM
+arrays since quartz or glass materials can be minimized in
+their construction. While DCR could be a potential concern, they are sufficiently low at 77 K. For the purpose of
+calculating dark matter detection sensitivities, we assume
+a 5 PE threshold, consistent with CsI(Na) measurements
+using PMT readout [7].
+The proposed 200 kg undoped CsI experiment can be implemented using a 5×5 array of 8.7 kg CsI modules, each
+with dimensions of 8 cm × 8 cm × 30 cm (similar to the size
+used in the KIMS experiment [31, 32]). The two ends of the
+8 cm × 8 cm side can be covered with 13×13 SiPM arrays
+with 6 mm × 6 mm cells. The assumed parameters for the
+analysis include a flat background of 1 count/kg/keV/day,
+a light yield of 26.2 PE/keV, corresponding to 0.08 keV,
+and an analysis threshold of 5 PE. Additionally, an increased light yield of 30 PE/keV, achieved through the application of a wavelength shifter [24], corresponding to a
+0.07 keV threshold, is considered in the evaluation. For
+the benchmark model of the low-mass dark matter search,
+low-energy signals via Migdal electrons [52, 53] induced by
+WIMP-proton spin-dependent interaction are assessed.
+To estimate the dark matter signal enhancement that
+is provided by the Migdal effect, we generate expected
+signals by multiplying the nuclear recoil rate of WIMP
+interactions [54] and ionization probability of the Migdal
+effect [53, 51]. For various WIMP masses and WIMPproton spin-dependent interactions, we simulate the expected event rates in the specific context of the standard
+halo model [55, 56]. Responses that include form factors
+and proton spin values of the nuclei are implemented from
+the publicly available dmdd package [57, 58]. Due to the
+absence of calculations for cesium, we utilized the ionization probability from iodine. Additionally, we experimented with xenon’s ionization probability to cross check
+the results. The ionization probabilities from elements
+with similar atomic mass numbers to cesium yielded comparable results. Assuming a one-year data exposure with
+200 kg of undoped CsI crystals, the Poisson fluctuation of
+the measured number of photoelectrons is taken into account for the detector resolution, as discussed in Ref. [59].
+The nuclear recoil quenching factors (QFs) which is the
+ratio of the scintillation light yield from cesium or iodine
+recoil relative to that from electron recoil for the same energy are additionally considered. The measured quenching
+factor of undoped CsI from Ref. [60] is incorporated into
+the calculations. In this calculation, detection efficiency
+
+THIS WORK
+C. Amsler 2001
+S. Park 2021
+
+600
+400
+200
+0
+
+100
+
+150
+200
+250
+Temperature (K)
+
+300
+
+Figure 8: Decay time of a pure CsI crystal as a function of temperature with ∆ V = 5 V (blue filled circles). Two previous measurements
+(green open triangle [16] and red open squares [17]) using PMTs are
+overlaid for comparison
+
+oratory for 20 years. This reserve can be effectively utilized to grow 200 kg of undoped CsI crystals for future
+experiments. Additionally, a powder purification facility
+based on the recrystallization process was developed for
+NaI powder [33, 34, 35]. This facility can be re-adapted
+for CsI powder purification, providing a streamlined process for obtaining low background levels in the CsI crystals
+if required.
+Low-background crystal growth can be conducted at
+the Institute for Basic Science in Korea, where crystal
+growers have been developed for low-background NaI(Tl)
+crystals. The Kyropulous growers designed for NaI(Tl)
+crystals can be readily adapted for undoped CsI crystal
+growth. Additionally, Bridgman growers, commonly used
+for CsI crystal growth, are available for this purpose. In
+the KIMS experiment, the lowest background achieved
+at 2 keV was about 2.5 counts/kg/keV/day with the latest crystal delivered from Beijing Hamamatsu [50]. The
+radioactive background in the PMTs and the direct attachment of PMTs to the crystal contribute to external
+background at low energy, estimated to be approximately
+0.5–1 counts/kg/keV/day [29]. Replacing the PMTs with
+SiPM arrays significantly reduces the external background
+contribution. Indeed, the contributions from 134 Cs, estimated at the level of 1.0 count/kg/keV/day, can be considered negligible if crystals are grown using 20 years of
+underground-stored powder. This is attributed to the relatively short half-life of 134 Cs, which is only 2.1 years. By
+leveraging existing powder and employing low-background
+crystal growing technology, the combination of undoped
+CsI crystals with SiPM arrays has the potential to achieve
+a background level of less than 1 count/kg/keV/day.
+We are using a conservative estimate of 26.2 PE/keV for
+light yields with the SiPM arrays, even though there is an
+6
+
+4. Conclusion
+
+We use an ensemble of simulated experiments to estimate the sensitivity of the experiment. This ensemble
+test quantifies the expected cross-section limits for WIMPproton spin-dependent interactions with the Migdal effect.
+For each experiment, we determine a simulated spectrum
+based on a background-only hypothesis, with the assumed
+background achieved through Gaussian fluctuations. The
+simulated data is then fitted using a signal and background
+hypothesis. The fit is performed within the energy range of
+5 PE to 400 PE for each WIMP model with various masses,
+employing the Bayesian approach used in the COSINE-100
+experiment [10]. The 1σ and 2σ standard-deviation probability regions of the expected 90% confidence level limits
+are calculated from 1000 simulated experiments.
+
+The characteristics of a pure CsI crystal coupled with
+two SiPMs were investigated at temperatures ranging from
+86 K to room temperature. The increased light yield and
+decay time at low temperatures were observed consistently
+with the literature. We obtained a light yield of 26.2 ±
+1.3 PE/keV at 86 K, which is 12 times larger than the
+light yield at room temperature. Given our capacity for
+producing low-background undoped CsI crystals, we investigated the expected sensitivity of a 200 kg undoped
+CsI experiment operating at 77 K with a 1-year exposure, 1 count/kg/keV/day background rate, and a 5 PE
+energy threshold. In this scenario, the undoped CsI crystal
+can explore low-mass dark matter between 60 MeV/c2 and
+2 GeV/c2 with the world’s best sensitivities for WIMPproton spin-dependent interactions.
+
+10 10
+10 8
+
+10 4
+10 2
+10 0
+10 −2
+
+CRE XENON
+SSTII 1T (Mig
+dal)
+CollaIr
+CsI-SiP
+M (LY
+= 26.2
+CsI-SiP
+np
+M (LY
+
+= 30.1
+
+This work was supported by the Institute for Basic Science (IBS) under project code IBS-R016-A1.
+
+ite
+
+10 6
+
+Acknowledgements
+
+CDMSl
+
+WIMP-proton SD cross section (pb)
+
+and systematics are not considered.
+
+References
+[1] S. Kim, H. Kim, Y. Kim, Scintillator-based detectors for dark
+matter searches i, New J. Phys. 12 (2010) 075003.
+[2] J. Amare, et al., Performance of ANAIS-112 experiment after
+the first year of data taking, Eur. Phys. J. C 79 (3) (2019) 228.
+arXiv:1812.01472, doi:10.1140/epjc/s10052-019-6697-4.
+[3] R. Bernabei, et al., First model independent results from
+DAMA/LIBRA-phase2, Nucl. Phys. Atom. Energy 19 (4)
+(2018) 307–325. doi:10.15407/jnpae2018.04.307.
+[4] G. Adhikari, et al., Search for a dark matter-induced annual
+modulation signal in NaI(Tl) with the COSINE-100 experiment, Phys. Rev. Lett. 123 (2019) 031302. arXiv:1903.10098,
+doi:10.1103/PhysRevLett.123.031302.
+[5] A. Zani, et al., The ASTAROTH Project: enhanced lowenergy sensitivity to Dark Matter annual modulation, J.
+Phys. Conf. Ser. 2156 (2021) 012060.
+doi:10.1088/17426596/2156/1/012060.
+[6] G. Angloher, et al., Testing spin-dependent dark matter interactions with lithium aluminate targets in CRESST-III,
+Phys. Rev. D 106 (9) (2022) 092008.
+arXiv:2207.07640,
+doi:10.1103/PhysRevD.106.092008.
+[7] D. Akimov, et al., Observation of Coherent Elastic
+Neutrino-Nucleus Scattering, Science 357 (6356) (2017) 1123.
+arXiv:1708.01294, doi:10.1126/science.aao0990.
+[8] J. J. Choi, et al., Exploring coherent elastic neutrino-nucleus
+scattering using reactor electron antineutrinos in the NEON experiment, Eur. Phys. J. C 83 (3) (2023) 226. arXiv:2204.06318,
+doi:10.1140/epjc/s10052-023-11352-x.
+[9] K. W. Kim, et al., Limits on Interactions between Weakly Interacting Massive Particles and Nucleons Obtained with NaI(Tl)
+crystal Detectors, JHEP 03 (2019) 194. arXiv:1806.06499,
+doi:10.1007/JHEP03(2019)194.
+[10] G. Adhikari, et al., Strong constraints from COSINE-100 on the
+DAMA dark matter results using the same sodium iodide target,
+Sci. Adv. 7 (46) (2021) abk2699. doi:10.1126/sciadv.abk2699.
+[11] G. Adhikari, et al., Three-year annual modulation search
+with COSINE-100, Phys. Rev. D 106 (5) (2022) 052005.
+doi:10.1103/PhysRevD.106.052005.
+[12] J. Amare, et al., Annual Modulation Results from Three Years
+Exposure of ANAIS-112, Phys. Rev. D 103 (10) (2021) 102005.
+arXiv:2103.01175, doi:10.1103/PhysRevD.103.102005.
+
+e/keV)
+
+npe/keV
+
+)
+
+PICO-60
+PICASSO
+
+10 2
+10 3
+WIMP mass (MeV/c 2 )
+
+Figure 9: The expected 90% confidence level limits for the undoped
+CsI with a 200 kg, 1-year exposure using the Migdal effect on the
+WIMP-proton spin-dependent cross-section are presented, assuming
+the background-only hypothesis. In addition to the nominal assumed
+light yield of 26.2 PE/keV (black solid line with 1-σ (green) and
+2-σ (yellow) systematic bands), higher light yields, assuming the
+application of the wavelength shifter of 30 PE/keV (red dashed line),
+are evaluated. These limits are compared with the current best limits
+from XENON1T (Migdal)[61], CRESST-III LiAlO2 [6], Collar[62],
+CDMSlite [63], PICO-60 [64], and PICASSO [65].
+
+The limits on the WIMP-proton spin-dependent interaction with the Migdal effect shown in Fig. 9 are compared with the current best limits on the low-mass WIMP
+searches from XENON1T with Migdal[61], CRESST-III
+LiAlO2 [6], Collar [62], CDMSlite [63], PICO-60 [64], and
+PICASSO [65]. Taking advantage of odd-proton numbers
+and low-energy threshold, the projected sensitivity with
+200 kg of undoped CsI experiment can reach the world’s
+best sensitivities for WIMP masses between 60 MeV/c2
+and 2 GeV/c2 .
+7
+
+[13] M. Antonello, et al., The SABRE project and the SABRE
+Proof-of-Principle, Eur. Phys. J. C 79 (4) (2019) 363.
+arXiv:1806.09340, doi:10.1140/epjc/s10052-019-6860-y.
+[14] R. Bernabei, et al., The DAMA project: Achievements, implications and perspectives, Prog. Part. Nucl. Phys. 114 (2020)
+103810. doi:10.1016/j.ppnp.2020.103810.
+[15] J. J. Choi, B. J. Park, C. Ha, K. W. Kim, S. K. Kim, Y. D.
+Kim, Y. J. Ko, H. S. Lee, S. H. Lee, S. L. Olsen, Improving
+the light collection using a new NaI(Tl) crystal encapsulation,
+Nucl. Instrum. Meth. A 981 (2020) 164556. arXiv:2006.02573,
+doi:10.1016/j.nima.2020.164556.
+[16] C. Amsler, D. Grögler, W. Joffrain, D. Lindelöf, M. Marchesotti,
+P. Niederberger, H. Pruys, C. Regenfus, P. Riedler, A. Rotondi,
+Temperature dependence of pure CsI: Scintillation light yield
+and decay time, Nucl. Instrum. Meth. A 480 (2) (2002) 494–
+500. doi:10.1016/S0168-9002(01)01239-6.
+[17] S. Park, A. Khan, H. Kim, Characterization of a Pure CsI Crystal at Low Temperature for a Dark-Matter Search, New Physics:
+Sae Mulli 71 (5) (2021) 469–475. doi:10.3938/NPSM.71.469.
+[18] H. Nishimura, M. Sakata, T. Tsujimoto, M. Nakayama, Origin
+of the 4.1-eV luminescence in pure CsI scintillator, Phys. Rev.
+B 51 (4) (1995) 2167–2172. doi:10.1103/PhysRevB.51.2167.
+[19] P. Schotanus, R. Kamermans, Scintillation characteristics of
+pure and Tl-doped CsI crystals, IEEE Tran. Nucl. Sci. 37 (2)
+(1990) 177–182. doi:10.1109/23.106614.
+[20] M. Moszynski, M. Balcerzyk, W. Czarnacki, M. Kapusta,
+W. Klamra, P. Schotanus, A. Syntfeld, M. Szawlowski,
+Study of pure nai at room and liquid nitrogen temperatures,
+IEEE Transactions on Nuclear Science 50 (4) (2003) 767–773.
+doi:10.1109/TNS.2003.815176.
+[21] F. Reindl, et al., Results of the first NaI scintillating
+calorimeter prototypes by COSINUS, J. Phys. Conf. Ser.
+1342 (1) (2020) 012099. arXiv:1711.01482, doi:10.1088/17426596/1342/1/012099.
+[22] D.
+Poda,
+Scintillation
+in
+Low-Temperature
+Particle Detectors, MDPI Physics 3 (3) (2021) 473–535.
+doi:10.3390/physics3030032.
+[23] K. Ding, J. Liu, Y. Yang, D. Chernyak, First operation of undoped CsI directly coupled with SiPMs at 77 K, Eur. Phys. J. C
+82 (4) (2022) 344. arXiv:2201.00483, doi:10.1140/epjc/s10052022-10289-x.
+[24] L. Wang, et al., Reactor neutrino physics potentials of cryogenic pure-CsI crystal, Eur. Phys. J. C 84 (4) (2024) 440.
+arXiv:2212.11515, doi:10.1140/epjc/s10052-024-12800-y.
+[25] H. Y. Lee, J. A. Jeon, K. W. Kim, W. K. Kim, H. S. Lee, M. H.
+Lee, Scintillation characteristics of a NaI(Tl) crystal at lowtemperature with silicon photomultiplier, JINST 17 (02) (2022)
+P02027. doi:10.1088/1748-0221/17/02/P02027.
+[26] P. K. Lightfoot, G. J. Barker, K. Mavrokoridis, Y. A. Ramachers, N. J. C. Spooner, Characterisation of a silicon photomultiplier device for applications in liquid argon based neutrino
+physics and dark matter searches, JINST 3 (2008) P10001.
+arXiv:0807.3220, doi:10.1088/1748-0221/3/10/P10001.
+[27] T. Y. Kim, et al., Study of the internal background of CsI(Tl)
+crystal detectors for dark matter search, Nucl. Instrum. Meth.
+A 500 (2003) 337–344. doi:10.1016/S0168-9002(03)00346-2.
+[28] Y. D. Kim, et al., Inhibition of Cs-137 contamination in cesium iodide, Nucl. Instrum. Meth. A 552 (2005) 456–462.
+doi:10.1016/j.nima.2005.06.080.
+[29] H. S. Lee, et al., Development of low-background CsI(Tl) crystals for WIMP search, Nucl. Instrum. Meth. A 571 (2007) 644–
+650. doi:10.1016/j.nima.2006.10.325.
+[30] H. S. Lee, et al., First limit on WIMP cross section with low background CsI(Tl) crystal detector, Phys.
+Lett. B 633 (2006) 201–208.
+arXiv:astro-ph/0509080,
+doi:10.1016/j.physletb.2005.12.035.
+[31] H. S. Lee, et al., Limits on WIMP-nucleon cross section with
+CsI(Tl) crystal detectors, Phys. Rev. Lett. 99 (2007) 091301.
+arXiv:0704.0423, doi:10.1103/PhysRevLett.99.091301.
+[32] S. C. Kim, et al., New Limits on Interactions between Weakly
+Interacting Massive Particles and Nucleons Obtained with
+
+CsI(Tl) Crystal Detectors, Phys. Rev. Lett. 108 (2012) 181301.
+doi:10.1103/PhysRevLett.108.181301.
+[33] K. Shin, O. Gileva, Y. Kim, H. S. Lee, H. Park, Reduction of the
+radioactivity in sodium iodide (NaI) powder by recrystallization
+method, J. Radioanal. Nucl. Chem. 317 (3) (2018) 1329–1332.
+doi:10.1007/s10967-018-6006-y.
+[34] K. Shin, J. Choe, O. Gileva, A. Iltis, Y. Kim, C. Lee, H. S.
+Lee, M. H. Lee, H. K. Park, A facility for mass production of
+ultra-pure NaI powder for the COSINE-200 experiment, JINST
+15 (07) (2020) C07031. arXiv:2004.13280, doi:10.1088/17480221/15/07/C07031.
+[35] K. Shin, J. Choe, O. Gileva, A. Iltis, Y. Kim, Y. Kim, C. Lee,
+E. Lee, H. Lee, M. H. Lee, Mass production of ultra-pure NaI
+powder for COSINE-200, Front. in Phys. 11 (2023) 1142849.
+arXiv:2301.05400, doi:10.3389/fphy.2023.1142849.
+[36] S. Ra, et al., Scintillation crystal growth at the CUP, PoS
+ICHEP2018 (2019) 668. doi:10.22323/1.340.0668.
+[37] B. J. Park, et al., Development of ultra-pure NaI(Tl) detectors
+for the COSINE-200 experiment, Eur. Phys. J. C 80 (9) (2020)
+814. arXiv:2004.06287, doi:10.1140/epjc/s10052-020-8386-8.
+[38] H. Lee, et al., Performance of an ultra-pure NaI(Tl) detector produced by an indigenously-developed purification
+method and crystal growth for the COSINE-200 experiment, Front. in Phys. 11 (2023) 1142765. arXiv:2301.04884,
+doi:10.3389/fphy.2023.1142765.
+[39] A. Ferri, F. Acerbi, A. Gola, G. Paternoster, C. Piemonte,
+N. Zorzi, A comprehensive study of temperature stability of Silicon PhotoMultiplier, Journal of Instrumentation 9 (06) (2014)
+P06018. doi:10.1088/1748-0221/9/06/P06018.
+[40] T. Teranishi, Y. Ueno, M. Osada, S. Oka, K. Iribe, H. Yoshida,
+H. Sakai, T. Kubo, Pulse shape analysis of signals from SiPMbased CsI(Tl) detectors for low-energy protons: Saturation correction and particle identification, Nucl. Instrum. Meth. A 989
+(2021) 164967. doi:10.1016/j.nima.2020.164967.
+[41] S. M. Sze, G. Gibbons, Avalanche breakdown voltages of abrupt
+and linearly graded p-n junctions in Ge, Si, GaAs, and GaP,
+Appl. Phys. Lett. 8 (5) (1966) 111–113. doi:10.1063/1.1754511.
+[42] N. Dinu, A. Nagai, A. Para, Breakdown voltage and triggering probability of SiPM from IV curves at different
+temperatures, Nucl. Instrum. Meth. A 845 (2017) 64–68.
+doi:10.1016/j.nima.2016.05.110.
+[43] A. Nepomuk Otte, D. Garcia, T. Nguyen, D. Purushotham,
+Characterization of Three High Efficiency and Blue Sensitive
+Silicon Photomultipliers, Nucl. Instrum. Meth. A 846 (2017)
+106–125. arXiv:1606.05186, doi:10.1016/j.nima.2016.09.053.
+[44] N. Dinu, A. Nagai, A. Para, Studies of MPPC detectors down
+to cryogenic temperatures, Nucl. Instrum. Meth. A 787 (2015)
+275–279. doi:10.1016/j.nima.2014.12.061.
+[45] G. Collazuol, M. G. Bisogni, S. Marcatili, C. Piemonte,
+A. Del Guerra, Studies of silicon photomultipliers at cryogenic
+temperatures, Nucl. Instrum. Meth. A 628 (1) (2011) 389–392.
+doi:10.1016/j.nima.2010.07.008.
+[46] A. Vacheret, et al., Characterization and Simulation of the Response of Multi Pixel Photon Counters to Low Light Levels,
+Nucl. Instrum. Meth. A 656 (1) (2011) 69–83. arXiv:1101.1996,
+doi:10.1016/j.nima.2011.07.022.
+[47] C. L. Woody, P. W. Levy, J. A. Kierstead, T. Skwarnicki,
+Z. Sobolewski, M. Goldberg, N. Horwitz, P. Souder, D. F.
+Anderson, Readout techniques and radiation damage of undoped cesium iodide, IEEE Trans. Nucl. Sci. 37 (1990) 492–499.
+doi:10.1109/23.106667.
+[48] K. Ding, D. Chernyak, J. Liu, Light yield of cold undoped CsI
+crystal down to 13 keV and the application of such crystals
+in neutrino detection, Eur. Phys. J. C 80 (12) (2020) 1146.
+arXiv:2008.00939, doi:10.1140/epjc/s10052-020-08712-2.
+[49] H. S. Lee, Dark Matter Search with CsI(Tl) Crystals, Ph.d dissertation, Seoul National University (2007).
+[50] S. C. Kim, Dark Matter Search with 100kg of CsI(Tl) Crystals,
+Ph.d dissertation, Seoul National University (2011).
+[51] G. Adhikari, et al., Lowering the energy threshold in COSINE100 dark matter searches, Astropart. Phys. 130 (2021) 102581.
+
+8
+
+arXiv:2005.13784, doi:10.1016/j.astropartphys.2021.102581.
+[52] A. Migdal, Ionization of atoms accompanying α- and β-decay.,
+J. Phys. USSR 4 (1941) 449.
+[53] M. Ibe, W. Nakano, Y. Shoji, K. Suzuki, Migdal Effect in Dark
+Matter Direct Detection Experiments, JHEP 03 (2018) 194.
+arXiv:1707.07258, doi:10.1007/JHEP03(2018)194.
+[54] C. Savage, G. Gelmini, P. Gondolo, K. Freese, Compatibility
+of DAMA/LIBRA dark matter detection with other searches,
+JCAP 0904 (2009) 010. doi:10.1088/1475-7516/2009/04/010.
+[55] J. Lewin, P. Smith, Review of mathematics, numerical factors,
+and corrections for dark matter experiments based on elastic
+nuclear recoil, Astropart. Phys. 6 (1996) 87. doi:10.1016/S09276505(96)00047-3.
+[56] K. Freese, M. Lisanti, C. Savage, Colloquium: Annual modulation of dark matter, Rev. Mod. Phys. 85 (2013) 1561–1581.
+doi:10.1103/RevModPhys.85.1561.
+URL https://link.aps.org/doi/10.1103/RevModPhys.85.1561
+[57] V. Gluscevic, S. D. McDermott, dmdd: Dark matter direct
+detection, Astrophysics Source Code Library [ascl:1506.002]
+(2015).
+[58] V. Gluscevic, M. I. Gresham, S. D. McDermott, A. H. G.
+Peter, K. M. Zurek, Identifying the Theory of Dark Matter
+with Direct Detection, JCAP 12 (2015) 057. arXiv:1506.04454,
+doi:10.1088/1475-7516/2015/12/057.
+[59] Y. J. Ko, H. S. Lee, Sensitivities for coherent elastic
+scattering of solar and supernova neutrinos with future
+NaI(Tl) dark matter search detectors of COSINE-200/1T,
+Astropart. Phys. 153 (2023) 102890.
+arXiv:2210.01386,
+doi:10.1016/j.astropartphys.2023.102890.
+[60] C. M. Lewis, J. I. Collar, Response of undoped cryogenic CsI to
+low-energy nuclear recoils, Phys. Rev. C 104 (1) (2021) 014612.
+arXiv:2101.03264, doi:10.1103/PhysRevC.104.014612.
+[61] E. A. et al., Search for Light Dark Matter Interactions Enhanced by the Migdal Effect or Bremsstrahlung
+in XENON1T, Phys. Rev. Lett. 123 (24) (2019) 241803.
+doi:10.1103/PhysRevLett.123.241803.
+[62] J. I. Collar, Search for a nonrelativistic component in the spectrum of cosmic rays at Earth, Phys. Rev. D 98 (2) (2018)
+023005. doi:10.1103/PhysRevD.98.023005.
+[63] R. A. et al., Low-mass dark matter search with CDMSlite, Phys.
+Rev. D 97 (2) (2018) 022002. doi:10.1103/PhysRevD.97.022002.
+[64] C. A. et al., Dark matter search results from the complete exposure of the PICO-60 C3 F8 bubble chamber, Phys. Rev. D
+100 (2) (2019) 022001. doi:10.1103/PhysRevD.100.022001.
+[65] E. B. et al., Final results of the PICASSO dark matter search experiment, Astropart. Phys. 90 (2017) 85–92.
+doi:10.1016/j.astropartphys.2017.02.005.
+
+9
+
+

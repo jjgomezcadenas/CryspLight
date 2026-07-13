@@ -1,0 +1,891 @@
+Prepared for submission to JINST
+
+arXiv:2406.13598v4 [physics.ins-det] 27 May 2025
+
+Cryogenic cesium iodide as a potential PET material
+
+S. R. Soleti, 1 A. Castillo, M. del Barrio-Torregrosa, C. Echeverria, M. Seemann, D.
+Zerzion, J. J. Gómez Cadenas
+Donostia International Physics Center, San Sebastián / Donostia, E-20018, Spain
+
+E-mail: roberto.soleti@dipc.org
+Abstract: Total Body PET (TBPET) scanners have recently demonstrated the ability to significantly
+reduce both acquisition time and the administered radioactive dose, thanks to their increased
+sensitivity. However, their widespread adoption is limited by the high costs associated with the
+current available systems.
+Cesium iodide (CsI), though historically less favored for PET due to its lower stopping power
+and light yield compared to crystals like LYSO, shows remarkable improvement when operated
+at cryogenic temperatures (∼100 K). Under these conditions, CsI light yield rises dramatically to
+about 100 photons/keV, providing excellent energy resolution and good coincidence time resolution
+at a lower cost — typically 3 to 5 times cheaper than other crystals at parity of radiation length.
+In our study, we measured the light yield, the energy resolution and the coincidence time
+resolution as a function of temperature for two pure CsI crystals read out by a pair of silicon
+photomultipliers (SiPMs). An energy resolution of 6.3% FWHM and a coincidence time resolution
+of 1.84 ns at 511 keV were achieved at a temperature of 104 K. These results point towards the
+potential of cryogenic CsI as a cost-effective, high-performance material for TBPET scanners.
+Keywords: PET, Scintillators, Cryogenic detectors
+ArXiv ePrint: 2406.13598
+
+1Corresponding author.
+
+Contents
+1
+
+Introduction
+
+1
+
+2
+
+Experimental setup
+
+2
+
+3
+
+Experimental measurements
+3.1 Light yield and energy resolution
+3.2 Emission time profile and coincidence time resolution
+
+3
+3
+6
+
+4
+
+Summary and future prospects
+
+8
+
+1
+
+Introduction
+
+Positron emission tomography (PET) is a powerful imaging technique that plays an important
+role in medical diagnostics, employing positron-emitting radionuclides to track biologically active
+molecules. The annihilation of positrons and electrons produces gamma rays of 511 keV, which are
+detected to create detailed images of functional processes within the body.
+Most modern commercial PET scanners employ lutetium-based scintillating crystals, such as
+lutetium yttrium oxyorthosilicate (LYSO). This material has optimal performances for PET imaging,
+providing an excellent stopping power, a good light yield and a fast decay time. However, due to its
+high cost (45-50 e/cm3 ), as well as the cost of the associated electronics and readout, commercial
+scanners are typically limited to small axial lengths and are thus able to cover only a small portion
+of the patient’s body at a time [1].
+Although large TBPET scanners have been built in the last decade, showing an impressive increased performance (e.g., United Imaging uEXPLORER [2], Siemens Biograph Vision
+Quadra [3]), the cost of such apparatus is beyond the possibilities of most hospitals.
+Therefore, developing a cost-effective TBPET system will require identifying a less expensive
+alternative to lutetium-based crystals, ideally one that provides similar performance. In this context,
+the possibility of using scintillating crystals based on cesium iodide (CsI) is worth being explored.
+Table 1 shows the properties of CsI compared with other crystals commonly used for PET. At parity
+of radiation length, CsI is five times less expensive than LYSO and two-three times less expensive
+than BGO. Additionally, its raw materials are widely available, and crystal growth requires a
+significantly lower temperature – approximately 800 ◦ C, compared to the 1000 ◦ C and 2000 ◦ C
+needed for BGO and LYSO, respectively [4].
+Pure CsI has been adopted in particle physics for experiments set in high-rate and high-radiation
+environments, given its fast decay time and radiation hardness [6]. At first glance, its low light
+yield (5 photons/keV), UV emission, average radiation length and density make it a sub-optimal
+candidate for PET.
+
+–1–
+
+Table 1. Properties of scintillating materials commonly used for PET, compared with scintillators based on
+cesium iodide. Data for LYSO, BGO and CsI(Tl) have been obtained from vendor [5]. Cost is normalized
+by one radiation length 𝑋0 .
+Material
+LYSO
+BGO
+CsI(Tl)
+CsI (300 K)
+CsI (100 K)
+
+𝑍𝑒 𝑓 𝑓
+66
+74
+54
+54
+54
+
+𝑋0 (cm)
+1.14
+1.12
+1.86
+1.86
+1.86
+
+𝜌 (g/cm3 )
+7.4
+7.1
+4.5
+4.5
+4.5
+
+LY (𝛾/keV)
+30
+10
+55
+5
+100
+
+𝜏 (ns)
+53
+300
+1000
+15
+800
+
+Peak (nm)
+420
+480
+560
+310
+350
+
+Cost (e/cm3 · 𝑋0 )
+50
+28
+10
+10
+10
+
+However, cooling pure CsI to cryogenic temperatures, approximately 100 K, causes its light
+emission spectrum to shift toward the near ultraviolet range, moving from around 310 nm to
+340 nm [7]. This process also increases its light yield by approximately a factor of 20 to about
+100 photons/keV, significantly improving its energy resolution [8–10].
+Unfortunately, its decay time also increases, approximately by a factor of 50. In a PET scanner,
+the coincidence time resolution (CTR) between pairs of crystals is determined by the material’s
+emission time profile and amount of light detected. An approximate figure of merit is given by [11]:
+√︂
+CTR ∝
+
+𝜏
+,
+𝑁ph
+
+(1.1)
+
+where 𝜏 is the decay time constant and 𝑁ph is the number of detected photons.
+Using eq. (1.1) to compare the CTR for CsI operating at room temperature and at 100 K we
+obtain:
+√︄
+CTR100 K ≈
+
+800 ns 5 ph./keV
+·
+· CTR300 K
+15 ns 100 ph./keV
+
+(1.2)
+
+≈ 1.6 · CTR300 K .
+Thus, given that the time resolution at room temperature is at the nanosecond level [12], timing
+should still be possible also at 100 K, in spite of the long decay time.
+We demonstrate experimentally that such high light yield translates into an energy resolution
+and a coincidence time resolution that satisfy the requirements of a PET scanner, pointing towards
+the potential of cryogenic CsI for this application.
+This paper is organized as follows. Section 2 describes the experimental setup, while section 3
+summarizes the results obtained in terms of light yield, energy resolution and coincidence time
+resolution. Conclusions and future prospects are summarized in section 4.
+
+2
+
+Experimental setup
+
+We set up a table-top experiment, illustrated in figure 1, employing a pair of pure CsI crystals
+of dimensions 3 × 3 × 20 mm3 provided by AMCRYS and polished on all sides. Their length
+corresponds to approximately 1.1 𝑋0 . The crystals were wrapped with 3 layers of 80 µm-thick
+
+–2–
+
+Infrared shield
+Cold finger
+
+Na-22 source
+
+Vacuum
+
+14 cm
+
+CsI crystals
+LN2 dewar
+
+Hamamatsu
+MPPCs
+
+(a)
+
+(b)
+
+Figure 1. The crystals and photosensors are placed on a copper plate mounted inside a cryostat. The copper
+plate is connected to a cold finger that ca be immersed in liquid nitrogen. An infrared shield is placed on the
+copper plate to minimize radiative losses. (a) Schematic of the experimental apparatus. (b) Picture of the
+copper plate with photosensors and CsI crystals mounted on top.
+
+polytetrafluoroethylene (PTFE) tape and mounted on a copper plate which can be put in contact
+with a liquid nitrogen dewar through a cold finger. A Na-22 radioactive source with an activity
+of 40 kBq was placed between the two crystals. The light was detected by a pair of 3 × 3 mm2
+Hamamatsu S13360-3025CS MPPCs [13]. An aluminum infrared shield was placed above the
+copper plate to minimize radiative losses. The signals were acquired by a Tektronix MSO44
+oscilloscope triggering the coincidence of the photosensors with a sampling rate of 3.125 Gs/s and
+a bandwidth of 200 MHz. Full waveforms were saved to disk with a trigger rate of approximately
+5 Hz.
+A PT100 temperature sensor and two heating strips were placed behind the copper plate and
+connected to a CN32PT-224-C24 Omega PID controller, which allowed to keep the setup at the
+desired temperature. The setup was placed in a stainless steel chamber connected to a ConFlat
+6-way cross. One flange featured 4 BNC connectors (2 per MPPC) and another one a 25-pin
+electronic feedthrough, used for the connection of the heating strips and the PT100 sensor. The
+chamber was then evacuated with an Agilent TwisTorr 305 fs turbopump to reach a vacuum level
+of approximately 10−4 mbar.
+
+3
+
+Experimental measurements
+
+3.1
+
+Light yield and energy resolution
+
+The charge spectra of the MPPCs signals were obtained by integrating the full waveforms acquired
+by the oscilloscope. In order to convert the integral to the equivalent number of photoelectrons, the
+charge spectra were normalized by the single photoelectron charge peak, obtained by amplifying
+the dark pulses of the MPPC with a custom amplifier with a voltage gain of 600.
+
+–3–
+
+The intrinsic light yield of the crystal is obtained with the following formula:
+LY(photons/MeV) =
+
+𝑁pe /MeV
+,
+PDE × 𝜖 det
+
+(3.1)
+
+where 𝑁pe is the number of photoelectrons, PDE is the photon detection efficiency of the MPPC, and
+𝜖 det is the detection efficiency of the setup. The weighted average PDE for the room temperature CsI
+emission spectrum is 12%, compared with the 17% for the CsI cryogenic spectrum (see figure 2).
+However, conflicting measurements exist regarding the PDE of Hamamatsu MPPCs at cryogenic
+temperatures [14, 15], and no measurements is available for our specific model. Thus, a dedicated
+study is needed to improve the precision of this parameter for the estimation of the absolute light
+yield.
+
+295 K 75 K
+
+Emission intensity [a.u.]
+
+100
+
+30
+
+Hamamatsu
+S13360-3025CS
+
+25
+
+80
+
+20
+60
+15
+40
+10
+20
+
+0
+200
+
+5
+
+250
+
+300
+
+350
+
+400
+
+450
+
+500
+
+550
+
+Photon detection efficiency [%]
+
+35
+
+0
+600
+
+Wavelength [nm]
+Figure 2. CsI scintillation spectrum at room and cryogenic temperatures [7] (in black, left axis), compared
+with the photon detection efficiency of the Hamamatsu S13360-3025CS MPPC [13] (in red, right axis).
+
+The detection efficiency 𝜖 det has been estimated with a Geant4 [16] Monte Carlo simulation
+using the LUT optical model [17] at 58%. This relatively low efficiency is caused by the narrow
+form factor of the crystals (almost 7 times longer than wide), since the scintillation photons are
+reflected inside the crystals several times before reaching the photosensor. Thus, even if the PTFE
+reflectivity is approximately 95% [18], the probability for a scintillation photon of being absorbed
+before reaching the MPPC compounds at every reflection, becoming non-negligible. Different
+optical models have also been explored (UNIFIED [19], DAVIS [20]) obtaining variations in the
+value of 𝜖 det smaller than 10%.
+A room temperature measurement was performed first, obtaining a light yield of (4500 ±
+500) photons/MeV and (4300 ± 500) photons/MeV for the two crystals, respectively. The energy
+resolution was measured to be approximately 35% FWHM at 511 keV for both. These values were
+obtained by fitting the 511 keV photopeak with a Gaussian distribution.
+
+–4–
+
+After the dewar was filled with liquid nitrogen, the cold finger was inserted, and the system
+reached an equilibrium temperature of 104 K after approximately 5 hours.
+The voltage breakdown of MPPCs is proportional to the temperature with a slope of approximately 54 mV/K [13]. At 𝑇 = 104 K, we adjusted the bias voltage by reducing it by 10.3 V to
+compensate for this effect. We then repeated the single photon measurement. The integration window was increased to 5.5 µs, due to the longer decay time of CsI at low temperatures (see section 3.2).
+The MPPC dark count rate is halved every 5.3 K [21], becoming negligible for our integration time
+at 𝑇 = 104 K. Under these low-temperature conditions, the number of photoelectrons 𝑁pe increased
+by over an order of magnitude. This corresponds to light yields of (91, 000 ± 2, 000) photons/MeV
+and (87, 000 ± 2, 000) photons/MeV for the respective crystals.
+Such a high light yield might affect the linearity of the response in a SiPM, as the probability
+for a photon to hit the same microcell during its recovery time is non-negligible. However, in
+the case of cryogenic CsI, the time emission constant is approximately 800 ns (see section 3.2),
+which spreads the photon emission over a relatively wide time window. Additionally, we are
+using SiPMs with 14,400 microcells (cell size is 25 µm). A conservative assumption on the cell
+recovery time is 100 ns (2× larger than the value obtained in ref. [22]). Thus, with a light yield
+of 100,000 photons/MeV and a detector efficiency of 58%, the photons that reach the sensor in the
+first 100 ns for an annihilation event are:
+∫ 100 ns
+𝑁𝑡 <100 ns =
+
+0
+
+∫∞
+0
+
+𝑒 −𝑡/800 ns 𝑑𝑡
+
+𝑒 −𝑡/800 ns 𝑑𝑡
+
+× 100, 000 × 0.511 × 0.58 ≈ 3500 photons.
+
+(3.2)
+
+With a PDE of 17%, this corresponds to a number of fired cells of approximately 600 and an
+occupancy of 4.2%, which is far from the saturation regime. In addition, the response of the
+photosensor was verified to be linear by triggering only one channel: the charge corresponding to
+the Na-22 1275 keV peak is only slightly less than what one would extract by scaling linearly the
+charge at 511 keV, as shown in figure 3.
+The setup was gradually warmed with the PID controller. The light yield and the single
+photoelectron peak for the two MPPCs were measured at various temperatures during this process.
+Each run lasted approximately 30 minutes and the MPPC bias voltage was adjusted accordingly
+for each temperature. The heating strips were able to warm the setup up to 180 K. Then, the cold
+finger was removed from the liquid nitrogen dewar and the cryostat was allowed to reach room
+temperature.
+Figure 4 (a) shows the non-linear increase in light yield as the temperature decreases, with the
+yield reaching a plateau at approximately 110 K, in good agreement with the existing literature [7].
+The approximate 20-fold increase between room temperature and 𝑇 = 104 K is mainly due to
+the larger amount of scintillation light being emitted. In addition, the light emission at cryogenic
+temperature is shifted towards larger wavelengths, where the quantum efficiency of the photosensor
+is higher (see figure 2). This effect contributes to an additional 30% increase in the amount of light
+detected.
+This significant enhancement in light output translates into an improved energy resolution for
+the crystals, with values of (7.07 ± 0.05)% and (6.30 ± 0.05)%, as illustrated in figure 4 (b).
+
+–5–
+
+µ =8.0e-07 V·s
+
+600
+
+Counts
+
+500
+400
+300
+200
+100
+0
+
+µ =1.91e-06 V·s
+
+0.25
+
+0.50
+
+0.75
+
+1.00
+
+1.25
+
+1.50
+
+1.75
+
+Charge [V·s]
+
+2.00
+×10−6
+
+Figure 3. The charge spectrum was obtained by triggering a single channel and integrating the acquired
+waveforms. The red line corresponds to two Gaussian fits, one for each peak. Linearity of the response was
+verified by comparing the charge corresponding to the 511 keV peak with that of the 1275 keV peak.
+
+For a scintillator coupled to a SiPM, the energy resolution can be expressed as [23, 24]:
+√︄
+2 +
+Δ𝐸/𝐸 = 2.355 𝛿sc
+
+(𝜎𝑞 /𝑞) 2
+1
+2
++
++ 𝛿noise
+,
+𝑁pe
+𝑁pe
+
+(3.3)
+
+where 𝛿sc represents the intrinsic resolution of the crystal, 1/𝑁pe is the photostatistic component,
+𝜎𝑞 /𝑞 is the relative variance of the photosensor, and 𝛿noise is the dark noise component. In our
+setup, 𝜎𝑞 /𝑞 was measured to be approximately 0.1, making its effect negligible. Similarly, 𝛿noise
+can be considered negligible at cryogenic temperatures.
+By substituting the number of photoelectrons 𝑁pe at 511 keV into this equation (4596 for
+crystal 1), we determined the intrinsic resolution of cryogenic CsI at this energy. Our result is
+2.355 · 𝛿sc = 5.3%, consistent with the value reported in the literature [23].
+It is important to notice that the SiPM we are using has a fairly low PDE (17% for cryogenic
+CsI, see figure 2), so the photostatistic term in eq. (3.3) is still significant. Thus, replacing it with
+a photosensor with a larger microcell size and a larger PDE (e.g., the Hamamatsu MPPC S133603075CS with 34% PDE) should allow us to reach an energy resolution below 6%. On the downside,
+adopting SiPMs with a larger microcell size (75 µm instead of 25 µm), and consequently a smaller
+number of microcells at parity of active area, might introduce a non-linear response which needs to
+be carefully evaluated [25].
+3.2
+
+Emission time profile and coincidence time resolution
+
+The CTR for events near the 511 keV photopeak was measured in our setup using a baseline-corrected
+leading edge time pick-off method [26]. The threshold was set at 5 times the electronic noise, defined
+
+–6–
+
+22
+
+NIM A 480 (2002) 494-500
+This work
+
+300
+
+Crystal 2: ∆E/E = 7.07%
+
+80
+
+60
+
+40
+
+20
+
+0
+
+Crystal 1: ∆E/E = 6.30%
+
+250
+
+N. events / 50 p.e.
+
+Normalized light yield [%]
+
+100
+
+Na coincidence spectra at T=104 K
+
+200
+150
+100
+50
+
+100
+
+125
+
+150
+
+175
+
+200
+
+225
+
+250
+
+275
+
+300
+
+0
+1000
+
+1500
+
+2000
+
+2500
+
+3000
+
+3500
+
+4000
+
+4500
+
+5000
+
+5500
+
+Charge [p.e.]
+
+Temperature [K]
+
+(a)
+
+(b)
+
+Figure 4. At cryogenic temperature, the CsI crystals show a 20-fold increase in the light yield, with a
+corresponding improvement in the energy resolution. (a) Light yield of pure CsI crystals as a function of
+temperature (black dots), compared with the existing literature [7] (white squares). The heating strips were
+able to warm the setup up to 180 K, thus the absence of measurements between this value and the room
+temperature. (b) Na-22 charge coincidence spectra of the two CsI crystals operating at 𝑇 = 104 K. The
+511 keV photopeak has been fitted with a Gaussian distribution (solid and dashed lines).
+
+as the standard deviation of the voltage values in a region with no signal and corresponding to
+approximately 3 mV. No improvement was observed with smaller threshold values and a worsening
+of the CTR was observed with a threshold lower than 3𝜎. The events were selected by requiring
+a charge equivalent to the energy window 511 keV − FWHM/2 < 𝐸 < 511 keV + FWHM/2. An
+example of a triggered event with an energy near the photopeak is shown in figure 5.
+At room temperature, a CTR of (1.31 ± 0.06) ns was achieved. The time emission profile is
+dominated by a fast component of approximately 15 ns, with two further components of approximately 50 ns and 2 µs contributing to less than 10% of the total light yield. By lowering the
+temperature, the values of the three components increase exponentially. Below 140 K, the fastest
+and the slowest component disappear, leaving a single component that reaches approximately 800 ns
+at 𝑇 = 104 K (see figure 6).
+At this temperature, the measured CTR was (1.84 ± 0.07) ns, which is qualitatively consistent
+with the value extrapolated from the room temperature measurement using eq. (1.1). Thus, the
+effect of the increase in decay time is partially compensated by an increase in the number of detected
+photons, mitigating the impact on the CTR. The CTR as a function of temperature and the time
+difference distribution at 104 K are shown in figure 7. Similarly to the case of the energy resolution,
+the value of CTR could be improved by adopting photosensors with a larger PDE, already available
+on the market. Following naively eq. (1.1), a CTR of 1.3 ns could be achieved at cryogenic
+temperatures with a PDE approximately 2× better.
+Further improvements might be possible by detecting Cherenkov photons, which are emitted
+promptly. In this context, CsI appears promising due to its low self-absorption and relatively high
+refractive index in the UV range (1.9 at 350 nm), where Cherenkov emission is more abundant. A
+
+–7–
+
+Crystal 1
+
+Voltage [V]
+
+0.06
+0.04
+0.02
+0.00
+
+Crystal 2
+
+Voltage [V]
+
+0.06
+0.04
+0.02
+0.00
+0
+
+1
+
+2
+
+3
+
+4
+
+5
+
+Time [µs]
+Figure 5. An example of two waveforms acquired by triggering the coincidence of the two photosensors,
+with an equivalent energy near the 511 keV photopeak. The dotted lines correspond to the threshold used for
+the CTR measurement.
+
+preliminary simulation – assuming a 75 µm cell MPPC (corresponding to a 2× higher PDE) and a
+perfect time response from the electronics – indicates that a CTR of approximately 400 ps could be
+achieved, potentially enabling time-of-flight (TOF) measurements.
+
+4
+
+Summary and future prospects
+
+We have characterized the response of a pair of pure CsI crystals read out by solid state photosensors
+(Hamamatsu MPPCs) in a setup cooled at cryogenic temperatures. At 𝑇 = 104 K, an energy
+resolution of 6.3% and a coincidence time resolution of 1.84 ns have been achieved. The light yield
+and decay time have been measured as a function of temperature, with results in good agreement
+with the existing literature. For comparison, LYSO typically achieves energy resolutions around
+7–10% [27], while BGO-based systems, such as those from GE [28], can reach approximately 9%
+at the system level.
+The coincidence time resolution is sufficient for PET applications and might support TOF
+measurements with the detection of Cherenkov photons. Thus, this material might be a promising
+candidate for TBPET scanners, where the scintillator cost represents a large fraction of the total
+cost and can potentially offset the added complexity of a cryogenic system.
+
+–8–
+
+Average waveforms at diÆerent temperatures
+
+103
+
+10
+
+°1
+
+179.65 K
+
+139.65 K
+
+Decay time [ns]
+
+Amplitude [a.u.]
+
+100
+
+104.65 K
+
+ø1 = 0.81 µs
+ø1 = 0.25 µs (7.4%)
+ø2 = 0.61 µs (92.6%)
+
+10°2
+
+102
+
+ø1 = 0.33 µs (68.1%)
+ø2 = 0.13 µs (24.5%)
+ø3 = 2.03 µs (7.5%)
+
+10°3
+
+0.0
+
+0.5
+
+1.0
+
+1.5
+
+2.0
+
+2.5
+
+3.0
+£10°6
+
+Time [s]
+
+100
+
+150
+
+200
+
+250
+
+300
+
+Temperature [K]
+
+(a)
+
+(b)
+
+Figure 6. At cryogenic temperatures, pure CsI exhibits a time emission profile dominated by a single
+component of approximately 0.81 µs. At higher temperatures two further components appear. (a) Average
+waveforms at three different temperatures fitted with one (dotted line), two (dashed line) or three (solid line)
+exponential functions. (b) Fast (white squares), medium (black circles) and slow (white triangles) decay
+times as a function of temperature. The solid, dashed, and dotted lines represent linear fits in log scale.
+Coincidence resolving time at T=104 K
+40
+
+1.9
+
+FWHM=1.84±0.07 ns
+
+CTR [ns]
+
+N. events / 0.5 ns
+
+1.8
+
+30
+
+20
+
+1.7
+1.6
+1.5
+
+10
+
+1.4
+1.3
+
+0
+−4
+
+−3
+
+−2
+
+−1
+
+0
+
+1
+
+2
+
+3
+
+4
+
+t1 − t2 [ns]
+
+100
+
+125
+
+150
+
+175
+
+200
+
+225
+
+250
+
+275
+
+300
+
+Temperature [K]
+
+(a)
+
+(b)
+
+Figure 7. The coincidence time resolution increases with decreasing temperature, due to the larger decay
+time of CsI. The effect is partially compensated by the larger light yield. (a) Gaussian fit of the time difference
+at 𝑇 = 104 K. (b) CTR as a function of the temperature.
+
+A full simulation of a PET scanner based on cryogenic CsI crystals will be developed, in order
+to evaluate the effect of an improved energy resolution and a lack of TOF on the image quality.
+Experimentally, the setup will be scaled up to two matrices of 64 SiPMs each, in order to test the
+electronics and the cryogenic system needed for a larger number of channels. Monolithic crystals
+will also be tested. This represents an interesting option, as it could enable the measurement of
+depth-of-interaction by using the spatial distribution of the collected light, thereby mitigating the
+drawback of the larger 𝑋0 of the CsI.
+
+–9–
+
+Beyond its potential in PET, the properties of cryogenic CsI suggest its applicability to
+other medical imaging modalities. For instance, Single Photon Emission Computed Tomography (SPECT) could benefit from the enhanced spectral performance of cryogenic CsI. While the
+prolonged pulse duration increases detector dead time, potentially limiting count rates, this trade-off
+might be acceptable in SPECT systems where high energy discrimination is prioritized over timing.
+Further studies are needed to evaluate its practical implementation, including the optimization of
+readout electronics to mitigate the impact of the long decay time.
+
+Acknowledgments
+We thank Juan Collar for lending us the cryostat and for providing suggestions on setting up the
+experiment, and Paola Ferrario for the valuable feedback. SRS acknowledges the support of a
+fellowship from “la Caixa Foundation” (ID 100010434) with code LCF/BQ/PI22/11910019.
+All authors declare that they have no known conflicts of interest in terms of competing financial
+interests or personal relationships that could have an influence or are relevant to the work reported
+in this paper.
+
+References
+[1] S. Vandenberghe et al., The potential of a medium-cost long axial FOV PET system for nuclear
+medicine departments, European Journal of Nuclear Medicine and Molecular Imaging 50 (2023) 652.
+[2] S.R. Cherry et al., Total-body PET: maximizing sensitivity to create new opportunities for clinical
+research and patient care, Journal of Nuclear Medicine 59 (2018) 3.
+[3] G.A. Prenosil, H. Sari, M. Fürstner, A. Afshar-Oromieh, K. Shi, A. Rominger et al., Performance
+characteristics of the biograph vision quadra PET/CT system with a long axial field of view using the
+NEMA NU 2-2018 standard, Journal of nuclear medicine (2022) 476.
+[4] P. Singh, G. Dosovitskiy and Y. Bekenstein, Bright innovations: Review of next-generation advances
+in scintillator engineering, ACS nano 18 (2024) 14029.
+[5] Luxium, “Scintillation crystals.”
+https://luxiumsolutions.com/radiation-detection-scintillators/
+crystal-scintillators/lyso-scintillation-crystals, 2024.
+[6] N. Atanov et al., Design and status of the Mu2e electromagnetic calorimeter, Nucl. Instrum. Meth. A
+824 (2016) 695 [1608.02652].
+[7] C. Amsler, D. Grögler, W. Joffrain, D. Lindelöf, M. Marchesotti, P. Niederberger et al., Temperature
+dependence of pure CsI: scintillation light yield and decay time, Nuclear Instruments and Methods in
+Physics Research Section A: Accelerators, Spectrometers, Detectors and Associated Equipment 480
+(2002) 494.
+[8] V. Mikhailik et al., Luminescence and scintillation properties of CsI – a potential cryogenic
+scintillator, physica status solidi (b) 252 (2015) 804.
+[9] C.M. Lewis and J.I. Collar, Response of undoped cryogenic CsI to low-energy nuclear recoils, Phys.
+Rev. C 104 (2021) 014612 [2101.03264].
+
+– 10 –
+
+[10] K. Ding, J. Liu, Y. Yang, K. Scholberg and D.M. Markoff, Performance of a liquid nitrogen cryostat
+setup for the study of nuclear recoils in undoped CsI crystals, Nucl. Instrum. Meth. A 1063 (2024)
+169283 [2303.05437].
+[11] M. Conti, L. Eriksson, H. Rothfuss and C.L. Melcher, Comparison of fast scintillators with TOF PET
+potential, IEEE Transactions on Nuclear Science 56 (2009) 926.
+[12] S. Kubota, S. Sakuragi, S. Hashimoto and J.-z. Ruan, A new scintillation material: Pure CsI with 10
+ns decay time, Nuclear Instruments and Methods in Physics Research Section A: Accelerators,
+Spectrometers, Detectors and Associated Equipment 268 (1988) 275.
+[13] Hamamatsu, “MPPC S13360-3025CS.”
+https://hep.hamamatsu.com/eu/en/products/S13360-3025CS.html, 2024.
+[14] R. Iwai, M. Sakurai, A. Antognini, I. Belosevic, M. Hildebrandt, K. Kirch et al., Characterization of
+Cryogenic SiPM Down to 6.5 K, JPS Conf. Proc. 27 (2019) 012005.
+[15] R. Álvarez-Garrote et al., Measurement of the photon detection efficiency of Hamamatsu VUV4
+SiPMS at cryogenic temperature, Nucl. Instrum. Meth. A 1064 (2024) 169347 [2402.01584].
+[16] GEANT4 collaboration, GEANT4–a simulation toolkit, Nucl. Instrum. Meth. A 506 (2003) 250.
+[17] M. Janecek and W.W. Moses, Simulating scintillator light collection using measured optical
+reflectance, IEEE Transactions on Nuclear Science 57 (2010) 964.
+[18] M. Janecek, Reflectivity spectra for commonly used reflectors, IEEE Transactions on Nuclear Science
+59 (2012) 490.
+[19] A. Levin and C. Moisan, A more physical approach to model the surface treatment of scintillation
+counters and its implementation into DETECT, in 1996 IEEE Nuclear Science Symposium.
+Conference Record, vol. 2, pp. 702–706, IEEE, 1996.
+[20] E. Roncali and S.R. Cherry, Simulation of light transport in scintillators based on 3d characterization
+of crystal surfaces, Physics in Medicine & Biology 58 (2013) 2185.
+[21] A. Nepomuk Otte, D. Garcia, T. Nguyen and D. Purushotham, Characterization of Three High
+Efficiency and Blue Sensitive Silicon Photomultipliers, Nucl. Instrum. Meth. A 846 (2017) 106
+[1606.05186].
+[22] M. Grodzicka, T. Szczęśniak, M. Moszyński, M. Szawłowski and K. Grodzicki, New method for
+evaluating effective recovery time and single photoelectron response in silicon photomultipliers,
+Nuclear Instruments and Methods in Physics Research Section A: Accelerators, Spectrometers,
+Detectors and Associated Equipment 783 (2015) 58.
+[23] M. Moszyński, M. Balcerzyk, W. Czarnacki, M. Kapusta, W. Klamra, P. Schotanus et al., Energy
+resolution and non-proportionality of the light yield of pure CsI at liquid nitrogen temperatures,
+Nuclear Instruments and Methods in Physics Research Section A: Accelerators, Spectrometers,
+Detectors and Associated Equipment 537 (2005) 357.
+[24] NEXT collaboration, Measurement of energy resolution with the NEXT-White silicon
+photomultipliers, JHEP 09 (2024) 112 [2405.20427].
+[25] L. Brinkmann, E. Garutti, S. Martens and J. Schwandt, Correcting the Non-Linear Response of
+Silicon Photomultipliers, Sensors 24 (2024) .
+[26] J. Du, J.P. Schmall, M.S. Judenhofer, K. Di, Y. Yang and S.R. Cherry, A time-walk correction method
+for pet detectors based on leading edge discriminators, IEEE transactions on radiation and plasma
+medical sciences 1 (2017) 385.
+
+– 11 –
+
+[27] U. Ackermann, W. Egger, P. Sperr and G. Dollinger, Time-and energy-resolution measurements of
+baf2, bc-418, lyso and cebr3 scintillators, Nuclear Instruments and Methods in Physics Research
+Section A: Accelerators, Spectrometers, Detectors and Associated Equipment 786 (2015) 5.
+[28] S. Yamagishi, K. Miwa, S. Kamitaki, K. Anraku, S. Sato, T. Yamao et al., Performance
+characteristics of a new-generation digital bismuth germanium oxide pet/ct system, omni legend 32,
+according to nema nu 2-2018 standards, Journal of Nuclear Medicine 64 (2023) 1990.
+
+– 12 –
+
+

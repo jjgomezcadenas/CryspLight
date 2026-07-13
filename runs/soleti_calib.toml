@@ -1,0 +1,46 @@
+# Cold pure CsI calibration against Soleti et al. (CRYSP, arXiv:2406.13598), T = 104 K.
+# Two 3x3x20 mm3 AMCRYS crystals, polished, 3 layers of 80 um PTFE tape (NOT saturated),
+# one 3x3 mm2 S13360-3025CS covering the full end face, DRY contact (air gap),
+# uninstrumented areas wrapped. Gammas (Na-22, 511 keV) enter through the end face
+# opposite the SiPM; deposits distribute exponentially along the axis.
+#
+# Measured anchor (crystal 1): N_pe = 4596 at 511 keV. With Y = 100k ph/MeV (robust,
+# JJ) and PDE = 0.17 (cryo-spectrum-weighted, the dominant systematic):
+#   eps_det(measured) = 4596 / (0.511e5 * 0.17) = 0.529   (crystal 2: 0.505)
+# Their own Geant4 LUT simulation: eps_det = 0.58 (UNIFIED/DAVIS variations < 10%).
+# The campaign maps eps_det over (Lambda_ext, f, R_wrap) with sigma_alpha fixed at the
+# Brose-validated 1.3 deg. Driven by scripts/soleti_calib.jl.
+
+[campaign]
+tag = "soleti_calib"
+n_photons = 400000
+seed = 1
+max_bounces = 100000
+
+[crystal]
+material = "csi"            # n = 1.95 at the cryo emission (only n is used; bulk scanned)
+size_mm = [3.0, 3.0, 20.0]
+
+[readout]
+coupling_n = 1.0            # dry contact = air gap; escape cone asin(1/1.95) = 30.9 deg
+pde = 1.0                   # eps_det directly; PDE applied in the analysis chain
+
+[surface]
+sigma_alpha_deg = 1.3
+
+[source]
+# 511 keV entering the wrapped end face (z = 0): exponential depth profile along the
+# axis, attenuation length 23 mm in CsI, truncated at the 20 mm length; stratified
+# equal-weight quantile positions on the axis.
+att_mm = 23.0
+n_points = 32
+xy_mm = [1.5, 1.5]
+
+[grid]
+lambda_ext_mm = [300.0, 1000.0, 3000.0]   # extinction at ~340 nm — the unknown
+f_split = [0.0, 0.5, 0.9]                 # absorption/scattering split of the extinction
+wrap_R = [0.93, 0.95, 0.97]               # 3x80 um PTFE, unsaturated (Janecek ~0.95)
+
+[targets]
+eps_measured = [0.529, 0.505]             # crystals 1, 2 (Y = 100k, PDE = 0.17)
+eps_their_mc = 0.58                       # Soleti et al. Geant4 LUT

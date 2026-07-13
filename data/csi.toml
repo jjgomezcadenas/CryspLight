@@ -1,9 +1,18 @@
-# Pure CsI, cold (77-100 K). Scalar optical properties for the v0 validation runs
-# (fixed wavelength at the emission value below); tabulated curves replace these later.
+# Pure CsI, cold (~100 K), at the cryo emission peak (340-350 nm).
+# Bulk split CALIBRATED against the CRYSP measurement (Soleti et al., arXiv:2406.13598,
+# N_pe = 4596 at 511 keV in 3x3x20 mm, dry-coupled SiPM) with Y = 100k ph/MeV fixed:
+# eps_det(measured) = 0.529 requires ~10% bulk effect; the (Lambda_ext, f) degeneracy is
+# resolved by ADOPTING the CsI(Tl) analogue (same AMCRYS family: Lambda_ext ~0.3 m,
+# f = 0.9 — flat-in-lambda defect scattering, no dopant absorption): Lambda_ext = 300 mm,
+# abs = 300/(1-0.9), rayleigh = 300/0.9. This is a choice on a degeneracy line, NOT a
+# measurement — CRYSP-geometry collection bracket 62-83% until broken by (1) bare-crystal
+# re-measurement or (2) a 340-350 nm transmittance scan. See runs/soleti_calib.toml and
+# output/soleti_calib/. tau: 810 ns single component at 104 K (Soleti Fig. 6).
 name = "CsI"
-n = 1.95                    # refractive index at lambda_nm
-abs_length_mm = 500.0       # bulk attenuation — placeholder, to be measured/tuned
+n = 1.95                    # refractive index at lambda_nm (Soleti: 1.9 at 350 nm)
+abs_length_mm = 3000.0      # true absorption, from the f = 0.90 split of Lambda_ext
+rayleigh_mm = 333.3         # scattering, from the same split
 yield_per_mev = 100000
-tau_ns = 800.0
+tau_ns = 800.0              # ~810 ns measured at 104 K; single component below 140 K
 lambda_nm = 350.0
 x0_mm = 18.6
