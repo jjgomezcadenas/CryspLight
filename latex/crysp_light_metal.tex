@@ -31,7 +31,7 @@ interacting in the crystal via Compton scattering and photoelectric absorption, 
 of localized energy deposits --- is solved by the existing PTCrysp engine, which this project
 vendors. The new element is the \emph{optical} Monte Carlo: each deposit converts into
 $\mathcal{O}(10^3\text{--}10^5)$ scintillation photons, emitted isotropically with an
-exponential time profile ($\tau \simeq 800$~ns for \csi{} at 77~K, $\simeq 1500$~ns for \bgo{}
+exponential time profile ($\tau \simeq 800$~ns for \csi{} at 77~K, $\simeq 1770$~ns for \bgo{}
 at 195~K), which then bounce inside the crystal until they are either absorbed (in the bulk or
 at a wall) or detected at the SiPM plane. Because the photons are mutually independent, the
 transport is embarrassingly parallel; we propose to implement it as a Metal compute kernel on
@@ -105,7 +105,7 @@ emission spectrum and an emission time
   t_{\gamma} = t_k + \Delta t, \qquad \Delta t \sim \mathrm{Exp}(\tau),
   \label{eq:emission-time}
 \end{equation}
-with $\tau = 800$~ns (\csi{}, 77~K) or $\tau = 1500$~ns (\bgo{}, 195~K). The photon then
+with $\tau = 800$~ns (\csi{}, 77~K) or $\tau = 1768$~ns (\bgo{}, 195~K). The photon then
 propagates in straight lines inside the crystal, reflecting at the walls, until one of two
 terminal fates:
 \begin{enumerate}
@@ -148,9 +148,17 @@ optical-surface definition, so that any value used in a Geant4 cross-check
 
 \begin{table}[htb]
   \centering
-  \caption{Crystal bulk and scintillation parameters used as defaults.
-  $n$ is quoted at the emission peak. Yields and time constants for cold operation follow the
-  CRYSP measurements~\cite{soleti2024} and standard references~\cite{mikhailik}.}
+  \caption{Crystal bulk and scintillation parameters (the content of
+  \texttt{data/csi.toml} and \texttt{data/bgo.toml}). $n$ is quoted at the emission
+  peak. All values are now \emph{calibrated} rather than assumed --- the full provenance
+  chains (CRYSP measurement~\cite{soleti2024} for cold \csi{}; Ding--Liu, Gironnet and
+  Mao--Zhang--Zhu for \bgo{}; the Brose/Knyazev CsI(Tl) exercise that fixed the
+  methodology) are documented in the companion calibration note
+  \texttt{csitl\_calib.tex}. The bulk is specified as the measured extinction
+  $\Lambda_{\rm ext}$ split into absorption and elastic scattering,
+  $1/\Lambda_{\rm ext} = 1/\Lambda_{\rm abs} + 1/\Lambda_{\rm R}$, with scattering
+  fraction $f = 0.9$ for both (a choice on a degeneracy line for \csi{}, unmeasured for
+  \bgo{} --- brackets in the calibration note).}
   \label{tab:crystals}
   \begin{tabular}{lcc}
     \toprule
@@ -163,9 +171,11 @@ optical-surface definition, so that any value used in a Geant4 cross-check
     Emission range (nm)                 & 280--420 & 375--650 \\
     Refractive index $n(\lambda_{\rm em})$ & $\simeq 1.95$ & $\simeq 2.15$ \\
     Critical angle $\theta_c = \arcsin(1/n)$ & $30.9^\circ$ & $27.7^\circ$ \\
-    Light yield $Y$ (photons/MeV)       & $\sim 1.0\times10^5$ & $\sim 1.5\times10^4$ \\
-    Decay time $\tau$ (ns)              & 800   & 1500 \\
-    Bulk attenuation $\Lambda_{\rm abs}$ (m) & $\gtrsim 0.5$ (measure) & $\sim 1$ (measure) \\
+    Light yield $Y$ (photons/MeV)       & $1.0\times10^5$ & $1.4\times10^4$ \\
+    Decay time $\tau$ (ns)              & 800 ($\simeq$810 at 104~K) & 1768 \\
+    Extinction $\Lambda_{\rm ext}$ (m)  & 0.30 (calibrated) & 2 (bound $\gtrsim$1.5--2) \\
+    $\Rightarrow \Lambda_{\rm abs}$ / $\Lambda_{\rm R}$ (m) & 3.0 / 0.33 & 20 / 2.2 \\
+    CRYSP light collection (PDE$=$1)    & 83.0\% [62--83] & 88.0\% [84.5--90] \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -535,8 +545,8 @@ convention.
 The first end-to-end application (built, with the v0 CPU engine) is an isotropic point
 source at the crystal centre with $\mathrm{PDE}=1$ and \emph{scalar} optics --- each
 material reduced to single numbers, fixed at the emission wavelength: \csi{}
-($\lambda=350$~nm, $n=1.95$, $\tau=800$~ns, $Y=10^5$/MeV), \bgo{} ($\lambda=550$~nm,
-$n=2.15$, $\tau=1500$~ns, $Y=1.5\times10^4$/MeV), grease $n_g=1.45$, Teflon
+($\lambda=350$~nm, $n=1.95$, $\tau=800$~ns, $Y=10^5$/MeV), \bgo{} ($\lambda=480$~nm,
+$n=2.15$, $\tau=1768$~ns, $Y=1.4\times10^4$/MeV), grease $n_g=1.45$, Teflon
 $R=0.99$ (Lambertian), ESR $R=0.985$ (specular). Three cases: \csi{}+Teflon,
 \bgo{}+Teflon, and \bgo{}+ESR --- the last exercises the specular surface branch with a
 crystal for which ESR is legitimate. Outputs are the standard matrices
