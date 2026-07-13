@@ -1,9 +1,19 @@
-# BGO at 195 K. Scalar optical properties for the v0 validation runs
-# (fixed wavelength at the emission value below); tabulated curves replace these later.
+# BGO at 195 K (dry ice), at the 480 nm emission peak (Bi3+ band; no wavelength shift
+# with cooling, unlike CsI).
+# Scintillation: Y = 14k ph/MeV — two independent chains agree (Ding & Liu 2403.09501
+# via their eps/PDE derivation; Gironnet NIM A 594 (2008) quenching curve x Moszynski
+# RT 6.9k). tau = 1768 ns (Ding, direct waveform fit at exactly 195 K; Piltingsrud ~2 us,
+# Gironnet 2.2 us at 200 K bracket it above).
+# Bulk: Mao-Zhang-Zhu (IEEE TNS 55 (2008) 2425): transmittance at the Fresnel limit over
+# a 1.68 cm cube => Lambda_ext >~ 1.5-2 m at 480 nm (SIC mass production; sample-
+# dependent). Adopted: Lambda_ext = 2 m with f = 0.9 (community default: extinction ~
+# scattering at the emission wavelength for clean crystals); abs = 2000/(1-0.9),
+# rayleigh = 2000/0.9. Weakly constrained — see the ding_calib/CRYSP bracket scan.
 name = "BGO"
 n = 2.15                    # refractive index at lambda_nm
-abs_length_mm = 1000.0      # bulk attenuation — placeholder, to be measured/tuned
-yield_per_mev = 15000
-tau_ns = 1500.0
-lambda_nm = 550.0
+abs_length_mm = 20000.0     # from the f = 0.9 split of Lambda_ext = 2 m
+rayleigh_mm = 2222.0        # from the same split
+yield_per_mev = 14000
+tau_ns = 1768.0
+lambda_nm = 480.0
 x0_mm = 11.2

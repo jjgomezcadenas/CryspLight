@@ -1,0 +1,1176 @@
+Home
+
+Search
+
+Collections
+
+Journals
+
+About
+
+Contact us
+
+My IOPscience
+
+Optical simulation of monolithic scintillator detectors using GATE/GEANT4
+
+This article has been downloaded from IOPscience. Please scroll down to see the full text article.
+2010 Phys. Med. Biol. 55 1659
+(http://iopscience.iop.org/0031-9155/55/6/009)
+View the table of contents for this issue, or go to the journal homepage for more
+
+Download details:
+IP Address: 131.180.130.114
+The article was downloaded on 21/12/2010 at 13:07
+
+Please note that terms and conditions apply.
+
+IOP PUBLISHING
+
+PHYSICS IN MEDICINE AND BIOLOGY
+
+Phys. Med. Biol. 55 (2010) 1659–1675
+
+doi:10.1088/0031-9155/55/6/009
+
+Optical simulation of monolithic scintillator detectors
+using GATE/GEANT4
+D J (Jan) van der Laan1 , Dennis R Schaart1 , Marnix C Maas1 ,
+Freek J Beekman1,2 , Peter Bruyndonckx3 and Carel W E van Eijk1
+1 Delft University of Technology, Mekelweg 15, 2612 JB Delft, The Netherlands
+2 University Medical Centre Utrecht, Rudolf Magnus Institute of Neurosciences and Image
+Sciences Institute, Heidelberglaan 100, Utrecht, The Netherlands
+3 Vrije Universiteit Brussel, Pleinlaan 2, 1050 Brussels, Belgium
+
+E-mail: d.r.schaart@tudelft.nl
+
+Received 13 August 2009, in final form 24 December 2009
+Published 24 February 2010
+Online at stacks.iop.org/PMB/55/1659
+Abstract
+Much research is being conducted on position-sensitive scintillation detectors
+for medical imaging, particularly for emission tomography. Monte Carlo
+simulations play an essential role in many of these research activities. As the
+scintillation process, the transport of scintillation photons through the crystal(s),
+and the conversion of these photons into electronic signals each have a major
+influence on the detector performance; all of these processes may need to be
+incorporated in the model to obtain accurate results. In this work the optical
+and scintillation models of the GEANT4 simulation toolkit are validated by
+comparing simulations and measurements on monolithic scintillator detectors
+for high-resolution positron emission tomography (PET). We have furthermore
+made the GEANT4 optical models available within the user-friendly GATE
+simulation platform (as of version 3.0). It is shown how the necessary optical
+input parameters can be determined with sufficient accuracy. The results show
+that the optical physics models of GATE/GEANT4 enable accurate prediction
+of the spatial and energy resolution of monolithic scintillator PET detectors.
+
+1. Introduction
+Much research is being conducted on position-sensitive scintillation detectors for medical
+imaging, particularly for emission tomography (Lewellen 2008, Lopes and Chepel 2004,
+Madsen 2007). Typical research objectives include improving the performance of existing
+imaging modalities, such as single-photon emission computed tomography (SPECT) and
+positron emission tomography (PET), developing novel devices for specific applications (e.g.
+small-animal tomographs) (Tai et al 2005, McElroy et al 2005, Ziemons et al 2005, Seidel
+0031-9155/10/061659+17$30.00
+
+© 2010 Institute of Physics and Engineering in Medicine
+
+Printed in the UK
+
+1659
+
+1660
+
+D J van der Laan et al
+
+et al 2003, Cherry 2004, Mitchell and Cherry 2009, Schramm et al 2003, Van der Have
+et al 2009) and/or developing hybrid imaging modalities such as PET/MRI (Catana et al
+2009, Judenhofer et al 2008, Shao et al 1997).
+Monte Carlo simulations play an essential role in many of these research activities. In such
+simulations many design parameters can be varied much more easily than in measurements.
+Moreover, simulations can allow one to perform ‘experiments’ that would be impossible in
+reality. Thus, Monte Carlo simulations are very helpful to better understand the factors that
+determine detector performance, making optimization of the detector design more efficient.
+Optical photons are the primary information carriers in any position-sensitive scintillation
+detector: the scintillation process, the transport of the scintillation photons through the
+crystal(s) towards the light sensor(s) and the conversion of these photons into electronic
+signals all have a major influence on the detector performance. Thus, all of these physical
+processes generally need to be taken into account in a Monte Carlo model in order to obtain
+accurate results.
+Recently, the GATE Monte-Carlo simulation platform (Jan et al 2004), which makes a
+wide range of GEANT4 (Agostinelli et al 2003) physics models available through a userfriendly, scripted interface, has come into widespread use in the field of nuclear medicine for
+simulating PET and SPECT devices. GEANT4 includes models for scintillation and optical
+transport processes that have been derived from DETECT2000 (Levin and Moisan 1996).
+Compared to the latter code, GEANT4 has the advantage that it can also simulate the transport
+of ionizing radiation. However, up until GATE version 3.0, the optical models of GEANT4
+were not yet available within GATE.
+The objectives of the present work are threefold. A first aim is to validate the use of
+the GEANT4 optical models for simulating position-sensitive scintillation detectors, through
+comparison of simulation and measurement. As a second objective, we have made the
+GEANT4 optical and scintillation models available within GATE. The third goal is to
+demonstrate the use of these optical models and to show how the corresponding input
+parameters can be determined with sufficient accuracy. As the present work was conducted
+within the scope of a research program on monolithic scintillator detectors for high resolution
+PET (Bruyndonckx et al 2004, Maas et al 2006), we develop a detailed Monte Carlo model
+of these detectors and compare the predicted spatial and energy resolutions to experimental
+results.
+2. Methods and materials
+2.1. Description of the PET detector
+The design and operating principle of the monolithic PET detectors investigated in this work
+have been described in detail elsewhere (Maas et al 2008, 2009). Here, we briefly summarize
+the features relevant for the present study.
+Two detector geometries were simulated that have previously been characterized
+experimentally (Maas et al 2008, 2009). The measured results can thus be used to validate the
+simulations. Figure 1(a) shows one of the detectors, consisting of a 20 mm × 10 mm × 10 mm
+LYSO:Ce crystal (Crystal Photonics) readout by a position-sensitive Hamamatsu S8550SPL
+APD array optically coupled by means of Meltmount (Cargille Laboratories, Cedar Grove,
+NJ, USA) to the crystal front surface, i.e., the surface at which annihilation photons enter the
+crystal. We have shown earlier that this type of detector performs better with the light sensor
+placed in such front-side readout (FSR) geometry than with conventional back-side readout
+(BSR), as the majority of the detected annihilation photons interact in the front half of the
+
+Optical simulation of monolithic scintillator detectors using GATE/GEANT4
+
+(a)
+
+1661
+
+(b)
+
+Figure 1. Schematic representation of the detectors investigated in this work: (a) a 20 mm ×
+10 mm × 10 mm LYSO:Ce crystal readout by a Hamamatsu S8550SPL APD array on the front
+surface (FSR geometry) and (b) a 20 mm × 10 mm × 20 mm crystal readout on the front and back
+surfaces (DSR geometry). In both drawings the arrow indicates the path of an annihilation photon
+incident on the detector front surface. The coordinate system used to specify the entry point and
+the angle of incidence is also indicated.
+
+crystal (Maas et al 2006). The second detector is a 20 mm × 10 mm × 20 mm LYSO:Ce
+crystal readout by two APD arrays in double-sided readout (DSR) geometry, see figure 1(b).
+Both crystals have optically polished surfaces and are wrapped in highly reflective Teflon tape.
+The Hamamatsu S8550SPL APD array consists of 4 × 8 pixels, measuring 1.6 mm × 1.6 mm
+each and spaced 2.3 mm (centre to centre) apart. The total surface of the APD array measures
+19.5 mm × 11.2 mm.
+The entry points of detected annihilation photons (‘events’) on the front surface of the
+crystal are estimated from the measured scintillation light distributions incident upon the APD
+arrays (Maas et al 2009). The position estimation algorithm uses a reference set of light
+distributions from a large number of events with known entry points. The light distribution of
+an unknown event is compared using least squares to each of the distributions in the reference
+set. The L best fitting distributions (‘nearest neighbours’) are selected and the entry point
+most frequently occurring among these distributions is assigned to the unknown event. It can
+be shown that as L → ∞ and L/N → 0 (with N the number of reference distributions), the
+algorithm performs optimally (Webb 2002). In practice, N < ∞, so a value of L < N that
+gives good performance has to be found, e.g., as described by Maas et al (2006).
+2.2. Simulation parameters
+Accurate Monte Carlo simulation of a PET scintillation detector requires that all relevant
+physical processes, such as the interaction of annihilation photons within the crystal, the
+scintillation process, the transport of scintillation photons to the light sensor, the conversion of
+the light signals into electronic signals and the influence of the readout electronics, are properly
+modelled. In general this requires knowledge of a large number of detector properties that
+are used as input parameters for the simulation. Some of the parameters needed for the
+present work could be obtained from previous studies or from the literature. The remaining
+optical input parameters were determined experimentally as described in the following. For
+consistency, the values of all parameters, whether determined experimentally, from previous
+work, or from the literature, will be presented together in section 3 of this work, specifically
+in section 3.1.
+
+1662
+
+D J van der Laan et al
+
+2.2.1. Properties of the scintillator. Measurements were performed on LYSO:Ce crystals
+from Crystal Photonics. The absolute light yield, i.e., the expectation value of the number of
+photons emitted per unit energy deposited in the crystal, of a 20 mm × 10 mm × 10 mm crystal
+was determined on a calibrated photomultiplier tube (PMT) setup, using the method described
+by de Haas et al (2005). The crystal was irradiated with a 137Cs source, emitting gamma
+photons with energy Eγ = 662 keV. The intrinsic energy resolution E/E was determined
+using the same measurement setup by correcting the measured energy resolution Em/Em for
+the influences of the excess noise factor and the photon detection efficiency (PDE) of the PMT
+(Dorenbos et al 1995).
+The intrinsic emission spectrum of the same crystal was measured in reflection (i.e., the
+light emission is measured at the irradiated side) using an x-ray tube with a Cu anode operated
+at 60 kV and 25 mA. The setup used for these measurements has been described by Birowosuto
+et al (2005). The optical transmission of a 20 mm long crystal was measured using a Hewlett
+Packard 8452A diode array spectrophotometer.
+2.2.2. Other optical parameters. The relevant optical properties of the active area (pixels) of
+the S8550SPL APD array could be obtained from the literature, see section 3.1.2. However,
+the reflectance rd of the dead area of the APD array could not readily be obtained. Furthermore,
+different values (ranging from 0.90 to 0.99) are found for the reflectance rPTFE of the Teflon
+tape around the crystal (Pichler et al 2000, Moisan et al 1997a). Therefore, rd and rPTFE were
+determined as follows.
+Pulse-height measurements were performed on a polished, trapezoidal LYSO:Ce crystal.
+The parallel, rectangular top and bottom surfaces of this crystal measure 11.5 mm ×
+19.5 mm and 15.4 mm × 19.5 mm, respectively. The crystal height (distance between
+top and bottom surfaces) equals 20 mm. A single APD array was optically coupled to the
+19.5 mm × 11.5 mm top surface. The crystal was irradiated with a broad 511 keV photon beam
+perpendicularly incident on the 15.4 mm × 19.5 mm bottom surface, and pulse-height spectra
+were acquired by electronically adding up the signals of the 32 APD pixels. The number of
+primary electron–hole pairs generated by scintillation photons per event was derived from the
+position of the full-energy peak, using the known gains of the spectroscopic amplifier, the
+preamplifiers and the APD array. It is noted that the crystal shape and readout scheme used
+in these measurements are different from those used in the validation measurements, so as to
+minimize the interdependencies between these two types of measurement.
+The pulse-height measurements, with and without Teflon tape wrapped around the crystal,
+were replicated in simulations of the same detector geometry in which the values of rd and
+rPTFE were varied until the same electron–hole pair yield was obtained.
+2.3. Position resolution measurements
+The position resolution of the detectors was measured as described below in order to compare
+the results with those obtained from simulation.
+2.3.1. Setup. The setup used for the position resolution measurements has been described in
+detail elsewhere (Maas et al 2008). Here, we only summarize the essential features.
+The detectors are contained in a light-tight, temperature-controlled box, placed on a
+computer-controlled XZ-stage for translating and rotating the detector. A thin (<1 mm
+diameter) test beam of 511 keV photons is defined by placing the detector under study in
+coincidence with a second detector, consisting of a ∅ 19 mm × 35 mm BGO crystal mounted
+on a PMT, placed behind a 60 mm thick lead collimator with a ∅ 5 mm opening. A ∅ 0.5 mm
+
+Optical simulation of monolithic scintillator detectors using GATE/GEANT4
+
+1663
+
+22
+
+Na point source is placed in between the two detectors, at a 560 mm distance from the front
+surface of the BGO crystal and at 56 mm distance from the front surface of the LYSO:Ce
+crystal under investigation.
+The 32 signals of each APD array are pre-amplified by Cremat CR-110 charge-sensitive
+preamplifiers. Further amplification and shaping is provided by CAEN N568BB 16-channel
+spectroscopy amplifiers, which are read out by 32-channel peak-sensing ADCs (CAEN V785).
+
+2.3.2. Test beam profile. Position resolution measurements performed in the above setup
+are affected by the finite diameter of the 511 keV photon beam (Maas et al 2009, 2010). To
+accurately simulate the experiments, the beam intensity profile must therefore be incorporated
+in the model. This is not trivial as the beam profile is determined by many factors and since
+the beam diverges: the FWHM of the beam profile increases by approximately 20% over
+20 mm.
+The beam intensity profile has been determined via detailed Monte Carlo simulations
+of the measurement setup, taking into account the geometry of the detectors, collimator and
+22
+Na source, the positron range and the acollinearity of the annihilation photons emitted.
+The simulation was performed using both GEANT4 and GATE. Further information on these
+simulations and the experimental validation of the results are given elsewhere (Maas et al
+2010). As in that work, we will characterize the beam diameter dbeam as the full width at half
+maximum (FWHM) of the cross-sectional beam intensity profile at the crystal front surface.
+2.3.3. Measurements. Position resolution measurements were performed by first recording
+a number of nref = 1500 reference events at each of a linear array of beam positions spaced
+0.25 mm apart along the x-axis of the detector (see figure 1 for the definition of the coordinates).
+It was shown previously that increasing nref to values above 1500 per beam position hardly
+results in any further improvement of the resolution while the measurement time still increases
+(Maas et al 2006). To determine the (one-dimensional) detector spatial response, the entry
+point of each light distribution in the resulting data set was determined with the position
+estimation algorithm described in section 2.1, using the remainder of the events as reference
+data (leave-one-out approach) and taking only the x-coordinate into consideration. The
+normalized histogram of the differences between the estimated entry point and the beam
+position was then determined. It is emphasized that this histogram still includes the influence
+of the test beam diameter dbeam (see section 2.3.2).
+2.4. Monte Carlo simulations
+As stated in the introduction, this work aims to validate the GEANT4 optical and scintillations
+models and to make these models available in GATE. To this end, simulations have been
+performed using version 4.8.2 of GEANT4. The required functionality to perform these
+simulations via the user-friendly, scripted user interface of GATE has been added as of
+version 3.0 of this code. The relevant GEANT4 settings are described below. The GATE
+script for performing the same simulations is available with the online version of this paper
+(stacks.iop.org/PMB/55/1659/mmedia).
+The following physics processes were used (Geant4 2005,
+2004):
+G4LowEnergyCompton,
+G4LowEnergyRayleigh,
+G4LowEnergyPhoto-Electric,
+G4MultipleScattering,
+G4eIonisation,
+G4eBremsstrahlung,
+G4OpScintillation,
+G4OpAbsorption and G4OpBoundaryProcess, G4OpRayleigh. Here, processes starting
+with ‘G4Op’ involve optical photons: those starting with ‘G4e’ and G4MultipleScattering
+involve electrons, while the remaining three processes involve photons with ionizing energies.
+
+1664
+
+D J van der Laan et al
+
+Figure 2. Schematic representation of the simulated geometry of the 20 mm × 10 mm ×
+10 mm LYSO:Ce crystal readout by one Hamamatsu S8550SPL APD array on the front surface.
+Dimensions are not to scale.
+
+Table 1. Elementary properties of the materials used in the simulations.
+
+Material
+
+Chemical
+composition
+
+Density
+(g cm−3)
+
+Refractive
+index
+
+Air
+Silicon
+Epoxy
+Meltmount
+LYSO
+
+N0.76 O0.23 Ar0.01 C0.00
+Si1
+C1H1O1
+C1H1O1
+Lu2Si1O5
+
+1.29 × 10−3
+2.33
+1.00
+1.00
+7.40
+
+1.00
+–
+1.52
+1.70
+1.82
+
+Reference
+a
+a
+b
+b
+c
+
+a
+
+From GATE datafile.
+Refractive index provided by the manufacturer. The density and chemical
+composition are approximate, as they do not significantly influence the simulations.
+c
+(Melcher and Schweitzer 1992).
+b
+
+The following data libraries were used: G4EMLOW 4.2 (i.e., the low-energy
+electromagnetic (EM) package, containing data files for EM processes down to about
+∼250 eV) and G4RadioactiveDecay 3.1 (i.e., decay of unstable isotopes). For the transport of
+electrons we used a range cut of 0.1 mm. This range cut is translated into an energy cut for
+each material based on the density, the effective atomic number, etc.
+Figure 2 shows a schematic cross-section of one of the simulated detectors. From top
+to bottom, we have the APD array, the epoxy coating of the APD array (0.1 mm thick), the
+Meltmount used to optically couple the APD to the crystal (0.05 mm thick) and the LYSO
+crystal. In the detector with two APD arrays in DSR geometry, this is followed by another
+layer of Meltmount, epoxy, etc. The entire detector is contained within an air volume. Some
+elementary properties of the different materials are given in table 1. It is noted that the density
+and chemical composition of the thin epoxy and Meltmount layers are approximate, as they
+do not significantly influence the present simulations.
+We use the UNIFIED model in GEANT4 for modelling the reflection of photons at surfaces
+between two dielectric materials (Nayar et al 1991, Levin and Moisan 1996, Geant4 2004).
+Different types of surfaces are available, but we only use ground and ground-back-painted
+in this work. Other types, such as polished surfaces, can be seen as special cases of these
+two surface types. A ground surface is assumed to be consist of small micro-facets, whose
+normals have small angles relative to the average surface normal. The distribution of these
+angles is assumed to be Gaussian with mean 0 and standard deviation σ α. This is illustrated in
+
+Optical simulation of monolithic scintillator detectors using GATE/GEANT4
+
+1665
+
+Figure 3. The UNIFIED model using micro-facets to model the surface roughness. In the case
+of a ground-back-painted surface, the outside of the volume is assumed to be covered by a paint
+layer.
+
+Table 2. Type and surface finish of each of the optical interfaces defined in the simulations.
+
+Optical interface
+
+Type
+
+Finish
+
+σα
+
+Air-LYSO
+Air-Meltmount/epoxy
+Epoxy-APD
+Epoxy-APD pixels
+LYSO-Meltmount/Meltmount-epoxy
+
+Dielectric–dielectric
+Dielectric–dielectric
+Dielectric–metal
+Dielectric–metal
+Dielectric-dielectric
+
+Ground backpainted
+Ground backpainted
+Ground
+Ground
+Ground
+
+0.1
+0.1
+0
+0
+0.1
+
+figure 3. For example, a ground surface with σ α equal to 0 is equivalent to a perfectly polished
+surface. The probability of reflection and the angles of reflection and refraction follow from
+the direction of the photon, the angle of the micro-facet surface normal and the refractive
+indices of the two materials involved. The photon is therefore either reflected back into the
+original volume or refracted into the next volume.
+In the case of the ground-back-painted surface, this next volume is considered to be a
+paint layer of which the refractive index can be specified in the definition of the surface. The
+paint layer reflects a specified proportion of the photons, assuming Lambertian reflection. All
+other photons are absorbed. The reflected photons reach a micro-facet where they can again
+be reflected or refracted. This process is repeated until the photon is either absorbed in the
+paint layer or reflected back into the original volume.
+The interface between a dielectric material and a metal is treated somewhat differently
+(Geant4 2004) from the dielectric–dielectric interface discussed above. As the refractive index
+is not defined for metals, the probability of reflection has to be specified. This is considered
+to be specular reflection at the micro-facet. Non-reflected photons are absorbed in the metal.
+The type, finish and value of σ α of each of the optical interfaces in figure 2 are given in
+table 2. Previous simulations have shown that the crystal surface roughness has relatively little
+influence on the performance of our detectors (Van der Laan et al 2006). It follows that this
+parameter is not very critical, so we have simply adopted the value of the surface roughness
+parameter for polished crystal surfaces from Moisan et al (1997b), namely σ α = 0.1◦ . The
+same value was used for the epoxy and Meltmount surfaces, while the silicon surfaces of the
+
+1666
+
+D J van der Laan et al
+
+APD array were assumed to be perfectly flat (i.e., σ α = 0◦ ). Other optical properties of the
+various materials and surfaces are discussed in section 3.1.
+3. Results and discussion
+3.1. Simulation parameters
+We first discuss the various detector properties needed as input parameters for our simulations.
+Details of the measurements performed to obtain some of these parameters have been discussed
+in section 2.2.
+3.1.1. Properties of the scintillator. The parameters needed to accurately model the LYSO:Ce
+scintillator in GEANT4 (Geant4 2004) are the absolute light yield Ȳ , the FWHM intrinsic
+energy resolution E/E, the emission spectrum, the optical absorption length λa, the optical
+scattering length λs, the refractive index RLYSO and the surface roughness parameter σ α that
+has been explained in section 2.4. The values of RLYSO and σ α have been given in tables 1 and
+2, respectively.
+In GEANT4 the number of scintillation photons nph emitted upon the absorption of a
+gamma photon with energy Eγ is sampled from a normal distribution with the expectation
+value n̄ph = Eγ Ȳ . Furthermore, the variance in the number of emitted scintillation photons is
+assumed to be proportional to the amount of energy deposited:
+var(nph ) = α 2 n̄ph ,
+
+(1)
+
+with the parameter α given by
+
+n̄ph E
+α=
+.
+(2)
+2.35 E
+Using the methods discussed in section 2.2.1, we found Ȳ = 26 000 photons/MeV and α =
+4.4 corresponding to an intrinsic energy resolution E/E = 9.0% FWHM at 511 keV.
+The optical absorption length λa and the optical scattering length λs were determined
+from the measured transmission spectrum of a 20 mm thick LYSO:Ce crystal shown in
+figure 4.
+These results have been corrected for reflections at the two crystal–air interfaces (Mao
+et al 2008).
+The resulting total bulk attenuation length λtot can then be assumed to be due to (elastic)
+scattering and absorption:
+1
+1
+1
+=
++ .
+(3)
+λtot
+λs λa
+According to Moisan et al (1996), it can be assumed that λtot = λs at the peak emission
+wavelength of LYSO:Ce (i.e., at 420 nm). This is equivalent to stating that there are no
+absorption centres other than Ce3+ ions within the crystal, as Ce3+ absorption in LYSO:Ce
+occurs at wavelengths below about ∼400 nm only. Figure 4 indeed appears to exhibit a
+‘plateau’ at wavelengths >400 nm. Assuming that λtot = λs at each of these wavelengths, a
+straight line was fitted through this plateau, from which λs was derived for all wavelengths
+between 190 nm and 600 nm (i.e., covering the entire LYSO:Ce emission spectrum). The
+remaining attenuation at wavelengths <400 nm was assumed to be entirely due to absorption.
+Figure 5 shows the resulting absorption length (dashed curve) and scattering length (dashdotted curve). The solid curve shows the LYSO:Ce emission spectrum measured as described
+in section 2.2.1.
+
+Optical simulation of monolithic scintillator detectors using GATE/GEANT4
+
+1667
+
+1
+0.9
+0.8
+
+transmission
+
+0.7
+0.6
+0.5
+0.4
+0.3
+0.2
+0.1
+0
+200
+
+300
+
+400
+
+500
+
+600
+
+700
+
+800
+
+wavelength (nm)
+
+absorption/scattering length (mm)
+
+200
+
+160
+
+1
+absorption length
+scattering length
+normalized emission
+APD reflectance
+0.8
+
+120
+
+0.6
+
+80
+
+0.4
+
+40
+
+0.2
+
+0
+300
+
+350
+
+400
+
+450
+
+500
+
+550
+
+600
+
+650
+
+normalized emission/reflectance
+
+Figure 4. Measured transmission of a 20 mm thick, polished LYSO:Ce sample. The transmission
+has been corrected for reflection.
+
+0
+700
+
+wavelength (nm)
+
+Figure 5. The normalized LYSO:Ce emission spectrum (solid curve, right y-axis), the optical
+absorption length λa (dashed curve, left y-axis), the scattering length λs (dashed-dotted curve, left
+y-axis) and the reflectance ra of the APD pixels of the Hamamatsu S8550SPL APD array (dotted
+curve, right y-axis).
+
+3.1.2. Properties of the APD array. To model the APD array, we need the refractive index
+of the epoxy coating Repoxy, the reflectance ra of the active regions of the APD array (i.e.,
+the APD pixels), the reflectance rd of the dead area between the pixels, the internal quantum
+efficiency ηi of the APD pixels (i.e., the probability that absorption of an optical photon results
+in a electron–hole pair that is amplified), the APD excess noise factor J, the APD gain M and
+the total equivalent noise charge (ENC) of the detector–amplifier system σe2 .
+
+1668
+
+D J van der Laan et al
+
+The external quantum efficiency ηe of the pixels of the Hamamatsu S8550SPL APD
+array has been reported by Mosset et al (2003). As their experiments were performed in air,
+three factors determine the measured value of ηe, namely ηi, ra and the reflection repoxy at the
+epoxy–air interface. Taking first-, second- and higher-order reflections into consideration, the
+external quantum efficiency at perpendicular incidence equals
+∞
+
+(1 − ra )(1 − repoxy )
+ηe = ηi (1 − ra )(1 − repoxy )
+(ra repoxy )k =
+ηi ,
+(4)
+1 − ra repoxy
+k=0
+where use is made of the fact that the sum is a geometric series. The value of repoxy is easily
+calculated from the refractive index of the epoxy Repoxy = 1.52 (see table 1). Reflectance
+measurements on a variety of photodiodes, which have a similar surface as APDs, showed that
+the internal quantum efficiency is practically equal to one for wavelengths between 400 nm
+and 800 nm (Gentile et al 1996). Thus, we assume that ηi = 1 for the emission wavelengths
+of LYSO:Ce. The resulting values of ra are indicated by the dotted curve in figure 5. The
+parameter rd is discussed in the next section.
+The APD gain, excess noise factor and ENC (referred to the input of the preamplifier)
+were measured to be approximately M = 60, J = 2 and σ e = 600 electrons, respectively (Maas
+et al 2008). It is noted that the ENC includes contributions of the APD leakage current and
+(pre-) amplifier noise. These numbers were used to add noise to the number of electron–hole
+pairs following from the optical simulations for each APD-pixel, such that the number of
+electrons ne at the output of a pixel is given by
+neh
+
+
+
+N (M, M 2 (J − 1)) + N 0, σe2 ,
+(5)
+ne =
+i=j
+
+where N (μ, σ 2 ) is randomly drawn from a normal distribution with mean μ and variance σ 2,
+while neh is the number of electron–hole pairs generated in the pixel by the event.
+3.1.3. Other optical parameters. The reflectance rd of the APD array dead area and
+the reflectance rPTFE of the Teflon tape around the crystal were determined by matching
+optical simulations to pulse-height measurements on a trapezoidal crystal as described in
+section 2.2.2.
+First, rd was determined by performing the measurement and the simulations without
+any Teflon wrapping around the crystal. In the simulations, rd was varied from 0.5 to 0.9 in
+steps of 0.1. Figure 6(a) shows the calculated full-energy peak position as a function of rd.
+The measured full-energy peak was positioned at 1900 electron–hole pairs, corresponding to
+rd = 0.8.
+This value of rd was subsequently used to determine rPTFE by repeating the measurement
+with Teflon tape wrapped around the crystal. In these simulations, the Teflon layer was
+modelled as a perfectly diffuse reflector (Levin and Moisan 1996, Nayar et al 1991) with a
+thin air region between the crystal and the Teflon tape (i.e., we used a back-painted surface
+with a refractive index of the ‘paint’ of 1, see section 2.4), and the position of the fullenergy peak was calculated for different values of rPTFE. The results are shown in figure 6(b).
+The measured full-energy peak was positioned at 5300 electron–hole pairs, corresponding to
+rPTFE = 0.95.
+3.2. Comparison between simulation and experiment
+3.2.1. Detector position resolution. Using the input parameters found in section 3.1, the
+position resolution measurements discussed in section 2.3 were simulated as described in
+
+Optical simulation of monolithic scintillator detectors using GATE/GEANT4
+
+1669
+
+(a) 2050
+
+number of electron−hole pairs
+
+2000
+1950
+1900
+1850
+1800
+1750
+1700
+1650
+0.45
+
+0.5
+
+0.55
+
+0.6
+
+0.65
+
+0.7
+
+0.75
+
+0.8
+
+0.85
+
+0.9
+
+0.95
+
+0.99
+
+1
+
+reflectance of inter−pixel space (rd)
+(b) 7500
+
+number of electron−hole pairs
+
+7000
+
+6500
+
+6000
+
+5500
+
+5000
+
+4500
+0.92
+
+0.93
+
+0.94
+
+0.95
+
+0.96
+
+0.97
+
+reflectance of Teflon (r
+
+0.98
+
+)
+
+PTFE
+
+Figure 6. Simulated position of the full-energy peak, (a) as a function of the reflectance rd of the
+dead area between the pixels of the APD array in the absence of any Teflon wrapping and (b) as a
+function of the reflectance of the Teflon wrapping rPTFE, given rd = 0.8.
+
+section 2.4. It is emphasized that all results presented here include the influence of the finite
+test beam diameter dbeam ≈ 0.9 mm FWHM. Furthermore, all results were obtained using nref =
+1500 events per beam position and L = 200 nearest neighbours.
+Figure 7(a) shows the measured detector spatial response of the 20 mm × 10 mm ×
+10 mm crystal, averaged over the entire length of the crystal, in comparison to the simulated
+one. The FWHM and FWTM are equal to 1.66 mm and 4.5 mm, respectively. The
+corresponding simulated values are 1.67 mm and 4.2 mm, respectively. Taking into account
+a relative uncertainty of 10% (1σ ) in M, J and σ e, the uncertainties in the simulated FWHM
+and FWTM are estimated to be 0.05 mm (1σ ) and 0.2 mm (1σ ), respectively. Here, the
+uncertainties due to other parameters were neglected as these are difficult to compute, so
+these estimates are to be seen as a lower limit on the true uncertainty. Nevertheless,
+
+1670
+
+D J van der Laan et al
+
+(a) 1
+
+measurement
+simulation
+
+0.9
+
+normalized counts
+
+0.8
+0.7
+0.6
+0.5
+0.4
+0.3
+0.2
+0.1
+0
+−10
+
+−8
+
+−6
+
+−4
+
+−2
+
+0
+
+2
+
+4
+
+6
+
+8
+
+10
+
+positioning error (mm)
+(b) 1
+
+measurement
+simulation
+
+0.9
+
+normalized counts
+
+0.8
+0.7
+0.6
+0.5
+0.4
+0.3
+0.2
+0.1
+0
+−10
+
+−8
+
+−6
+
+−4
+
+−2
+
+0
+
+2
+
+4
+
+6
+
+8
+
+10
+
+positioning error (mm)
+Figure 7. Measured and simulated detector spatial response of (a) the 20 mm × 10 mm × 10 mm
+and (b) the 20 mm × 10 mm × 20 mm LYSO:Ce crystal, averaged over the entire length of the
+crystal. Both results were obtained with nref = 1500 and L = 200 and include the influence of the
+test beam diameter dbeam ≈ 0.9 mm FWHM.
+
+the measured and simulated values agree to within the 2σ confidence interval of the
+simulations.
+Figure 7(b) shows the measured and simulated spatial responses of the 20 mm ×
+10 mm × 20 mm crystal, both averaged over the entire length of the crystal. The FWHM and
+FWTM are equal to 1.79 mm and 5.1 mm, respectively. The corresponding simulated values
+are 1.71 mm and 4.5 mm, respectively. Again the values are in good agreement, although for
+this crystal the difference between the FWTM values may be significant.
+For both crystals, the tails of the measured histograms are slightly higher than those of
+the simulated ones, which is also apparent from the slightly higher measured FWTM values.
+
+Optical simulation of monolithic scintillator detectors using GATE/GEANT4
+
+1671
+
+(a)
+
+measurement
+simulation
+
+2.8
+2.6
+
+FWHM (mm)
+
+2.4
+2.2
+2
+1.8
+1.6
+1.4
+1.2
+1
+−10
+
+−8
+
+−6
+
+−4
+
+−2
+
+0
+
+2
+
+4
+
+6
+
+8
+
+10
+
+x−position (mm)
+
+(b)
+
+2.8
+
+measurement
+simulation
+
+2.6
+2.4
+
+FWHM (mm)
+
+2.2
+2
+1.8
+1.6
+1.4
+1.2
+1
+−10
+
+−8
+
+−6
+
+−4
+
+−2
+
+0
+
+2
+
+4
+
+6
+
+8
+
+10
+
+x−position (mm)
+Figure 8. The FWHM of the detector spatial response, averaged over 1 mm intervals, as a function
+of the x-position in the crystal for (a) the 20 mm × 10 mm × 10 mm and (b) the 20 mm ×
+10 mm × 20 mm LYSO:Ce crystal.
+
+This is attributed to scattering of the annihilation photons in materials in between the source
+and the crystal (such as the box containing the detector). Maas et al (2010) observed a similar
+effect.
+In previous works, it was observed that the position resolution of monolithic scintillator
+detectors increases near the edges of the crystal (Maas et al 2009, Schaart et al 2009). To
+investigate if the present simulations correctly reproduce these edge effects, figure 8 compares
+the FWHM of the measured and simulated spatial responses as a function of the x-position in
+the crystal, for each of the two detector geometries investigated. These values were obtained
+from error histograms acquired at 1 mm intervals. The fluctuations in the results are attributed
+to the relatively small number of events per histogram (approx. 6000 as the step size was
+0.25 mm and the number of events per position was 1500). The corresponding uncertainty
+in the results is in the order of a few tenths of a millimetre. Taking this uncertainty into
+
+1672
+
+D J van der Laan et al
+
+(a)
+
+measurement
+simulation
+
+1
+
+normalized counts
+
+0.8
+
+0.6
+
+0.4
+
+0.2
+
+0
+
+0
+
+100
+
+200
+
+300
+
+400
+
+500
+
+600
+
+500
+
+600
+
+energy (keV)
+(b)
+
+measurement
+simulation
+
+1
+
+normalized counts
+
+0.8
+
+0.6
+
+0.4
+
+0.2
+
+0
+
+0
+
+100
+
+200
+
+300
+
+400
+
+energy (keV)
+Figure 9. Measured and simulated pulse-height spectra at 511 keV of (a) the 20 mm ×
+10 mm × 10 mm and (b) the 20 mm × 10 mm × 20 mm LYSO:Ce crystal. The measured
+spectra are electronically cut off below approximately 100–150 keV.
+
+account, the simulated and measured resolutions are in good agreement. As the increase in
+position resolution near the edges is due to the changing shapes of the light distributions in
+these regions (see also Van der Laan et al (2006)), these results illustrate the importance of
+accurately taking into account optical transport in the simulations.
+3.2.2. Energy resolution. Figure 9 shows the pulse-height spectra of the two detectors,
+determined by adding up the signals of all APD pixels for each event in the reference set.
+All spectra are normalized such that Gaussians fitted through the full-energy peaks are at
+the same position and have equal heights. For both crystals investigated, the measured and
+simulated FWHM energy resolutions determined from the Gaussian fits are equal to 10.8%
+and 10.2%, respectively. An uncertainty of 10% (1σ ) in the light yield causes an uncertainty
+
+Optical simulation of monolithic scintillator detectors using GATE/GEANT4
+
+1673
+
+of approximately 0.5% (1σ ) in the energy resolution, while an uncertainty of 10% (1σ ) in each
+of M, J and σ e gives rise to an additional uncertainty of approximately 0.15%. Therefore, the
+measured energy resolutions are well within the confidence intervals of the simulated ones.
+The Compton ridges of the measured energy spectra are slightly higher than those of the
+simulated energy spectra. This may at least partially be caused by scattering of radiation in
+materials between the detector and the source. This was also observed in the comparison of
+the simulated and measured position resolutions, see section 3.2.1. Simulations including the
+epoxy container of the source, the aluminium box containing the detector, the circuit boards
+to which the APD arrays are connected and the copper pins of the APD arrays showed that
+approximately ∼3% of the annihilation photons are scattered before entering the detector. As
+the spectra are normalized on the peaks, this results in approximately ∼6% difference in the
+height of the Compton edge, accounting for a large part, but not all, of the observed difference
+of ∼10%. However, not all possible sources of scatter have been included in these simulations.
+4. Conclusions
+A comparison of simulations and measurements on monolithic scintillator PET detectors shows
+that the optical physics models of GEANT4 enable accurate prediction of the spatial and energy
+resolution of such position-sensitive scintillation detectors, provided that all necessary input
+parameters are known with sufficient accuracy.
+As a part of this work, the GEANT4 optical models have been made available within
+GATE (as of version 3.0), so that these routines can now be used for the simulation of e.g.
+PET and SPECT detectors via GATE’s user-friendly, scripted user interface (Jan et al 2004).
+The GATE script for performing the same simulations is available with the online version
+of this paper (stacks.iop.org/PMB/55/1659/mmedia). As optical photons are the primary
+information carriers in any scintillation detector, this new functionality of GATE may be
+helpful to researchers aiming at Monte Carlo aided optimization of existing, and development
+of new detectors and/or imaging systems.
+A validation of the GEANT4/GATE optical models was performed by developing
+a detailed Monte Carlo model of two different monolithic scintillator detectors for high
+resolution PET and comparing the predicted spatial and energy resolutions to experimental
+results. Good agreement was found: for example, the simulated resolution of the 20 mm
+thick detector of 1.71 mm FWHM and 4.5 mm FWTM agreed with the measured resolution of
+1.79 mm FWHM and 5.1 mm FWTM (see section 3.2.1.). In contrast, simulations reported on
+elsewhere (Maas et al 2010), intended to solely quantify the influence of scattering and
+attenuation of the annihilation photons in the detector, without taking into account the
+scintillation processes, optical transport and the response of the photosensor, predicted a
+position resolution of 1.23 mm FWHM and 2.5 mm FWTM for the same detector, showing
+that both the shapes of the light distributions and the noise therein need to be modelled
+accurately to obtain correct results.
+As illustrated in this work, optical Monte Carlo simulations require accurate knowledge
+of a relatively large number of input parameters. Not all of these parameters may be
+readily available. The present work demonstrates how the required optical parameters can be
+determined such that accurate simulations become possible.
+References
+Agostinelli S et al 2003 GEANT4—a simulation toolkit Nucl. Instrum. Methods Phys. Res. A 506 50–303
+Birowosuto M D, Dorenbos P, van Eijk C W E, Krämer K W and Güdel H U 2005 Scintillation properties of
+LuI3Ce3+-high light yield scintillators IEEE Trans. Nucl. Sci. 52 1114–8
+
+1674
+
+D J van der Laan et al
+
+Bruyndonckx P, Léonard S M A, Tavernier S P K, Lemaı̂tre C, Devroede O, Wu Y and Krieguer M 2004
+Neural network-based position estimators for PET detectors using monolithic LSO blocks IEEE Trans. Nucl.
+Sci. 51 2520–5
+Catana C, Procissi D, Wu Y, Judenhofer M S, Qi J, Pichler B J, Jacobs R E and Cherry S R 2009 Simultaneous
+in vivo positron emission tomography and magnetic resonance imaging Proc. Natl Acad. Sci. USA 105 3705–10
+Cherry S R 2004 In vivo molecular and genomic imaging: new challenges for imaging Phys. Med. Biol. 49 R13–48
+De Haas J, Dorenbos P and van Eijk C 2005 Measuring the absolute light yield of scintillators Nucl. Instrum. Methods
+Phys. Res. A 537 97–100
+Dorenbos P, de Haas J T M and van Eijk C W E 1995 Non-proportionality in the scintillation response and the energy
+resolution obtainable with scintillation crystals IEEE Trans. Nucl. Sci. 42 2190–202
+Geant4 2004 Geant4 Physics Reference Manual Version: Geant4 7.0 (December 2004) Geant4 Collaboration
+http://www.geant4.org/
+Geant4 2005 Geant4 User’s Guide for Application Developers Version: Geant4 7.1 (June 2005) Geant4 Collaboration
+http://www.geant4.org/
+Gentile T R, Houston J M and Cromer C L 1996 Realization of a scale of absolute spectral response using the National
+Institute of Standards and Technology high-accuracy cryogenic radiometer Appl. Opt. 36 4392–403
+Jan S et al 2004 GATE: a simulation toolkit for PET and SPECT Phys. Med. Biol. 49 4543–61
+Judenhofer M S et al 2008 Simultaneous PET-MRI: a new approach for functional and morphological imaging Nat.
+Med. 14 459–65
+Levin A and Moisan C 1996 A more physical approach to model the surface treatment of scintillation counters and
+its implementation into DETECT IEEE Nucl. Sci. Symp. Conf. Record 2 702–6
+Lewellen T K 2008 Recent developments in PET detector technology Phys. Med. Biol. 53 R287–R317
+Lopes M I and Chepel V 2004 Detectors for medical radioisotope imaging: demands and perspectives Radiat. Phys.
+Chem. 71 683–92
+Maas M C, Schaart D R, Van Der Laan D J, Bruyndonckx P, Lemaı̂tre C, Beekman F J and van Eijk C W E
+2009 Monolithic scintillator PET detectors with intrinsic depth-of-interaction correction Phys. Med. Biol.
+54 1893–908
+Maas M C, Van Der Laan D J, Beekman F J, van Eijk C W E, Bruyndonckx P, Lamaı̂tre C and Schaart D R 2010
+Model analysis of the point spread function of monolithic scintillator PET detectors Med. Phys. at press
+Maas M C, Van Der Laan D J, Schaart D R, Huizenga J, Brouwer J C, Bruyndonckx P, Léonard S, Lemaı̂tre C and van
+Eijk C W E 2006 Experimental characterization of monolithic-crystal small animal PET detectors read out by
+APD arrays IEEE Trans. Nucl. Sci. 53 1071–7
+Maas M C, Van Der Laan D J, Schaart D R, van Dam H T, Bruyndonckx P, Lemaı̂tre C and van Eijk C W E 2008
+Signal to noise ratio of APD-based monolithic scintillator detectors for high resolution PET IEEE Trans. Nucl.
+Sci. 55 842–52
+Madsen M T 2007 Recent advances in SPECT imaging J. Nucl. Med. 48 661–73
+Mao R, Zhang L and Zhu R-Y 2008 Optical and scintillation properties of inorganic scintillators in high energy
+physics IEEE Trans. Nucl. Sci. 55 2425–31
+McElroy D P, Pimpl W, Pichler B J, Rafecas M, Schuler T and Ziegler S I 2005 Characterization and readout of
+MADPET-II detector modules: validation of a unique design concept for high resolution small animal PET
+IEEE Trans. Nucl. Sci. 52 199–204
+Melcher C L and Schweitzer J S 1992 Cerium-doped lutetium oxyorthosilicate: a fast, efficient new scintillator IEEE
+Trans. Nucl. Sci. 39 502–2
+Mitchell G S and Cherry S R 2009 A high-sensitivity small animal SPECT system Phys. Med. Biol. 54 1291–305
+Moisan C, Andreaco M S, Rogers J G, Paquet S and Vozza D 1997a Segmented LSO crystals for depth-of-interaction
+encoding in PET IEEE Trans. Nucl. Sci. 45 3030–5
+Moisan C, Levin A and Laman H 1997b Testing scintillation transport models with photoelectron yields measured
+under different surface finishes IEEE Nucl. Sci. Symp. Conf. Record 1 824–8
+Moisan C, Vozza D and Loope M 1996 Simulating the performances of an LSO based position encoding detector for
+PET IEEE Nucl. Sci. Symp. Conf. Record 2 1211–5
+Mosset J B, Saladino S, Loude J F and Morel C 2003 Characterisation of arrays of avalanche photodiodes for small
+animal positron emission tomography Nucl. Instrum. Methods Phys. Res. A 504 325–30
+Nayar S K, Ikeuchi K and Kanade T 1991 Surface reflection: physical and geometrical perspectives IEEE Trans.
+Pattern. Anal. Mach. Intell. 13 611–33
+Pichler B J, Lorenz E, Mirzoyan R, Weiss L and Ziegler S I 2000 Production of a diffuse very high reflectivity material
+for light collection in nuclear detectors Nucl. Instrum. Methods Phys. Res. A 442 333–6
+Schaart D R, van Dam H T, Seifert S, Vinke R, Dendooven P, Löhner H and Beekman F J 2009 A novel, SiPM-array
+based, monolithic scintillator detector for PET Phys. Med. Biol. 54 3501–12
+
+Optical simulation of monolithic scintillator detectors using GATE/GEANT4
+
+1675
+
+Schramm N U, Ebel G, Engeland U, Schurrat T, Béhé M and Behr T M 2003 High resolution SPECT using
+multipinhole collimation IEEE Trans. Nucl. Sci. 50 315–20
+Seidel J, Vaquero J J and Green M V 2003 Resolution uniformity and sensitivity of the NIH ATLAS small animal
+PET scanner: comparison to simulated LSO scanners without depth-of-interaction capability IEEE Trans. Nucl.
+Sci. 50 1347–51
+Shao Y, Cherry S R, Farahani K, Meadors K, Siegel S, Silverman R W and Marsden P K 1997 Simultaneous PET
+and MR imaging Phys. Med. Biol. 42 1965–70
+Tai Y C, Ruangma A, Rowland D, Siegel S, Newport D F, Chow P L and Laforest R 2005 Performance evaluation
+of the microPET focus: a third generation microPET scanner dedicated to animal imaging J. Nucl. Med.
+46 455–63
+Van Der Have F, Vastenhouw B, Ramakers R M, Branderhorst W, Krah J O, Ji C, Staelens S G and Beekman F J 2009
+U-SPECT-II: An ultra-high-resolution device for molecular small-animal imaging J. Nucl. Med. 50 599–605
+Van Der Laan D J, Maas M C, Schaart D R, Bruyndonckx P, Léonard S and van Eijk C W E 2006 Using Cramér–Rao
+theory combined with Monte Carlo simulations for the optimization of monolithic scintillator PET detectors
+IEEE Trans. Nucl. Sci. 53 1063–70
+Webb A R 2002 Statistical Pattern Recognition 2nd edn (Chichester: Wiley)
+Ziemons K et al 2005 The ClearPET (TM) project: development of a 2nd generation high-performance small animal
+PET scanner Nucl. Instrum. Methods Phys. Res. A 537 307–11
+
+

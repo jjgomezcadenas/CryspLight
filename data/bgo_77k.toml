@@ -1,0 +1,18 @@
+# BGO at 77 K (LN2), 480 nm emission.
+# Y = 22.7k +- 2k ph/MeV (Gironnet NIM A 594 (2008) / Moszynski chain). NOTE: Ding &
+# Liu's 29k assumed temperature-independent PDE at fixed bias; their own SPE gain rose
+# x1.24 from 195 K to 77 K, and 22.7k x 1.24 reproduces their measured system-yield
+# ratio exactly — 22.7k is the consistent value (PTCryspMC's 29k inherits the
+# constant-PDE assumption).
+# Decay: two components — Gironnet: 1.4 us (24%) + 8.7 us (76%); Ding: 3.0 + 9.0 us.
+# tau_ns below is the dominant slow component (v0 transports a single tau; irrelevant
+# for collection, relevant for timing later).
+# Bulk: same as bgo.toml (no temperature dependence expected for defect scattering).
+name = "BGO_77K"
+n = 2.15
+abs_length_mm = 20000.0
+rayleigh_mm = 2222.0
+yield_per_mev = 22700
+tau_ns = 8700.0
+lambda_nm = 480.0
+x0_mm = 11.2

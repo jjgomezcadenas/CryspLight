@@ -15,10 +15,10 @@
 \newcommand{\lray}{\Lambda_{\rm R}}
 \newcommand{\sa}{\sigma_\alpha}
 
-\title{Calibration of the CryspLight optical model on \csitl{} and cold pure CsI:\\
+\title{Calibration of the CryspLight optical model on \csitl{}, cold pure CsI and BGO:\\
 the absorption/scattering split of the measured extinction}
 \author{J.J.~G\'omez-Cadenas \and Claude (Anthropic)}
-\date{July 13, 2026 \\[2mm] \small Version 0.2 --- calibration note (phase 1)}
+\date{July 13, 2026 \\[2mm] \small Version 0.3 --- calibration note (phase 1)}
 
 \begin{document}
 \maketitle
@@ -51,9 +51,16 @@ intrinsic yield fixed at $10^5$~photons/MeV, the measured photoelectron count re
 $\sim$10\% bulk effect, degenerate along a $(\lext, f)$ line that a single measurement
 cannot break; adopting the \csitl{} analogue ($\lext = 0.3$~m, $f = 0.9$) as the default,
 the CRYSP-geometry collection is $83.0\%$, with a documented 62--83\% bracket pending a
-bare-crystal re-measurement or a transmittance scan. All numbers regenerate from
-\texttt{scripts/csitl\_calib.jl} and \texttt{scripts/soleti\_calib.jl} with their
-\texttt{runs/*.toml} campaigns.
+bare-crystal re-measurement or a transmittance scan.
+Finally, BGO at 195~K is assembled from three sources: scintillation parameters from
+Ding--Liu and Gironnet et al.\ (with a PDE-consistency argument that selects
+$Y_{77\,\rm K} = 22.7$k over the published 29k), a surface/wrap validation on the
+Ding--Liu 6~mm cube (reproduced with a Teflon-tape reflectivity of 0.90, consistent
+with the \csitl{} thin-tape ladder), and a bulk lower bound from the Mao--Zhang--Zhu
+transmittance compilation ($\lext \gtrsim 1.5$--2~m at 480~nm). The CRYSP BGO baseline
+becomes $88.0\%$ (84--90\% for $\lext = 1$--3~m at $f = 0.9$; pure-absorption floor
+45\%). All numbers regenerate from the \texttt{scripts/*\_calib.jl} campaigns with
+their \texttt{runs/*.toml} configurations.
 \end{abstract}
 
 \tableofcontents
@@ -399,6 +406,74 @@ the first two in-house:
 \end{enumerate}
 
 %=====================================================================
+\section{BGO at 195~K: parameters, validation, and the CRYSP prediction}
+\label{sec:bgo}
+
+BGO (the CRYSP alternative crystal, operated at dry-ice temperature) is assembled from
+three literature sources plus one validation campaign; materials
+\texttt{data/bgo.toml} (195~K) and \texttt{data/bgo\_77k.toml}.
+
+\subsection{Scintillation parameters}
+
+Two independent chains agree on $Y(195~{\rm K}) = 14$k~ph/MeV: the Ding--Liu
+measurement~\cite{ding2024} ($5.2\pm0.3$~PE/keV system yield, converted with their
+simulated collection and PDE) and the Gironnet quenching curve~\cite{gironnet2008}
+anchored on Moszy\'nski's room-temperature 6.9k. The decay time at exactly 195~K is
+$\tau = 1768$~ns (Ding--Liu waveform fit; Piltingsrud and Gironnet bracket it from
+above at 200~K). At 77~K, a consistency argument selects the yield: Ding--Liu derived
+29k assuming temperature-independent PDE at fixed bias, but their own single-PE
+calibration shows the gain (hence overvoltage, hence PDE) rising by $\times1.24$ from
+195 to 77~K --- and Gironnet's $22.7\pm2$k times 1.24 reproduces their measured
+system-yield ratio (10.5/5.2 = 2.02) exactly. We adopt $Y(77~{\rm K}) = 22.7$k with the
+two-component decay 1.4~$\mu$s (24\%) + 8.7~$\mu$s (76\%). Unlike CsI, the emission
+stays at the Bi$^{3+}$ 480~nm band at all temperatures.
+
+\subsection{Surface/wrap validation on the Ding--Liu cube}
+
+The Ding--Liu geometry --- a $6\times6\times6$~mm$^3$ cube, \emph{unpolished} (rough)
+surfaces, four sides in multiple layers of Teflon tape, two SiPMs dry-coupled to the
+remaining faces --- is simulated with the two-sided readout
+(\texttt{runs/ding\_calib.toml}; deposits exponential, 0.6~mm, inside the entrance side
+face). With $Y = 14$k and ${\rm PDE} = 0.45$, the measured collection is
+$\varepsilon = 0.825 \pm 0.08$. The campaign confirms what the geometry implies: at
+6~mm, $\sa$ (12$^\circ$ vs 18$^\circ$) and $\lext$ (1.5 vs 2~m) move $\varepsilon$ by
+$<0.5\%$ --- the cube measures the \emph{tape}. The measured value is reproduced at
+$R_{\rm tape} = 0.90$ (their Geant4 MC value of 0.80 corresponds to $R = 0.88$),
+squarely inside the \csitl{} thin-tape ladder of Sec.~\ref{sec:results}
+(0.84 for a 200~$\mu$m monolayer, 0.93 for three 38~$\mu$m layers): the model
+reproduces the measurement with no new physics. This is a validation of the
+rough-surface + tape + air-gap branch, not a bulk constraint.
+
+\subsection{Bulk and the CRYSP prediction}
+
+Mao, Zhang and Zhu~\cite{mao2008} measured the transmittance of a 1.68~cm BGO cube at
+the Fresnel-limit level, giving $\lext \gtrsim 1.5$--2~m at 480~nm (BGO's emission sits
+deep in its transparency region; cutoff 315~nm). We adopt $\lext = 2$~m with $f = 0.9$
+(the community default --- extinction $\approx$ scattering at the emission wavelength
+of a clean crystal), noting that \emph{for BGO the split is unmeasured}: no
+wrapping-ladder or dedicated-geometry data exist to break it, and the same in-house
+breakers as for cold CsI apply. In the CRYSP geometry
+($48\times48\times22.4$~mm$^3$, thick Teflon, grease-coupled $8\times8$ array,
+$\sa = 1.3^\circ$, ${\rm PDE}=1$):
+\begin{center}
+\begin{tabular}{lc}
+  \toprule
+  bulk hypothesis & CRYSP collection \\
+  \midrule
+  $\lext = 2$~m, $f = 0.9$ (\textbf{adopted}) & \textbf{88.0\%} \\
+  $\lext = 1$--3~m, $f = 0.9$ & 84.5--90.0\% \\
+  $\lext = 2$~m, $f = 0$ (pure absorption) & 45.3\% \\
+  $\lext = 1$~m, $f = 0$ (old placeholder) & 37.4\% \\
+  \bottomrule
+\end{tabular}
+\end{center}
+The tracked baselines become 88.0\% (Teflon) and 70.0\% (ESR --- legitimate for BGO's
+480~nm emission; the specular wrap pays $\sim$18\% wall losses against the diffuse
+wrap's 1\%, a first quantitative argument for Teflon over ESR in the CRYSP BGO
+option). In photoelectrons: $14\,000 \times 0.511 \times 0.88 \times {\rm PDE}(0.45)
+\approx 2\,800$ per 511~keV photopeak at 195~K.
+
+%=====================================================================
 \section{Caveats and next steps}
 \label{sec:caveats}
 
@@ -431,8 +506,10 @@ the first two in-house:
     \csitl{} campaign (grid, cases, targets);
   \item \texttt{scripts/soleti\_calib.jl} + \texttt{runs/soleti\_calib.toml} --- the
     cold-CsI campaign (Sec.~\ref{sec:coldcsi});
-  \item \texttt{data/csitl.toml}, \texttt{data/csi.toml} --- the calibrated parameters,
-    provenance in comments;
+  \item \texttt{scripts/ding\_calib.jl} + \texttt{runs/ding\_calib.toml} --- the BGO
+    cube campaign (Sec.~\ref{sec:bgo});
+  \item \texttt{data/csitl.toml}, \texttt{data/csi.toml}, \texttt{data/bgo.toml},
+    \texttt{data/bgo\_77k.toml} --- the calibrated parameters, provenance in comments;
   \item \texttt{runs/point\_csitl\_teflon.toml}, \texttt{runs/point\_csi\_teflon.toml}
     --- the CRYSP-geometry applications;
   \item \texttt{output/csitl\_calib/}, \texttt{output/soleti\_calib/} --- grid results;
@@ -478,6 +555,22 @@ Eur.\ Phys.\ J.\ C \textbf{82} (2022) 344.
 L.~Wang \emph{et al.},
 ``Reactor neutrino physics potentials of cryogenic pure-CsI crystal,''
 Eur.\ Phys.\ J.\ C \textbf{84} (2024) 440.
+
+\bibitem{ding2024}
+K.~Ding and J.~Liu,
+``Operation of BGO with SiPM readout at dry ice and liquid nitrogen temperatures,''
+arXiv:2403.09501 (2024).
+
+\bibitem{gironnet2008}
+J.~Gironnet, V.~B.~Mikhailik, H.~Kraus, P.~de~Marcillac and N.~Coron,
+``Scintillation studies of Bi$_4$Ge$_3$O$_{12}$ (BGO) down to a temperature of 6~K,''
+Nucl.\ Instrum.\ Meth.\ A \textbf{594} (2008) 358.
+
+\bibitem{mao2008}
+R.~Mao, L.~Zhang and R.-Y.~Zhu,
+``Optical and scintillation properties of inorganic scintillators in high energy
+physics,''
+IEEE Trans.\ Nucl.\ Sci.\ \textbf{55} (2008) 2425.
 
 \end{thebibliography}
 

@@ -1,0 +1,422 @@
+IEEE TRANSACTIONS ON NUCLEAR SCIENCE, VOL. 55, NO. 4, AUGUST 2008
+
+2425
+
+Optical and Scintillation Properties of Inorganic
+Scintillators in High Energy Physics
+Rihua Mao, Member, IEEE, Liyuan Zhang, Member, IEEE, and Ren-Yuan Zhu, Senior Member, IEEE
+
+Abstract—This paper presents a comparative study of optical
+and scintillation properties for various inorganic crystal scintillators, which are used, or actively pursued, by the high energy
+physics community for experiments. Transmittance, excitation and
+photo-luminescence spectra were measured for samples with a dimension of 1.5 radiation length. The transmittance data are compared to the theoretical limit calculated by using refractive index,
+assuming no internal absorption. Refractive index of lutetium oxyorthosilicate and lutetium-yttrium oxyorthosilicate was measured
+by using a V-prism. Light output was measured for these samples
+with Tyvek paper wrapping, and the result is presented with the
+quantum efficiency of the readout devices taken out. Temperature
+coefficient of the light output was also measured. The result of these
+measurements will be used in the summary table of the inorganic
+scintillator section for the 2008 edition of the particle data book.
+Index Terms—Crystal, emission, light output, refractive index,
+scintillator, temperature dependence, transmittance.
+
+I. INTRODUCTION
+
+T
+
+HIS is a part of the on-going work to improve the inorganic scintillator section in the particle data book [1].
+The summary table in the inorganic scintillator section of the
+2006 edition includes a comparison of the light output measured
+by using a photomultiplier tube (PMT) with a bi-alkali cathode
+for various crystals with unspecified size and wrapping. Since
+crystal sample’s light output is a product of its light yield, the
+light collection efficiency of the readout device and the quantum
+efficiency (QE) of the readout device samples of different size
+and wrapping material would have different light output.
+To eliminate this ambiguity samples of various crystal scintillators were procured with a well defined dimension. Crystal
+density, or its radiation length, affects directly the detector size
+in high energy physics experiments since the detector depth is
+usually defined to fully contain electromagnetic showers of the
+highest energy. All samples thus are defined with a dimension of
+and the area of two end faces equaling
+1.5 radiation length
+. There is no particular reason to choose 1.5,
+to
+however, except that it is large enough and it is easy to maintain
+a full coverage with a 2” PMT.
+During the light output measurement samples are wrapped
+with Tyvek paper, which is a standard wrapping material with
+Manuscript received January 11, 2008; revised April 24, 2008. Current version published September 19, 2008. This work was supported in part by the
+U.S. Department of Energy under Grant DE-FG03-92-ER-40701 and the U.S.
+National Science Foundation Awards PHY-0612805 and PHY-0516857.
+The authors are with the California Institute of Technology, Pasadena, CA
+91125 USA (e-mail: zhu@hep.caltech.edu).
+Color versions of one or more of the figures in this paper are available online
+at http://ieeexplore.ieee.org.
+Digital Object Identifier 10.1109/TNS.2008.2000776
+
+Fig. 1. A photo showing samples investigated in this work.
+
+good reproducibility as compared to other wrapping materials,
+such as Teflon films. To further facilitate a direct comparison
+with different readout devices, such as silicon photodiode (PD)
+and avalanche photodiode (APD) which are widely used in high
+energy physics experiments, the QE of the PMT used to measure
+the light output is also taken out.
+In addition to the light output, optical transmittance, UV excitation and photo-luminescence spectra were also measured. A
+comparison of the transmittance data with its theoretical limit
+shows sample’s optical quality. Refractive index as a function
+of wavelength was also measured for LSO and LYSO samples
+where no published data are available. Finally, the temperature
+dependence of the light output was also measured. The result of
+these measurements will be used as an input for the summary
+table of the inorganic scintillator section in the 2008 edition of
+the particle data book.
+II. SAMPLES
+Fig. 1 shows all samples investigated. They are pure cesium
+iodide (CsI), sodium doped cesium iodide (CsI:Na), thallium
+doped cesium iodide (CsI:Tl), thallium doped sodium iodide
+(NaI:Tl) in the top row and yttrium doped lead tungstate
+or PWO), cerium doped lutetium oxyorthosili(
+, LSO) and cerium doped lutetium yttrium
+cate (
+oxyorthosilicate (
+, LYSO), bismuth geror BGO), cerium fluoride
+and
+manate (
+in the bottom row. All these crystals
+barium fluoride
+have either been used in, or actively pursued for, high energy
+and nuclear physics experiments. It is worth to point out that recently discovered cerium doped lanthanum tri-halides, such as
+and
+, are very bright and fast, but are not included
+in this study. We plan to include these samples in our further
+study when they are more or less in a mass-production stage.
+
+0018-9499/$25.00 © 2008 IEEE
+Authorized licensed use limited to: CALIFORNIA INSTITUTE OF TECHNOLOGY. Downloaded on November 7, 2008 at 01:51 from IEEE Xplore. Restrictions apply.
+
+2426
+
+IEEE TRANSACTIONS ON NUCLEAR SCIENCE, VOL. 55, NO. 4, AUGUST 2008
+
+Fig. 2. Excitation (red), photo-luminescence (blue) and optical transmittance (green) are shown as a function of wavelength for heavy crystal scintillators commonly used in high energy physics experiments. The solid black dots represent the theoretical limit of the transmittance.
+
+Samples are arranged in an order of their density, or radiation
+length. Crystal scintillators in the top row are hygroscopic.
+The CsI and NaI based samples were procured from Institute for Scintillation Materials, Khar’kov. Because of the
+hygroscopicity these samples are sealed in 3 mm thick quartz
+, BGO,
+and
+windows to prevent surface damage.
+samples are provided by Shanghai Institute of Ceramics,
+Shanghai. LSO and LYSO samples are procured from CTI
+Molecular Imaging and Saint-Gobain Ceramics & Plastics,
+Inc. respectively. According to the manufacturers, the yttrium
+content is about 10% for the Saint-Gobain LYSO. The nominal
+cerium doping level is 0.2% for the CTI LSO and is less than
+1% for the Saint-Gobain LYSO. All these samples are of
+mass-production quality, which may be different from samples
+in early development stage before the optimization is finalized.
+All samples, except the NaI:Tl sample, have a cubic shape with
+. The NaI:Tl sample is a cylinder of 1.5
+a dimension of 1.5
+long with the area of two end faces equal to
+to match the 2 inch PMT.
+III. TRANSMISSION, EXCITATION AND PHOTO-LUMINESCENCE
+Fig. 2 shows a comparison of the transmittance (green lines,
+right scale), photo-luminescence (blue lines) and excitation (red
+lines) spectra as a function of wavelength for eight samples. The
+UV excitation and photo-luminescence spectra were measured
+by using a Hitachi F4500 fluorescence spectrophotometer, as
+shown in Fig. 3. The angle between the excitation beam and
+the sample normal was set to be 10 so that the photo-luminescence spectra collected are not affected by internal absorption
+in the sample. As a comparison, this figure also shows a sample
+(dashed), where measured photo-luminesposition with
+cence spectra would be affected by internal absorption. Internal
+absorption does affect the shape of the emission spectra, causing
+
+Fig. 3. The setup used for excitation and photo-luminescence measurement,
+where  = 10 (solid) and 0 (dashed) lead to the measured photoluminescence
+spectra without and with internal absorption.
+
+a red shift of the luminescence peak wavelength. This effect is
+crystals since a part of
+more visible for LSO, LYSO and
+their emission is self-absorbed [2]. Two emission peaks are obsample. They are a fast component peaked
+served for the
+at 220 nm and a slow component peaked at 300 nm.
+Optical transmittance was measured by using a Perkin Elmer
+Lambda-950 spectrometer equipped with double beam, double
+monochromator and a general purpose optical bench with light
+path up to 40 cm. The systematic uncertainty in repeated measurements is about 0.15%. The solid black dots in Fig. 2 rep, which
+resent the theoretical limit of the transmittance,
+is calculated according to [3] by using the refractive index data
+[5], NaI [6],
+[7], [8],
+[9] and
+of BGO [4],
+
+Authorized licensed use limited to: CALIFORNIA INSTITUTE OF TECHNOLOGY. Downloaded on November 7, 2008 at 01:51 from IEEE Xplore. Restrictions apply.
+
+MAO et al.: OPTICAL AND SCINTILLATION PROPERTIES
+
+2427
+
+TABLE I
+REFRACTIVE INDEX OF LSO AND LYSO CRYSTALS
+
+Fig. 4. The setup used to measure refractive index with a V-prism.
+
+CsI [10], assuming multiple bouncing between two parallel end
+surfaces and no internal absorption
+
+(1)
+
+Fig. 5. Scintillation light pulse readout by a PMT and recorded by an Agilent
+6052A digital scope is shown for five fast crystals with the decay time from an
+exponential fit (dashed lines).
+
+where
+
+(2)
+We note that PWO crystals are birefringent. The difference of
+the refractive index measured along different axis is at a level of
+10% as discussed in [7], [8]. Its consequence to the theoretical
+limit of transmittance calculated along different optical axis is
+discussed in details in [11].
+Since there is no existing refractive index data as a function
+of wavelength in literature for LSO and LYSO, their refractive index between 405 and 546 nm was measured by using a
+V-prism, as shown in Fig. 4 [12]. The sample crystal was coupled to the V-prism with optical oil, which has a similar refractive index of the V-prism. The refractive angle between the incident light and the refractive light is a function of the refractive
+indices of the sample and the V-prism. By measuring the refractive angle as a function of wavelength, sample’s refractive
+can be determined as a function of the overall refracindex
+and the refractive index of the V-prism
+:
+tive angle
+
+(3)
+
+Table I shows the numerical result of the refractive index of LSO
+and LYSO. The result at 420 nm agrees well with that in the original patent [13]. In the wavelength region of this measurement
+no difference was found between the refractive indices obtained
+from LSO and LYSO samples.
+A comparison of the measured optical transmittance and its
+reveals sample’s overall optical quality. As
+theoretical limit
+shown in Fig. 2, the measured transmittance approaches the
+theoretical limits for all samples, indicating very good optical
+quality of these samples. It is also interesting to note that while
+and CsI(Tl) crystals have their emission spectra
+the BGO,
+well within the transparent region, the UV absorption edge in
+, NaI(Tl) and
+the transmittance spectra of the LSO, LYSO,
+samples, however, cuts into the emission spectra and
+thus affects crystal’s light output. This effect is more seriously
+observed in long LSO and LYSO samples as discussed in details
+in [14] and [15].
+With recent interest of the high energy physics community in
+measuring both the scintillation and Cherenkov light, we also
+note that the values of the cut-off wavelength, at which the transmittance data show 50% of that at 800 nm, are 140 nm, 280 nm,
+293 nm, 315 nm, 318 nm, 342 nm, 358 nm, 365 nm and 390 nm
+, CsI,
+, BGO, CsI(Na), PWO, CsI(Tl), NaI(Tl)
+for
+and LSO/LYSO respectively.
+
+Authorized licensed use limited to: CALIFORNIA INSTITUTE OF TECHNOLOGY. Downloaded on November 7, 2008 at 01:51 from IEEE Xplore. Restrictions apply.
+
+2428
+
+IEEE TRANSACTIONS ON NUCLEAR SCIENCE, VOL. 55, NO. 4, AUGUST 2008
+
+Fig. 6. Scintillation light pulse readout by a PMT and recorded by an Agilent
+6052A digital scope is shown for five slow crystals with the decay time from an
+exponential fit (dashed lines).
+
+Fig. 8. Light output measured by using a Photonis XP2254b PMT is shown as
+a function of integration time for five fast crystal scintillators.
+
+-ray peak position was determined by a simple Gaussian fit,
+and was used to determine sample’s light output in a unit of
+photoelectrons per MeV energy deposition by using calibration
+of the single photoelectron peak.
+The light output as a function of the integration time was fit
+to the following function to determine the fast and slow components and the decay kinetics:
+
+(4)
+
+Fig. 7. The setup used for the light output measurement.
+
+IV. LIGHT OUTPUT AND DECAY KINETICS
+Figs. 5 and 6 show a statistical average of 1,024 scintillation pulse shape readout by a PMT with fast response time and
+recorded by an Agilent 6052A digital scope for five fast and
+slow crystal scintillators respectively, which are excited by a
+source. The numerical values of their decay time listed in
+these figures were extracted by an exponential fit (dashed lines)
+to the pulse shape. The scintillation light output and decay kinetics were also measured at the room temperature (20 ) by
+using a Photonis XP2254b PMT, which has a multi-alkali photo
+cathode and a quartz window. The setup used in this measurement is shown in Fig. 7. In this measurement one end of the
+sample was coupled to the PMT with Dow Corning 200 fluid,
+while all other faces of the sample were wrapped with Tyvek
+source was used to excite the sample.
+paper. A collimated
+The integration time used was ranged from 45 to 4,000 ns. The
+
+where is the fast component of the scintillation light with a
+decay time of less than 10 ns, and represents the slow component with a decay time of longer than 10 ns.
+The light output shown in Figs. 8 and 9 are in unit of photoelectron/MeV which depends on the QE of the readout device used. In high energy physics applications readout devices
+of very different QE may be used, such as Si PD and APD. It
+thus is useful to take the QE of the Photonis XP2254b PMT out.
+The light output in unit of photon/MeV is calculated as
+
+(5)
+is the emission weighted quantum efficiency calThe
+culated according to
+
+(6)
+where
+and
+tion of wavelength.
+
+are the QE and emission as a func-
+
+Authorized licensed use limited to: CALIFORNIA INSTITUTE OF TECHNOLOGY. Downloaded on November 7, 2008 at 01:51 from IEEE Xplore. Restrictions apply.
+
+MAO et al.: OPTICAL AND SCINTILLATION PROPERTIES
+
+Fig. 9. Light output measured by using a Photonis XP2254b PMT is shown as
+a function of integration time for five slow crystal scintillators.
+
+2429
+
+Fig. 11. The quantum efficiencies of a Hamamatsu S2744 photodiode (solid
+dots) and a Hamamatsu S8864-55 APD (open circles) are shown as a function
+of wavelength together with the emission spectra of the LSO/LYSO, BGO and
+CsI(Tl) samples, where the area under the emission curves is proportional to
+their corresponding light output.
+
+Fig. 12. The setup used for the temperature coefficient measurement.
+Fig. 10. The quantum efficiencies of a Hamamatsu 1306 PMT with a bi-alkali
+cathode (open circles) and a Photonis 2254B PMT with a multi-alkali cathode
+(solid dots) are shown as a function of wavelength together with the emission
+spectra of the LSO/LYSO, BGO and CsI(Tl) samples, where the area under the
+emission curves is proportional to their corresponding light output.
+
+Figs. 10 and 11 show typical QE data measured for various
+readout devices, such as the Photonis 2254B PMT with a multialkali cathode, which was used in our light output measurement (solid dots), and a Hamamatsu R1306 PMT with a bi-alkali cathode (open circles) in Fig. 10 and a Hamamatsu S2744
+
+photodiode (solid dots) and a Hamamatsu S8864-55 APD (open
+circles) in Fig. 11. Also shown in these figures are the emission spectra of LSO/LYSO, BGO and CsI(Tl) crystals with the
+area under each emission spectrum proportional to the corresponding light output. The numerical result with QE taken out
+is summarized in Table II for mass-produced inorganic crystal
+scintillators, which have been used, or actively pursued, by the
+high energy and nuclear physics community for experiments.
+and
+As discussed that all samples have a dimension of
+with Tyvek paper wrapping.
+
+Authorized licensed use limited to: CALIFORNIA INSTITUTE OF TECHNOLOGY. Downloaded on November 7, 2008 at 01:51 from IEEE Xplore. Restrictions apply.
+
+2430
+
+IEEE TRANSACTIONS ON NUCLEAR SCIENCE, VOL. 55, NO. 4, AUGUST 2008
+
+TABLE II
+PROPERTIES OF HEAVY CRYSTAL SCINTILLATORS USED OR PURSUED BY THE HIGH ENERGY PHYSICS COMMUNITY
+
+TABLE III
+TEMPERATURE COEFFICIENT OF LIGHT Yield
+
+V. LIGHT OUTPUT TEMPERATURE COEFFICIENT
+It is known that light yield of crystal scintillators may vary
+as a function of temperature. This variation has a consequence
+, of
+in detector design. The temperature coefficient,
+the light yield was measured for ten samples. Fig. 12 shows the
+setup used for this measurement. The temperature of the sample
+is controlled by a PC through a NESLAB RTE-111 cooler,
+which circulates water with defined temperature to a copper
+heat sink fixed on the sample to be measured. About 30 minutes
+were needed for the temperature to reach an equilibrium. Light
+yield was first measured as a function of temperature between
+and 35 . The numerical result of the temperature coef5
+ficients at 20 was determined by a linear fit, as listed in the
+top row in Table III.
+has two scintillation components
+As shown in Fig. 2,
+with very different temperature coefficients. Two band pass filters, BPF-214 and BPF-300, were used to select fast and slow
+. Fig. 13 shows the transmitscintillation component for
+.
+tance of these filters and the scintillation emission of
+While the filter BPF-214 selects only the fast component peaked
+at 220 nm, the filter BPF-300 selects only the slow component
+peaked at 300 nm. Fig. 14 shows light output variations measured between 15 and 25 , and corresponding temperature
+
+Fig. 13. The transmittance spectra of filters BPF-214 and PBF-300 and the
+BaF emission spectrum are shown as a function of wavelength.
+
+Authorized licensed use limited to: CALIFORNIA INSTITUTE OF TECHNOLOGY. Downloaded on November 7, 2008 at 01:51 from IEEE Xplore. Restrictions apply.
+
+MAO et al.: OPTICAL AND SCINTILLATION PROPERTIES
+
+2431
+
+Fig. 14. Light output temperature coefficient obtained from linear fits between 15 and 25 C for commonly used crystal scintillators.
+
+coefficients obtained by linear fits for ten samples. The numerical result of these fits is listed in the bottom row in Table III and
+also in Table II. As shown in Table III these two measurements
+are consistent.
+VI. SUMMARY
+A comparative study on inorganic crystal scintillators was
+carried out. Refractive index as a function of wavelength were
+measured for LSO and LYSO by using a V-prism. Relative light
+output was determined for crystal samples with a dimension of
+and Tyvek paper wrapping, and with quantum efficiencies of the readout devices taken out. Light output temperature
+coefficients at the room temperature (20 ) were also determined. Result presented here will be used in the inorganic scintillator section of the 2008 particle data book.
+ACKNOWLEDGMENT
+The authors would like to thank the Shanghai Institute of Ceramics for providing samples in this test, and Dr. G. Zhao of the
+Shanghai Institute of Optics and Fine Mechanics for allowing
+the publishing of the refractive index data he measured for the
+LSO and LYSO samples.
+REFERENCES
+[1] Particle Data Group, Section 28.3, “Inorganic scintillators,” J. Phys. G:
+Nucl. Part. Phys. 33, pp. 275–277, 2006.
+
+[2] R. H. Mao, L. Y. Zhang, and R. Y. Zhu, “Emission spectra of LSO
+and LYSO crystals excited by UV light, x-ray and -ray,” IEEE Trans.
+Nucl. Sci., vol. 55, no. 3, pp. 1759–1766, Jun. 2008.
+[3] D. A. Ma and R. Y. Zhu, “Light attenuation length of barium fluoride crystals,” Nucl. Instrum. Methods Phys. Res. A, vol. A333, pp.
+422–424, 1993.
+[4] P. A. William et al., “Optical, thermo-optic, electro-optic, and photoelastic properties of bismuth germanate,” Appl. Opt., vol. 35, no. 19, pp.
+3562–3562, 1996.
+[5] I. H. Malitson, “Refractive properties of barium fluoride,” J. Opt. Soc.
+Amer., vol. 54, no. 5, pp. 628–628, 1964.
+[6] H. H. Li, “Refractive index of alkali halides and its wavelength and
+temperature derivatives,” J. Phys. Chem. Ref. Data, vol. 5, no. 2, pp.
+329–329, 1976.
+[7] G. F. Bakhshieva and A. M. Morozov, “Refractive-indexes of molybdate and tungstate single-crystals having scheelites structure,” Sov. J.
+Opt. Technol., vol. 44, no. 9, pp. 542–542, 1977.
+[8] S. Baccaro et al., “Ordinary and extraordinary complex refractive index
+of the lead tungstate (PbWO ) crystal,” Nucl. Instr. Methods Phys.
+Res. A, vol. A385, pp. 209–209, 1997.
+[9] P. Chindaudom and K. Vedam, “Characterization of inhomogeneous
+transparent thin films on transparent substrates by spectroscopic ellipsometry: Refractive indices n() of some fluoride coating materials,”
+Appl. Opt., vol. 33, no. 13, pp. 2664–2664, 1994.
+[10] W. S. Rodney, “Optical properties of cesium iodide,” J. Opt. Soc.
+Amer., vol. 45, no. 11, pp. 987–987, 1955.
+[11] R. H. Mao, L. Y. Zhang, and R.-Y. Zhu, “Quality of mass-produced
+lead tungstate crystals,” IEEE Trans. Nucl. Sci., vol. 51, pp. 1777–1783,
+2004.
+[12] G. Zhao, private communication.
+[13] C. Melcher, “Lutetium orthosilicate single crystal scintillation detector,” U.S. Patent 5 025 151, 1991.
+[14] J. M. Chen, L. Y. Zhang, and R.-Y. Zhu, “Large size LYSO crystals for
+future high energy physics experiments,” IEEE Trans. Nucl. Sci., vol.
+52, no. 6, pp. 3133–3140, Dec. 2005.
+[15] J. M. Chen, R. H. Mao, L. Y. Zhang, and R. Y. Zhu, “Large size LSO
+and LYSO crystal for future high energy physics experiments,” IEEE
+Trans. Nucl. Sci., vol. 54, no. 3, pp. 718–724, Jun. 2007.
+
+Authorized licensed use limited to: CALIFORNIA INSTITUTE OF TECHNOLOGY. Downloaded on November 7, 2008 at 01:51 from IEEE Xplore. Restrictions apply.
+
+

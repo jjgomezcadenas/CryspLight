@@ -1,0 +1,46 @@
+# BGO surface/wrap calibration against Ding & Liu (arXiv:2403.09501), T = 195 K.
+# 6x6x6 mm3 cube (x-zlab), UNPOLISHED (rough) surfaces, four sides wrapped in multiple
+# layers of Teflon tape, two 6x6 mm2 SensL J-series SiPMs dry-coupled (air gap) to the
+# top and bottom faces. 81 keV gammas (Ba-133) from the side: deposits sit just inside
+# the entrance side face (sub-mm attenuation).
+#
+# Measured anchor: system yield 5.2 +- 0.3 PE/keV at 81 keV. With Y = 14k ph/MeV
+# (Ding/Gironnet, two independent chains) and PDE = 0.45 at 480 nm:
+#   eps_det(measured) = 5.2 / (14 * 0.45) = 0.825   (PDE band +-10% -> 0.75-0.92)
+# Their own Geant4 optical MC: eps_det = 0.80.
+# The cube is ~300x smaller than Lambda_ext (Mao bound >~ 1.5-2 m): this anchors the
+# ROUGH-surface + Teflon-tape + air-gap physics, not the bulk. sigma_alpha scanned over
+# the ground-surface literature range; wrap R over tape values. Bulk from data/bgo.toml
+# with a cross-check row at the Mao lower bound.
+
+[campaign]
+tag = "ding_calib"
+n_photons = 400000
+seed = 1
+max_bounces = 100000
+
+[crystal]
+material = "bgo"            # n = 2.15 at 480 nm
+size_mm = [6.0, 6.0, 6.0]
+
+[readout]
+coupling_n = 1.0            # dry contact = air gap; escape cone asin(1/2.15) = 27.7 deg
+two_sided = true            # SiPMs on both z faces, full coverage
+pde = 1.0
+
+[source]
+# 81 keV entering a wrapped side face (x = 0): exponential depth along x,
+# attenuation 0.6 mm in BGO, truncated at 6 mm; stratified quantile positions.
+att_mm = 0.6
+n_points = 16
+yz_mm = [3.0, 3.0]
+
+[grid]
+sigma_alpha_deg = [12.0, 18.0]            # unpolished/ground literature range
+wrap_R = [0.95, 0.97, 0.99]               # multiple layers of Teflon tape
+lambda_ext_mm = [1500.0, 2000.0]          # Mao lower bound / adopted default (f = 0.9)
+f_split = 0.9
+
+[targets]
+eps_measured = 0.825                      # +- 0.08 (PDE band)
+eps_their_mc = 0.80

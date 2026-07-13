@@ -196,6 +196,21 @@ end
                       positions = ps, tau_ns = 0f0)
     @test total_terminated(a1) == 20_000
     @test a1.ndet == a2.ndet && a1.counts == a2.counts
+
+    # two-sided readout: photons straight up/down are detected on the respective faces
+    ro2 = Readout(GRID; two_sided = true)
+    acc = Accumulator(GRID, tb)
+    s = PhiloxStream(31, 1)
+    @test propagate_photon!(acc, box, ideal(1.95f0), ro2, tb, s,
+                            24f0, 24f0, 18f0, 0f0, 0f0, 1f0, 0f0) == STATUS_DETECTED
+    @test propagate_photon!(acc, box, ideal(1.95f0), ro2, tb, s,
+                            24f0, 24f0, 18f0, 0f0, 0f0, -1f0, 0f0) == STATUS_DETECTED
+    @test acc.ndet == 2 && acc.ndet_front == 1
+    # by symmetry a centred source splits evenly between the two faces
+    acc = run_photons!(box, opb, ro2, tb; n_photons = 50_000, seed = 32,
+                       pos = (24f0, 24f0, 18.6f0), tau_ns = 0f0)
+    @test total_terminated(acc) == 50_000
+    @test isapprox(acc.ndet_front / acc.ndet, 0.5; atol = 0.02)
 end
 
 @testset "Detection record: indices, binning, first time" begin

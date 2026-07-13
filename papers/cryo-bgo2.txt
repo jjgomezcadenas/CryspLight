@@ -1,0 +1,472 @@
+ARTICLE IN PRESS
+Nuclear Instruments and Methods in Physics Research A 594 (2008) 358–361
+
+Contents lists available at ScienceDirect
+
+Nuclear Instruments and Methods in
+Physics Research A
+journal homepage: www.elsevier.com/locate/nima
+
+Scintillation studies of Bi4Ge3O12 (BGO) down to a temperature of 6 K
+J. Gironnet a,b, V.B. Mikhailik c,, H. Kraus c, P. de Marcillac a, N. Coron a
+a
+b
+c
+
+Institut d’Astrophysique Spatiale, Campus Universitaire d’Orsay, Bât121, 91405 Orsay, France
+Paul Scherrer Institut, CH-5232 Villigen, Switzerland
+Department of Physics, University of Oxford, Keble Road, Oxford OX1 3RH, UK
+
+a r t i c l e in f o
+
+a b s t r a c t
+
+Article history:
+Received 30 April 2008
+Accepted 2 July 2008
+Available online 8 July 2008
+
+The scintillation light response and the decay time constant of Bi4Ge3O12 (BGO) were measured down to
+a temperature of 6 K using a multi-photon counting technique. The light response of BGO was conﬁrmed
+to be temperature independent below 100 K and an estimate of the light yield was made, giving a value
+of 23,70072600 ph/MeV. The temperature dependence of the scintillation decay time constant is
+interpreted using a simple three-level model for the emission centre which agrees well with the
+experimental data over the temperature range investigated.
+& 2008 Elsevier B.V. All rights reserved.
+
+Keywords:
+BGO
+Decay time
+Light output
+Scintillation properties
+Cryogenic scintillator
+
+1. Introduction
+Despite of rather low light yield at room temperature (not more
+than 20% of NaI-Tl [1,2]) bismuth germanate (BGO) is regarded as a
+very important scintillator material, due to its very good radiation
+length (Xo ¼ 1.12 cm), reasonably short decay time (a fraction of a
+microsecond), low afterglow, mechanical stability and an emission
+spectrum matching well that of semiconductor photodetectors.
+Soon after its characterisation as a scintillator in the early 1970s
+[3,4] it became the material of choice of high resolution Positron
+Emission Tomography (PET) [5]. In this application the light yield is
+obviously a limiting factor and efforts were made to increase this
+parameter.
+BGO is an intrinsic scintillator and its emission is strongly
+affected by a thermal quenching process; a decrease of temperature leads to an increase of luminescence intensity. Therefore,
+cooling was identiﬁed as one of the ways to improve the
+performance of the crystal as a scintillator. The change of BGO
+scintillation properties with temperature has been studied by
+Piltingsrud down to 77 K using a photomultiplier tube (PMT) and
+it was shown that a threefold increase of the BGO light yield over
+that at room temperature can be achieved [6]. This ﬁnding was
+recently conﬁrmed [2] using an avalanche photodiode (APD) as
+light detector. The lack of reliable photodetector that can operate
+over a wide temperature range precluded studies of scintillation
+properties below 77 K and no further low-temperature work has
+been reported, except merely qualitative observations of BGO
+
+scintillations at liquid helium temperature, using solid-state
+photon counters [7].
+The interest in low-temperature studies of scintillation materials has received a new impetus recently with the development of
+hybrid cryogenic phonon-scintillation detectors (CPSD), operating
+at millikelvin temperatures. These detectors combine a very low
+energy threshold and an excellent resolution with the ability to
+distinguish different types of particle interactions [8]. CPSD have
+proven their advantage in experimental search for extremely rare
+events, such as the interaction of Weakly Interacting Massive
+Particle (WIMP) dark matter with nuclei, neutrinoless double-beta
+decay or radioactive decay of long-lived nuclei (see Ref. [9]
+and references therein). The power of the technique can be
+appreciated by looking at the value for the half-life of natural 209Bi
+(1.970.2  1019 yr) that has been measured recently by some of the
+authors using CPSD with a BGO target [10].
+The prospect of application of the CPSD technique in the multitarget cryogenic search for WIMP dark matter, EURECA1 [11], has
+intensiﬁed research aiming at characterising scintillation properties of different materials down to cryogenic temperatures [9]. In
+this respect, bismuth germanate is thought to be a very important
+target, permitting a cross comparison with other detectors that
+use germanium semiconductors such as cryogenic phonon
+detector [12] or operating in conventional regime [13]. Due to
+the above and due to a lack of knowledge of the low-temperature
+scintillation properties, we initiated studies of scintillation light
+response and decay time constant of BGO as a function of
+temperature down to 6 K.
+
+ Corresponding author. Tel.: +44 1865 273459.
+
+E-mail address: vmikhai@hotmail.com (V.B. Mikhailik).
+0168-9002/$ - see front matter & 2008 Elsevier B.V. All rights reserved.
+doi:10.1016/j.nima.2008.07.008
+
+1
+
+European Underground Rare Event Calorimeter Array, www.eureca.ox.ac.uk.
+
+ARTICLE IN PRESS
+J. Gironnet et al. / Nuclear Instruments and Methods in Physics Research A 594 (2008) 358–361
+
+2. Experiment
+The measurements of scintillation characteristics of BGO were
+carried out using the multi-photon counting (MPC) technique.
+A detailed description of the basic experimental set-up and the
+data analysis procedure is given in the original paper [14] and
+subsequent papers which present progressive improvement of the
+technique [15,16].
+For this study we used a 5  5  1 mm3 BGO crystal purchased
+from Amcrys-H (Kharkiv, Ukraine). The crystal was mounted to
+the holder of a conventional He-ﬂow cryostat (Oxford Instrument). An 241Am source (33 kBq) is located at 2 mm distance
+from the sample. To reduce pile-up, we used a stainless steel
+aperture with a hole of 0.1 mm diameter between the source and
+the sample. The photon pulses produced by scintillation processes
+were detected by a green-sensitive PMT (model 9124A, Electron
+Tubes), recorded and analysed ofﬂine. The light yield is deduced
+from a histogram of the scintillation pulse height and the decay
+characteristics are obtained from the distribution of arrival times
+of individual photons.
+
+3. Results and discussion
+Fig. 1 shows the temperature dependence of the scintillation
+light response of BGO between 6 and 307 K for a-particle
+excitation. As temperature decreases to 100 K the scintillation
+light output increases steadily. At lower temperature, however,
+the scintillation response remains virtually constant. The quenching temperature Tq (temperature, at which the light output
+exhibits half of its maximal value) is found to be 250 K and the
+total light output of the scintillator increases by a factor of 3.5
+from room temperature (T ¼ 295 K) to 6 K. This behaviour is
+consistent with what was reported in earlier studies of the
+luminescence properties of the crystal using optical excitations
+[3,17].
+Provided that the ratio of scintillation signal amplitudes at a
+given excitation energy of the a-particles and g-quanta (a/g ratio)
+for BGO shows no noticeable temperature dependence, the
+measured temperature dependence of the light response of BGO
+at a-particle excitation can give a good estimate for the light yield
+of the crystal in the low-temperature range.
+Earlier studies by Sysoeva et al. [18] demonstrated that this
+assumption is valid for BGO over the 253–350 K temperature
+
+Fig. 1. Temperature dependence of the scintillation light response of BGO under
+a-excitation (241Am). The inset shows the dependence on a linear temperature scale.
+
+359
+
+range, where the a/g ratio remains constant (0.20). Recent
+cryogenic experiments with a BGO target [10], carried out at
+20 mK gave an a/g ratio equal to 0.21 at 5.4 MeV and 0.17 at
+3.2 MeV. The ﬁrst value measured at the same energy (5.4 MeV)
+agrees well with the data of Ref. [18] whereas the reduction of the
+a/g ratio with lower a-particle energy is due to the energy
+dependence of the a-particle’s ionisation density [19], being
+proportional to the length of ionisation track [20]. The same a/g
+ratio 0.20 was found for CaWO4 at room temperature [21] and at
+few mK [22]. The results of studies of CdWO4 are also consistent
+with this interpretation; the a/g ratio is reported to be 0.18 at
+room temperature [19] and also at 12 mK [23]. Admittedly the
+temperature independence of the a/g ratio is a rather common
+feature of intrinsic oxide scintillators. Assuming therefore the a/g
+ratio of BGO as temperature independent and taking the light
+yield of BGO at room temperature to be 69007140 ph/MeV [2]
+one can estimate the light yield of the crystal at 6 K as being
+23,70072600 ph/MeV. Given that the light response of the BGO
+does not change below 100 K, this number is very consistent with
+a value of 22,70072000 ph/MeV at T ¼ 77 K, quoted by Moszynski
+et al. [2]. The observed temperature dependence of the BGO light
+yield is a common feature of intrinsic scintillators [9]; it manifests
+a classic effect of the thermal quenching governed by thermally
+activated non-radiative processes that compete with the radiative
+ones.
+Since the luminescence decay is controlled by the same
+processes, the crystal exhibits a strong temperature dependence
+of this characteristic. To the best of our knowledge, the lowtemperature scintillation decay constant of BGO has been
+reported only for 195 [6] and 4 K [7]. The use of the MPC
+technique allowed to carry out the measurements of this
+characteristic over the entire temperature range of interest.
+Fig. 2(a–c) shows the scintillation decay curves of BGO measured
+at 295, 77 and 6 K under a excitation, respectively. The decay time
+at 295 K was ﬁtted by a single exponential function and t was
+found to be 0.4370.08 ms, while the room-temperature scintillation decay time constant of BGO is 0.3 ms [4–6]. It should be
+mentioned that while being well suited for measurements of slow
+scintillation processes and temperature dependences thereof,
+the MPC technique becomes less precise when the main decay
+time constant decreases to values below 1 ms [14]. This limitation
+arises from the time resolution of the experimental set-up
+currently in use.
+Fig. 3 shows the variation of the decay time constants with the
+temperature. At ﬁrst, the cooling of the sample from 300 to 150 K
+causes a steep increase of the decay time constant. This is the
+region where the kinetics of the radiative decay is strongly
+affected by thermal quenching and the decay time curve is nearly
+a single exponential function. Below 150 K the non-radiative
+processes become less efﬁcient and therefore the augmentation of
+the time constant is less pronounced. At this temperature, the
+decay splits into two components and the best ﬁt of the
+experimental data was obtained using a sum of two exponential
+functions. The results of ﬁtting for 77 and 6 K are listed in Table 1.
+The character of the t ¼ f(T) dependence changes again abruptly
+below 50 K: the decay kinetics exhibits steep retardation until the
+temperature reaches 10 K. The character of the temperature
+dependence of the scintillation decay is very similar to that
+measured by Moncorge et al. [17] and Rogemond et al. [24], using
+ultraviolet excitation. It is also worthwhile remarking that the
+measured decay time constant at T ¼ 200 K is 2.270.2 ms,
+consistent with the number given by Piltingsrud [6] (2 ms at
+195 K). Furthermore, the value of t ¼ 138 ms at T ¼ 6 K obtained by
+us is very close to the estimate made by Cho et al. [7] (150 ms).
+The temperature dependence of luminescence properties of
+BGO has been the subject of extensive studies [3,17,24–28] and
+
+ARTICLE IN PRESS
+360
+
+J. Gironnet et al. / Nuclear Instruments and Methods in Physics Research A 594 (2008) 358–361
+
+10000
+T = 295 K
+
+1000
+100
+10
+
+Intensity, a.u.
+
+1
+
+0
+
+2
+
+4
+
+6
+
+8
+
+10
+T = 77 K
+
+1000
+100
+10
+1
+
+0
+
+20
+
+40
+
+60
+
+80
+T=6K
+
+100
+
+10
+
+1
+
+0
+
+200
+
+400
+600
+Time, µs
+
+800
+
+Fig. 2. Scintillation decay curves of BGO measured at T ¼ 6 (a), 77 (b) and 295 K (c)
+using a excitations. The solid line shows the best ﬁt to the experimental data using
+one (a) and two exponentials (b, c). The parameters of the ﬁt are listed in Table 1.
+
+Decay time, µs
+
+100
+
+Table 1
+Parameters of scintillation decay curves of BGO at different temperatures
+obtained using a sum of two exponential functions: f ðtÞ ¼ ðA1 =ðA1 þ A2 ÞÞet=t1 þ
+ðA2 =ðA1 þ A2 ÞÞet=t2
+Temperature (K)
+
+A1 (%)
+
+t1 (ms)
+
+A2 (%)
+
+t2 (ms)
+
+295
+77
+6
+
+1
+0.24
+0.68
+
+0.43 (0.08)
+1.4 (0.04)
+2.4 (0.04)
+
+
+0.74
+0.82
+
+
+8.7 (0.1)
+138 (0.6)
+
+two models for the luminescence centre were proposed. The ﬁrst
+model argues that the radiative transitions from the upper 3P1 to
+the ground 1S0 state of the Bi3+ ion give rise to the main emission
+band at 2.5 eV [3,25]. This model is also supported by calculations
+of the BGO electronic structure, indicating that the bismuth states
+are responsible for the dominant contribution to the top of
+valence band and the bottom of the conduction band [26]. The
+second model assigns the intrinsic luminescence of the crystal to
+the emission of self-trapped excitons [17,24,27]. Finally, some
+authors consider both, the mechanism of excitons recombination
+and the emission of selectively excited Bi3+ ions [28]. Though very
+complete and thorough, these investigations were carried out
+using selective optical excitations, which is the principal difference with respect to the present studies. One should remember
+that optical quanta used for luminescence excitation are absorbed
+in a thin (a few nanometres) layer, while ionising a-particles
+penetrate 10 mm below the crystal surface.
+The character of the temperature dependence of the decay
+time constant observed for BGO in the present study is typical for
+the three-level model of the emitting centre constituting a ground
+and two excited levels of which the lower one is metastable. Given
+the electron conﬁguration of ground and excited states of Bi3+, it is
+logical to assign the luminescence of BGO to this ion. In line with
+this assumption the emission of Bi3+ at low temperatures
+originates from the 3P0 metastable level, while at higher
+temperature transitions occurs mainly between excited 3P1 and
+ground 1S0 state. The respective model predicts the existence of
+the low-temperature plateau in the t ¼ f(T) dependence and the
+gradual decrease of the decay time constant with temperature,
+caused by establishing a thermal equilibrium between two
+emitting levels [29,30]. A further generalisation of the model
+was achieved when the processes of the non-radiative quenching
+of excited level to the ground state were taken into consideration
+[15]. Eventually, the shortening of the decay time constant t with
+increasing temperature T can be understood as the result of
+thermally activated re-population of excited states and their nonradiative de-excitation:
+1
+
+t
+10
+
+1
+10
+
+100
+Temperature, K
+
+Fig. 3. Temperature dependence of the scintillation decay time constants of BGO
+(excitation with 241Am a-particles). Open and solid symbol represent the fast and
+the slow time constant, respectively, obtained from a ﬁt with two exponential
+functions. The solid curve shows the best ﬁt to the experimental data using the
+three-level model of emitting centre. Parameters of the ﬁt are given in text.
+
+¼
+
+k1 þ k2 expðD=kB TÞ
+þ K expðDE=kB TÞ.
+1 þ expðD=kB TÞ
+
+(1)
+
+Here k1 and k2 are the probabilities of radiative decay from the
+lower 3P0 and upper 3P1 excited states to the ground 1S0 state, D is
+energy difference between the excited states, kB is the Boltzmann
+constant. The decay rate K and the energy barrier DE are the
+characteristic parameters of the non-radiative luminescence
+quenching process. It was shown recently that this formula
+explains well all major features of the observed t ¼ f(T) dependence across the entire temperature range of interest in a material
+characterised by three-level luminescence centres [15].
+Formula (1) was used to ﬁt the measured temperature
+dependence of the slow decay component in BGO. The values
+obtained from the ﬁt are k1 ¼ 7.5  103 s1, k2 ¼ 4.570.3  105 s1,
+D ¼ 6.470.5 meV, K ¼ 1.370.2  108 s1 and DE ¼ 10574 meV
+and the calculated theoretical curve demonstrates fairly good
+agreement with the experimental data points (see Fig. 3).
+
+ARTICLE IN PRESS
+J. Gironnet et al. / Nuclear Instruments and Methods in Physics Research A 594 (2008) 358–361
+
+The three-level model of the emission centre in BGO gives a
+reasonable interpretation of the observed temperature dependence. Certainly, this is a very realistic and consistent model for
+crystals with intrinsic emission at low temperatures when the
+energy transfer processes are suppressed. A sensible approximation
+in the intermediate temperature range is that the energy transfer
+due to exciton migration can provide an additional channel for
+radiative recombination. This channel is important when impurity
+emission is considered [27] and the model might be improved by
+including this feature. The derivation of the respective relations
+should be the subject of the forthcoming studies.
+
+4. Conclusion
+Motivated by strong interest in the application of BGO in
+cryogenic experimental search for rare events we measured for
+the ﬁrst time the temperature dependence of the scintillation
+decay time and the light response of BGO over 6–307 K
+temperature range. It is demonstrated that the light yield of
+the crystal increases steadily with cooling down to 100 K and
+remains practically unchanged at lower temperatures. An estimate of the light yield of BGO at low temperature gives
+23,70072600 ph/MeV, which is substantially higher than the
+light yield of a CaWO4 scintillator (15,80071600 ph/MeV) [31].
+The results of measurements of the temperature dependence of
+the decay kinetics were analysed in the framework of the threelevel model of the Bi3+ emission centre. This model is well suited
+for the interpretation of the low-temperature properties of this
+intrinsic scintillator. Given that performance tests of BGO as
+cryogenic phonon-scintillation detector prove to be very successful [10], we consider this material as a very attractive target for
+cryogenic experimental rare event research.
+
+361
+
+References
+[1] I. Holl, E. Lopez, G. Mageras, IEEE Trans. Nucl. Sci. NS35 (1988) 105.
+[2] M. Moszynski, M. Balcerzyk, W. Czarnacki, et al., IEEE Trans. Nucl. Sci. NS51
+(2004) 1074.
+[3] M.J. Weber, R.K. Monchemp, J. Appl. Phys. 44 (1973) 5496.
+[4] O.H. Nestor, C.Y. Huang, Nucl. Sci. NS-22 (1975) 68.
+[5] Z.H. Cho, M.R. Farukh, J. Nucl. Med. 18 (1977) 840.
+[6] H.V. Piltingsrud, J. Nucl. Med. 20 (1979) 1279.
+[7] Z.H. Cho, M.D. Petrof, R. Bharat, IEEE Trans. Nucl. Sci. NS38 (1991) 1786.
+[8] P. Meunier, et al., Appl. Phys. Lett. 75 (1999) 1335.
+[9] V.B. Mikhailik, H. Kraus, J. Phys. D 39 (2006) 1181.
+[10] P. de Marcillac, N. Coron, G. Dambier, J. Leblanc, J.-P. Moalic, Nature 422
+(2003) 876.
+[11] H. Kraus, et al., J. Phys. Conf. Ser. 39 (2006) 139.
+[12] D.S. Akerib, et al., Phys. Rev. D 73 (2006) 011102.
+[13] A. Bettini, The GERDA Collaboration, Nucl. Phys. B (Proc. Suppl.) 168
+(2007) 67.
+[14] H. Kraus, V.B. Mikhailik, D. Wahl, Nucl. Instr. and Meth. A 553 (2005) 522.
+[15] V.B. Mikhailik, H. Kraus, S. Henry, A.J.B. Tolhurst, Phys. Rev. B 75 (2007)
+184308.
+[16] V.B. Mikhailik, S. Henry, H. Kraus, I. Solskii, Nucl. Instr. and Meth. A 583
+(2007) 350.
+[17] R. Moncorge, B. Jacquier, G. Boulon, J. Lumin. 14 (1976) 337.
+[18] E.V. Sysoeva, V.A. Tarasov, O.V. Zelenskaya, V.A. Sulyga, Nucl. Instr. and Meth.
+A 414 (1998) 274.
+[19] L. Bardelli, et al., Nucl. Instr. and Meth. A 569 (2006) 743.
+[20] I. Bavykina, et al., Astroparticle Phys. 28 (2007) 489.
+[21] Yu.G. Zdesenko, et al., Nucl. Instr. and Meth. A 538 (2005) 657.
+[22] C. Cozzini, et al., Phys. Rev. C 70 (2004) 064606.
+[23] S. Pirro, C. Arnaboldi, J.W. Beeman, G. Pessina, Nucl. Instr. and Meth. A 559
+(2006) 361.
+[24] F. Rogemond, C. Pedrini, B. Moinre, G. Boulon, J. Lumin. 33 (1985) 455.
+[25] L. Nagli, J. Lumin. 55 (1993) 139.
+[26] V.A. Pustovarov, A.V. Kruzhalov, N.M. Kalinkina, V.A. Lobatch, V.L. Petrov,
+Nucl. Instr. and Meth. A 282 (1989) 595.
+[27] D.P. Neikirk, R.C. Powell, J. Lumin. 20 (1979) 261.
+[28] R. Baltramiejunas, S. Burachas, E.N. Pirogov, et al., Phys. Status Solidi A 127
+(1991) 537.
+[29] G. Boulon, J. Phys. 32 (1971) 333.
+[30] A.E. Hughes, G.P. Pells, Phys. Status Solidi B 71 (1975) 707.
+[31] M. Moszyński, et al., Nucl. Instr. and Meth. A 553 (2005) 578.
+
+

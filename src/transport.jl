@@ -46,14 +46,15 @@ struct Readout
     r2::Float32                  # disc radius squared
     sur_R::Float32
     sur_specular::Bool
+    two_sided::Bool              # sensors on BOTH z faces (Kim/Ding geometries)
 end
 
 Readout(grid::SipmGrid; center = nothing, radius = nothing, sur_R = 0,
-        sur_specular::Bool = false) =
+        sur_specular::Bool = false, two_sided::Bool = false) =
     radius === nothing ?
-        Readout(grid, false, 0f0, 0f0, 0f0, 0f0, false) :
+        Readout(grid, false, 0f0, 0f0, 0f0, 0f0, false, two_sided) :
         Readout(grid, true, Float32(center[1]), Float32(center[2]), Float32(radius)^2,
-                Float32(sur_R), sur_specular)
+                Float32(sur_R), sur_specular, two_sided)
 
 struct TimeBinning
     bin_ns::Float32
@@ -64,6 +65,7 @@ mutable struct Accumulator
     counts::Array{UInt32,3}         # nx × ny × (nbins+1) photoelectron counts
     first_ns::Matrix{Float32}       # earliest detected time per SiPM (Inf if none)
     ndet::Int64
+    ndet_front::Int64               # subset of ndet on the z = 0 face (two-sided only)
     nabs_bulk::Int64
     nabs_wall::Int64
     nabs_sipm::Int64
@@ -75,12 +77,13 @@ end
 
 Accumulator(grid::SipmGrid, tb::TimeBinning) =
     Accumulator(zeros(UInt32, grid.nx, grid.ny, tb.nbins + 1),
-                fill(Inf32, grid.nx, grid.ny), 0, 0, 0, 0, 0, 0, 0, 0)
+                fill(Inf32, grid.nx, grid.ny), 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
 function Base.merge!(a::Accumulator, b::Accumulator)
     a.counts .+= b.counts
     a.first_ns .= min.(a.first_ns, b.first_ns)
-    a.ndet += b.ndet; a.nabs_bulk += b.nabs_bulk; a.nabs_wall += b.nabs_wall
+    a.ndet += b.ndet; a.ndet_front += b.ndet_front
+    a.nabs_bulk += b.nabs_bulk; a.nabs_wall += b.nabs_wall
     a.nabs_sipm += b.nabs_sipm; a.ncap += b.ncap; a.nabs_sur += b.nabs_sur
     a.nscat += b.nscat
     a.sum_bounces_det += b.sum_bounces_det
@@ -155,7 +158,7 @@ function propagate_photon!(acc::Accumulator, box::Box, op::OpticalParams,
         t += d * inv_v
         cosi = a == 1 ? abs(ux) : (a == 2 ? abs(uy) : abs(uz))
 
-        if face == FACE_BACK
+        if face == FACE_BACK || (ro.two_sided && face == FACE_FRONT)
             # single Fresnel surface crystal -> coupling medium (grease, or air gap)
             tir, R = fresnel(op.n_crystal, op.n_coupling, cosi)
             if tir || randu(s) < R
@@ -163,6 +166,7 @@ function propagate_photon!(acc::Accumulator, box::Box, op::OpticalParams,
             elseif !ro.disc || (x - ro.cx)^2 + (y - ro.cy)^2 <= ro.r2
                 if randu(s) <= op.pde
                     record_detection!(acc, ro.grid, tb, x, y, t, bounces)
+                    face == FACE_FRONT && (acc.ndet_front += 1)
                     return STATUS_DETECTED
                 else
                     acc.nabs_sipm += 1

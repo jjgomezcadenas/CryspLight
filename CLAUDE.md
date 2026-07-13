@@ -43,10 +43,12 @@ layout and conventions.
   the config.
 - `data/` — one TOML per material (csi, bgo, teflon, esr, sipm_s14160). Scalar optical
   properties for now; tabulated curves replace them without interface changes.
-- `scripts/` — user drivers (`run_point_source.jl`, `study_surface.jl`,
-  `csitl_calib.jl` — the CsI(Tl) calibration against the Brose Fig. 7 wrapping ladder,
-  campaign config `runs/csitl_calib.toml`); `test/` — `Pkg.test`, compulsory for
-  every step of the simulation chain; `latex/` — the design note.
+- `scripts/` — user drivers (`run_point_source.jl`, `study_surface.jl`) and the
+  calibration campaigns, one per anchor measurement, each with its `runs/*.toml`:
+  `csitl_calib.jl` (Brose wrapping ladder), `soleti_calib.jl` (CRYSP cold-CsI 3×3×20),
+  `ding_calib.jl` (BGO 6 mm cube, two-sided readout); `test/` — `Pkg.test`, compulsory
+  for every step of the simulation chain; `latex/` — the notes; `papers/` — reference
+  papers (PDF + txt; read the txt, not the PDF).
 
 Run: `julia --project=. --threads=auto scripts/run_point_source.jl runs/<cfg>.toml`
 Test: `julia --project=. --threads=8 -e 'using Pkg; Pkg.test()'`

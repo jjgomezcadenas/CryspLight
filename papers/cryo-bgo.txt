@@ -1,0 +1,814 @@
+1
+
+2
+
+Operation of BGO with SiPM readout at dry ice and liquid nitrogen
+temperatures
+K. Dinga , J. Liua
+
+4
+
+a Department of Physics University of South Dakota 414 East Clark Street Vermillion SD 57069 USA
+
+arXiv:2403.09501v1 [physics.ins-det] 14 Mar 2024
+
+3
+
+5
+
+6
+7
+
+ARTICLE INFO
+
+ABSTRACT
+
+Keywords:
+BGO, SiPM, PET, SPECT, light yield,
+scintillation, Compton suppression,
+cryogenic operation
+
+The light yield and decay constant of BGO were measured at both dry ice and liquid nitrogen
+temperatures using two SiPMs directly coupled to a 6 × 6 × 6 cm2 cubic BGO crystal. With the
+measured light yield (5.2±0.3 PE/keV at dry ice temperature and 10.5±0.4 PE/keV at liquid
+nitrogen temperature) and decay constants, potential applications of BGO in ToF-PET and
+SPECT were discussed.
+
+8
+9
+
+10
+11
+12
+13
+
+14
+
+15
+
+16
+17
+18
+
+19
+
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+
+41
+42
+43
+44
+45
+46
+47
+48
+49
+
+1. Introduction
+The Bismuth Germanate (Bi4 Ge3 O12 , BGO in short) scintillating crystal boasts a few properties that make it great
+for radiation detection in general. First, it is not hygroscopic, not fragile, hence is easy to handle. Second, it can be
+obtained at a reasonable price and is among the cost-effective solutions for many applications. Third, the high density
+(7.13 g/cm3 ) and the effective atomic number (74) of BGO make it very effective in absorbing 𝛾-ray radiation [1], such
+as the 511 keV 𝛾-ray utilized in positron emission tomography (PET) [2–4], the 141 keV 𝛾-ray utilized in single photon
+emission computerized tomography (SPECT) [5], or Compton-scattered 𝛾-rays from more sensitive detectors, such as
+high-purity germanium detectors [6, 7]. Finally, BGO also finds its applications in fundamental science research. The
+high atomic number of Bi leads to its high cross-sections for neutrinos and dark matter particles coherent scatterings,
+which is a desirable property in detecting these rare physics phenomena [8].
+However, the intrinsic light yield (𝑌 ) of BGO is not particularly high, only about 15–20%
+√ of that of NaI(Tl). It is
+also a relatively slow scintillator, the decay time (𝜏decay ) is about 300 ns at room temperature. 𝑌 ∕𝜏decay is a commonly
+used figure-of-merit (FOM) to assess how well a scintillator can provide time information in modern PET that utilizes
+the time-of-flight (ToF) technique to improve image resolution [2]. According to this FOM, Lutetium Oxyorthosilicate
+(Lu2SiO5:Ce, LSO in short) and Lutetium-Yttrium Oxyorthosilicate (LYSO) are about 10 times better than BGO in
+the application of ToF-PET [2], as they possess about three times higher light yields and about 10 times shorter decay
+times. However, L(Y)SO suffers from intrinsic radiation and is much more costly than BGO. If there is some way to
+modify the light yield and decay time of BGO, we may find a niche for BGO in medical imaging applications.
+It has been observed that the light yield of BGO increases as the temperature goes down [9, 10]. At liquid nitrogen
+temperature, its light yield is about five times higher than that at room temperature. Unfortunately, its decay time also
+increases as the temperature goes down [10]. At liquid nitrogen temperature, its decay constant is about thirty times
+longer than that at room temperature. It is hence of interest to find a temperature in between, where the light yield is
+already significantly higher than that at room temperature, but the decay time has not yet become too long. The dry ice
+temperature, which is convenient to obtain, seems to be a reasonable choice.
+Cherenkov emission is much faster than scintillation. There is an increasing interest in the ToF-PET community
+to utilize it for better timing resolution (See Ref. [3] and references therein). A photo-electron created by a 511
+keV gamma-ray in BGO can create on average ∼ 20 Cherenkov photons in the range of 305–750 nm in about 20
+picoseconds (ps), about twice more and faster than that of LSO [3]. If one uses the Cherenkov emission in BGO for
+timing information and scintillation for energy information, the prolonged decay time of BGO after cooling becomes
+less a concern.
+The readout of light signals at cryogenic temperatures necessitates the use of cryogenic light sensors. In recent
+years, cryogenic-compatible light sensors have emerged, with silicon photomultiplier (SiPM) being one of them.
+SiPMs offer several advantages over photomultiplier tubes (PMTs), including higher photon detection efficiency (PDE),
+absence of high voltage requirements, and reduced bulkiness. One drawback of SiPMs compared to PMTs is that they
+have a much higher dark count rate (DCR) than PMTs at room temperature. Fortunately, the rate drops quickly as
+Preprint submitted to Elsevier
+
+Page 1 of 8
+
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+
+the temperature goes down. Therefore, exploring the combination of BGO and SiPM at cryogenic temperatures is a
+worthwhile endeavor.
+The proposed combination also possesses a few advantages over the traditional NaI(Tl) + PMT arrays in a typical
+SPECT system. First, as BGO is almost twice denser than NaI(Tl), it can be made twice thinner (about 0.3 cm) than the
+latter while maintaining the same absorption efficiency for 141 keV 𝛾-rays. This will dramatically increase the camera’s
+spatial resolution since less photons can be spread out to photon sensors far away [11–14]. Second, it possesses all
+advantages of SiPMs over PMTs as mentioned previously. The light yield of BGO at room temperature is only about
+25% of that of NaI(Tl). However, this may be overcome by the cryogenic operation of BGO.
+This paper reports measurements of light yields and decay constants from a cubic BGO crystal directly coupled
+with two SensL SiPMs at both liquid nitrogen and dry ice temperatures. The 59.5 keV 𝛾-ray peak from a 241 Am source,
+the 30.85 keV 𝑋-ray peak, and the 81 keV 𝛾-ray peak from a 133 Ba source were used for the measurements. To the
+authors’ knowledge, such an operation has not yet been reported in the literature.
+
+2. Experimental setup
+The experimental setup is shown in Fig. 1. The 6 × 6 × 6 mm3 cubic BGO crystal was purchased from https:
+//www.x-zlab.com. To prevent any light leakage, the side surfaces of the crystal were wrapped with multiple layers
+of Teflon tape. The Teflon wrapping also randomizes the reflection direction to avoid trapping a photon in the crystal
+due to total internal reflection. The crystal surfaces were unpolished for the same reason. Two MicroFJ-SMTPA-60035
+SiPMs from SensL [15] were directly coupled to the top and bottom surfaces of the crystal without optical grease, which
+may degrade at cryogenic temperature. A constant bias voltage of 29 V was applied to both sensors. The two sensors
+were directly soldered onto two passive boards. Detailed circuit diagrams and PCB layouts can be found in Ref. [16].
+To establish optimal optical contact without the use of optical grease, we secured the PCBs against the crystal’s end
+surfaces using springs. Two radioactive sources were used separately. An 241 Am source was positioned by the side of
+the crystal, as shown in Fig. 1. A 133 Ba source was placed at the bottom of the cryostat, slightly further away from the
+crystal compared to 241 Am.
+
+Figure 1: A picture and a sketch of experimental setups.
+74
+75
+76
+77
+78
+79
+80
+
+Given BGO’s non-hygroscopic nature, setups were assembled in a standard room environment. The SiPM-BGO
+assembly was then lowered into a stainless steel chamber through its top opening, as illustrated in the schematic in the
+middle of Fig. 1. The chamber had an inner diameter of approximately 10 cm and a length of 50 cm. Both ends of the
+chamber were hermetically sealed under vacuum conditions, using two 6-inch ConFlat (CF) flanges. The bottom flange
+was blank and affixed to the chamber with a copper gasket in between. For ease of access during multiple operations,
+the top flange was attached to the chamber with a fluorocarbon CF gasket. The top flange featured vacuum-welded
+connections for five BNC, two SHV, one 19-pin electronic feedthrough, and two 1/4-inch VCR connectors.
+Preprint submitted to Elsevier
+
+Page 2 of 8
+
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+
+Once all the cables were securely positioned within the chamber, the top flange was sealed. The chamber was
+subsequently evacuated using a Pfeiffer Vacuum HiCube 80 Eco pump to reach a vacuum level of approximately
+1.0×10−4 mbar. Subsequently, it was pressurized with dry nitrogen gas to approximately 1.8 Kgf/cm2 and then carefully
+placed into an open LN2 dewar. The dewar was subsequently filled with either LN2 or dry ice to cool both the chamber
+and its contents.
+A few Heraeus C 220 platinum resistance temperature sensors were employed to monitor the cooling process
+effectively. These sensors were affixed to the side surface of the crystal, the bottom flange, and the top flange to
+obtain the temperature profile of the long chamber. For data acquisition from the sensors, we utilized a Raspberry
+Pi 2 computer running custom software [17]. The cooling process took about half an hour due to the small size of
+the crystal. Most measurements, however, were conducted after approximately two hours of waiting to ensure the
+system reached thermal equilibrium. Notably, the temperature of the crystal remained consistent before and after each
+measurement.
+The passive boards were powered by a RIGOL DP821A DC power supply [18]. A voltage of 29 V was applied to
+the SiPMs. According to their manuals, the photon detection efficiency (PDE) at this voltage is ∼ 50% for MicroFJSMTPA-60035 at 420 nm and room temperature. Signals were further amplified using a Phillips Scientific Quad
+Bipolar Amplifier Model 771, featuring four channels, each with a gain of ten. By chaining two channels together,
+a maximum gain of 10×10 was employed. The amplified pulses were subsequently routed into a CAEN DT5720
+waveform digitizer, with a 250 MHz sampling rate, a dynamic range of 2 V, and a 12-bit resolution. Data recording
+was carried out using WaveDump [19], a free software tool provided by CAEN. The recorded binary data files were
+later converted to CERN ROOT files for analysis [20].
+
+3. Single photo-electron response
+Single photo-electron (SPE) responses of individual channels were investigated by analyzing waveform data
+triggered by dark counts. To filter out noisy events while still capturing the majority of SPE pulses, a threshold of
+20 ADC counts was set. Prior to the rising edge of the pulse that triggered the digitizer, some pre-traces (100 samples)
+were preserved to calculate the baseline value of a waveform. This baseline value was subsequently subtracted from
+each sample of the waveform. The left plot in Fig. 2 shows a random single PE waveform overlaid with the averaged
+SPE waveform. The averaged SPE waveform was generated by adding 1000 SPE pulses together and then dividing
+the resulting summed waveform by 1000. Random electronic noise was canceled out in the averaged SPE waveform
+and a stable baseline was revealed. The integration window, [250, 600] ns, was determined based on the averaged SPE
+waveform.
+
+Figure 2: Left: A random single photon-electron (SPE) waveform and the averaged SPE waveform meaasured with the top
+SiPM at 195 K. Right: SPE distribution in logarithm scale with a Gaussian fitted to the last peak. Note: SPE responses
+from other temperatures and the other SiPM are very similar.
+
+111
+112
+113
+
+The right plot in Fig. 2 shows the distribution of integrated pulse areas. Individual photo-electron (PE) peaks
+are clearly distinguishable. The ninth peak was fitted using a Gaussian function to obtain its mean value. The same
+operations were performed for all other peaks. The mean of an SPE, mean1PE , is defined as the Gaussian mean divided
+Preprint submitted to Elsevier
+
+Page 3 of 8
+
+114
+115
+116
+117
+118
+119
+120
+121
+
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+
+by the number of PEs, 𝑛. For instance, the meanSPE calculated using the ninth peak is 26971∕9 = 2996 ADC counts⋅ns.
+The discrepancy of meanSPE from different peaks is within 3%. The same measurement was repeated multiple times
+before and after an energy calibration measurement. The discrepancy of meanSPE in multiple measurements was within
+6%. which was taken as the uncertainty of meanSPE .
+To summarize, meansSPE obtained from the top SiPM in the dry ice temperature runs is 2996 ADC counts⋅ns,
+and for the bottom SiPM, it is 2972 ADC counts⋅ns. Provided the same voltage, the gain of SiPM increases when the
+operating temperature decreases. MeansSPE from the top SiPM in the liquid nitrogen temperature runs increased to
+3716 ADC counts⋅ns, and for the bottom SiPM, it is 3713 ADC counts⋅ns.
+
+4. Energy calibration
+The energy calibration was performed using 𝑋-rays and 𝛾-rays from the 241 Am and the 133 Ba radioactive sources
+individually. The digitizer was triggered when the heights of pulses from both SiPMs were more than 100 ADC counts
+(∼2 to 3 PEs). Pulses induced by radiation from the source were well above the threshold. The coincident trigger rate
+was around 240 Hz at dry ice temperature.
+Several waveform selection criteria were applied. First, the room mean square (RMS) of the first 100 baseline
+samples was calculated for each waveform. If it was more than 3.5 ADC counts, that waveform was rejected. Second,
+waveforms that went beyond the digitizer’s dynamic range (region 1
+○ in Fig. 3) were rejected. Third, waveforms that
+had pre-pulses above the threshold (region 2
+○ in fig. 3) was removed. Only waveforms triggered within [1450, 1460] ns
+were selected.
+
+Figure 3: One hundred random waveforms from the top SiPM at dry ice temperature.
+
+132
+133
+134
+135
+136
+137
+
+138
+139
+140
+141
+142
+
+At dry ice temperature, integration in [1400, 6000] ns was performed for waveforms passing all criteria. The
+integration has a unit of ADC counts⋅ns. The resulting energy spectra of 241 Am and 133 Ba are presented in Fig. 4.
+It seems from Fig. 3 that tails of some pulses go beyond 6000 ns into region 3
+○. However, the averaged waveform
+calculated using the 81 keV peak (right most peak in Fig. 4) shown in the left plot in Fig. 5 in Section 6 justifies the
+range of integration. At liquid nitrogen temperature, light pulses were significantly prolonged as shown in the right
+plot in Fig. 5. The corresponding integration range is [1400, 12000] ns.
+
+5. Light yield
+The integrated pulse areas, 𝐴, of the selected waveforms follow the Gaussian distribution as shown in Fig. 4. In
+the left plot, a Gaussian was fitted to the 59.5 keV peak from 241 Am. In the right plot, a straight line was used to
+characterize the background, while two combined Gaussian functions were used to fit the 30.85 keV and 81 keV peaks
+from 133 Ba. The fitting results were summarized in Table 1–4.
+
+Preprint submitted to Elsevier
+
+Page 4 of 8
+
+Figure 4: Energy spectra of 241 Am (left) and 133 Ba (right) observed from the top SiPM at dry ice temperature. Gaussian
+fitting were performed for three peaks (from left to right: 59.5 keV from 241 Am, 30.85 and 81 keV from 133 Ba).
+
+Table 1
+Light yield obtained at dry ice temperature from the top SiPM.
+Type of Source
+radiation
+
+Energy
+[keV]
+
+Mean (A)
+[ADC⋅ns]
+
+Sigma
+[ADC⋅ns]
+
+FWHM
+%
+
+Light yield
+[PE/keVee ]
+
+Uncertainty
+[PE/keVee ]
+
+Ba-133
+Am-241
+Ba-133
+
+30.85
+59.5
+81
+
+208629
+428144
+608311
+
+42539
+61405
+81708
+
+48
+34
+32
+
+2.3
+2.4
+2.5
+
+± 0.1
+± 0.1
+± 0.2
+
+𝛾-ray
+𝛾-ray
+𝛾-ray
+
+Table 2
+Light yield obtained at dry ice temperature from the bottom SiPM.
+Type of Source
+radiation
+
+Energy
+[keV]
+
+Mean (A)
+[ADC⋅ns]
+
+Sigma
+[ADC⋅ns]
+
+FWHM
+%
+
+Light yield
+[PE/keVee ]
+
+Uncertainty
+[PE/keVee ]
+
+Ba-133
+Am-241
+Ba-133
+
+30.85
+59.5
+81
+
+231940
+427219
+657506
+
+45189
+62083
+91739
+
+46
+34
+33
+
+2.5
+2.4
+2.7
+
+± 0.1
+± 0.1
+± 0.2
+
+𝛾-ray
+𝛾-ray
+𝛾-ray
+
+143
+144
+
+The fitted means of 𝐴 corresponding to the 30.85 keV, 59.5 keV and 81 keV peaks in the 241 Am and 133 Ba spectra
+in the unit of ADC counts⋅ns were converted to the number of PE using the following formula:
+number of PEs =
+
+145
+
+Mean (A) [ADC counts ⋅ ns]
+,
+meanSPE
+
+and the light yield was calculated using the data in Table 1–4 and the following formula:
+light yield [PE/keVee ] =
+
+146
+147
+148
+149
+150
+151
+
+(1)
+
+number of PEs
+.
+Energy [keVee ]
+
+(2)
+
+Combining the results from both the top and the bottom SiPM, a light yield of 5.2 ± 0.3 PE/keVee at 81 keV
+was observed at dry ice temperature, and 10.5 ± 0.4 PE/keVee was observed at liquid nitrogen temperature. The yield
+decreases slightly as the energy goes down. This could be explained by either the observed non-linear energy response
+of BGO [21, 22], or the fact that lower energy photons cannot penetrate deep into the crystal, they produce scintillation
+light much closer to the rough surface of the crystal, and the produced scintillation light has higher chance to be trapped
+or absorbed by surface defects.
+
+Preprint submitted to Elsevier
+
+Page 5 of 8
+
+Table 3
+Light yield obtained at liquid nitrogen temperature from the top SiPM.
+Type of Source
+radiation
+
+Energy
+[keV]
+
+Mean (A)
+[ADC⋅ns]
+
+Sigma
+[ADC⋅ns]
+
+FWHM
+%
+
+Light yield
+[PE/keVee ]
+
+Uncertainty
+[PE/keVee ]
+
+Ba-133
+Am-241
+Ba-133
+
+30.85
+59.5
+81
+
+477785
+1095347
+1515401
+
+131485
+166360
+195567
+
+65
+36
+30
+
+4.2
+5.0
+5.0
+
+± 0.2
+± 0.3
+± 0.3
+
+𝛾-ray
+𝛾-ray
+𝛾-ray
+
+Table 4
+Light yield obtained at liquid nitrogen temperature from the bottom SiPM.
+Type of Source
+radiation
+
+Energy
+[keV]
+
+Mean (A)
+[ADC⋅ns]
+
+Sigma
+[ADC⋅ns]
+
+FWHM
+%
+
+Light yield
+[PE/keVee ]
+
+Uncertainty
+[PE/keVee ]
+
+Ba-133
+Am-241
+Ba-133
+
+30.85
+59.5
+81
+
+549115
+1166037
+1655799
+
+117970
+173975
+222286
+
+51
+35
+32
+
+4.8
+5.3
+5.5
+
+± 0.3
+± 0.3
+± 0.3
+
+𝛾-ray
+𝛾-ray
+𝛾-ray
+
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+
+6. Decay constant
+The decay constants of BGO at dry ice (195 K) and liquid nitrogen (77 K) temperatures were obtained by fitting
+exponential functions to the averaged waveforms in the 81 keV peak. The process of generating an averaged waveform
+is explained using the data from the top SiPM at 195 K. First, waveforms that have a pulse area in [550,000, 650,000]
+ADC counts⋅ns were selected (less than ±1𝜎 around the mean of the 81 keV peak shown in Fig. 4). Second, the selected
+waveforms were summed. Third, the summed waveform was divided by the total number of selected waveforms to
+obtained the averaged waveform, which is shown in the left plot in Fig. 5. The averaged waveform at liquid nitrogen
+temperature is shown in the right plot.
+The region selected for fitting is [1600, 6000]]×4 ns, while at 77 K is [1600, 12000]×4 ns. The corresponding fitting
+functions and results are shown in Fig. 5. A single decay constant, 442 × 4 = 1768 ns, was observed at 195 K. A fast
+decay constant, 748×4 = 2992 ns, and a slow decay constant, 2253×4 = 9012 ns, were observed at 77 K. The observed
+upward trend in the decay constant with the decreasing temperature in BGO is consistent with the literature [10].
+
+Figure 5: Averaged 81 keV waveforms at dry ice temperature (left) and liquid nitrogen temperature (right).
+
+164
+165
+166
+
+7. Discussion
+Using the measured light yields and decay constants, FOM of BGO for ToF-PET can be calculated. Note that the
+light yield defined in Section 5 is the yield of the whole detector system, not the intrinsic yield of the crystal. Since the
+Preprint submitted to Elsevier
+
+Page 6 of 8
+
+167
+168
+
+latter is used to calculate the FOM in the literature [2], the following equation was used to convert the system yield to
+the intrinsic yield for easy comparison:
+intrinsic light yield = (system light yield)/(PDE of SiPM)/(light collection efficiency)
+
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+
+185
+186
+187
+188
+189
+190
+191
+
+192
+193
+194
+195
+196
+
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+
+(3)
+
+According to the SiPM manual from the manufacturer [23], the PDE at 480 nm (peak scintillation wavelengh of BGO) is about 45%. The light collection efficiency from our Geant4 optical simulation is about 80%.
+The intrinsic light yield is then 5.2/45%/80%∼14 photons/keV (or 14,000 photons/MeV) at dry ice temperature,
+and 10.3/45%/80%∼29√photons/keV (or 29,000 photons/MeV) at liquid nitrogen √
+temperature. The FOM is then
+√
+√
+14000∕1768 = 2.8∕ MeV ⋅ ns at dry ice temperature, and 29000∕2992 = 3.1∕ MeV ⋅ ns (fast decay constant),
+√
+√
+29000∕9012 = 1.8∕ MeV ⋅ ns (slow decay constant) at liquid nitrogen temperature. They are about 10 times
+√
+smaller than the typical FOM for LYSO/LSO crystals (27–32 ∕ MeV ⋅ ns [2]). The light yield of cooled BGO is
+compatible to that of LYSO/LSO. However, the significantly prolonged decay constant of cooled BGO cancels out all
+the benefit from the increased light yield.
+One potential solution is to use the Cherenkov radiation emitted by photo-electrons created by incident 𝛾-rays to
+obtain ToF and to use the scintillation light for energy information. The Cherenkov
+radiation in BGO is emitted within
+√
+√
+30 ps [3]. The FOM calculated using this number is 29000∕0.03 = 983∕ MeV ⋅ ns, more than 30 times better than
+that of LYSO/LSO.
+The combination of cooled BGO + SiPM light readout also exhibits some great properties as the Anger Camera
+for a SPECT system, such as a light yield that is compatible to that of NaI(Tl) and a better spatial resolution, etc. The
+prolonged decay time is less a concern in a SPECT system as the time information is not utilized there.
+
+8. Conclusion
+The light yield and decay constant of BGO were measured at both dry ice and liquid nitrogen temperatures using
+two SiPMs directly coupled to a 6 × 6 × 6 cm2 cubic BGO crystal. With the measured light yield (5.2±0.3 PE/keV at
+dry ice temperature and 10.5±0.4 PE/keV at liquid nitrogen temperature) and decay constants, potential applications
+of BGO in ToF-PET and SPECT were discussed. The increased light yield is very beneficial for both applications.
+The prolonged decay time is less a concern in SPECT and may be overcome by using Cheronkov radiation instead in
+a ToF-PET system.
+
+Acknowledgements
+This work is supported by the National Science Foundation (NSF), USA, award PHY-1506036, and the Grant-inAid for Encouragement of Young Scientists (B), No. 26800122, MEXT, Japan. Computations supporting this project
+were performed on High Performance Computing systems at the University of South Dakota, funded by NSF award
+OAC-1626516.
+
+References
+[1] Melcher, C. L. Scintillation Crystals for PET. Journal of Nuclear Medicine 2000, 41, 1051–1055, Publisher: Society of Nuclear Medicine
+Section: Continuing Education.
+[2] Schaart, D. R. Physics and technology of time-of-flight PET detectors. Physics in Medicine & Biology 2021, 66, 09TR01.
+[3] Brunner, S. E.; Schaart, D. R. BGO as a hybrid scintillator / Cherenkov radiator for cost-effective time-of-flight PET. Physics in Medicine &
+Biology 2017, 62, 4421.
+[4] Kwon, S. I.; Gola, A.; Ferri, A.; Piemonte, C.; Cherry, S. R. Bismuth germanate coupled to near ultraviolet silicon photomultipliers for
+time-of-flight PET. Physics in Medicine & Biology 2016, 61, L38.
+[5] Peterson, T. E.; Furenlid, L. R. SPECT detectors: the Anger Camera and beyond. Physics in medicine and biology 2011, 56, R145–R182.
+[6] Weber, M. J.; Monchamp, R. R. Luminescence of Bi4 Ge3 O12 : Spectral and decay properties. Journal of Applied Physics 1973, 44, 5495–
+5499.
+[7] de Voigt, M. J. A.; Bacelar, J. C.; Micek, S. L.; Schotanus, P.; Verhoef, B. A. W.; Wintraecken, Y. J. E.; Vermeulen, P. A novel compact
+Ge-BGO Compton-suppression spectrometer. Nuclear Instruments and Methods in Physics Research Section A: Accelerators, Spectrometers,
+Detectors and Associated Equipment 1995, 356, 362–375.
+[8] Ortigoza, Y. BGO Scintillating Bolometer: Its application in dark matter experiments. http://taup2009.lngs.infn.it/slides/jul3/
+ortigoza.pdf.
+[9] BGO | Scintillation Crystal. https://www.x-zlab.com/product/bgo-scintillation-crystal/.
+
+Preprint submitted to Elsevier
+
+Page 7 of 8
+
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+
+[10] Gironnet, J. Scintillation studies of Bi4Ge3O12 (BGO) down to a temperature of 6 K. Nuclear Instruments and Methods in Physics Research
+Section A: Accelerators, Spectrometers, Detectors and Associated Equipment 2008, 594, 358–361.
+[11] Madsen, M. T. Recent Advances in SPECT Imaging. Journal of Nuclear Medicine 2007, 48, 661–673.
+[12] Peterson, T. E.; Furenlid, L. R. SPECT detectors: the Anger Camera and beyond. Phys. Med. Biol. 2011, 56, R145–R182.
+[13] Ritt, P. Recent Developments in SPECT/CT. Seminars in Nuclear Medicine 2022, 52, 276–285.
+[14] Massari, R.; Mok, G. S. P. Editorial: New trends in single photon emission computed tomography (SPECT). Front. Med. 2023, 10.
+[15] MicroFJ-SMTPA-60035. https://www.onsemi.com/support/evaluation-board/microfj-sma-60035-gevb.
+[16] Ding, K.; Liu, J.; Yang, Y.; Chernyak, D. First operation of undoped CsI directly coupled with SiPMs at 77 K. Eur. Phys. J. C 2022, 82, 344.
+[17] Mammo, J. Josephss/CraViS. 2018; https://github.com/Josephss/CraViS.
+[18] DP800 High Performance Linear DC Power Supplies | RIGOL. https://www.rigolna.com/products/dc-power-loads/dp800/.
+[19] WaveDump - CAEN Digitizer readout application. https://www.caen.it/products/caen-wavedump/.
+[20] Liu, J. jintonic/toward. 2021; https://github.com/jintonic/toward.
+[21] Yawai, N.; Chewpraditkul, W.; Wanarak, C.; Nikl, M.; Ratanatongchai, W. Intrinsic light yield and light loss coefficient of Bi4Ge3O12 single
+crystals. Optical Materials 2014, 36, 2030–2033.
+[22] Moszynski, M.; Balcerzyk, M.; Czarnacki, W.; Kapusta, M.; Klamra, W.; Syntfeld, A.; Szawlowski, M. Intrinsic energy resolution and light
+yield nonproportionality of BGO. IEEE Transactions on Nuclear Science 2004, 51, 1074–1079.
+[23] Onsemi Photodetectors. https://www.onsemi.com/products/sensors/photodetectors-sipm-spad.
+
+Preprint submitted to Elsevier
+
+Page 8 of 8
+
+
