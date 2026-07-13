@@ -17,6 +17,9 @@ include("materials.jl")
 include("generation.jl")
 include("transport.jl")
 include("kernel.jl")
+include("gamma/Gamma.jl")
+include("gamma_interface.jl")
+include("events.jl")
 include("config.jl")
 include("output.jl")
 
@@ -28,5 +31,6 @@ export total_terminated
 export STATUS_DETECTED, STATUS_ABS_BULK, STATUS_ABS_WALL, STATUS_ABS_SIPM, STATUS_CAP,
        STATUS_ABS_SUR
 export load_material, run_from_config, run_photons!, run_photons_ka!
+export Gamma, gamma_crystal, gamma_deposits, run_events!, rand_poisson
 
 end # module

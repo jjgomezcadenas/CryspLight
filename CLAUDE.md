@@ -47,6 +47,12 @@ this file records layout and conventions.
   buffers (pass isbits structs, not unpacked scalars), Float32/Int32 only, no dynamic
   tuple indexing, no nscat tracking in the KA path. Measured: 33 Mphotons/s on Metal =
   6.2× the 8-thread CPU path (`scripts/bench_metal.jl`).
+- `src/gamma/` — the **vendored** 511 keV gamma-transport core from PTCryspMC.jl @
+  d4982db (see `src/gamma/VENDORED.md` for the file map and adaptations). Internal
+  conventions cm/MeV/Float64; the mm/keV/Float32 bridge is `src/gamma_interface.jl`
+  (adds per-deposit times = path/c). The per-event pipeline (gammas → deposits →
+  batched optical transport → per-event maps) is `src/events.jl` (`run_events!`);
+  application `scripts/shoot_gammas.jl` + `runs/gammas_{csitl,bgo}.toml`.
 - `runs/` — **tracked TOML run configs** (the parameter source of truth; tag = filename).
 - `output/` — **gitignored results**, one dir per tag: `output/<tag>/light.h5` + a copy of
   the config.

@@ -154,11 +154,13 @@ end
 
 # NB: Metal caps kernel arguments at 31 buffer bindings and each scalar counts as one —
 # so the parameters travel as the isbits structs OpticalParams/Readout, not unpacked.
+# pt = per-position emission-time offsets (deposit times in the event pipeline);
+# pid0 = global photon-id offset so batched launches use disjoint Philox streams.
 @kernel function transport_kernel!(status, idx, tdet, bnc,
-                                   @Const(px), @Const(py), @Const(pz), npos,
-                                   L, op, ro, tau, seed, maxb)
+                                   @Const(px), @Const(py), @Const(pz), @Const(pt), npos,
+                                   L, op, ro, tau, seed, pid0, maxb)
     i = @index(Global)
-    st = PhiloxState(seed, UInt64(i))
+    st = PhiloxState(seed, UInt64(i) + pid0)
     box = Box(L)
     n_crystal = op.n_crystal; n_coupling = op.n_coupling
     abs_len = op.abs_len_mm; ray_len = op.rayleigh_mm
@@ -171,10 +173,10 @@ end
         j = Int32(1) + Int32((i - 1) % npos)
         x = px[j]; y = py[j]; z = pz[j]
         ux, uy, uz, st = fisotropic(st)
-        t = 0f0
+        t = pt[j]
         if tau > 0f0
             u, st = frandu(st)
-            t = -tau * log(u)
+            t += -tau * log(u)
         end
         inv_v = n_crystal / C_MM_NS
         bounces = Int32(0)
@@ -311,12 +313,15 @@ function run_photons_ka!(box::Box, op::OpticalParams, ro::Readout, tb::TimeBinni
                          n_photons::Int, seed::Integer,
                          pos::Union{Nothing,NTuple{3,Float32}} = nothing,
                          positions::Union{Nothing,Vector{NTuple{3,Float32}}} = nothing,
+                         t0s::Union{Nothing,Vector{Float32}} = nothing,
+                         pid_offset::Integer = 0,
                          tau_ns::Float32, max_bounces::Int = 100_000,
-                         ArrayT = Array)
+                         ArrayT = Array, return_records::Bool = false)
     plist = positions === nothing ? [something(pos)] : positions
     px = ArrayT(Float32[p[1] for p in plist])
     py = ArrayT(Float32[p[2] for p in plist])
     pz = ArrayT(Float32[p[3] for p in plist])
+    pt = ArrayT(t0s === nothing ? zeros(Float32, length(plist)) : t0s)
     status = ArrayT(zeros(UInt8, n_photons))
     idx = ArrayT(zeros(Int16, n_photons))
     tdet = ArrayT(zeros(Float32, n_photons))
@@ -324,8 +329,8 @@ function run_photons_ka!(box::Box, op::OpticalParams, ro::Readout, tb::TimeBinni
 
     backend = KA.get_backend(px)
     transport_kernel!(backend)(
-        status, idx, tdet, bnc, px, py, pz, Int32(length(plist)), box.L,
-        op, ro, Float32(tau_ns), UInt64(seed), Int32(max_bounces);
+        status, idx, tdet, bnc, px, py, pz, pt, Int32(length(plist)), box.L,
+        op, ro, Float32(tau_ns), UInt64(seed), UInt64(pid_offset), Int32(max_bounces);
         ndrange = n_photons)
     KA.synchronize(backend)
 
@@ -358,5 +363,5 @@ function run_photons_ka!(box::Box, op::OpticalParams, ro::Readout, tb::TimeBinni
             acc.ncap += 1
         end
     end
-    return acc
+    return return_records ? (acc, (status = hs, idx = hi, t = ht, bounces = hb)) : acc
 end

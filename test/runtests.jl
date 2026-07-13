@@ -2,6 +2,7 @@ using Test
 using Statistics
 using CryspLight
 using Metal
+using Random: Xoshiro
 using CryspLight: face_axis, specular, emission_time
 
 const GRID = SipmGrid(6f0, Int32(8), Int32(8))
@@ -245,6 +246,66 @@ end
         @test total_terminated(g) == kw.n_photons
         p = a.ndet / kw.n_photons
         @test abs(g.ndet - a.ndet) < 5 * sqrt(kw.n_photons * p * (1 - p)) + 10
+    end
+end
+
+@testset "Vendored gamma core and event pipeline" begin
+    data = joinpath(dirname(@__DIR__), "data")
+    csi = Gamma.make_material("CsI", 4.51, joinpath(data, "xcom_CSI.csv"))
+    bgo = Gamma.make_material("BGO", 7.13, joinpath(data, "xcom_BGO.csv"))
+
+    # attenuation length of CsI at 511 keV ~ 2.44 cm (PTCryspMC test value)
+    @test isapprox(Gamma.mfp(csi, 0.511), 2.44; rtol = 0.02)
+    @test Gamma.mfp(bgo, 0.511) < Gamma.mfp(csi, 0.511)    # BGO stops harder
+    # iodine K-edge (33.17 keV): photoelectric jump
+    below = Gamma.sigma_macro(csi, 0.03310)[2]
+    above = Gamma.sigma_macro(csi, 0.03325)[2]
+    @test above > 2 * below
+    # pair production closed at 511 keV, open at 10 MeV
+    @test Gamma.sigma_macro(csi, 0.511)[3] == 0.0
+    @test Gamma.sigma_macro(csi, 10.0)[3] > 0.0
+
+    # vacuum: straight line, single escape record, full energy out
+    L = (48f0, 48f0, 37.2f0)
+    pvv = gamma_crystal(L, Gamma.vacuum_material())
+    rng = Xoshiro(1)
+    tr = Gamma.propagate_photon(0.511, (0.0, 0.0, -1.86), (0.0, 0.0, 1.0), pvv, rng)
+    @test tr.escaped && length(tr.recs) == 1 && tr.recs[1].process == :escape
+    @test tr.E == 0.511
+
+    # deposits in the crystal frame: inside the box, energies sum to <= 511 keV,
+    # times increase with depth
+    pv = gamma_crystal(L, csi)
+    nin = 0
+    for ev in 1:200
+        deps = gamma_deposits(pv, L, (24f0, 24f0, 0f0), (0.0, 0.0, 1.0), Xoshiro(ev))
+        isempty(deps) && continue
+        nin += 1
+        @test all(d -> 0 <= d[1] <= 48 && 0 <= d[2] <= 48 && 0 <= d[3] <= 37.2, deps)
+        @test sum(d -> d[4], deps) <= 511.001f0
+        @test all(d -> 0 <= d[5] < 1.0f0, deps)          # sub-ns transit times
+    end
+    @test nin > 100    # 2X0 of CsI interacts most of the time
+
+    # Poisson sampler moments
+    ps = [rand_poisson(Xoshiro(i), 20.0) for i in 1:20_000]
+    @test isapprox(mean(ps), 20; rtol = 0.02) && isapprox(var(ps), 20; rtol = 0.05)
+
+    # end-to-end mini run: conservation and sane photoelectron scale
+    box = Box(L)
+    op = OpticalParams(1.79f0, 1.45f0, 3115f0, 346f0, 0.99f0, false, true,
+                       Float32(deg2rad(1.3)), 0.4f0)
+    tbz = TimeBinning(100f0, Int32(80))
+    edep, npe, maps = run_events!(box, op, Readout(GRID), tbz, pv, 54_000;
+                                  n_events = 40, seed = 3, tau_ns = 1000f0,
+                                  batch_photons = 500_000)
+    @test length(edep) == 40 && size(maps) == (8, 8, 40)
+    for ev in 1:40
+        @test sum(Int, maps[:, :, ev]) == npe[ev]
+        @test (edep[ev] == 0) == (npe[ev] == 0)
+        if edep[ev] > 510                                # photopeak: pe ~ Y*E*eps*pde
+            @test 5000 < npe[ev] < 15000
+        end
     end
 end
 
