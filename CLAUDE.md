@@ -26,10 +26,11 @@ pages) if no text version is available.**
 Simulate the scintillation-light transport in a wrapped CsI/BGO crystal read out by an 8×8 SiPM
 matrix, with the photon propagation running on the GPU (Apple Metal). The gamma transport
 (511 keV photons → energy deposits) comes from the vendored PTCrysp engine; this repo starts from
-the deposits. The problem statement and design are in `latex/crysp_light_metal.tex`; the
-CsI(Tl) calibration (procedure, the absorption/scattering split f = 0.90, final
-parameters) is `latex/csitl_calib.tex`. Read those for the physics; this file records
-layout and conventions.
+the deposits. Three notes in `latex/`: `crysp_light_metal.tex` (problem statement and the
+optical model), `csitl_calib.tex` (calibrations: CsI(Tl), cold CsI, BGO — parameter
+provenance), `crysplight_soft.tex` (software: architecture, the KernelAbstractions
+implementation, bit-parity contract, performance). Read those for physics and design;
+this file records layout and conventions.
 
 ## Layout (PTCryspMC conventions)
 

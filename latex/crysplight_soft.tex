@@ -1,0 +1,264 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+\newcommand{\code}[1]{\texttt{#1}}
+
+\title{CryspLight: software design and implementation\\
+\large A GPU (Metal) optical-photon Monte Carlo in Julia via KernelAbstractions}
+\author{J.J.~G\'omez-Cadenas \and Claude (Anthropic)}
+\date{July 13, 2026 \\[2mm] \small Version 0.1 --- software note}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+CryspLight simulates the transport of scintillation photons in a wrapped crystal read
+out by a SiPM matrix, for the CRYSP program. This note documents the \emph{software}:
+the package architecture, the reference CPU transport and its GPU twin written with
+KernelAbstractions.jl, the random-number and reproducibility design, the validation
+machinery, and the measured performance (33~Mphotons/s on Apple Metal, $6.2\times$ an
+8-thread CPU). It complements two physics documents: the design note
+(\code{crysp\_light\_metal.tex} --- problem statement and optical model) and the
+calibration note (\code{csitl\_calib.tex} --- parameter provenance for CsI(Tl), cold
+CsI and BGO). The guiding choices --- a single physics loop written twice with enforced
+bit-parity, counter-based stateless RNG, per-photon output records instead of device
+atomics, and every run parameterized by tracked TOML configs --- are explained with
+their rationale.
+\end{abstract}
+
+\tableofcontents
+
+%=====================================================================
+\section{The problem, in one paragraph}
+
+A 511~keV gamma deposits energy at 1--3 points in a $48\times48$~mm$^2$ $\times$
+$2X_0$ crystal (cold pure CsI or BGO); each deposit converts into
+$\mathcal{O}(10^4)$ optical photons that bounce inside the crystal --- total internal
+reflection at the polished faces, diffuse recycling by the Teflon wrap behind an air
+gap, bulk absorption and Rayleigh scattering --- until absorbed or detected by the
+$8\times8$ SiPM array grease-coupled to the back face. The observables are the
+per-event $8\times8$ photoelectron map in 100~ns time bins and the first-photoelectron
+time per SiPM. The photons are mutually independent, which makes the problem
+embarrassingly parallel; the physics fidelity question (surface model, the
+absorption/scattering split of the measured extinction) is treated in the two physics
+notes. This note is about how the code is built.
+
+%=====================================================================
+\section{Package architecture}
+
+CryspLight is a Julia package (\code{Project.toml}; dependencies: HDF5, TOML,
+KernelAbstractions, Metal) organized in the PTCryspMC convention:
+
+\begin{itemize}
+  \item \code{src/} --- the library, one concern per file:
+    \code{philox.jl} (RNG), \code{geometry.jl} (axis-aligned box, slab intersection),
+    \code{optics.jl} (Fresnel/TIR, specular and Lambertian reflection, the UNIFIED
+    micro-facet lobe, Rayleigh phase function), \code{generation.jl} (isotropic
+    emission, scintillation delay), \code{transport.jl} (the \textbf{reference} bounce
+    loop, threaded, plus accumulators), \code{kernel.jl} (the \textbf{GPU twin} ---
+    Sec.~\ref{sec:ka}), \code{materials.jl}/\code{config.jl}/\code{output.jl}
+    (TOML materials, run configs, HDF5 output with provenance attributes).
+  \item \code{runs/} --- \emph{tracked} TOML configurations: the parameter source of
+    truth. A run's tag is its config filename; results go to the gitignored
+    \code{output/<tag>/} together with a copy of the config.
+  \item \code{data/} --- one TOML per material (\code{csi}, \code{csitl}, \code{bgo},
+    \code{bgo\_77k}, wraps, SiPM), scalar optical properties with calibration
+    provenance in comments; tabulated $\lambda$-curves can replace scalars without
+    interface changes.
+  \item \code{scripts/} --- user drivers and one calibration campaign per anchor
+    measurement (\code{csitl\_calib}, \code{soleti\_calib}, \code{ding\_calib}),
+    each reading a campaign TOML and writing a results CSV.
+  \item \code{test/} --- \code{Pkg.test}; every step of the chain has compulsory tests
+    (Sec.~\ref{sec:valid}). \code{papers/} --- reference papers (PDF + txt).
+\end{itemize}
+
+Two structural decisions define the codebase. First, \textbf{physics state is isbits}:
+\code{OpticalParams}, \code{Readout}, \code{SipmGrid}, \code{Box} are plain immutable
+structs of \code{Float32}/\code{Int32}/\code{Bool}, so the same values flow unchanged
+from TOML parsing to CPU loop to GPU kernel argument. Second, \textbf{the transport
+loop exists twice, on purpose} (Sec.~\ref{sec:twins}).
+
+%=====================================================================
+\section{Random numbers and reproducibility}
+\label{sec:rng}
+
+All sampling uses Philox4$\times$32-10 (Salmon et al., SC'11), a counter-based,
+stateless generator: the $n$-th block of four \code{UInt32}s is a pure function of
+(key, counter) $=$ ((seed), (photon id, block index)). Each photon owns its stream,
+keyed by its global photon id. Consequences, all deliberate:
+
+\begin{itemize}
+  \item results are \emph{bit-reproducible regardless of thread count or scheduling},
+    on CPU and GPU alike --- there is no shared RNG state to race on;
+  \item any single photon can be replayed in isolation for debugging;
+  \item the CPU and GPU implementations can be required to agree \emph{bitwise}
+    (Sec.~\ref{sec:twins}), because they consume identical uniform sequences.
+\end{itemize}
+
+Uniforms are mapped to $(0,1]$ (safe as $\log$ arguments) via
+$((x \gg 8) + 1) \cdot 2^{-24}$. The CPU path wraps the stream in a small mutable
+buffer (\code{PhiloxStream}); the kernel uses a \emph{functional} isbits twin
+(\code{PhiloxState}, returning (value, new state)) producing the same sequence ---
+mutable structs do not belong in GPU kernels.
+
+One early lesson is preserved as a comment in \code{transport.jl}: inside a
+\code{Threads.@threads} body, never assign a variable name that is also assigned in
+the enclosing scope --- Julia boxes it into a single shared binding and the threads
+race silently (this once lost 40\% of all photons before the conservation test caught
+it).
+
+%=====================================================================
+\section{The twin transports and the bit-parity contract}
+\label{sec:twins}
+
+The bounce loop is implemented twice: \code{transport.jl} (reference: readable,
+threaded, accumulates directly into the output arrays) and \code{kernel.jl} (one
+KernelAbstractions kernel). This duplication is a maintained contract, not an
+accident:
+
+\begin{itemize}
+  \item the two implementations consume random draws \emph{in exactly the same order}
+    (every short-circuit --- e.g.\ ``TIR $\Rightarrow$ no Fresnel draw'' --- is
+    mirrored);
+  \item therefore, on the CPU backend of KernelAbstractions, the kernel is
+    \textbf{bit-identical} to the reference: same counters, same $8\times8\times N_t$
+    count map, same first-photon times, same bounce sums. The test suite enforces this
+    with every physics process active at once (absorption + Rayleigh + rough surface +
+    wrap + PDE + aperture + surround + scintillation time);
+  \item on Metal, transcendental intrinsics differ from CPU libm by ulps, flipping
+    rare edge photons ($\sim$2 per $10^6$ observed); the tests enforce exact photon
+    conservation and statistical agreement there.
+\end{itemize}
+
+The maintenance rule (recorded in \code{CLAUDE.md}): \emph{any physics change goes
+into both files; the parity test catches a slip in either.} The value of the contract
+is that every calibration result is exactly reproducible through the GPU path, and
+that GPU debugging reduces to CPU debugging.
+
+%=====================================================================
+\section{The KernelAbstractions implementation}
+\label{sec:ka}
+
+The kernel follows patterns proven in the sibling RecoCrysp package (KernelAbstractions
+0.9, Metal 1.10, Julia 1.12): one \code{@kernel} with \code{@index(Global)} --- one
+work-item per photon --- backend selected from the array type
+(\code{Array} $\to$ threaded CPU, \code{Metal.MtlArray} $\to$ GPU), \code{@Const} on
+read-only inputs, no manual workgroup sizing, \code{Float32}/\code{Int32} throughout
+(Metal has no \code{Float64}), \code{unsafe\_trunc} for float-to-int, and no dynamic
+tuple indexing.
+
+\paragraph{Per-photon records instead of atomics.} Each work-item writes exactly four
+values at its own index --- status (\code{UInt8}), sensor index (\code{Int16}, signed
+for the two-sided readout), detection time (\code{Float32}), bounce count
+(\code{Int32}) --- and the host reduces the records into the standard accumulator.
+This choice avoids device atomics entirely, which buys three things: no atomic-min
+problem for the first-photon times (Metal lacks float atomic-min; the standard
+workaround is a bit-pattern trick), \emph{deterministic} outputs (atomic scatter
+ordering is not reproducible), and per-photon comparability for the parity contract.
+The cost is $\sim$11~bytes/photon of unified memory ($\sim$44~MB per $4\times10^6$
+photons --- negligible on Apple silicon) and a single-threaded host reduction that is
+part of the quoted timings and is the first place to optimize if ever needed
+(device-side \code{@atomic} accumulation is the proven alternative).
+
+\paragraph{The 31-buffer lesson.} Metal caps kernel arguments at 31 buffer bindings,
+and \emph{every scalar argument counts as one}. The first kernel version passed
+$\sim$30 unpacked scalars and failed at pipeline creation with ``Total number of
+indirect argument buffer resources exceeded (33/31)''. The fix --- pass the isbits
+configuration structs (\code{OpticalParams}, \code{Readout}) whole --- is also the
+cleaner design. Recorded here because the error message does not suggest the cause.
+
+\paragraph{Sources and outputs.} Multi-position sources (calibration scans) travel as
+three small device arrays with round-robin photon assignment; the two-sided readout
+(sensors on both $z$ faces, used by the BGO-cube and Kim geometries) is a
+\code{Readout} flag. Time binning is applied host-side from the recorded times, so the
+kernel is independent of the histogram definition.
+
+%=====================================================================
+\section{Validation machinery}
+\label{sec:valid}
+
+Three layers, all in \code{Pkg.test} (8 test sets):
+
+\begin{enumerate}
+  \item \textbf{Unit physics}: Fresnel closed forms (normal incidence, TIR onset,
+    grazing limit, side symmetry), sampling distributions (isotropic moments,
+    Lambertian $\langle\cos\theta\rangle = 2/3$, Rayleigh phase moments
+    $\langle\mu^2\rangle = 2/5$, exponential means), RNG determinism and uniformity,
+    slab-intersection cases, micro-facet validity (reflected rays must re-enter the
+    crystal; roughness must open TIR escape).
+  \item \textbf{Exact transport anchors} --- limits with closed-form answers, run
+    through the full loop: photon conservation across all terminal statuses (exact, by
+    construction); the idealized specular box detects \emph{exactly} the escape-cone
+    fraction $1-\cos\theta_c'$ (specular bounces preserve the direction components ---
+    the trapping theorem that shaped the physics conclusions); Rayleigh restores
+    ergodicity (pure scattering + perfect wrap $\Rightarrow$ every photon detected);
+    the contact-Lambertian $R=1$ limit detects everything; roughness strictly
+    increases collection in the trapped regime.
+  \item \textbf{Cross-implementation}: the bit-parity contract of
+    Sec.~\ref{sec:twins}, plus Metal conservation and statistical agreement whenever
+    a GPU is present.
+\end{enumerate}
+
+Beyond the suite, the model has been confronted with three independent measurements
+(the Brose CsI(Tl) wrapping ladder, the CRYSP cold-CsI crystals, the Ding BGO cube) and two
+independent simulations (the Geant4-LUT estimates published with two of those
+measurements) --- agreements and fitted parameters are the subject of the calibration
+note.
+
+%=====================================================================
+\section{Performance}
+\label{sec:perf}
+
+Measured with \code{scripts/bench\_metal.jl} (warm-up run absorbs JIT and Metal
+pipeline compilation; best of 5), on the calibrated cold-CsI CRYSP configuration
+(saturated Teflon, $\sigma_\alpha = 1.3^\circ$, $\Lambda_{\rm abs} = 3$~m,
+$\Lambda_{\rm R} = 0.33$~m, $\mathrm{PDE}=1$, delta emission), $4\times10^6$ photons,
+8 CPU threads, Apple silicon:
+
+\begin{center}
+\begin{tabular}{lcc}
+  \toprule
+  Path & time & throughput \\
+  \midrule
+  Reference (threads)            & 0.752~s & 5.3~Mphotons/s \\
+  KA kernel, CPU backend         & 0.671~s & 6.0~Mphotons/s \\
+  KA kernel, Metal               & \textbf{0.122~s} & \textbf{32.9~Mphotons/s} \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+Metal is $6.2\times$ the 8-thread reference \emph{end-to-end} (including transfer of
+the per-photon records and the single-threaded host reduction). In physics units: a
+full-energy 511~keV event in cold CsI emits $\sim$27\,600 photons, so the GPU path
+sustains $\sim$1200 events/s --- $10^6$-event studies are minutes. Observed cost
+scales with the mean bounce count (the calibrated CsI configuration averages
+$\sim$17 wall interactions per detected photon); heavier configurations (high-$R$
+idealized limits) cost proportionally more. Known headroom, in order: parallel or
+device-side reduction; event batching amortizing launch overhead (relevant once the
+gamma stage produces per-event deposit lists); and only then occupancy tuning ---
+RecoCrysp's experience is that Float32 + resident device arrays dominate, not launch
+configuration.
+
+%=====================================================================
+\section{Status and roadmap}
+
+Built and validated: the full optical chain (UNIFIED surfaces with air-gap/contact
+finishes and micro-facet roughness, bulk absorption + Rayleigh, grease or dry
+coupling, aperture/surround/two-sided readouts), three calibrated materials with
+documented provenance, the calibration campaign pattern (one script + one TOML per
+anchor measurement), and the twin CPU/GPU transports under the parity contract.
+
+Next: vendoring the gamma-transport core from PTCryspMC (XCOM cross sections,
+Klein--Nishina/photoelectric sampling) to produce per-event deposit lists --- making
+CryspLight end-to-end (511~keV in $\to$ SiPM maps out) --- with per-event GPU batching
+as the accompanying kernel extension. Deferred, with scoped plans: the tapered
+(frustum) geometry for the Brose phase-2 absolute closure; tabulated
+$\lambda$-dependent optics; timing studies against the measured CTR.
+
+\end{document}
