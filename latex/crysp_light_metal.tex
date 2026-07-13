@@ -495,6 +495,23 @@ single-core Geant4 optical simulation, and \bgo{} is $7\times$ cheaper still. Th
 order-of-magnitude figures to be confirmed by the first benchmark; they set the expectation
 that $10^6$-event studies are minutes, not days.
 
+\paragraph{Implementation status (built).} The port exists as a single
+KernelAbstractions kernel (\texttt{src/kernel.jl}) --- one work-item per photon,
+functional (isbits) Philox state, per-photon output records (status, sensor index,
+time, bounces) instead of device-side atomics, reduced to the standard accumulator on
+the host. The random-draw order mirrors the reference CPU path draw-for-draw, so on the
+CPU backend the kernel is \emph{bit-identical} to the validated reference (enforced in
+the test suite, all processes active); on Metal, transcendental ulp differences flip
+only a few photons per million (statistical agreement enforced). Backend selection
+follows the array type (\texttt{Array} $\to$ threaded CPU,
+\texttt{Metal.MtlArray} $\to$ GPU). Measured throughput (M-series,
+\texttt{scripts/bench\_metal.jl}, calibrated \csi{} configuration, $4\times10^6$
+photons): \textbf{33~Mphotons/s end-to-end}, $6.2\times$ the 8-thread reference path
+--- $\sim$1200 full 511~keV \csi{} events per second, in line with the estimate above.
+One Metal-specific constraint worth recording: kernel arguments are capped at 31 buffer
+bindings and every scalar counts, so parameters travel as the isbits configuration
+structs rather than unpacked scalars.
+
 %=====================================================================
 \section{Interfaces}
 \label{sec:interfaces}
@@ -624,8 +641,10 @@ gap; the contact mode and $\Lambda_{\rm R}$ stay available as calibration freedo
   \item \textbf{v0 --- CPU reference} (Julia, KernelAbstractions CPU backend): full physics
     of Sec.~\ref{sec:algorithm}, per-photon records, unit tests 1--2 above. Small but
     complete.
-  \item \textbf{v1 --- Metal port}: same kernel on MtlArrays; bit-level agreement with v0 on
-    identical Philox streams; first throughput benchmark.
+  \item \textbf{v1 --- Metal port (built)}: same kernel on MtlArrays; bit-level agreement
+    with v0 on identical Philox streams (achieved on the CPU backend; few-per-million
+    statistical agreement on Metal); measured 33~Mphotons/s, $6.2\times$ the threaded
+    CPU path.
   \item \textbf{v2 --- PTCrysp integration}: vendor the gamma engine, read its deposits,
     produce the per-event light maps + times end to end; Geant4 cross-check campaign.
   \item \textbf{v3 --- physics studies}: light map vs.\ depth-of-interaction (input to

@@ -1,6 +1,7 @@
 using Test
 using Statistics
 using CryspLight
+using Metal
 using CryspLight: face_axis, specular, emission_time
 
 const GRID = SipmGrid(6f0, Int32(8), Int32(8))
@@ -211,6 +212,40 @@ end
                        pos = (24f0, 24f0, 18.6f0), tau_ns = 0f0)
     @test total_terminated(acc) == 50_000
     @test isapprox(acc.ndet_front / acc.ndet, 0.5; atol = 0.02)
+end
+
+@testset "KernelAbstractions kernel: CPU bit-parity, Metal agreement" begin
+    box = Box((48f0, 48f0, 37.2f0))
+    tb = TB
+    # every process on at once: absorption + Rayleigh + rough surface + wrap + PDE +
+    # disc aperture + reflective surround + scintillation time
+    op = OpticalParams(1.95f0, 1.45f0, 500f0, 400f0, 0.98f0, false, true,
+                       Float32(deg2rad(6)), 0.4f0)
+    ro = Readout(GRID; center = (24, 24), radius = 20, sur_R = 0.9f0)
+    kw = (n_photons = 100_000, seed = 8, pos = (24f0, 24f0, 18.6f0), tau_ns = 800f0)
+    a = run_photons!(box, op, ro, tb; kw...)
+    b = run_photons_ka!(box, op, ro, tb; kw..., ArrayT = Array)
+    # the KA kernel mirrors the reference draw-for-draw: bit-identical on the CPU backend
+    @test a.counts == b.counts
+    @test a.first_ns == b.first_ns
+    @test (a.ndet, a.nabs_bulk, a.nabs_wall, a.nabs_sipm, a.nabs_sur, a.ncap) ==
+          (b.ndet, b.nabs_bulk, b.nabs_wall, b.nabs_sipm, b.nabs_sur, b.ncap)
+    @test a.sum_bounces_det == b.sum_bounces_det && a.ndet_front == b.ndet_front
+
+    # two-sided variant
+    ro2 = Readout(GRID; two_sided = true)
+    a2 = run_photons!(box, op, ro2, tb; kw...)
+    b2 = run_photons_ka!(box, op, ro2, tb; kw..., ArrayT = Array)
+    @test a2.counts == b2.counts && a2.ndet_front == b2.ndet_front
+
+    # Metal (if available): exact conservation, statistical agreement (transcendental
+    # ulp differences may flip rare edge photons — a few per million)
+    if Metal.functional()
+        g = run_photons_ka!(box, op, ro, tb; kw..., ArrayT = Metal.MtlArray)
+        @test total_terminated(g) == kw.n_photons
+        p = a.ndet / kw.n_photons
+        @test abs(g.ndet - a.ndet) < 5 * sqrt(kw.n_photons * p * (1 - p)) + 10
+    end
 end
 
 @testset "Detection record: indices, binning, first time" begin

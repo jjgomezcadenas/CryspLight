@@ -35,9 +35,17 @@ layout and conventions.
 
 - `src/` — the Julia package: Philox RNG (`philox.jl`), box geometry (`geometry.jl`),
   Fresnel/specular/Lambertian surface optics (`optics.jl`), photon generation
-  (`generation.jl`), the bounce loop + accumulators (`transport.jl` — the code that becomes
-  the Metal kernel: Float32, non-allocating), config reading (`config.jl`), HDF5 output
+  (`generation.jl`), the reference bounce loop + accumulators (`transport.jl`), the
+  **GPU twin** (`kernel.jl` — one KernelAbstractions kernel, functional Philox,
+  per-photon records, no atomics; `run_photons_ka!` with `ArrayT = Array` for the CPU
+  backend or `Metal.MtlArray` for the GPU), config reading (`config.jl`), HDF5 output
   (`output.jl`), material loading (`materials.jl`).
+- **Kernel invariant**: `kernel.jl` mirrors `transport.jl` draw-for-draw — on the CPU
+  backend it is BIT-IDENTICAL to the reference (tested). Any physics change must be made
+  in BOTH files, and the parity test will catch a slip. Metal gotchas: ≤31 kernel-arg
+  buffers (pass isbits structs, not unpacked scalars), Float32/Int32 only, no dynamic
+  tuple indexing, no nscat tracking in the KA path. Measured: 33 Mphotons/s on Metal =
+  6.2× the 8-thread CPU path (`scripts/bench_metal.jl`).
 - `runs/` — **tracked TOML run configs** (the parameter source of truth; tag = filename).
 - `output/` — **gitignored results**, one dir per tag: `output/<tag>/light.h5` + a copy of
   the config.

@@ -16,6 +16,7 @@ include("optics.jl")
 include("materials.jl")
 include("generation.jl")
 include("transport.jl")
+include("kernel.jl")
 include("config.jl")
 include("output.jl")
 
@@ -26,6 +27,6 @@ export OpticalParams, SipmGrid, Readout, TimeBinning, Accumulator, propagate_pho
 export total_terminated
 export STATUS_DETECTED, STATUS_ABS_BULK, STATUS_ABS_WALL, STATUS_ABS_SIPM, STATUS_CAP,
        STATUS_ABS_SUR
-export load_material, run_from_config, run_photons!
+export load_material, run_from_config, run_photons!, run_photons_ka!
 
 end # module
