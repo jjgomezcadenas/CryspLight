@@ -26,11 +26,35 @@ pages) if no text version is available.**
 Simulate the scintillation-light transport in a wrapped CsI/BGO crystal read out by an 8×8 SiPM
 matrix, with the photon propagation running on the GPU (Apple Metal). The gamma transport
 (511 keV photons → energy deposits) comes from the vendored PTCrysp engine; this repo starts from
-the deposits. Three notes in `latex/`: `crysp_light_metal.tex` (problem statement and the
-optical model), `csitl_calib.tex` (calibrations: CsI(Tl), cold CsI, BGO — parameter
-provenance), `crysplight_soft.tex` (software: architecture, the KernelAbstractions
-implementation, bit-parity contract, performance). Read those for physics and design;
-this file records layout and conventions.
+the deposits.
+
+## The notes — read these first after a context compact
+
+Four LaTeX notes in `latex/` carry the full record; together with this file they are
+sufficient to resume work without prior context:
+
+1. `crysp_light_metal.tex` — **design**: problem statement, the optical model
+   (UNIFIED surfaces, bulk split), the calibrated material table, GPU design + achieved
+   performance.
+2. `csitl_calib.tex` — **calibrations**: CsI(Tl) (Brose ladder + Knyazev), cold CsI
+   (CRYSP measurement; adopted f = 0.9 split, 62–83% bracket + breaker measurements),
+   BGO (Ding cube + Gironnet + Mao bound). Every parameter's provenance.
+3. `crysplight_soft.tex` — **software**: architecture, RNG/reproducibility, the
+   KernelAbstractions kernel, the bit-parity contract, Metal gotchas, benchmarks.
+4. `crysplight_e2e.tex` — **end-to-end**: the vendored gamma stage, the per-event
+   pipeline, first physics for CsI(Tl) and BGO with analytic cross-checks.
+
+## Status (2026-07-13) and next steps
+
+Everything below is BUILT, tested (9 test sets), committed and pushed: optical
+transport (CPU reference + bit-identical KA/Metal kernel, 33 Mphotons/s), three
+calibrated materials, three calibration campaigns, the vendored gamma core, the
+per-event pipeline (runs/gammas_{csitl,bgo}.toml → output/<tag>/events.h5).
+CRYSP baselines (PDE=1): cold CsI 83.0%, BGO 88.0%, CsI(Tl) 88.8%. End-to-end
+photopeak: CsI(Tl) 9798 pe, BGO 2832 pe — both on calibration-chain expectations.
+Next candidates (order of value): response layer (intrinsic resolution ~5.3% FWHM +
+SiPM excess noise) for realistic spectra; light-map/DOI studies from the per-event
+maps; per-event time histograms; Brose phase-2 frustum; cold-CsI gamma runs.
 
 ## Layout (PTCryspMC conventions)
 

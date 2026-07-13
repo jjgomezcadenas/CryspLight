@@ -1,0 +1,166 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\csitl}{CsI(Tl)}
+
+\title{CryspLight end to end:\\
+\large the vendored gamma stage, the per-event pipeline, and first physics}
+\author{J.J.~G\'omez-Cadenas \and Claude (Anthropic)}
+\date{July 13, 2026 \\[2mm] \small Version 0.1 --- end-to-end note}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+CryspLight now runs end to end: 511~keV gammas enter the crystal, the vendored
+PTCryspMC gamma-transport core produces per-interaction energy deposits, each deposit
+converts into scintillation photons, and the calibrated optical transport (Metal GPU)
+delivers per-event SiPM observables --- deposited energy, photoelectron count, and the
+$8\times8$ light map. This note documents the gamma stage (what was vendored, from
+where, and what was changed), the event pipeline design (batched GPU launches with
+disjoint random streams, per-event reduction without kernel changes), and the first
+physics results for the two crystals of interest, \csitl{} and BGO at 195~K, with 511~keV
+gammas uniform over the front face: interaction probabilities on the analytic
+attenuation values (79.0\% vs 78.2\%; 87.4\% vs 88.4\%), and photopeak photoelectron
+yields on the calibration-chain predictions to a few per mille (9\,798 vs 9\,803~pe;
+2\,832 vs 2\,833~pe). The known gap to a realistic energy spectrum --- the intrinsic
+resolution and the SiPM excess noise --- is stated explicitly.
+\end{abstract}
+
+\tableofcontents
+
+%=====================================================================
+\section{The gamma stage: vendored from PTCryspMC}
+
+The 511~keV photon physics is not re-derived: it is \emph{vendored} from
+PTCryspMC.jl at commit \code{d4982db} into \code{src/gamma/}, with the file-by-file
+provenance recorded in \code{src/gamma/VENDORED.md}. The physics: free path from NIST
+XCOM cross sections (compound tables for CsI and BGO, log-log interpolated on
+pre-logged grids, K-edges handled by energy-grid nudging), Compton scattering by the
+Klein--Nishina/Butcher--Messel sampler with the recoil energy deposited locally,
+photoelectric absorption ending the history, a pair channel closed below 1.022~MeV,
+and a 10~keV cut on the scattered photon. Electrons deposit locally (no electron
+transport) and coherent scattering is not applied --- both adequate at this scale, and
+both inherited deliberately rather than silently.
+
+Three files are verbatim (\code{nist\_data.jl}, \code{sampling.jl}, the step loop
+\code{gtransport.jl}); two are trimmed: \code{gmaterials.jl} drops the scintillation
+fields and the JSON layer (CryspLight keeps optical properties in its own
+\code{data/*.toml}; gamma materials are built directly with
+\code{make\_material(name, density, xcom\_csv)}), and \code{ggeometry.jl} keeps only
+the origin-centred \code{Box} with the slab method plus the
+\code{LogicalVolume}/\code{PhysicalVolume} placement. The vendored module preserves
+its native conventions --- cm, MeV, \code{Float64}, centred frames --- so the
+validated physics is untouched; the conversion to CryspLight's crystal frame
+(mm, keV, \code{Float32}, corner origin) lives outside the vendored code, in
+\code{src/gamma\_interface.jl}. That bridge also adds the one quantity upstream never
+carried: per-deposit times, computed as the cumulative gamma path length over $c$
+(sub-nanosecond within a crystal, but kept for timing fidelity).
+
+The vendored core reproduces PTCryspMC's own physics anchors inside CryspLight's test
+suite: the CsI attenuation length at 511~keV (2.44~cm), the iodine K-edge
+photoelectric jump, the closed pair channel at 511~keV, straight-line escape through
+vacuum, and per-history energy conservation.
+
+%=====================================================================
+\section{The per-event pipeline}
+
+\code{run\_events!} (\code{src/events.jl}) drives the chain per event:
+
+\begin{enumerate}
+  \item \textbf{Gamma}: an entry point drawn uniformly over the front ($z=0$) face,
+    direction $+z$; the vendored transport returns the deposit list
+    $\{(\mathbf{r}_k, E_k, t_k)\}$. Events whose gamma crosses without interacting are
+    recorded with zero deposit.
+  \item \textbf{Generation}: each deposit contributes
+    $N_k \sim \mathrm{Poisson}(Y E_k)$ optical photons carrying the deposit's position
+    and time (the scintillation delay $\mathrm{Exp}(\tau)$ is added in the kernel, as
+    always).
+  \item \textbf{Optical transport}: photons from many events are concatenated and
+    launched through the KernelAbstractions kernel in batches
+    ($\sim$$2\times10^6$ photons per launch, amortizing launch overhead). Two small
+    kernel extensions were needed, both bookkeeping: a per-position emission-time
+    offset array (the deposit times), and a global photon-id offset so successive
+    batches use \emph{disjoint} Philox streams --- without it, batch $b$ and batch
+    $b'$ would silently reuse the same random sequences.
+  \item \textbf{Reduction}: photons of one event occupy a contiguous id range, so the
+    per-event grouping needs no event array in the kernel: the host walks the
+    per-photon records once and fills, per event, the deposited energy, the
+    photoelectron count, and the time-integrated $8\times8$ map.
+\end{enumerate}
+
+Outputs land in \code{output/<tag>/events.h5} (\code{edep\_kev}, \code{npe},
+\code{maps}, provenance attributes). The applications are configured by
+\code{runs/gammas\_csitl.toml} and \code{runs/gammas\_bgo.toml}; the driver is
+\code{scripts/shoot\_gammas.jl}, which selects Metal automatically when available.
+The pre-existing point-source calibration applications are untouched --- they remain
+the calibration tools.
+
+%=====================================================================
+\section{First physics}
+
+5000 events per crystal, calibrated optics throughout (the parameter provenance is
+the calibration note), PDE at the emission wavelength (0.40 for \csitl{} at 550~nm,
+0.45 for BGO at 480~nm, S14160 values), Metal backend:
+
+\begin{center}
+\begin{tabular}{lcc}
+  \toprule
+   & \csitl{} ($2X_0 = 37.2$~mm) & BGO 195~K ($2X_0 = 22.4$~mm) \\
+  \midrule
+  wall time (5000 events)      & 32~s & 13~s \\
+  interacted                   & 79.0\% & 87.4\% \\
+  \quad analytic $1 - e^{-L/\lambda_{\rm att}}$ & 78.2\% & 88.4\% \\
+  photopeak fraction           & 50.9\% & 75.3\% \\
+  photopeak signal             & 9\,798~pe & 2\,832~pe \\
+  \quad calibration-chain expectation & 9\,803~pe & 2\,833~pe \\
+  FWHM (photostat.\ + transport only) & 2.40\% & 4.43\% \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+Three independent cross-checks close in this table. The interaction probabilities land
+on the analytic attenuation values --- the vendored gamma stage works in situ. The
+photopeak photoelectron yields land on
+$Y \times 0.511 \times \varepsilon_{\rm coll} \times \mathrm{PDE}$ with the
+\emph{calibrated} collection efficiencies (0.888 for \csitl{}, 0.880 for BGO) to a few
+per mille --- the gamma stage, the optical model, the calibrated materials, and the
+GPU path agree in a single number. And the photopeak fractions order as they must
+(BGO's $Z=83$ photofraction well above CsI's), with realistic 1--3-deposit event
+topologies now replacing every point source used during calibration.
+
+\paragraph{What the FWHM is and is not.} The quoted widths contain photostatistics and
+optical-transport fluctuations only. A realistic energy spectrum additionally needs
+the \emph{intrinsic} resolution of the crystal ($2.355\,\delta_{\rm sc} \approx 5.3\%$
+for cryogenic-CsI-class crystals at 511~keV) and the SiPM response (excess noise /
+crosstalk). Both are response-layer terms, deliberately outside the transport; adding
+them as a post-processing smear --- exactly as the CRYSP measurement papers unfold
+them --- is the natural next brick, and the per-event outputs already carry everything
+needed.
+
+%=====================================================================
+\section{Status and pointers}
+
+With this milestone the chain gamma $\to$ deposits $\to$ photons $\to$ SiPM maps is
+complete, calibrated, GPU-accelerated, and reproducible from tracked configs. The
+four notes divide the documentation: the \textbf{design note}
+(\code{crysp\_light\_metal.tex}) --- problem and optical model; the
+\textbf{calibration note} (\code{csitl\_calib.tex}) --- parameters and provenance for
+\csitl{}, cold CsI and BGO, with the open $f$-split brackets and their breaker
+measurements; the \textbf{software note} (\code{crysplight\_soft.tex}) ---
+architecture, the KernelAbstractions implementation, the bit-parity contract,
+performance; and this note --- the end-to-end application. Near-term candidates, in
+rough order of value: the response layer (intrinsic resolution + SiPM noise) for
+realistic spectra; light-map/depth-of-interaction studies from the per-event maps (the
+CRYSP monolithic program); per-event time histograms for timing studies; the Brose
+phase-2 frustum for the absolute closure; cold-CsI gamma runs once its response terms
+are chosen.
+
+\end{document}
