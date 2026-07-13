@@ -1,0 +1,378 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{siunitx}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+\newcommand{\csitl}{CsI(Tl)}
+\newcommand{\lext}{\Lambda_{\rm ext}}
+\newcommand{\labs}{\Lambda_{\rm abs}}
+\newcommand{\lray}{\Lambda_{\rm R}}
+\newcommand{\sa}{\sigma_\alpha}
+
+\title{Calibration of the CryspLight optical model on \csitl{}:\\
+the absorption/scattering split of the measured extinction}
+\author{J.J.~G\'omez-Cadenas \and Claude (Anthropic)}
+\date{July 13, 2026 \\[2mm] \small Version 0.1 --- calibration note (phase 1)}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We calibrate the optical transport model of CryspLight --- the light-propagation
+simulation for the CRYSP crystals, specified in \texttt{crysp\_light\_metal.tex} --- on
+\csitl{}, the best-measured scintillating crystal in the literature. Two complementary
+data sets are used: the spectrophotometric bulk-extinction measurement of Knyazev et
+al.~\cite{knyazev2021} ($\lext = 311.5$~mm at the 550~nm emission peak), and the
+absolutely calibrated light-yield ladder of Brose, Dahlinger and
+Schubert~\cite{brose1998}, who measured the \emph{same} $36$~cm crystal bare and under
+successive Teflon wrappings. The central finding: the wrapping ladder is
+\textbf{irreproducible} if the measured extinction is treated as pure absorption --- the
+simulated wrapped/bare light-output ratio saturates near 2.2 against a measured 3.9 ---
+and is reproduced, with physically consistent effective Teflon reflectivities and the
+literature surface roughness, only when the extinction is split as $\sim$90\% elastic
+scattering and $\sim$10\% true absorption: $\labs \simeq 3.1$~m, $\lray \simeq 0.35$~m.
+Scattering redirects trapped light instead of killing it; absorption does not. The same
+split resolves, at least qualitatively, the total-light-output sign discrepancy reported
+by Knyazev et al.\ between their measurement and their (absorption-only) simulation.
+Applied to the CRYSP geometry ($48\times48\times37.2$~mm$^3$, thick Teflon, grease-coupled
+$8\times8$ SiPM array), the calibrated parameters predict that $88.8\%$ of the emitted
+scintillation light reaches the sensors ($84.6$--$93.4\%$ across the split bracket
+$f = 0.85$--$0.95$) --- about $2.5\times$ more than the naive reading of the measured
+``absorption length'' would give. All numbers regenerate from
+\texttt{scripts/csitl\_calib.jl} + \texttt{runs/csitl\_calib.toml}.
+\end{abstract}
+
+\tableofcontents
+
+%=====================================================================
+\section{Purpose and strategy}
+\label{sec:purpose}
+
+The CryspLight design note establishes that the predicted light collection of a wrapped
+crystal is dominated by parameters that are poorly known a priori: the bulk absorption
+length at the emission wavelength, the surface micro-roughness $\sa$, and --- as this
+note shows --- the fraction of the measured bulk attenuation that is scattering rather
+than absorption. Rather than guessing, we calibrate the full transport model on
+\csitl{}: a room-temperature crystal, distinct from the cryogenic pure CsI of the CRYSP
+detector (the two are kept as separate materials throughout,
+\texttt{data/csitl.toml} vs \texttt{data/csi.toml}), but the one crystal for which
+decades of calorimetry provide precision optical data. The strategy:
+
+\begin{enumerate}
+  \item take the \emph{bulk extinction} and the \emph{surface characterization} from
+    Knyazev et al.~\cite{knyazev2021} and Janecek--Moses~\cite{janecek2010};
+  \item confront the model with the \emph{wrapping ladder} of Brose et
+    al.~\cite{brose1998} --- six light-yield measurements of one identical crystal under
+    different wraps, which cancel the crystal's intrinsic yield, the photodetector
+    response, and the reference normalization exactly;
+  \item fit the minimal set of unknowns (the absorption/scattering split $f$, and one
+    effective reflectivity per wrap configuration) and judge the result by
+    over-constraint: the fitted reflectivities must come out physical without being
+    forced to.
+\end{enumerate}
+Once the machinery reproduces \csitl{}, the identical procedure applies to cold pure
+CsI, anchored on the CRYSP measurement itself~\cite{soleti2024}.
+
+%=====================================================================
+\section{Input data}
+\label{sec:data}
+
+\subsection{Bulk extinction and surfaces (Knyazev et al.)}
+
+Knyazev et al.~\cite{knyazev2021} (CALIFA/R3B) measured, with a spectrophotometer over
+300--750~nm on Amcrys-h \csitl{}, an ``absorption length'' rising from 28 to 34~cm
+across the 500--600~nm emission band --- $311.5$~mm at the peak for their test crystal,
+with a $\pm15\%$ ($1\sigma$) crystal-to-crystal spread --- together with the index chain
+$n_{\rm CsI} = 1.80$, coupler 1.41, window 1.53, and ESR foil reflectivity 99.52\%.
+Crucially, a collimated-beam transmission measurement counts scattered light as loss:
+what is measured is the \textbf{extinction}
+\begin{equation}
+  \frac{1}{\lext} \;=\; \frac{1}{\labs} + \frac{1}{\lray},
+  \label{eq:split}
+\end{equation}
+and no experiment has separated the two terms for \csitl{}. We parameterize the split by
+the scattering fraction $f$: $\labs = \lext/(1-f)$, $\lray = \lext/f$. Knyazev et al.\
+also characterized their surfaces by AFM (slope RMS 0.15 polished, 0.54 lapped at 100~nm
+sampling) and, importantly for us, reported that their absorption-only simulation
+\emph{reproduces the uniformity trend but gets the sign of the total-light-output change
+under lapping wrong}, naming unmodelled scattering (``crystal dimming'') as the suspected
+cause. The optically effective roughness values are those of
+Janecek--Moses~\cite{janecek2010}: $\sa = 1.3^\circ$ for mechanically polished,
+$\sim$$18^\circ$ for ground surfaces.
+
+\subsection{The absolutely calibrated wrapping ladder (Brose et al.)}
+\label{sec:brose}
+
+Brose et al.~\cite{brose1998} (TU Dresden, early BABAR R\&D) measured Kharkov \csitl{}
+crystals --- tapered, $6\times5$~cm$^2$ front, $6\times6$~cm$^2$ rear, 36~cm long
+(19.4~$X_0$) --- with two absolutely linked scales: a PMT scale LY (Hamamatsu R669,
+minimal air gap, 5~cm diameter photocathode; LY quoted relative to a 25~mm reference
+cube, averaged over an 18-position $^{137}$Cs scan along the crystal), and a photodiode
+scale PY in photoelectrons per MeV, calibrated by absorbing 59.5~keV photons directly in
+the diode (16480 e--h pairs; accuracy $\pm100\;{\rm e_0/MeV}$; QE $85\%$ at 560~nm). The
+bridge: ${\rm LY} = 74\% \leftrightarrow {\rm PY} = 7600\;{\rm e_0/MeV}$. The
+measurements used here (Fig.~7 of~\cite{brose1998}, one and the same polished crystal):
+
+\begin{table}[htb]
+  \centering
+  \caption{The Brose et al.\ wrapping ladder and the ratios used as fit targets.}
+  \label{tab:ladder}
+  \begin{tabular}{lcc}
+    \toprule
+    Configuration & LY & LY/LY$_{\rm bare}$ \\
+    \midrule
+    bare (internal reflection only)        & 15\% & 1    \\
+    1 layer Teflon, 38~$\mu$m              & 34\% & 2.27 \\
+    3 layers Teflon                        & 53\% & 3.53 \\
+    4 layers Teflon ($\sim$160~$\mu$m)     & 59\% & 3.93 \\
+    3 layers + 5~$\mu$m Al foil            & 59\% & 3.93 \\
+    1 layer Teflon, 200~$\mu$m (monolayer) & 41\% & 2.73 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Also used qualitatively: an air gap at the photodiode costs $\sim$15\% of the
+photoelectron yield versus glued coupling; removing the reflector that covers the
+uninstrumented rear-face area costs $\sim$30\%. Both are direct probes of physics the
+model must contain (the Fresnel escape cone at the readout; the recycling of photons by
+the readout-face surround).
+
+%=====================================================================
+\section{Simulation setup (phase 1)}
+\label{sec:setup}
+
+The Brose PMT configuration is modelled in CryspLight as follows; every number below is
+in \texttt{runs/csitl\_calib.toml}.
+
+\begin{itemize}
+  \item \textbf{Geometry}: straight-box approximation of the tapered crystal,
+    $60\times55\times360$~mm$^3$ (mean cross-section). The $0.8^\circ$ taper --- which
+    under specular TIR walks photon angles deterministically, an unlocking mechanism
+    analogous to surface roughness --- is deferred to phase~2; its expected effect is
+    noted in Sec.~\ref{sec:results}.
+  \item \textbf{Readout}: a disc of radius 25~mm (the photocathode) on the
+    $6\times6$~cm$^2$ rear face, coupled through an \emph{air gap}
+    ($n_{\rm coupling}=1$; escape cone $\arcsin(1/1.79) = 34.0^\circ$), PDE $= 1$
+    (all targets are relative). Photons transmitted outside the disc hit the
+    \emph{surround}: absorbing in the bare configuration (nothing is there), and ---
+    an essential detail --- \textbf{Teflon in the wrapped configurations}, since the
+    whole crystal is wrapped except the PMT window; the surround is then a Lambertian
+    reflector with the same $R$ as the wrap.
+  \item \textbf{Source}: nine equal-weight isotropic point sources along the crystal
+    axis ($z = 20$--$340$~mm), approximating the 18-position scan average; delta
+    emission time. $4\times10^5$ photons per configuration.
+  \item \textbf{Surfaces}: UNIFIED back-painted (air gap) with the specular lobe;
+    $\sa \in \{1.3^\circ, 8.5^\circ\}$ (optical polish vs the AFM upper bracket).
+  \item \textbf{Bulk}: $\lext = 311.5$~mm split by Eq.~\ref{eq:split} with
+    $f \in \{0, 0.3, 0.5\}$ (first pass) and $\{0.8, 0.9, 0.95\}$ (second pass);
+    Rayleigh phase function $\propto 1+\cos^2\theta$.
+  \item \textbf{Fit}: for each $(f, \sa)$, simulate the bare crystal; for each wrap
+    configuration, scan the wrap reflectivity $R$ and interpolate the effective
+    $R_{\rm eff}$ at which the simulated ratio to bare equals the measured one
+    (Table~\ref{tab:ladder}). The wrap model is Lambertian behind the air gap
+    (\textsc{unified} \texttt{groundbackpainted}).
+\end{itemize}
+
+The transport engine itself is validated independently by the analytic anchors of the
+design note (exact photon conservation; the idealized-specular escape-cone limit
+$1-\cos\theta_c'$; Rayleigh-restored ergodicity; Fresnel closed forms; sampling
+distributions), enforced in the package test suite.
+
+%=====================================================================
+\section{Results}
+\label{sec:results}
+
+\subsection{Pure absorption is excluded}
+
+With $f \le 0.5$, the simulated wrapped/bare ratio saturates near $2.2$ --- below even
+the single-thin-layer target of 2.27, and far from the 4-layer target of 3.93 ---
+\emph{regardless of the wrap reflectivity} (the ratio is nearly flat in $R$ up to
+$R = 0.99$). The mechanism: light recycled by the wrap random-walks and must then
+survive the bulk; with $\labs \simeq \lext = 31$~cm in a 36~cm crystal it does not, so
+the wrap cannot matter, contrary to observation. The same conclusion follows from the
+measurement alone: Brose's \emph{bare} crystal shows only a few-percent position
+dependence of the light output along 36~cm, incompatible with 31~cm of true absorption.
+
+\subsection{The scattering-dominated split}
+
+\begin{table}[htb]
+  \centering
+  \caption{Fitted effective Teflon reflectivities per grid point
+  ($4\times10^5$ photons per run; statistical precision on the ratios
+  $\lesssim 1\%$). ``$>$'' / ``$<$'': the target ratio is not reached within the
+  scanned $R$ range (above its ceiling / below its floor). The preferred point is
+  \textbf{bold}.}
+  \label{tab:grid}
+  \begin{tabular}{ccccccc}
+    \toprule
+    $f$ & $\sa$ & bare frac. & $R_{\rm eff}$(1$\times$38$\mu$m) &
+    $R_{\rm eff}$(3$\times$) & $R_{\rm eff}$(4$\times$) & $R_{\rm eff}$(200$\mu$m mono) \\
+    \midrule
+    0.80 & $1.3^\circ$ & 0.054 & 0.867 & $>0.995$ & $>0.995$ & 0.966 \\
+    0.80 & $8.5^\circ$ & 0.054 & 0.778 & 0.963    & $>0.995$ & 0.868 \\
+    \textbf{0.90} & $\mathbf{1.3^\circ}$ & \textbf{0.060} & \textbf{0.754} &
+      \textbf{0.934} & \textbf{0.965} & \textbf{0.840} \\
+    0.90 & $8.5^\circ$ & 0.058 & $<0.75$ & 0.880 & 0.910 & 0.793 \\
+    0.95 & $1.3^\circ$ & 0.064 & $<0.75$ & 0.866 & 0.896 & 0.781 \\
+    0.95 & $8.5^\circ$ & 0.061 & $<0.75$ & $<0.85$ & $<0.88$ & $<0.78$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Table~\ref{tab:grid} shows the second-pass grid. The point $f = 0.90$,
+$\sa = 1.3^\circ$ is singled out on three independent grounds:
+\begin{enumerate}
+  \item it is the only point at which \emph{all four} ladder rungs are matched within
+    the physical reflectivity range;
+  \item the fitted $R_{\rm eff}$ come out \textbf{monotone in Teflon thickness, below
+    saturation, and with the 200~$\mu$m monolayer correctly ranked between one and
+    three thin layers and below the four-layer multilayer} --- the measured ordering,
+    which the fit was free to violate;
+  \item the preferred $\sa$ is exactly the Janecek--Moses polished value, which was
+    \emph{not} fitted.
+\end{enumerate}
+Neighbouring points fail in opposite directions ($f = 0.8$: the thick rungs need
+$R > 0.995$; $f = 0.95$: even the scan floor overshoots the thin rungs), bracketing
+$f \approx 0.85$--$0.92$ at this fidelity. The remaining tension --- the simulated bare
+absolute collection of 6.0\% against the $\sim$8--10\% implied by ${\rm LY} = 15\%$
+under reasonable assumptions for the reference cube --- has the sign and rough size
+expected from the missing taper, and is the primary target of phase~2.
+
+\subsection{Final calibrated parameters}
+
+\begin{table}[htb]
+  \centering
+  \caption{The calibrated \csitl{} optical model (550~nm, room temperature) ---
+  the content of \texttt{data/csitl.toml}.}
+  \label{tab:final}
+  \small
+  \begin{tabular}{lll}
+    \toprule
+    Parameter & Value & Origin \\
+    \midrule
+    Refractive index $n$ & 1.79 & \cite{brose1998,knyazev2021} \\
+    Extinction $\lext$ & 311.5~mm ($\pm15\%$ batch) & measured \cite{knyazev2021} \\
+    Scattering fraction $f$ & $0.90$ (bracket 0.85--0.92) & this fit \\
+    $\Rightarrow$ absorption $\labs$ & $3115$~mm & $\lext/(1-f)$ \\
+    $\Rightarrow$ scattering $\lray$ & $346$~mm & $\lext/f$ \\
+    Surface $\sa$ (polished, air gap) & $1.3^\circ$ & \cite{janecek2010}, confirmed \\
+    Teflon $R_{\rm eff}$ (1 / mono / 3 / 4 layers) &
+      0.754 / 0.840 / 0.934 / 0.965 & this fit \\
+    Teflon saturated ($\gtrsim 0.5$--1~mm) & 0.99 & \cite{janecek2008} \\
+    Light yield / decay & $54\,000$~ph/MeV; $\sim$730~ns (64\%) + 3.34~$\mu$s &
+      literature \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The physics statement: \textbf{the measured ``absorption length'' of \csitl{} is
+extinction, and about nine parts in ten of it is elastic scattering}; true absorption is
+at the metre scale. This simultaneously accounts for the Brose wrapping gains, the
+near-flat bare-crystal uniformity, the long ``attenuation lengths'' historically
+extracted from calorimeter uniformity fits, and the direction of the
+simulation-vs-measurement discrepancy Knyazev et al.\ left open.
+
+%=====================================================================
+\section{Application to the CRYSP geometry}
+\label{sec:crysp}
+
+With Table~\ref{tab:final} and the standard CRYSP test of the design note --- a
+$48\times48\times37.2$~mm$^3$ crystal, thick (saturated) Teflon on five faces,
+$\sa = 1.3^\circ$, grease coupling ($n_g = 1.45$), fully active $8\times8$ SiPM face,
+isotropic point source at the centre, PDE $= 1$:
+\begin{equation}
+  \boxed{\;\varepsilon_{\rm coll} = 88.8\% \quad (84.6\text{--}93.4\% \text{ for }
+  f = 0.85\text{--}0.95)\;}
+\end{equation}
+with 10.0\% absorbed in the bulk and 1.2\% at the wrap; detected photons average
+$\sim$11 wall interactions. The bracket is narrow because at 37~mm the crystal is short
+compared with \emph{both} lengths of the split. In photoelectrons: a 511~keV photopeak
+emits $\sim$27\,600 photons, $\sim$24\,500 reach the sensors, and a realistic
+${\rm PDE} \approx 0.4$ at 550~nm gives $\sim$$10^4$ photoelectrons per event. Had the
+measured 31~cm been used as true absorption, the same test returns roughly a third of
+the light: the split is worth a factor $\sim$2.5 in predicted signal.
+
+For the CRYSP detector proper the open question transfers to \emph{cold pure CsI at
+340--350~nm} (a separate material in the framework): if its extinction is
+scattering-dominated like its doped sibling --- plausible, though the UV absorption edge
+is closer --- its collection also sits near the top of this range. That split should be
+calibrated on the CRYSP measurements themselves~\cite{soleti2024}, by exactly the
+procedure of this note; a bare-vs-wrapped ladder on a CRYSP crystal would be the single
+most informative measurement.
+
+%=====================================================================
+\section{Caveats and next steps}
+\label{sec:caveats}
+
+\begin{enumerate}
+  \item \textbf{Taper (phase 2).} The straight-box approximation is the leading known
+    systematic; it plausibly accounts for the bare-crystal 6\% vs 8--10\% gap and will
+    sharpen the $f$ bracket. Requires generalizing the wall intersection and surface
+    frames to non-axis-aligned planes.
+  \item \textbf{Source placement.} On-axis points, whereas the measured deposits sit a
+    few cm below the top surface; a second-order effect on the ladder ratios, free to
+    fix via the config.
+  \item \textbf{Scalar optics.} Single wavelength at the emission peak; the
+    28--34~cm band variation and the PDE$(\lambda)$ weighting enter only at the few-\%
+    level for these ratios.
+  \item \textbf{Crystal provenance.} Brose (1990s Kharkov) and Knyazev (Amcrys-h)
+    crystals differ; the $\pm15\%$ batch spread on $\lext$ is folded into the $f$
+    bracket only informally.
+  \item \textbf{Monolayer/multilayer.} The ordering is \emph{reproduced through fitted}
+    $R_{\rm eff}$, not predicted ab initio (inter-layer air gaps are not modelled
+    microscopically).
+  \item \textbf{Phase 3.} The absolute photoelectron scale (the photodiode geometry:
+    glued coupling, Tyvek-covered surround, PY = 7600~e$_0$/MeV) as an end-to-end
+    absolute closure test, after the taper.
+\end{enumerate}
+
+\section*{Reproducibility}
+
+\begin{itemize}
+  \item \texttt{scripts/csitl\_calib.jl} + \texttt{runs/csitl\_calib.toml} --- the
+    campaign (grid, cases, targets);
+  \item \texttt{data/csitl.toml} --- the calibrated parameters, provenance in comments;
+  \item \texttt{runs/point\_csitl\_teflon.toml} --- the CRYSP-geometry application;
+  \item \texttt{output/csitl\_calib/summary.csv} --- grid results;
+  \item the package test suite (\texttt{Pkg.test}) enforces the transport anchors.
+\end{itemize}
+
+%=====================================================================
+\begin{thebibliography}{9}
+
+\bibitem{knyazev2021}
+A.~Knyazev, J.~Park, P.~Golubev \emph{et al.},
+``Simulations of light collection in long tapered CsI(Tl) scintillators using real
+crystal surface data and comparisons to measurement,''
+Nucl.\ Instrum.\ Meth.\ A \textbf{1003} (2021) 165302.
+
+\bibitem{brose1998}
+J.~Brose, G.~Dahlinger and K.~R.~Schubert,
+``Properties of CsI(Tl) crystals and their optimization for calorimetry of high energy
+photons,''
+Nucl.\ Instrum.\ Meth.\ A \textbf{417} (1998) 311, arXiv:physics/9805010.
+
+\bibitem{janecek2010}
+M.~Janecek and W.~W.~Moses,
+``Simulating scintillator light collection using measured optical reflectance,''
+IEEE Trans.\ Nucl.\ Sci.\ \textbf{57} (2010) 964.
+
+\bibitem{janecek2008}
+M.~Janecek and W.~W.~Moses,
+``Optical reflectance measurements for commonly used reflectors,''
+IEEE Trans.\ Nucl.\ Sci.\ \textbf{55} (2008) 2432.
+
+\bibitem{soleti2024}
+S.~R.~Soleti \emph{et al.} (CRYSP),
+``Cryogenic CsI as a potential PET material,''
+arXiv:2406.13598 (2024).
+
+\end{thebibliography}
+
+\end{document}

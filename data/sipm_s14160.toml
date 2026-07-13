@@ -1,0 +1,7 @@
+# Hamamatsu S14160-6050HS, 8x8 matrix, 6 mm pitch exactly tiling the 48x48 mm2 face.
+# Scalar PDE (peak, 450 nm); the PDE(lambda) curve replaces it with spectrum sampling.
+name = "S14160-6050HS"
+pitch_mm = 6.0
+nx = 8
+ny = 8
+pde = 0.5

@@ -1,0 +1,5 @@
+# 3M Vikuiti ESR: specular multilayer. Scalar valid ABOVE the ~400 nm edge only
+# (BGO yes, cold CsI no) — the tabulated R(lambda) replaces this for spectrum sampling.
+name = "Vikuiti ESR"
+model = "specular"
+reflectivity = 0.985

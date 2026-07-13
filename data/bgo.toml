@@ -1,0 +1,9 @@
+# BGO at 195 K. Scalar optical properties for the v0 validation runs
+# (fixed wavelength at the emission value below); tabulated curves replace these later.
+name = "BGO"
+n = 2.15                    # refractive index at lambda_nm
+abs_length_mm = 1000.0      # bulk attenuation — placeholder, to be measured/tuned
+yield_per_mev = 15000
+tau_ns = 1500.0
+lambda_nm = 550.0
+x0_mm = 11.2

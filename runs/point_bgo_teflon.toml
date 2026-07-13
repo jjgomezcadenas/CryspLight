@@ -1,0 +1,32 @@
+# Validation: isotropic point source at the crystal centre, PDE = 1. BGO + thick Teflon.
+[run]
+n_photons = 1000000
+seed = 1234
+
+[crystal]
+material = "bgo"
+size_mm = [48.0, 48.0, 22.4]
+
+[wrap]
+material = "teflon"
+
+[sipm]
+material = "sipm_s14160"
+pde_override = 1.0
+coupling_n = 1.45
+
+[source]
+type = "point"
+position_mm = [24.0, 24.0, 11.2]
+time_profile = "exponential"
+
+[binning]
+bin_ns = 100.0
+window_ns = 8000.0
+
+[output]
+dir = "output"
+
+[surface]
+finish = "backpainted"
+sigma_alpha_deg = 1.3

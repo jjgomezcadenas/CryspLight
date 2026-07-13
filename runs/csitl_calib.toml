@@ -1,0 +1,74 @@
+# CsI(Tl) calibration campaign against Brose, Dahlinger, Schubert (arXiv physics/9805010),
+# Fig. 7 wrapping ladder, using bulk parameters from Knyazev et al. (NIM A 1003 (2021)).
+# Phase 1: straight-box approximation of the tapered crystal (6x5 cm2 front, 6x6 cm2
+# rear, 36 cm long -> 60 x 55 mm2 mean cross-section). Driven by scripts/csitl_calib.jl.
+
+[campaign]
+tag = "csitl_calib"
+n_photons = 400000
+seed = 1
+max_bounces = 100000
+
+[crystal]
+material = "csitl"          # data/csitl.toml: n = 1.79, Lambda_ext = 311.5 mm
+size_mm = [60.0, 55.0, 360.0]
+
+[readout]
+# Hamamatsu R669 PMT: 5 cm diameter photocathode on the 6x6 cm2 rear face,
+# coupled via a minimal air gap. PDE = 1 (all Fig. 7 numbers are relative).
+coupling_n = 1.0
+disc_center_mm = [30.0, 27.5]
+disc_radius_mm = 25.0
+pde = 1.0
+
+[source]
+# approximates the 18-position collimated scan: equal-weight points along the axis
+# (phase 1: on-axis; the measured deposits sit a few cm below the top surface)
+positions_z_mm = [20.0, 60.0, 100.0, 140.0, 180.0, 220.0, 260.0, 300.0, 340.0]
+xy_mm = [30.0, 27.5]
+
+[grid]
+# absorption/scattering split of the measured extinction: Lambda_abs = 311.5/(1-f),
+# Lambda_R = 311.5/f. sigma_alpha: optical polish (Janecek) vs AFM upper bracket.
+# High f preferred a priori: the bare crystal's measured ~flat position response is
+# incompatible with 31 cm of pure absorption over 36 cm of crystal.
+f_split = [0.8, 0.9, 0.95]
+sigma_alpha_deg = [1.3, 8.5]
+
+# One entry per Fig. 7 configuration. wrap_R fixed for the bare case; scanned for the
+# Teflon cases (the effective thin-wrap reflectivity is itself a fit target — the script
+# interpolates the R that reproduces each measured LY ratio to bare).
+# All wraps: Lambertian behind an air gap (back-painted).
+# Surround of the photocathode on the rear face: the WHOLE crystal is wrapped except the
+# PMT window, so in the Teflon cases the rear-face surround is Teflon too
+# (surround = "wrap": sur_R follows the scanned wrap_R, Lambertian). Bare: absorbing.
+
+[[cases]]
+name = "bare"
+target_ly = 15.0
+wrap_R = 0.0
+surround_R = 0.0
+
+[[cases]]
+name = "teflon_1x38um"
+target_ly = 34.0
+wrap_R_scan = [0.75, 0.80, 0.85, 0.90, 0.95, 0.99]
+surround = "wrap"
+
+[[cases]]
+name = "teflon_3x38um"
+target_ly = 53.0
+wrap_R_scan = [0.85, 0.90, 0.93, 0.96, 0.98, 0.995]
+surround = "wrap"
+
+[[cases]]
+name = "teflon_4x38um"
+target_ly = 59.0
+wrap_R_scan = [0.88, 0.92, 0.95, 0.97, 0.99, 0.995]
+surround = "wrap"
+
+[[cases]]
+name = "teflon_200um_mono"
+target_ly = 41.0
+wrap_R_scan = [0.78, 0.83, 0.88, 0.92, 0.96, 0.99]
+surround = "wrap"

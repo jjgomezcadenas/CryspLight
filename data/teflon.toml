@@ -1,0 +1,5 @@
+# Thick PTFE wrap (1-2 mm): saturated, spectrally flat, diffuse (Lambertian).
+# Janecek & Moses, IEEE TNS 55 (2008) 2432.
+name = "Teflon"
+model = "lambertian"
+reflectivity = 0.99

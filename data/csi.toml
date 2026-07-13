@@ -1,0 +1,9 @@
+# Pure CsI, cold (77-100 K). Scalar optical properties for the v0 validation runs
+# (fixed wavelength at the emission value below); tabulated curves replace these later.
+name = "CsI"
+n = 1.95                    # refractive index at lambda_nm
+abs_length_mm = 500.0       # bulk attenuation — placeholder, to be measured/tuned
+yield_per_mev = 100000
+tau_ns = 800.0
+lambda_nm = 350.0
+x0_mm = 18.6

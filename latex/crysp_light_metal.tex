@@ -1,0 +1,683 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{siunitx}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+\newcommand{\csi}{CsI}
+\newcommand{\bgo}{BGO}
+\newcommand{\xzero}{X_0}
+
+\title{\textbf{CryspLight}: GPU (Metal) simulation of scintillation-light transport
+in wrapped \csi{} and \bgo{} crystals read out by a SiPM matrix}
+\author{J.J.~G\'omez-Cadenas \and Claude (Anthropic)}
+\date{July 13, 2026 \\[2mm] \small Version 0.2 --- design note}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We formulate the problem of simulating the generation and propagation of scintillation
+photons in a monolithic \csi{} or \bgo{} crystal of transverse size
+$48\times48~\mathrm{mm}^2$ and depth $2\xzero$, wrapped in a specular (3M Vikuiti ESR)
+and/or diffuse (PTFE, ``Teflon'') reflector, and read out on the single unwrapped face by an
+$8\times8$ matrix of $6\times6~\mathrm{mm}^2$ SiPMs. The gamma transport --- a 511~keV photon
+interacting in the crystal via Compton scattering and photoelectric absorption, leaving a set
+of localized energy deposits --- is solved by the existing PTCrysp engine, which this project
+vendors. The new element is the \emph{optical} Monte Carlo: each deposit converts into
+$\mathcal{O}(10^3\text{--}10^5)$ scintillation photons, emitted isotropically with an
+exponential time profile ($\tau \simeq 800$~ns for \csi{} at 77~K, $\simeq 1500$~ns for \bgo{}
+at 195~K), which then bounce inside the crystal until they are either absorbed (in the bulk or
+at a wall) or detected at the SiPM plane. Because the photons are mutually independent, the
+transport is embarrassingly parallel; we propose to implement it as a Metal compute kernel on
+Apple-silicon GPUs, written in Julia via Metal.jl with a CPU-identical reference path. This
+note collects the optical properties needed (crystal refractive index, bulk attenuation,
+emission spectrum and time constants; reflector behaviour and how Geant4 parameterizes it),
+specifies the surface physics model, defines the algorithm and its GPU mapping, estimates the
+expected throughput, and lays out a validation plan against Geant4 and analytic limits.
+The photon-detection efficiency $\mathrm{PDE}(\lambda)$ is applied in the kernel, so the
+output is directly the detected light: per-SiPM photoelectron counts in 100~ns time bins plus
+the first-photoelectron arrival time per SiPM. The baseline configuration for the initial
+runs wraps both crystals in thick (1--2~mm) PTFE; the ESR study follows later.
+\end{abstract}
+
+\tableofcontents
+
+%=====================================================================
+\section{Problem statement}
+\label{sec:problem}
+
+\subsection{Setup}
+
+A monolithic scintillating crystal, \csi{} (pure, operated cold, $\sim$77--100~K) or \bgo{}
+(operated at $\sim$195~K, dry ice), has transverse dimensions $48\times48~\mathrm{mm}^2$ and
+depth equal to two radiation lengths:
+\begin{equation}
+  L_z = 2\xzero =
+  \begin{cases}
+    37.2~\mathrm{mm} & \csi{} \quad (\xzero = 18.6~\mathrm{mm}),\\
+    22.4~\mathrm{mm} & \bgo{} \quad (\xzero = 11.2~\mathrm{mm}).
+  \end{cases}
+\end{equation}
+Five of the six faces (the front face, where the gamma enters, and the four lateral faces) are
+wrapped in a reflector: 3M Vikuiti Enhanced Specular Reflector (ESR) film, PTFE (Teflon) tape,
+or a combination. \textbf{The baseline for the initial runs is thick (1--2~mm) PTFE on both
+crystals}; the ESR study is deferred (Sec.~\ref{sec:reflectors}). The wrapping is \emph{not}
+optically coupled: a thin air gap separates the
+polished crystal surface from the reflector, which has important consequences
+(Sec.~\ref{sec:geant4}). The sixth face (the back face, $z = L_z$) is optically coupled ---
+through a thin layer of optical grease, $n_g = 1.45$ --- to an $8\times8$
+matrix of SiPMs, each with a $6\times6~\mathrm{mm}^2$ active area (e.g.\ Hamamatsu
+S14160-6050HS~\cite{hamamatsu}). The array pitch of 6~mm exactly tiles the
+$48\times48~\mathrm{mm}^2$ face; dead borders between devices are handled by a fill-factor
+parameter.
+
+\subsection{What is already solved: gamma transport (PTCrysp)}
+
+A 511~keV annihilation photon entering the crystal undergoes a sequence of Compton scatters,
+generally terminated by photoelectric absorption (or by escape). The PTCrysp engine
+(vendored from PTCryspMC) transports the gamma with XCOM cross sections and Klein--Nishina
+sampling and produces, per event, a list of energy deposits
+\begin{equation}
+  \mathcal{D} = \{ (\mathbf{r}_k,\, E_k,\, t_k) \},
+  \qquad \sum_k E_k \le 511~\mathrm{keV},
+\end{equation}
+where $\mathbf{r}_k$ is the interaction point (electrons deposit locally at this scale),
+$E_k$ the energy transferred, and $t_k$ the interaction time. Typically 1--3 deposits carry
+almost all the energy. This list is the \emph{input} to CryspLight.
+
+\subsection{What is new: optical transport}
+
+Each deposit $k$ converts into scintillation photons:
+\begin{equation}
+  N_k \sim \mathrm{Poisson}\!\left( Y \cdot E_k \right),
+\end{equation}
+with $Y$ the light yield (Table~\ref{tab:crystals}). For a full-energy 511~keV event this
+means $\sim 5\times10^4$ photons in cold \csi{} and $\sim 7\times10^3$ in \bgo{} at 195~K.
+Each photon is emitted isotropically from $\mathbf{r}_k$, with a wavelength drawn from the
+emission spectrum and an emission time
+\begin{equation}
+  t_{\gamma} = t_k + \Delta t, \qquad \Delta t \sim \mathrm{Exp}(\tau),
+  \label{eq:emission-time}
+\end{equation}
+with $\tau = 800$~ns (\csi{}, 77~K) or $\tau = 1500$~ns (\bgo{}, 195~K). The photon then
+propagates in straight lines inside the crystal, reflecting at the walls, until one of two
+terminal fates:
+\begin{enumerate}
+  \item \textbf{Absorption}: in the bulk (exponential attenuation with length
+    $\Lambda_{\rm abs}$) or at a wall (each reflector bounce succeeds only with probability
+    $R < 1$).
+  \item \textbf{Detection}: the photon crosses the back face into the SiPM plane and is
+    detected with the photon-detection efficiency $\mathrm{PDE}(\lambda)$, recorded as a hit
+    $(i, j, t_{\rm det})$ on SiPM $(i,j)$.
+\end{enumerate}
+The observables we must deliver per event are the per-SiPM photon counts (the ``light map,''
+from which a transverse position is reconstructed), the photon arrival times (from which the
+event time is estimated, e.g.\ by first-photon or few-photon statistics), and, optionally, the
+full per-photon record for detector-response studies.
+
+\subsection{Why the GPU}
+
+The optical stage dominates the computational cost: $5\times10^4$ photons per event, each
+undergoing tens of wall bounces, versus a handful of gamma interactions. A CPU Geant4 optical
+simulation of such an event takes $\mathcal{O}(1)$~s; studies with $10^5$--$10^7$ events (light
+maps vs.\ interaction depth, timing resolution vs.\ threshold, reflector comparisons) are
+impractical without acceleration. But the photons never interact with each other and the
+geometry is a single axis-aligned box: the problem maps perfectly onto a GPU, one thread per
+photon. The target platform is Apple silicon (Metal), which is where this project's
+development machines live.
+
+%=====================================================================
+\section{Optical properties of the materials}
+\label{sec:properties}
+
+This section collects the parameters the simulation needs, with typical literature values.
+Every number here is a \emph{default to be overridden by measurement}: bulk attenuation in
+particular varies between crystal boules, and reflectivities depend on wrap thickness and
+mounting. The parameter set is deliberately identical in structure to a Geant4 material +
+optical-surface definition, so that any value used in a Geant4 cross-check
+(Sec.~\ref{sec:validation}) maps one-to-one onto ours.
+
+\subsection{Crystals}
+\label{sec:crystals}
+
+\begin{table}[htb]
+  \centering
+  \caption{Crystal bulk and scintillation parameters used as defaults.
+  $n$ is quoted at the emission peak. Yields and time constants for cold operation follow the
+  CRYSP measurements~\cite{soleti2024} and standard references~\cite{mikhailik}.}
+  \label{tab:crystals}
+  \begin{tabular}{lcc}
+    \toprule
+     & \csi{} (pure, 77--100 K) & \bgo{} (195 K) \\
+    \midrule
+    Density (g/cm$^3$)                  & 4.51  & 7.13 \\
+    Radiation length $\xzero$ (mm)      & 18.6  & 11.2 \\
+    Depth $L_z = 2\xzero$ (mm)          & 37.2  & 22.4 \\
+    Emission peak $\lambda_{\rm em}$ (nm) & $\sim$340 & $\sim$480 \\
+    Emission range (nm)                 & 280--420 & 375--650 \\
+    Refractive index $n(\lambda_{\rm em})$ & $\simeq 1.95$ & $\simeq 2.15$ \\
+    Critical angle $\theta_c = \arcsin(1/n)$ & $30.9^\circ$ & $27.7^\circ$ \\
+    Light yield $Y$ (photons/MeV)       & $\sim 1.0\times10^5$ & $\sim 1.5\times10^4$ \\
+    Decay time $\tau$ (ns)              & 800   & 1500 \\
+    Bulk attenuation $\Lambda_{\rm abs}$ (m) & $\gtrsim 0.5$ (measure) & $\sim 1$ (measure) \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Remarks:
+\begin{itemize}
+  \item \textbf{Refractive index.} Both crystals are strongly refractive, so total internal
+    reflection (TIR) dominates the wall physics: any photon hitting a wall at incidence
+    $\theta > \theta_c \simeq 28^\circ\text{--}31^\circ$ from the normal reflects with unit
+    probability, regardless of the wrap. The wrap only matters for the minority cone
+    $\theta < \theta_c$. The index should be tabulated vs.\ wavelength (a one-term Sellmeier
+    fit is adequate over the emission band); dispersion matters mainly for the Fresnel
+    transmission into the SiPM coupling layer.
+  \item \textbf{Bulk attenuation.} At the emission wavelength, good crystals have
+    $\Lambda_{\rm abs}$ of order a metre --- long compared with the crystal, but \emph{not}
+    negligible: a trapped photon can travel many crystal lengths before escaping the TIR
+    trap, so the effective path is tens of cm. $\Lambda_{\rm abs}(\lambda)$ should be a
+    tabulated input, and is a prime candidate for in-situ calibration (tuning the simulated
+    light map tail against data). \textbf{Rayleigh scattering} is implemented as a separate
+    bulk process (length $\Lambda_{\rm R}$, phase function $\propto 1+\cos^2\theta$), and
+    the absorption/scattering split matters more than their sum suggests: a measured
+    ``attenuation length'' conflates the two, but scattering \emph{redirects} rather than
+    kills --- it unlocks TIR-trapped photons (Sec.~\ref{sec:firstapp}) and restores
+    ergodicity, so re-attributing part of a measured attenuation to scattering raises the
+    predicted collection.
+  \item \textbf{Time profile.} A single exponential per crystal for v1
+    (Eq.~\ref{eq:emission-time}). The framework accepts a sum of exponentials with weights
+    --- \bgo{} at lower temperatures develops a slow component, and cold \csi{} has a known
+    fast/slow structure --- exactly like Geant4's
+    \texttt{SCINTILLATIONCOMPONENT1/2} + \texttt{SCINTILLATIONTIMECONSTANT1/2}.
+  \item \textbf{Emission spectrum.} Sampled once per photon at generation. In v1 a photon's
+    wavelength enters through three lookups: $n(\lambda)$, $\Lambda_{\rm abs}(\lambda)$,
+    $\mathrm{PDE}(\lambda)$, plus the ESR reflectivity edge (below). We precompute these at
+    generation time and store per-photon scalars, so the kernel never interpolates tables.
+\end{itemize}
+
+\subsection{Reflectors: Vikuiti ESR and PTFE}
+\label{sec:reflectors}
+
+The two wrap materials behave very differently, and the difference interacts with the
+crystal choice:
+
+\textbf{3M Vikuiti ESR}~\cite{vikuiti} is a $\sim$65~$\mu$m all-polymer multilayer dielectric
+mirror: a nearly ideal \emph{specular} reflector with $R > 98\%$ across 400--800~nm.
+Crucially, being a polymeric interference stack, its reflectivity \emph{collapses below
+$\sim$400~nm}~\cite{janecek2008}. For \bgo{} (480~nm emission) ESR is excellent. For pure cold
+\csi{}, whose emission peaks at $\sim$340~nm, a large fraction of the spectrum falls below the
+ESR edge, where the film is nearly transparent/absorbing: ESR is a poor default for cold
+\csi{}, and this is precisely the kind of conclusion the simulation must be able to
+demonstrate quantitatively. The wavelength-dependent $R_{\rm ESR}(\lambda)$ must therefore be
+tabulated (measured curves in~\cite{janecek2008}), not taken as a constant.
+
+\textbf{PTFE (Teflon)} is a \emph{diffuse} (to good approximation Lambertian) reflector whose
+reflectivity saturates at $R \simeq 99\%$ for thicknesses $\gtrsim 0.5$--1~mm, and --- unlike
+ESR --- it holds its reflectivity into the UV, down to $\sim$250~nm~\cite{janecek2008,
+janecek2012}. It is the natural default for cold \csi{}.
+
+\textbf{Baseline: thick PTFE on both crystals.} The initial production runs wrap both
+crystals in 1--2~mm PTFE, i.e.\ at saturated, spectrally flat reflectivity; the ESR
+comparison (and hybrid wraps) is a later study. This simplifies v0 twice over: a single
+surface model (Lambertian back-painted) suffices, and with a flat reflector the residual
+wavelength dependence of the transport reduces to bulk attenuation and the SiPM PDE. One
+known approximation to record: a thick diffuse wrap returns some photons with a mm-scale
+lateral offset (the light diffuses inside the PTFE before re-emerging). Standard practice
+--- and v1 --- neglects it, re-injecting at the exit point; at 48~mm transverse size this
+only slightly blurs the light-map edges.
+
+Both are mounted with an air gap. The effective wall physics is therefore two-stage
+(Sec.~\ref{sec:geant4}): first the crystal--air Fresnel/TIR decision at the polished
+crystal surface, then, for the transmitted fraction, a reflection off the wrap with
+probability $R_{\rm wrap}(\lambda)$ --- specular for ESR, Lambertian for PTFE --- after which
+the photon re-enters the crystal.
+
+\subsection{How Geant4 parameterizes this (and what we adopt)}
+\label{sec:geant4}
+
+In Geant4~\cite{geant4book}, the bulk is a \texttt{G4MaterialPropertiesTable} with
+\texttt{RINDEX}, \texttt{ABSLENGTH}, \texttt{SCINTILLATIONCOMPONENT1},
+\texttt{SCINTILLATIONYIELD}, \texttt{SCINTILLATIONTIMECONSTANT1},
+\texttt{RESOLUTIONSCALE}; the surfaces are \texttt{G4OpticalSurface} objects under the
+\textsc{unified} model~\cite{unified}. The \textsc{unified} finishes that describe a polished
+crystal wrapped with an air-gapped reflector are exactly our two cases:
+\begin{itemize}
+  \item \texttt{polishedbackpainted}: polished crystal surface, air gap, \emph{specular}
+    reflector of given \texttt{REFLECTIVITY} $\Rightarrow$ ESR;
+  \item \texttt{groundbackpainted}: polished-or-ground crystal surface, air gap,
+    \emph{Lambertian} reflector of given \texttt{REFLECTIVITY} $\Rightarrow$ PTFE.
+\end{itemize}
+In both, Geant4 first applies Snell/Fresnel (with TIR) at the crystal--air interface using
+the two refractive indices, and only photons that escape into the gap see the reflector.
+Two further \textsc{unified} ingredients are implemented, because they turn out to be
+first-order for the light collection (Sec.~\ref{sec:firstapp}):
+\begin{itemize}
+  \item \textbf{Surface micro-roughness $\sigma_\alpha$} (the Gaussian width of the
+    micro-facet normal distribution): each wall interaction samples a facet normal tilted
+    by $\alpha \sim |\mathcal{N}(0,\sigma_\alpha)|$, applies Fresnel/TIR against the
+    \emph{facet}, and reflects specularly about it (the specular lobe), with rejection of
+    unilluminated facets and of reflections that would exit the surface. Measured polished
+    scintillator surfaces have $\sigma_\alpha \approx 1.3^\circ$, ground ones
+    $\sim 12^\circ$; $\sigma_\alpha$ is what allows TIR-trapped photons
+    (Sec.~\ref{sec:firstapp}) to escape.
+  \item \textbf{Front-painted finishes} (\texttt{polishedfrontpainted} /
+    \texttt{groundfrontpainted}): the reflector in \emph{optical contact} --- no air gap,
+    no Fresnel gate; every wall hit reaches the reflector (specular or Lambertian) with
+    reflectivity $R$. This brackets the wrapping from the other side: real tape lies
+    between the ideal gap and full contact.
+\end{itemize}
+More sophisticated measured-surface models exist --- the LUT Davis model~\cite{lutdavis}
+ships lookup tables computed from AFM scans of real crystal surfaces (polished/etched/rough
+$\times$ bare/ESR-air/ESR-glued/Teflon) and is available in Geant4 $\ge$10.3 and GATE; it is
+the natural reference to tune our \textsc{unified} parameters against, alongside the Geant4
+cross-check of Sec.~\ref{sec:validation}.
+
+We adopt the \textsc{unified} physics (four finishes + $\sigma_\alpha$) as the
+specification for the Metal kernel: it is well documented, widely validated, and directly
+comparable with a Geant4 run using the same parameters.
+
+\subsection{SiPM plane}
+\label{sec:sipm}
+
+The back face is coupled through optical grease ($n_g = 1.45$) to the SiPM windows (silicone
+resin, $n \simeq 1.55$; the grease--window interface is nearly index-matched, reflectance
+$< 0.2\%$, so the back face is modelled as a single crystal$\to$grease Fresnel surface).
+A photon reaching the back face:
+\begin{enumerate}
+  \item undergoes the crystal$\to$grease Fresnel decision. Note that with
+    $n_{\rm crystal} \simeq 2$ and $n_g = 1.45$ there is still a TIR cone:
+    $\theta_c' = \arcsin(n_g/n) = 48.0^\circ$ (\csi{}) / $42.4^\circ$ (\bgo{}); photons
+    beyond it reflect back into the crystal and keep bouncing --- they are \emph{not} lost;
+  \item if transmitted, lands at $(x, y)$: mapped to SiPM indices
+    $(i,j) = (\lfloor x/6~\mathrm{mm} \rfloor, \lfloor y/6~\mathrm{mm} \rfloor)$; the 6~mm
+    pitch exactly tiles the face, so v1 takes the back plane as fully active, with a
+    fill-factor test (dead border between packages) as a later config option;
+  \item is detected with probability $\mathrm{PDE}(\lambda)$ (S14160-6050HS: $\simeq 0.5$ at
+    the 450~nm peak, falling toward the UV; for 340~nm \csi{} light the PDE is substantially
+    lower, another crystal--sensor coupling the simulation must expose). If not detected it
+    is absorbed (v1; window reflection can be added later).
+\end{enumerate}
+\textbf{PDE is applied on the fly}, as the Bernoulli draw of step 3 inside the kernel, and
+the outputs record \emph{detected} photons (photoelectrons) only. This choice is exact in
+wavelength --- each photon carries its own $\mathrm{PDE}(\lambda)$, looked up at generation
+--- and exact for first-photon statistics --- the earliest recorded time \emph{is} the
+first photoelectron, with no downstream thinning bias. The price is that a production is
+tied to one sensor's PDE curve; changing SiPM means re-running, which at the throughputs of
+Sec.~\ref{sec:metal} is cheap. (Sensor effects beyond photon detection --- dark counts,
+crosstalk, afterpulsing, pulse shape --- are downstream detector response, not simulated
+here.)
+
+The recorded hit is $(i, j, t_{\rm det})$ with
+$t_{\rm det} = t_\gamma + \sum_{\rm segments} n\,\ell/c$, $c = 299.79$~mm/ns. Photon
+propagation adds only ns-scale spreads, small against $\tau$, but essential for first-photon
+timing studies.
+
+%=====================================================================
+\section{The transport algorithm}
+\label{sec:algorithm}
+
+\subsection{Photon state and geometry}
+
+The geometry is a single axis-aligned box $[0,48]\times[0,48]\times[0,L_z]$~mm (crystal frame;
+the SiPM plane at $z = L_z$). A photon is
+\begin{equation}
+  \gamma = (\mathbf{r},\, \hat{\mathbf{u}},\, t,\, w),
+\end{equation}
+position, unit direction, running time, and the per-photon wavelength-derived scalars
+$w = (n, \Lambda_{\rm abs}, R_{\rm wrap}, \mathrm{PDE})$ precomputed at generation
+(Sec.~\ref{sec:crystals}). No acceleration structures, no volume hierarchy: the distance to
+the wall along $\hat{\mathbf{u}}$ is the closed-form axis-aligned slab test (3 divisions,
+3 min/max).
+
+\subsection{The bounce loop}
+
+Each photon runs the same loop until it terminates or reaches a bounce cap
+$B_{\max}$ (default 1000, never reached in practice with $R<1$):
+
+\begin{enumerate}
+  \item \textbf{Free flight.} Draw the absorption and Rayleigh distances
+    $d_{\rm abs} = -\Lambda_{\rm abs} \ln \xi$, $d_{\rm R} = -\Lambda_{\rm R} \ln \xi'$;
+    compute the wall distance $d_{\rm wall}$. If $d_{\rm abs}$ wins: bulk absorption,
+    terminate (\textsc{absorbed-bulk}). If $d_{\rm R}$ wins: advance, redraw the direction
+    from the $1+\cos^2\theta$ phase function, continue.
+  \item \textbf{Advance.} $\mathbf{r} \mathrel{+}= d_{\rm wall}\hat{\mathbf{u}}$,
+    $t \mathrel{+}= n\, d_{\rm wall}/c$. Identify the face and the incidence angle
+    $\cos\theta = |\hat{\mathbf{u}}\cdot\hat{\mathbf{n}}|$.
+  \item \textbf{Back face} ($z = L_z$): apply the crystal$\to$grease Fresnel decision
+    (unpolarized Fresnel average, Eq.~\ref{eq:fresnel}, with TIR for
+    $\sin\theta > n_g/n$). Reflected $\to$ flip $u_z$, continue. Transmitted $\to$
+    SiPM-index lookup, fill-factor test, PDE Bernoulli: \textsc{detected}$(i,j,t)$ or
+    \textsc{absorbed-sipm}.
+  \item \textbf{Wrapped faces}, front-painted finish (contact): the reflector acts on
+    every hit --- survive with probability $R_{\rm wrap}$ (specular or Lambertian
+    re-injection), else \textsc{absorbed-wall}. No Fresnel gate.
+  \item \textbf{Wrapped faces}, back-painted finish (air gap): two-stage \textsc{unified}
+    physics:
+    \begin{enumerate}
+      \item Crystal--air Fresnel with $n_{\rm air}=1$, against the micro-facet normal when
+        $\sigma_\alpha > 0$ (specular-lobe reflection about the facet, with the rejection
+        rules of Sec.~\ref{sec:geant4}). TIR ($\sin\theta > 1/n$, the majority
+        of hits): specular reflection, continue at zero cost. Otherwise
+        reflect with the Fresnel probability or transmit into the gap.
+      \item In the gap: survive with probability $R_{\rm wrap}$, else
+        \textsc{absorbed-wall}. Surviving photons re-enter the crystal: for ESR, specular
+        --- by symmetry of the two air crossings the photon re-enters with its transmitted
+        direction mirrored, which reduces to a net specular flip of the original direction;
+        for PTFE, draw a Lambertian direction about the inward normal
+        ($u_\parallel$ from $\sqrt{\xi}$-weighted polar sampling) and refract it back
+        through the surface (in v1 we adopt the standard simplification of re-injecting the
+        Lambertian direction directly, as \textsc{unified} does for back-painted finishes;
+        the gap geometry itself --- photon translation along the wrap --- is negligible for
+        a $\lesssim 0.1$~mm gap).
+    \end{enumerate}
+\end{enumerate}
+
+The unpolarized Fresnel reflectance between indices $n_1 \to n_2$ at incidence $\theta_i$
+(refraction angle $\theta_t$ from Snell) is
+\begin{equation}
+  R_F = \frac{1}{2}\left[
+    \left(\frac{n_1\cos\theta_i - n_2\cos\theta_t}{n_1\cos\theta_i + n_2\cos\theta_t}\right)^2
+    +
+    \left(\frac{n_1\cos\theta_t - n_2\cos\theta_i}{n_1\cos\theta_t + n_2\cos\theta_i}\right)^2
+  \right].
+  \label{eq:fresnel}
+\end{equation}
+Polarization is not tracked (standard for scintillator MC at this fidelity; Geant4 tracks it
+but the effect on collection efficiency in a high-TIR box is small).
+
+\subsection{Expected bounce statistics}
+
+A photon inside the TIR cone of the back face ($\theta < \theta_c'$ w.r.t.\ $z$) exits after
+$\mathcal{O}(1)$ bounces. The trapped majority random-walks until the wrap losses
+($1 - R \simeq 1$--2\% per sub-critical wall hit) or bulk absorption kill it, or until a
+diffuse (PTFE) bounce redirects it into the escape cone. Mean bounce counts are
+$\mathcal{O}(10\text{--}100)$; the light collection efficiency at the SiPM plane is expected
+in the 30--70\% range depending on wrap and crystal, with strong depth dependence --- these
+distributions are primary outputs of the simulation, not inputs.
+
+%=====================================================================
+\section{GPU implementation on Metal}
+\label{sec:metal}
+
+\subsection{Language and stack}
+
+We propose \textbf{Julia + Metal.jl}, writing the kernel with KernelAbstractions.jl so the
+\emph{same} kernel source runs on the CPU (reference/debug path, thread-parallel) and on the
+Metal backend, and ports to CUDA later if needed. This keeps CryspLight in the same language
+as the vendored PTCrysp engine (Julia), with one build system and shared I/O. The alternative
+--- a standalone Swift/C++ core with metal-cpp --- would give marginally more control over
+kernel scheduling at the cost of a language boundary through the middle of the physics; we
+take it only if Metal.jl proves limiting.
+
+\subsection{Design constraints from Metal}
+
+\begin{itemize}
+  \item \textbf{Float32 only.} Metal GPUs have no usable Float64. This is comfortable here:
+    positions in mm need $\sim$$10^{-4}$~mm precision (Float32 $\epsilon$ at 48~mm:
+    $4\times10^{-6}$~mm); times are kept \emph{relative to the gamma interaction}, so even at
+    $t \sim 10^4$~ns the Float32 resolution is $\sim$$10^{-3}$~ns, far below any physical
+    jitter. Absolute event clocks stay on the CPU in Float64, exactly as PTCrysp already
+    does.
+  \item \textbf{No device-side RNG library.} We inline a counter-based RNG
+    (Philox\,$4\times32$-10~\cite{philox}): stateless, keyed by (event id, photon id, draw
+    counter), giving bit-reproducible results independent of thread scheduling --- important
+    for regression tests and for resuming/replaying single photons on the CPU path.
+  \item \textbf{Divergence.} The bounce loop has data-dependent length. With one thread per
+    photon, a warp lives as long as its slowest photon. The bounce-count distribution has a
+    modest tail (absorption caps it geometrically), so v1 accepts the divergence; if
+    profiling shows it matters, the standard fix is a persistent-kernel/compaction scheme
+    (terminate-and-refill from a global photon queue). This is an optimization, not a design
+    change.
+  \item \textbf{Memory layout.} Structure-of-arrays MtlArrays:
+    $x, y, z, u_x, u_y, u_z, t, n, \Lambda, R, \mathrm{pde}$ (Float32) + photon id
+    (UInt32). A batch is \emph{all photons of many events} concatenated ($10^6$--$10^7$
+    photons per launch), with an event-offset table; per-photon state is
+    $\sim$48~bytes, so even $10^7$ photons is $\sim$0.5~GB --- fine for unified memory.
+\end{itemize}
+
+\subsection{Kernel structure and outputs}
+
+Generation (CPU or a trivial first kernel): expand deposits into photons --- Poisson yield,
+isotropic direction, exponential emission time, wavelength draw, property lookups
+($n$, $\Lambda_{\rm abs}$, $\mathrm{PDE}$; the wavelength itself is consumed here and never
+stored). Transport (the kernel of Sec.~\ref{sec:algorithm}): one thread per photon, bounce
+loop, terminal write.
+
+\textbf{The standard output is fixed-size per event}, filled by device-side atomics,
+recording detected photoelectrons (PDE already applied, Sec.~\ref{sec:sipm}):
+\begin{enumerate}
+  \item \textbf{Time-binned count map}: an $8\times8\times N_t$ array of photoelectron
+    counts in \textbf{100~ns bins}, UInt32 on device (UInt16 on disk), window
+    $\sim 5\tau$ plus an overflow bin: $N_t = 40$ (0--4~$\mu$s, \csi{}) or 80
+    (0--8~$\mu$s, \bgo{}). One atomic add per detected photon;
+    $\sim$5--10~kB per event.
+  \item \textbf{First-photoelectron matrix}: an $8\times8$ Float32 array of the earliest
+    detected-photon time per SiPM, initialized to $+\infty$ and filled by atomic-min.
+    (Metal has no float atomic-min; for positive floats the IEEE-754 bit pattern is
+    monotonic, so atomic-min on the value reinterpreted as UInt32 is exact.) Because PDE is
+    applied in-kernel, this \emph{is} the first photoelectron --- no thinning bias. The
+    100~ns histogram carries no sub-bin timing, so this matrix is the sole carrier of
+    fast-timing information.
+  \item \textbf{Summary counters}: generated / detected / absorbed-bulk / absorbed-wall /
+    absorbed-sipm, per event.
+\end{enumerate}
+Two optional extensions, off by default: the \textbf{first-$k$} detected times per SiPM
+($k \sim 8$--16, a fixed-size insertion sort in registers) for $k$-th--photoelectron trigger
+emulation; and the \textbf{per-photon record} (status, SiPM index, detection time ---
+8~bytes/photon) for validation samples, never productions.
+
+\subsection{Throughput estimate}
+
+Per bounce: one slab test, 1--3 RNG draws, one Fresnel evaluation --- order
+$10^2$ FLOPs and no global-memory traffic beyond the initial state load (the loop runs in
+registers). An M-class GPU sustains $\mathcal{O}(10)$ TFLOP/s FP32; even at 1\% arithmetic
+efficiency that is $\gtrsim 10^9$ bounce-steps/s. A full-energy \csi{} event
+($5\times10^4$ photons $\times$ $\sim$30 bounces $\simeq 1.5\times10^6$ steps) then costs
+$\sim$1~ms of GPU time --- $10^3$ events/s, roughly three orders of magnitude over a
+single-core Geant4 optical simulation, and \bgo{} is $7\times$ cheaper still. These are
+order-of-magnitude figures to be confirmed by the first benchmark; they set the expectation
+that $10^6$-event studies are minutes, not days.
+
+%=====================================================================
+\section{Interfaces}
+\label{sec:interfaces}
+
+\textbf{Input} --- the PTCrysp deposit list per event (HDF5): event id, deposit position
+(mm, crystal frame), energy (keV), time (ns). Plus a TOML config: crystal (selects
+Table~\ref{tab:crystals} defaults), wrap per face group (ESR / PTFE / none), coupling and
+SiPM parameters, transport options, batch size, seed.
+
+\textbf{Output} --- per event (HDF5): the $8\times8\times N_t$ photoelectron count map
+(100~ns bins), the $8\times8$ first-photoelectron time matrix, the summary counters, and
+optionally the first-$k$ times and the per-photon record. PDE is already applied, so these
+are detected quantities for the configured sensor; the sensor name and PDE-curve version are
+stamped, with config and seed, as root attributes following the PTCrysp provenance
+convention.
+
+%=====================================================================
+\section{Validation plan}
+\label{sec:validation}
+
+\begin{enumerate}
+  \item \textbf{Analytic unit tests} (CPU path, then bit-compared with Metal):
+    Fresnel/Snell values against closed forms; TIR cone fractions ($f = 1 - \cos\theta_c$
+    per face for an isotropic source) with reflectivities set to 1 and absorption off;
+    exponential pathlength distribution against $\Lambda_{\rm abs}$; energy conservation
+    (generated = detected + absorbed, exactly); Lambertian angular distribution of PTFE
+    bounces.
+  \item \textbf{Limiting configurations}: $R=1$, $\Lambda_{\rm abs}=\infty$, full-face
+    perfect detector $\Rightarrow$ every photon must be detected; a black box
+    $\Rightarrow$ only the direct cone arrives, with the closed-form solid-angle count and
+    arrival-time distribution.
+  \item \textbf{Geant4 cross-check} (the decisive one): a standalone Geant4 application with
+    the identical box, the \textsc{unified} back-painted surfaces of
+    Sec.~\ref{sec:geant4}, and the same property tables. Compare, vs.\ interaction depth
+    and transverse position: collection efficiency, light-map shapes (row/column profiles),
+    arrival-time spectra, wall-loss fractions. Agreement at the few-percent level validates
+    the kernel physics; residual differences localize to a specific surface parameter by
+    construction, since the parameter sets are isomorphic.
+  \item \textbf{Data anchors}: the CRYSP cold-\csi{} measurements~\cite{soleti2024} (light
+    collection, energy resolution, timing with the same SiPM family) provide the
+    experimental anchor for the \csi{} + PTFE configuration; the ESR-vs-PTFE UV behaviour
+    checks against the measured reflectances of~\cite{janecek2008}.
+\end{enumerate}
+
+\subsection{First application: centred isotropic source}
+\label{sec:firstapp}
+
+The first end-to-end application (built, with the v0 CPU engine) is an isotropic point
+source at the crystal centre with $\mathrm{PDE}=1$ and \emph{scalar} optics --- each
+material reduced to single numbers, fixed at the emission wavelength: \csi{}
+($\lambda=350$~nm, $n=1.95$, $\tau=800$~ns, $Y=10^5$/MeV), \bgo{} ($\lambda=550$~nm,
+$n=2.15$, $\tau=1500$~ns, $Y=1.5\times10^4$/MeV), grease $n_g=1.45$, Teflon
+$R=0.99$ (Lambertian), ESR $R=0.985$ (specular). Three cases: \csi{}+Teflon,
+\bgo{}+Teflon, and \bgo{}+ESR --- the last exercises the specular surface branch with a
+crystal for which ESR is legitimate. Outputs are the standard matrices
+(Sec.~\ref{sec:metal}).
+
+Two exact anchors follow from the fact that specular interactions (including TIR)
+preserve the direction components $(|u_x|,|u_y|,|u_z|)$:
+\begin{itemize}
+  \item \textbf{Idealized specular limit} ($R=1$, $\Lambda_{\rm abs}=\infty$,
+    $\mathrm{PDE}=1$, ESR): the detected fraction is \emph{exactly} the grease escape
+    cone, $1-\cos\theta_c'$ (0.331 for \csi{}, 0.261 for \bgo{}); everything else bounces
+    forever.
+  \item \textbf{Trapped direction classes}: with a polished crystal and an air gap, a
+    photon super-critical on \emph{all} faces never reaches the wrap at all --- the
+    Lambertian randomization only acts on photons inside a crystal--air Fresnel cone. In
+    the idealized Teflon limit these photons are never detected; with physical parameters
+    they die by bulk absorption. Consequently the light collection of an ideally polished,
+    air-gapped crystal is dominated by the interplay of trapping and
+    $\Lambda_{\rm abs}$, and the surface roughness $\sigma_\alpha$ (which unlocks the
+    trapped classes) is a first-order parameter for the data comparison, not a refinement.
+\end{itemize}
+Both anchors are enforced in the test suite, together with exact photon conservation
+across the terminal statuses, the Fresnel closed forms, the sampling distributions, and two
+further exact limits: \emph{Rayleigh restores ergodicity} (pure scattering, perfect wrap,
+$\mathrm{PDE}=1$ $\Rightarrow$ every photon is detected --- no direction class survives
+redirection), and the contact-Lambertian $R=1$ limit detects everything (no Fresnel gate,
+no trapping).
+
+\paragraph{Sensitivity of the light collection to the realism ingredients.}
+Table~\ref{tab:surfscan} (generated by \texttt{scripts/study\_surface.jl};
+\csi{}+Teflon, centred source, $\mathrm{PDE}=1$, $\delta$ emission) quantifies each
+ingredient. The lessons: (i) the ideally polished air-gapped crystal is the pessimistic
+extreme --- its collection is capped near the escape cone; (ii) $\sigma_\alpha$ is
+first-order: the measured-polish $1.3^\circ$ already moves the collection by 6 points, a
+ground surface by nearly 30; (iii) Rayleigh scattering acts in the same direction
+(redirection unlocks trapped light); (iv) $\Lambda_{\rm abs}$ and $\sigma_\alpha$
+\emph{interact}: a long $\Lambda_{\rm abs}$ alone barely helps the polished crystal (the
+trapped classes still die in the bulk, just later), but combined with even $1.3^\circ$ of
+roughness it yields the highest collection of the scan --- the unlocking random walk needs
+path length to work with. Consequently the pair
+$(\Lambda_{\rm abs}, \sigma_\alpha)$ must be calibrated \emph{jointly} against data
+(collection + light-map shape + time tail), not one at a time.
+
+\begin{table}[htb]
+  \centering
+  \caption{\csi{}+Teflon light collection vs.\ surface/bulk model
+  ($10^6$ photons, centred point source, $\mathrm{PDE}=1$, $R_{\rm wrap}=0.99$,
+  $\Lambda_{\rm abs}=500$~mm unless stated).}
+  \label{tab:surfscan}
+  \begin{tabular}{lccc}
+    \toprule
+    Configuration & detected & bulk-absorbed & wall-absorbed \\
+    \midrule
+    air gap, polished ($\sigma_\alpha=0$, v0)        & 34.1\% & 65.5\% & 0.5\% \\
+    air gap, $\sigma_\alpha = 1.3^\circ$             & 39.8\% & 59.7\% & 0.6\% \\
+    air gap, $\sigma_\alpha = 6^\circ$               & 55.8\% & 43.3\% & 0.9\% \\
+    air gap, $\sigma_\alpha = 12^\circ$ (ground)     & 62.9\% & 36.1\% & 1.0\% \\
+    contact (front-painted) Lambertian               & 63.9\% & 31.8\% & 4.3\% \\
+    air gap, polished + Rayleigh 300~mm              & 50.4\% & 48.9\% & 0.7\% \\
+    air gap, $1.3^\circ$ + Rayleigh 300~mm           & 52.2\% & 47.0\% & 0.7\% \\
+    air gap, polished, $\Lambda_{\rm abs}=5$~m       & 38.5\% & 61.0\% & 0.5\% \\
+    air gap, $1.3^\circ$, $\Lambda_{\rm abs}=5$~m    & 69.9\% & 29.1\% & 1.1\% \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The baseline configs adopt the measured-polish $\sigma_\alpha = 1.3^\circ$ with the air
+gap; the contact mode and $\Lambda_{\rm R}$ stay available as calibration freedom.
+
+%=====================================================================
+\section{Roadmap}
+\label{sec:roadmap}
+
+\begin{enumerate}
+  \item \textbf{v0 --- CPU reference} (Julia, KernelAbstractions CPU backend): full physics
+    of Sec.~\ref{sec:algorithm}, per-photon records, unit tests 1--2 above. Small but
+    complete.
+  \item \textbf{v1 --- Metal port}: same kernel on MtlArrays; bit-level agreement with v0 on
+    identical Philox streams; first throughput benchmark.
+  \item \textbf{v2 --- PTCrysp integration}: vendor the gamma engine, read its deposits,
+    produce the per-event light maps + times end to end; Geant4 cross-check campaign.
+  \item \textbf{v3 --- physics studies}: light map vs.\ depth-of-interaction (input to
+    position reconstruction), first-photon timing vs.\ yield and $\tau$, ESR vs.\ PTFE
+    vs.\ hybrid wraps for both crystals, sensitivity to $\Lambda_{\rm abs}$ and fill
+    factor.
+\end{enumerate}
+
+%=====================================================================
+\begin{thebibliography}{9}
+
+\bibitem{soleti2024}
+S.~R. Soleti \emph{et al.},
+``Cryogenic CsI as a potential PET material,''
+arXiv:2406.13598 (2024).
+
+\bibitem{mikhailik}
+V.~B. Mikhailik and H.~Kraus,
+``Scintillators for cryogenic applications: state-of-art,''
+J.~Phys.\ Stud.\ \textbf{14} (2010) 4201; and references therein for low-temperature
+CsI and BGO yields and decay times.
+
+\bibitem{janecek2008}
+M.~Janecek and W.~W. Moses,
+``Optical reflectance measurements for commonly used reflectors,''
+IEEE Trans.\ Nucl.\ Sci.\ \textbf{55} (2008) 2432.
+
+\bibitem{janecek2012}
+M.~Janecek,
+``Reflectivity spectra for commonly used reflectors,''
+IEEE Trans.\ Nucl.\ Sci.\ \textbf{59} (2012) 490.
+
+\bibitem{vikuiti}
+3M Optical Systems Division,
+``Vikuiti\texttrademark\ Enhanced Specular Reflector (ESR),'' product datasheet.
+
+\bibitem{geant4book}
+Geant4 Collaboration,
+``Geant4 Book For Application Developers,'' ch.\ ``Physics Processes / Optical Photon
+Processes'' (Rel.\ 11.x).
+
+\bibitem{unified}
+A.~Levin and C.~Moisan,
+``A more physical approach to model the surface treatment of scintillation counters and its
+implementation into DETECT,''
+IEEE Nucl.\ Sci.\ Symp.\ Conf.\ Rec.\ (1996) 702.
+
+\bibitem{lutdavis}
+E.~Roncali \emph{et al.},
+``An integrated model of scintillator-reflector properties for advanced simulations of
+optical transport,''
+Phys.\ Med.\ Biol.\ \textbf{62} (2017) 4811 (the LUT Davis model).
+
+\bibitem{hamamatsu}
+Hamamatsu Photonics,
+``MPPC S14160/S14161 series,'' product datasheet.
+
+\bibitem{philox}
+J.~K. Salmon \emph{et al.},
+``Parallel random numbers: as easy as 1, 2, 3,''
+Proc.\ SC'11 (2011).
+
+\end{thebibliography}
+
+\end{document}

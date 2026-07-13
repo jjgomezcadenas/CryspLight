@@ -1,0 +1,36 @@
+# CRYSP-geometry test with CsI(Tl) (room temperature): isotropic point source at the
+# crystal centre, PDE = 1, thick Teflon, grease-coupled 8x8 SiPM face. Bulk optics =
+# the calibrated split of the measured extinction (data/csitl.toml: Lambda_abs 3115 mm,
+# Lambda_R 346 mm, from the Brose-ladder fit). NOT the same material as data/csi.toml
+# (pure CsI, cold).
+[run]
+n_photons = 1000000
+seed = 1234
+
+[crystal]
+material = "csitl"
+size_mm = [48.0, 48.0, 37.2]
+
+[wrap]
+material = "teflon"
+
+[sipm]
+material = "sipm_s14160"
+pde_override = 1.0
+coupling_n = 1.45
+
+[surface]
+finish = "backpainted"
+sigma_alpha_deg = 1.3
+
+[source]
+type = "point"
+position_mm = [24.0, 24.0, 18.6]
+time_profile = "exponential"
+
+[binning]
+bin_ns = 100.0
+window_ns = 8000.0
+
+[output]
+dir = "output"
