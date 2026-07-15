@@ -1,0 +1,11 @@
+# CNN (x,y,z) reconstruction: BGO 195 K, contained photoelectric events.
+[data]
+events = "output/gammas_bgo_500k/events.h5"
+size_mm = [48.0, 48.0, 22.4]
+
+[train]
+epochs = 30
+batch = 512
+lr = 1e-3
+weight_decay = 1e-4
+seed = 42

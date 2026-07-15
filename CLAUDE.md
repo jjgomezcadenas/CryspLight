@@ -59,10 +59,19 @@ the 8×8 first-pe time matrix (tmin_ns, Inf = no hit), flat PDE 0.40 for both
 crystals (BGO photopeak 2518 pe), all in events.h5 chunked along events —
 column-major means h5py reads (n,8,8)/(n,3), PyTorch-ready with no transposes.
 Light-map figures from scripts/plot_light_maps.jl (tracked; images in latex/figs).
-Next candidates (order of value): train the CNN for (x,y,z) — idealized first via
-the int_type == 0 filter, Compton later; response layer (intrinsic resolution
-~5.3% FWHM + SiPM excess noise) for realistic spectra; per-event time histograms;
-Brose phase-2 frustum; cold-CsI gamma runs.
+The Python analysis layer (analysis/, same repo) holds true_vars.py (control
+plots + containment stats from the 50k runs) and the CNN reconstruction
+(analysis/cnn: dataset.py with exact D4 augmentation — self-test via python3
+analysis/cnn/dataset.py; model.py CryspNet ~0.6M-param residual ConvNet + MLP +
+Anger baselines; train.py driven by analysis/cnn/runs/cnn_{csitl,bgo}.toml).
+Trained on the 500k runs (contained photoelectric events, torch MPS): test RMSE
+x/y/z = 1.21/1.24/1.11 mm CsI(Tl), 0.84/0.84/0.92 mm BGO; Anger ~11-12 mm
+transverse. Depth is linear over the FULL crystal (results in
+analysis/results/cnn). Next candidates: Compton events in the CNN (int_type >= 1,
+multi-site); two-channel input (tmin matrix) for timing-aided reconstruction;
+response layer (intrinsic resolution ~5.3% FWHM + SiPM excess noise) for
+realistic spectra; per-event time histograms; Brose phase-2 frustum; cold-CsI
+gamma runs. Documentation debt: a latex note on the CNN reconstruction.
 
 ## Layout (PTCryspMC conventions)
 

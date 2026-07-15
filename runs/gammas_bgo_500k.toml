@@ -1,0 +1,31 @@
+# End-to-end application: 511 keV gammas uniform over the front XY face (z = 0),
+# direction +z, BGO (195 K) CRYSP crystal, calibrated optics, per-event SiPM outputs.
+[campaign]
+tag = "gammas_bgo_500k"
+n_events = 500000
+seed = 17
+batch_photons = 2000000
+
+[crystal]
+material = "bgo"            # 195 K: Y = 14k, tau = 1768 ns, calibrated bulk
+size_mm = [48.0, 48.0, 22.4]
+
+[gamma]
+density = 7.13              # g/cm3
+xcom = "xcom_BGO.csv"
+
+[wrap]
+material = "teflon"
+
+[surface]
+finish = "backpainted"
+sigma_alpha_deg = 1.3
+
+[sipm]
+material = "sipm_s14160"
+coupling_n = 1.45
+pde_override = 0.40         # flat PDE for the CNN dataset (S14160 at 480 nm is 0.45)
+
+[binning]
+bin_ns = 100.0
+window_ns = 12000.0

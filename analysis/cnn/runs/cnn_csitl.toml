@@ -1,0 +1,11 @@
+# CNN (x,y,z) reconstruction: CsI(Tl), contained photoelectric events.
+[data]
+events = "output/gammas_csitl_500k/events.h5"
+size_mm = [48.0, 48.0, 37.2]
+
+[train]
+epochs = 30
+batch = 512
+lr = 1e-3
+weight_decay = 1e-4
+seed = 42
