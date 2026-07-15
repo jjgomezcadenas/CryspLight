@@ -30,7 +30,7 @@ the deposits.
 
 ## The notes — read these first after a context compact
 
-Four LaTeX notes in `latex/` carry the full record; together with this file they are
+Five LaTeX notes in `latex/` carry the full record; together with this file they are
 sufficient to resume work without prior context:
 
 1. `crysp_light_metal.tex` — **design**: problem statement, the optical model
@@ -44,6 +44,9 @@ sufficient to resume work without prior context:
 4. `crysplight_e2e.tex` — **end-to-end**: the vendored gamma stage, the per-event
    pipeline, first physics for CsI(Tl) and BGO with analytic cross-checks, and the
    per-event truth / CNN-dataset layer (format, encodings, first light-map figures).
+5. `crysplight_cnn.tex` — **reconstruction**: CryspNet architecture (pedagogical),
+   exact D4 augmentation, Anger/MLP baselines, millimetric (x,y,z) results for both
+   crystals; figures pulled via graphicspath from analysis/results/cnn.
 
 ## Status (2026-07-15) and next steps
 
@@ -71,7 +74,7 @@ analysis/results/cnn). Next candidates: Compton events in the CNN (int_type >= 1
 multi-site); two-channel input (tmin matrix) for timing-aided reconstruction;
 response layer (intrinsic resolution ~5.3% FWHM + SiPM excess noise) for
 realistic spectra; per-event time histograms; Brose phase-2 frustum; cold-CsI
-gamma runs. Documentation debt: a latex note on the CNN reconstruction.
+gamma runs.
 
 ## Layout (PTCryspMC conventions)
 
