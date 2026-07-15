@@ -23,13 +23,18 @@ end
 
 """
     run_events!(box, op, ro, tb, pv, yield_per_mev; n_events, seed, tau_ns, ...)
-        -> (edep_kev, npe, maps)
+        -> NamedTuple (edep, npe, maps, tmin, xyz1, e1, xyz2, e2, er, int_type, n_int)
 
 Shoot n_events gammas of e0_mev entering uniformly over the front (z = 0) face along
 +z; transport deposits with the vendored gamma core, expand into optical photons and
-transport them in batches. Returns per event: the deposited energy [keV], the number
-of detected photoelectrons, and the time-integrated nx x ny photoelectron map.
-Events with no deposit (gamma crosses without interacting) have edep = 0, npe = 0.
+transport them in batches. Per event: the deposited energy [keV], the detected
+photoelectron count, the time-integrated nx x ny photoelectron map, and the nx x ny
+matrix of first-photoelectron times [ns] (Inf32 where a SiPM saw nothing). Truth:
+position/energy of the first and second interaction (xyz1 3 x n [mm], e1 [keV], xyz2,
+e2; zeros when absent), the rest energy er = e0 - e1 - e2 [keV] (escaped energy plus
+any deposits beyond the second), int_type (Int8: -1 = crossed without interacting,
+0 = direct photoelectric, X >= 1 = X Compton scatters), and n_int (total deposits).
+Events with no deposit have edep = 0, npe = 0, er = e0.
 """
 function run_events!(box::Box, op::OpticalParams, ro::Readout, tb::TimeBinning,
                      pv, yield_per_mev::Real;
@@ -38,9 +43,18 @@ function run_events!(box::Box, op::OpticalParams, ro::Readout, tb::TimeBinning,
                      batch_photons::Int = 2_000_000, ArrayT = Array)
     L = box.L
     nx, ny = Int(ro.grid.nx), Int(ro.grid.ny)
+    e0_kev = Float32(e0_mev * 1000)
     edep = zeros(Float32, n_events)
     npe = zeros(Int32, n_events)
     maps = zeros(UInt16, nx, ny, n_events)
+    tmin = fill(Inf32, nx, ny, n_events)
+    xyz1 = zeros(Float32, 3, n_events)
+    e1 = zeros(Float32, n_events)
+    xyz2 = zeros(Float32, 3, n_events)
+    e2 = zeros(Float32, n_events)
+    er = fill(e0_kev, n_events)
+    int_type = fill(Int8(-1), n_events)
+    n_int = zeros(Int16, n_events)
 
     # batch buffers: one entry per photon (position = its deposit, t0 = deposit time)
     positions = NTuple{3,Float32}[]
@@ -65,6 +79,8 @@ function run_events!(box::Box, op::OpticalParams, ro::Readout, tb::TimeBinning,
                     ii = (lin - 1) % nx + 1
                     jj = (lin - 1) ÷ nx + 1
                     maps[ii, jj, ev] += UInt16(1)
+                    t = recs.t[k]
+                    t < tmin[ii, jj, ev] && (tmin[ii, jj, ev] = t)
                 end
             end
             npe[ev] += c
@@ -79,6 +95,16 @@ function run_events!(box::Box, op::OpticalParams, ro::Readout, tb::TimeBinning,
         entry = (Float32(rand(rng) * L[1]), Float32(rand(rng) * L[2]), 0f0)
         deps = gamma_deposits(pv, L, entry, (0.0, 0.0, 1.0), rng; e0_mev = e0_mev)
         isempty(deps) && continue
+        ncompt = count(d -> d[6] == DEP_COMPTON, deps)
+        int_type[ev] = Int8(min(ncompt, 127))          # 0 = direct photoelectric
+        n_int[ev] = Int16(length(deps))
+        xyz1[1, ev], xyz1[2, ev], xyz1[3, ev] = deps[1][1], deps[1][2], deps[1][3]
+        e1[ev] = deps[1][4]
+        if length(deps) >= 2
+            xyz2[1, ev], xyz2[2, ev], xyz2[3, ev] = deps[2][1], deps[2][2], deps[2][3]
+            e2[ev] = deps[2][4]
+        end
+        er[ev] = e0_kev - e1[ev] - e2[ev]
         first_photon = length(positions) + 1
         for d in deps
             edep[ev] += d[4]
@@ -93,5 +119,7 @@ function run_events!(box::Box, op::OpticalParams, ro::Readout, tb::TimeBinning,
         length(positions) >= batch_photons && flush!()
     end
     flush!()
-    return edep, npe, maps
+    return (edep = edep, npe = npe, maps = maps, tmin = tmin,
+            xyz1 = xyz1, e1 = e1, xyz2 = xyz2, e2 = e2, er = er,
+            int_type = int_type, n_int = n_int)
 end

@@ -284,6 +284,11 @@ end
         @test all(d -> 0 <= d[1] <= 48 && 0 <= d[2] <= 48 && 0 <= d[3] <= 37.2, deps)
         @test sum(d -> d[4], deps) <= 511.001f0
         @test all(d -> 0 <= d[5] < 1.0f0, deps)          # sub-ns transit times
+        # process tags: every deposit before the last is a Compton recoil; the last
+        # is Compton (photon escaped), photoelectric, or a below-cut absorption
+        @test all(d -> d[6] == CryspLight.DEP_COMPTON, deps[1:end-1])
+        @test deps[end][6] in (CryspLight.DEP_PHOTO, CryspLight.DEP_COMPTON,
+                               CryspLight.DEP_BELOWCUT)
     end
     @test nin > 100    # 2X0 of CsI interacts most of the time
 
@@ -296,15 +301,33 @@ end
     op = OpticalParams(1.79f0, 1.45f0, 3115f0, 346f0, 0.99f0, false, true,
                        Float32(deg2rad(1.3)), 0.4f0)
     tbz = TimeBinning(100f0, Int32(80))
-    edep, npe, maps = run_events!(box, op, Readout(GRID), tbz, pv, 54_000;
-                                  n_events = 40, seed = 3, tau_ns = 1000f0,
-                                  batch_photons = 500_000)
+    r = run_events!(box, op, Readout(GRID), tbz, pv, 54_000;
+                    n_events = 40, seed = 3, tau_ns = 1000f0,
+                    batch_photons = 500_000)
+    edep, npe, maps = r.edep, r.npe, r.maps
     @test length(edep) == 40 && size(maps) == (8, 8, 40)
     for ev in 1:40
         @test sum(Int, maps[:, :, ev]) == npe[ev]
         @test (edep[ev] == 0) == (npe[ev] == 0)
         if edep[ev] > 510                                # photopeak: pe ~ Y*E*eps*pde
             @test 5000 < npe[ev] < 15000
+        end
+        # truth record consistency
+        @test r.e1[ev] + r.e2[ev] + r.er[ev] ≈ 511f0 atol = 0.01f0
+        @test (r.int_type[ev] == -1) == (edep[ev] == 0)
+        if r.int_type[ev] == 0                           # direct photoelectric
+            @test r.n_int[ev] == 1
+            @test r.e1[ev] ≈ 511f0 atol = 0.01f0
+            @test abs(r.er[ev]) < 0.01f0
+        end
+        if r.int_type[ev] >= 0
+            @test 0 <= r.xyz1[1, ev] <= 48 && 0 <= r.xyz1[3, ev] <= 37.2f0
+            @test r.n_int[ev] >= 1 && r.e1[ev] > 0
+        end
+        # first-pe times finite exactly where the map counts, and positive
+        for jj in 1:8, ii in 1:8
+            @test isfinite(r.tmin[ii, jj, ev]) == (maps[ii, jj, ev] > 0)
+            maps[ii, jj, ev] > 0 && @test r.tmin[ii, jj, ev] > 0
         end
     end
 end

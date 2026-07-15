@@ -42,19 +42,27 @@ sufficient to resume work without prior context:
 3. `crysplight_soft.tex` — **software**: architecture, RNG/reproducibility, the
    KernelAbstractions kernel, the bit-parity contract, Metal gotchas, benchmarks.
 4. `crysplight_e2e.tex` — **end-to-end**: the vendored gamma stage, the per-event
-   pipeline, first physics for CsI(Tl) and BGO with analytic cross-checks.
+   pipeline, first physics for CsI(Tl) and BGO with analytic cross-checks, and the
+   per-event truth / CNN-dataset layer (format, encodings, first light-map figures).
 
-## Status (2026-07-13) and next steps
+## Status (2026-07-15) and next steps
 
 Everything below is BUILT, tested (9 test sets), committed and pushed: optical
 transport (CPU reference + bit-identical KA/Metal kernel, 33 Mphotons/s), three
 calibrated materials, three calibration campaigns, the vendored gamma core, the
 per-event pipeline (runs/gammas_{csitl,bgo}.toml → output/<tag>/events.h5).
 CRYSP baselines (PDE=1): cold CsI 83.0%, BGO 88.0%, CsI(Tl) 88.8%. End-to-end
-photopeak: CsI(Tl) 9798 pe, BGO 2832 pe — both on calibration-chain expectations.
-Next candidates (order of value): response layer (intrinsic resolution ~5.3% FWHM +
-SiPM excess noise) for realistic spectra; light-map/DOI studies from the per-event
-maps; per-event time histograms; Brose phase-2 frustum; cold-CsI gamma runs.
+photopeak at wavelength-correct PDE: CsI(Tl) 9798 pe, BGO 2832 pe — both on
+calibration-chain expectations. The CNN-dataset layer is in: per-event truth
+(xyz1/e1, xyz2/e2, er = 511−e1−e2, int_type −1/0/X = none/photo/X-Compton, n_int),
+the 8×8 first-pe time matrix (tmin_ns, Inf = no hit), flat PDE 0.40 for both
+crystals (BGO photopeak 2518 pe), all in events.h5 chunked along events —
+column-major means h5py reads (n,8,8)/(n,3), PyTorch-ready with no transposes.
+Light-map figures from scripts/plot_light_maps.jl (tracked; images in latex/figs).
+Next candidates (order of value): train the CNN for (x,y,z) — idealized first via
+the int_type == 0 filter, Compton later; response layer (intrinsic resolution
+~5.3% FWHM + SiPM excess noise) for realistic spectra; per-event time histograms;
+Brose phase-2 frustum; cold-CsI gamma runs.
 
 ## Layout (PTCryspMC conventions)
 

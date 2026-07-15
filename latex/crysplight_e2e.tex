@@ -4,6 +4,7 @@
 \usepackage[T1]{fontenc}
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs}
+\usepackage{graphicx}
 \usepackage[margin=2.5cm]{geometry}
 \usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
 
@@ -144,6 +145,72 @@ crosstalk). Both are response-layer terms, deliberately outside the transport; a
 them as a post-processing smear --- exactly as the CRYSP measurement papers unfold
 them --- is the natural next brick, and the per-event outputs already carry everything
 needed.
+
+%=====================================================================
+\section{Per-event truth and the CNN dataset}
+
+The pipeline now writes, per event, everything a position-reconstruction network
+needs: the observables and the interaction truth, in a layout chosen for direct
+PyTorch consumption.
+
+\paragraph{Truth.} The vendored \code{Interaction} records already carry the process
+(\code{:compton}, \code{:photoelectric}, \code{:below\_cut}); the bridge now passes a
+per-deposit process code through \code{gamma\_deposits}, and \code{run\_events!}
+reduces it to: the position and energy of the first and second interaction
+($\mathbf{r}_1, E_1, \mathbf{r}_2, E_2$; zeros when absent), the rest energy
+$E_r = 511 - E_1 - E_2$~keV (escaped energy plus any deposits beyond the second ---
+the sanity check closes to $3\times10^{-5}$~keV), the interaction type as a small
+integer ($-1$ = crossed without interacting, $0$ = direct photoelectric, $X \ge 1$ =
+$X$ Compton scatters), and the total deposit count. At 511~keV the direct-photoelectric
+fraction of interacting events comes out at 21.8\% for \csitl{} and 44\% for BGO ---
+the XCOM photoelectric shares, as they must be.
+
+\paragraph{Observables.} The light matrix is the existing time-integrated $8\times8$
+photoelectron map (PDE applied on the fly, as always); new is the \emph{time matrix},
+the $8\times8$ of first-photoelectron times (scintillation delay plus transport, i.e.\
+what a SiPM would timestamp; \code{Inf} where a SiPM saw nothing). Both fall out of
+the per-photon records the kernel already returns --- the extension is pure host-side
+reduction, and the bit-parity contract is untouched. For the CNN datasets both
+crystals run a \emph{flat} $\mathrm{PDE} = 0.40$ (wavelength-resolved PDE is a
+response-layer refinement); the BGO photopeak scales accordingly to 2\,518~pe,
+exactly $0.40/0.45$ of the first-physics value above.
+
+\paragraph{Format.} Everything lands in the one \code{events.h5} per run tag,
+chunked along the event axis ($\le 4096$ events per chunk) so a PyTorch
+\code{Dataset} slices batches without loading the file. A pleasant consequence of
+Julia's column-major layout: the $(8,8,n)$ arrays written here are read by
+\code{h5py} as $(n,8,8)$ and the $(3,n)$ positions as $(n,3)$ --- exactly the
+(batch, H, W) tensors PyTorch wants, with zero transposes. The idealized CNN study
+(photoelectric-only events) is a one-line filter, \code{int\_type == 0}; Compton
+events enter later by relaxing it. If the exponential depth distribution of true
+photoelectric vertices proves too unbalanced for training, the fallback is a
+scan-mode dataset from the point-source machinery (uniform vertices, exact truth by
+construction).
+
+\paragraph{First look.} Figure~\ref{fig:maps} shows light maps by interaction type
+and depth (from the tracked script \code{scripts/plot\_light\_maps.jl}): the photon
+spot sharpens strongly as the vertex approaches the SiPM plane --- the DOI handle ---
+and an escaped-Compton event with $E_1 = 12$~keV is visibly pure noise, exactly the
+class the truth record lets the network separate. Figure~\ref{fig:doi} condenses
+this: the light-map RMS radius is flat for shallow vertices (the reflected glow
+dominates) and fans out beyond $z_1 \sim 15$~mm, where the direct spot takes over.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{figs/gammas_csitl_maps.png}
+  \caption{\csitl{}: $8\times8$ light maps (pe, flat PDE 0.40) for photoelectric,
+  single- and double-Compton events at shallow, mid and deep $z_1$; the red cross is
+  the true $(x_1, y_1)$. SiPMs sit at $z = 37.2$~mm.}
+  \label{fig:maps}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.6\textwidth]{figs/gammas_csitl_doi.png}
+  \caption{\csitl{} photoelectric events: light-map RMS radius vs true depth $z_1$
+  --- the raw material of the depth-of-interaction estimate.}
+  \label{fig:doi}
+\end{figure}
 
 %=====================================================================
 \section{Status and pointers}

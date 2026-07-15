@@ -24,7 +24,7 @@ sigma_alpha_deg = 1.3
 [sipm]
 material = "sipm_s14160"
 coupling_n = 1.45
-pde_override = 0.45         # S14160 at the 480 nm BGO emission
+pde_override = 0.40         # flat PDE for the CNN dataset (S14160 at 480 nm is 0.45)
 
 [binning]
 bin_ns = 100.0
