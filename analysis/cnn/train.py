@@ -26,6 +26,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from dataset import d4_expand, load_photo                     # noqa: E402
 from model import MLP, CryspNet, anger_moments, fit_anger_z   # noqa: E402
+from plot_history import plot_history                         # noqa: E402
 
 
 def to_norm(xyz, size):
@@ -157,6 +158,7 @@ def main():
     (outdir / "metrics.json").write_text(json.dumps(metrics, indent=2))
     with open(outdir / "history.json", "w") as f:
         json.dump({k: results[k]["history"] for k in ("cnn", "mlp")}, f, indent=2)
+    plot_history(outdir)
 
     # ---- plots ----
     labels = ("x", "y", "z")

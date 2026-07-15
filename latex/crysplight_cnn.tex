@@ -237,6 +237,28 @@ runs on the Apple GPU through the PyTorch MPS backend and takes 51 minutes for
 \csitl{} and 128 minutes for BGO (the larger sample), configurations
 \code{analysis/cnn/runs/cnn\_\{csitl,bgo\}.toml}.
 
+Figure~\ref{fig:conv} shows the convergence. The network reaches its
+resolution plateau early: 97\% of the final \csitl{} performance by epoch 10,
+and the BGO training settles by epoch 6; the reference perceptron descends
+three times more slowly, a first appearance of the convolutional prior. Two
+practical consequences follow. For exploratory work --- architecture variants,
+new event classes --- a schedule of 10--15 epochs delivers essentially the
+full resolution in a third of the time; and because the cosine schedule is
+anchored to the \emph{planned} epoch count (the annealing completes whatever
+the length), a shorter run configured through the \code{epochs} parameter is a
+complete, properly scheduled training rather than an interrupted one.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{cnn_csitl/convergence.png}
+  \caption{\csitl{} training convergence: Huber loss on the training sample
+  (left, logarithmic axis) and mean validation resolution (right) per epoch,
+  for the network and the reference perceptron. The star marks the
+  checkpoint retained for evaluation. The figure regenerates from
+  \code{analysis/cnn/plot\_history.py}.}
+  \label{fig:conv}
+\end{figure}
+
 %=====================================================================
 \section{Exact symmetry augmentation}
 \label{sec:d4}
