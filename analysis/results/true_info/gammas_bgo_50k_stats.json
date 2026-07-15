@@ -1,0 +1,20 @@
+{
+  "tag": "gammas_bgo_50k",
+  "crystal": "bgo",
+  "events_shot": 50000,
+  "events_interacted": 43395,
+  "events_fully_contained": 37819,
+  "contained_over_shot": 0.7564,
+  "contained_over_interacted": 0.8715,
+  "contained_kev_cut": 510.5,
+  "int_type_contained": {
+    "photo": 19023,
+    "C1": 13393,
+    "C2": 4346,
+    "C3": 900,
+    "C4": 146,
+    "C5": 10,
+    "C6": 1
+  },
+  "npe_mean_contained": 2518.0
+}

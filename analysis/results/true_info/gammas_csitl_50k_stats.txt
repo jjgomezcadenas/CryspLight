@@ -1,0 +1,10 @@
+tag                        gammas_csitl_50k
+crystal                    csitl
+events_shot                50000
+events_interacted          39106
+events_fully_contained     25573
+contained_over_shot        0.5115
+contained_over_interacted  0.6539
+contained_kev_cut          510.5
+int_type_contained         {'photo': 8604, 'C1': 9720, 'C2': 5158, 'C3': 1613, 'C4': 407, 'C5': 61, 'C6': 9, 'C7': 1}
+npe_mean_contained         9799.3

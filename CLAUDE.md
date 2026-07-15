@@ -90,6 +90,11 @@ Brose phase-2 frustum; cold-CsI gamma runs.
   the config.
 - `data/` — one TOML per material (csi, bgo, teflon, esr, sipm_s14160). Scalar optical
   properties for now; tabulated curves replace them without interface changes.
+- `analysis/` — the **Python** analysis layer (same git repo): control-plot and
+  ML-side scripts reading `output/<tag>/events.h5` (h5py sees event-axis-first
+  arrays, PyTorch-ready). `true_vars.py` — interaction-truth control plots +
+  stats, filtered to fully contained events (edep > 510.5 keV, NOT er == 0 which
+  would drop contained C3+); committed images in `analysis/results/true_info/`.
 - `scripts/` — user drivers (`run_point_source.jl`, `study_surface.jl`) and the
   calibration campaigns, one per anchor measurement, each with its `runs/*.toml`:
   `csitl_calib.jl` (Brose wrapping ladder), `soleti_calib.jl` (CRYSP cold-CsI 3×3×20),
