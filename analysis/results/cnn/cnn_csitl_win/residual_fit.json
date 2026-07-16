@@ -1,0 +1,23 @@
+{
+  "x": {
+    "sigma_core_mm": 1.119,
+    "fwhm_core_mm": 2.636,
+    "sigma_tail_mm": 4.128,
+    "core_fraction": 0.5846,
+    "mu_mm": -0.141
+  },
+  "y": {
+    "sigma_core_mm": 1.137,
+    "fwhm_core_mm": 2.678,
+    "sigma_tail_mm": 4.178,
+    "core_fraction": 0.5909,
+    "mu_mm": -0.103
+  },
+  "z": {
+    "sigma_core_mm": 1.2,
+    "fwhm_core_mm": 2.825,
+    "sigma_tail_mm": 4.371,
+    "core_fraction": 0.6731,
+    "mu_mm": -0.249
+  }
+}
