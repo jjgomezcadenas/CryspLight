@@ -26,8 +26,11 @@ def _select(path, sel):
                 "npe": f["npe"][()][sel].astype(np.float32),
                 "xyz1": f["xyz1_mm"][()][sel].astype(np.float32),
                 "xyz2": f["xyz2_mm"][()][sel].astype(np.float32),
+                "e1": f["e1_kev"][()][sel],
+                "edep": f["edep_kev"][()][sel],
                 "n_int": f["n_int"][()][sel],
-                "itype": f["int_type"][()][sel]}
+                "itype": f["int_type"][()][sel],
+                "row": np.where(sel)[0]}     # original events.h5 row: join key
 
 
 def load_photo(path):
@@ -115,6 +118,27 @@ def d4_expand(maps, npe, xyz, w_mm=48.0):
         ts.append(np.concatenate([t_op(xyz[:, c:c + 3])
                                   for c in range(0, xyz.shape[1], 3)], axis=1))
     return np.concatenate(ms), np.concatenate(ns), np.concatenate(ts)
+
+
+def save_test_events(outpath, cols):
+    """One dataset per column (plain h5py; no pytables dependency).
+    cols: dict of equal-length 1-D arrays."""
+    with h5py.File(outpath, "w") as f:
+        for k, v in cols.items():
+            f[k] = np.asarray(v)
+
+
+def load_test_events(tag_or_path):
+    """Per-event test-split dataframe of a run: truth + every estimator's
+    prediction. Accepts a run tag (cnn_csitl_win) or a path to test_events.h5.
+        df = load_test_events("cnn_csitl_win")"""
+    import pandas as pd
+    p = Path(tag_or_path)
+    if p.suffix != ".h5":
+        p = Path(__file__).resolve().parent.parent / "results" / "cnn" \
+            / str(tag_or_path) / "test_events.h5"
+    with h5py.File(p, "r") as f:
+        return pd.DataFrame({k: f[k][()] for k in sorted(f)})
 
 
 def _selftest():

@@ -25,7 +25,7 @@ import torch.nn as nn
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from dataset import (d4_expand, load_photo, load_window,      # noqa: E402
-                     two_site_targets)
+                     save_test_events, two_site_targets)
 from model import MLP, CryspNet, anger_moments, fit_anger_z   # noqa: E402
 from plot_history import plot_history                         # noqa: E402
 
@@ -202,6 +202,22 @@ def main():
             "median_pred_sep_mm": {lab: round(float(np.median(sep[m])), 2)
                                    for lab, m in classes if m.any()}}
     (outdir / "metrics.json").write_text(json.dumps(metrics, indent=2))
+
+    # per-event dataframe of the test split: truth + all predictions
+    cols = {"row": d["row"][te],
+            "x1": truth[:, 0], "y1": truth[:, 1], "z1": truth[:, 2],
+            "e1": d["e1"][te], "edep": d["edep"][te],
+            "int_type": it_te, "n_int": d["n_int"][te], "npe": npe[te]}
+    if two_site:
+        for j, c in enumerate(("shallow_x", "shallow_y", "shallow_z",
+                               "deep_x", "deep_y", "deep_z")):
+            cols[c] = targ[te][:, j]
+    for name, r in results.items():
+        p = r.get("pred_full_mm", r["pred_mm"])
+        for j in range(p.shape[1]):
+            cols[f"{name}_{'xyz'[j % 3]}{j // 3 + 1}"] = p[:, j]
+    save_test_events(outdir / "test_events.h5", cols)
+
     with open(outdir / "history.json", "w") as f:
         json.dump({name: results[name]["history"] for name, _ in nets}, f, indent=2)
     plot_history(outdir)
