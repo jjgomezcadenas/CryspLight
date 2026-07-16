@@ -1,0 +1,15 @@
+{
+  "tag": "cnn_bgo_win",
+  "multi_site_events": 178522,
+  "P_z1_lt_z2": 0.6572,
+  "P_C1": 0.5854,
+  "P_C2plus": 0.8339,
+  "median_sep_ordered_mm": 3.6,
+  "median_sep_misordered_mm": 1.29,
+  "misordered_frac_sep_gt_5mm": 0.078,
+  "phase1_tail": {
+    "test_multi": 26927,
+    "tail_multi": 5152,
+    "tail_closer_to_site2": 0.8888
+  }
+}

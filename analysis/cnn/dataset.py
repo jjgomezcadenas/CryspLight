@@ -37,6 +37,18 @@ def load_photo(path):
     return _select(path, sel)
 
 
+def window_mask(path, fwhm, nsigma=2.0, seed=2026):
+    """Boolean event mask of the energy-window selection (see load_window).
+    Shared by training and truth studies so the selection can never drift."""
+    with h5py.File(path, "r") as f:
+        edep = f["edep_kev"][()].astype(np.float64)
+    sigma511 = fwhm / 2.355 * E0_KEV
+    sigma = sigma511 * np.sqrt(np.maximum(edep, 0.0) / E0_KEV)
+    rng = np.random.default_rng(seed)
+    e_meas = edep + rng.normal(0.0, 1.0, len(edep)) * sigma
+    return np.abs(e_meas - E0_KEV) < nsigma * sigma511
+
+
 def load_window(path, fwhm, nsigma=2.0, seed=2026):
     """Realistic selection: measured energy inside 511 +- nsigma * sigma.
 
@@ -47,14 +59,7 @@ def load_window(path, fwhm, nsigma=2.0, seed=2026):
     and admits the partial-containment leakage from below. Seeded: the
     selection is reproducible.
     """
-    with h5py.File(path, "r") as f:
-        edep = f["edep_kev"][()].astype(np.float64)
-    sigma511 = fwhm / 2.355 * E0_KEV
-    sigma = sigma511 * np.sqrt(np.maximum(edep, 0.0) / E0_KEV)
-    rng = np.random.default_rng(seed)
-    e_meas = edep + rng.normal(0.0, 1.0, len(edep)) * sigma
-    sel = np.abs(e_meas - E0_KEV) < nsigma * sigma511
-    return _select(path, sel)
+    return _select(path, window_mask(path, fwhm, nsigma=nsigma, seed=seed))
 
 
 def d4_ops(w_mm):

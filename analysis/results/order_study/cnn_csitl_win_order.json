@@ -1,0 +1,15 @@
+{
+  "tag": "cnn_csitl_win",
+  "multi_site_events": 160864,
+  "P_z1_lt_z2": 0.6032,
+  "P_C1": 0.4879,
+  "P_C2plus": 0.7588,
+  "median_sep_ordered_mm": 7.03,
+  "median_sep_misordered_mm": 3.47,
+  "misordered_frac_sep_gt_5mm": 0.3679,
+  "phase1_tail": {
+    "test_multi": 24134,
+    "tail_multi": 9543,
+    "tail_closer_to_site2": 0.7546
+  }
+}
