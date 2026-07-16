@@ -1,0 +1,75 @@
+{
+  "tag": "cnn_csitl_cls",
+  "test_events": 36518,
+  "multi_fraction": 0.6609,
+  "auc_classifier": 0.7191,
+  "auc_separation_flag": 0.7185,
+  "train_seconds": 918.7,
+  "acceptance_sweep": [
+    {
+      "acceptance": 0.02,
+      "single_site_purity": 0.6512,
+      "tail_frac_5mm_accepted": 0.0287
+    },
+    {
+      "acceptance": 0.1,
+      "single_site_purity": 0.6095,
+      "tail_frac_5mm_accepted": 0.0507
+    },
+    {
+      "acceptance": 0.18,
+      "single_site_purity": 0.5622,
+      "tail_frac_5mm_accepted": 0.0665
+    },
+    {
+      "acceptance": 0.26,
+      "single_site_purity": 0.5346,
+      "tail_frac_5mm_accepted": 0.0794
+    },
+    {
+      "acceptance": 0.34,
+      "single_site_purity": 0.512,
+      "tail_frac_5mm_accepted": 0.0922
+    },
+    {
+      "acceptance": 0.42,
+      "single_site_purity": 0.4921,
+      "tail_frac_5mm_accepted": 0.1062
+    },
+    {
+      "acceptance": 0.5,
+      "single_site_purity": 0.4762,
+      "tail_frac_5mm_accepted": 0.1177
+    },
+    {
+      "acceptance": 0.58,
+      "single_site_purity": 0.4598,
+      "tail_frac_5mm_accepted": 0.1333
+    },
+    {
+      "acceptance": 0.66,
+      "single_site_purity": 0.4432,
+      "tail_frac_5mm_accepted": 0.1495
+    },
+    {
+      "acceptance": 0.74,
+      "single_site_purity": 0.4263,
+      "tail_frac_5mm_accepted": 0.1675
+    },
+    {
+      "acceptance": 0.82,
+      "single_site_purity": 0.4062,
+      "tail_frac_5mm_accepted": 0.1917
+    },
+    {
+      "acceptance": 0.9,
+      "single_site_purity": 0.3768,
+      "tail_frac_5mm_accepted": 0.2299
+    },
+    {
+      "acceptance": 0.9749,
+      "single_site_purity": 0.3479,
+      "tail_frac_5mm_accepted": 0.2598
+    }
+  ]
+}

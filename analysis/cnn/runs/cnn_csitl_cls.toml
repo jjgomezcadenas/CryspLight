@@ -1,0 +1,21 @@
+# Classifier: photo-like vs compton-like (label = multi-site truth, n_int >= 2),
+# same window selection and split as the reconstruction runs.
+
+[data]
+events = "output/gammas_csitl_500k/events.h5"
+size_mm = [48.0, 48.0, 37.2]
+
+[selection]
+mode = "window"
+fwhm = 0.06
+nsigma = 2.0
+smear_seed = 2026
+
+[train]
+epochs = 10
+batch = 512
+lr = 1e-3
+weight_decay = 1e-4
+seed = 42
+# classifier: label = multi-site (n_int >= 2)
+train_mlp = false
