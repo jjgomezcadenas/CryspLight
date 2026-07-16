@@ -38,6 +38,33 @@ def to_mm(t, size):
     return (t + 1.0) * size / 2.0
 
 
+def delta_to_slots(out):
+    """(r_shallow, delta) raw outputs -> (slot1, slot2) in normalized coords.
+    The z-component of delta passes through softplus, so slot2 is never
+    shallower than slot1 by construction."""
+    s = out[:, :3]
+    d = np.concatenate([out[:, 3:5], np.logaddexp(0.0, out[:, 5:6])], axis=1)
+    return np.concatenate([s, s + d], axis=1)
+
+
+def make_loss(delta_mode, weight, beta):
+    """Plain Huber on the targets, or the (r_shallow, delta) split: Huber on
+    the shallow site plus weight x Huber on the separation vector. The
+    dedicated delta term makes pair collapse cost loss in proportion to the
+    true separation -- the gradient the plain parametrization lacks."""
+    h = nn.SmoothL1Loss(beta=beta)
+    if not delta_mode:
+        return h
+
+    def f(out, y):
+        s = out[:, :3].contiguous()
+        d = torch.cat([out[:, 3:5],
+                       torch.nn.functional.softplus(out[:, 5:6])], dim=1)
+        return (h(s, y[:, :3].contiguous())
+                + weight * h(d, (y[:, 3:] - y[:, :3]).contiguous()))
+    return f
+
+
 def make_tensors(maps, npe, xyz, size, s_stats):
     m = torch.from_numpy(maps / npe[:, None, None]).unsqueeze(1)
     s = torch.from_numpy((np.log(npe) - s_stats[0]) / s_stats[1])[:, None].float()
@@ -63,11 +90,11 @@ def run_model(model, loader, device, opt=None, loss_fn=None):
     return total / max(n, 1) if opt is not None else torch.cat(preds).numpy()
 
 
-def train_net(model, tr_loader, va_loader, y_va, size, device, epochs, lr, wd, tag):
+def train_net(model, tr_loader, va_loader, y_va, size, device, epochs, lr, wd,
+              tag, loss_fn, out_tf=None):
     model.to(device)
     opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=wd)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=epochs)
-    loss_fn = nn.SmoothL1Loss(beta=0.1)
     best_rmse, best_state, history = np.inf, None, []
     for ep in range(epochs):
         model.train()
@@ -76,6 +103,8 @@ def train_net(model, tr_loader, va_loader, y_va, size, device, epochs, lr, wd, t
         model.eval()
         with torch.no_grad():
             pv = run_model(model, va_loader, device)
+        if out_tf is not None:
+            pv = out_tf(pv)
         res = to_mm(pv, size) - to_mm(y_va, size)
         rmse = np.sqrt((res**2).mean(axis=0))
         history.append({"epoch": ep, "train_loss": tr_loss,
@@ -144,16 +173,23 @@ def main():
     # ---- train CNN and MLP, fit Anger on the same training events ----
     t0 = time.time()
     results = {}
+    delta_mode = two_site and cfg["train"].get("delta_loss", False)
+    loss_fn = make_loss(delta_mode, cfg["train"].get("delta_weight", 2.0),
+                        cfg["train"].get("huber_beta", 0.1))
+    out_tf = delta_to_slots if delta_mode else None
     nets = [("cnn", CryspNet(n_out=targ.shape[1]))]
     if cfg["train"].get("train_mlp", True):   # comparison made; off for iteration work
         nets.append(("mlp", MLP(n_out=targ.shape[1])))
     for name, net in nets:
         model, history = train_net(net, tr_loader, va_loader, y_va, sizeT, device,
                                    epochs, cfg["train"]["lr"],
-                                   cfg["train"]["weight_decay"], f"{tag}:{name}")
+                                   cfg["train"]["weight_decay"], f"{tag}:{name}",
+                                   loss_fn, out_tf)
         model.eval()
         with torch.no_grad():
             pt = run_model(model, te_loader, device)
+        if out_tf is not None:
+            pt = out_tf(pt)
         pred = to_mm(pt, sizeT)
         # pred_mm holds the first-site estimate (slot 1 = shallower for two-site);
         # the full two-site prediction is kept alongside

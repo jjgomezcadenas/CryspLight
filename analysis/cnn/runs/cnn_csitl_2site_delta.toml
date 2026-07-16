@@ -1,0 +1,24 @@
+# Phase 2: CsI(Tl), (r_shallow, delta) reparametrization: dedicated separation loss
+# coincident convention for single-site events); same window selection.
+
+[data]
+events = "output/gammas_csitl_500k/events.h5"
+size_mm = [48.0, 48.0, 37.2]
+
+[selection]
+mode = "window"
+fwhm = 0.06
+nsigma = 2.0
+smear_seed = 2026
+
+[train]
+epochs = 15
+batch = 512
+lr = 1e-3
+weight_decay = 1e-4
+seed = 42
+targets = "two_site"
+train_mlp = false
+delta_loss = true
+delta_weight = 2.0
+huber_beta = 0.1

@@ -22,7 +22,7 @@ sys.path.insert(0, str(HERE))
 from dataset import (load_photo, load_window, save_test_events,   # noqa: E402
                      two_site_targets)
 from model import CryspNet, anger_moments, fit_anger_z            # noqa: E402
-from train import make_tensors, to_mm                             # noqa: E402
+from train import delta_to_slots, make_tensors, to_mm             # noqa: E402
 
 RESULTS = HERE.parent / "results" / "cnn"
 
@@ -56,7 +56,10 @@ def backfill(tag):
     with torch.no_grad():
         for k in range(0, len(m), 4096):
             preds.append(model(m[k:k + 4096], s[k:k + 4096]))
-    pred = to_mm(torch.cat(preds).numpy(), np.tile(size, n_out // 3))
+    raw = torch.cat(preds).numpy()
+    if two_site and cfg["train"].get("delta_loss", False):
+        raw = delta_to_slots(raw)
+    pred = to_mm(raw, np.tile(size, n_out // 3))
 
     truth = d["xyz1"][te]
     cols = {"row": d["row"][te],
