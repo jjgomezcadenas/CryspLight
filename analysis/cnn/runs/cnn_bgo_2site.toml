@@ -1,0 +1,21 @@
+# Phase 2: BGO 195 K, six-output two-site reconstruction (depth-ordered slots,
+# coincident convention for single-site events); same window selection.
+
+[data]
+events = "output/gammas_bgo_500k/events.h5"
+size_mm = [48.0, 48.0, 22.4]
+
+[selection]
+mode = "window"
+fwhm = 0.10
+nsigma = 2.0
+smear_seed = 2026
+
+[train]
+epochs = 15
+batch = 512
+lr = 1e-3
+weight_decay = 1e-4
+seed = 42
+targets = "two_site"
+train_mlp = false

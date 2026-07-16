@@ -24,7 +24,8 @@ import torch.nn as nn
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-from dataset import d4_expand, load_photo, load_window        # noqa: E402
+from dataset import (d4_expand, load_photo, load_window,      # noqa: E402
+                     two_site_targets)
 from model import MLP, CryspNet, anger_moments, fit_anger_z   # noqa: E402
 from plot_history import plot_history                         # noqa: E402
 
@@ -107,18 +108,22 @@ def main():
     root = HERE.parent.parent
     selcfg = cfg.get("selection", {"mode": "photo"})
     if selcfg["mode"] == "window":
-        maps, npe, xyz, itype = load_window(root / cfg["data"]["events"],
-                                            selcfg["fwhm"],
-                                            nsigma=selcfg.get("nsigma", 2.0),
-                                            seed=selcfg.get("smear_seed", 2026))
+        d = load_window(root / cfg["data"]["events"], selcfg["fwhm"],
+                        nsigma=selcfg.get("nsigma", 2.0),
+                        seed=selcfg.get("smear_seed", 2026))
     else:
-        maps, npe, xyz, itype = load_photo(root / cfg["data"]["events"])
+        d = load_photo(root / cfg["data"]["events"])
+    maps, npe, itype = d["maps"], d["npe"], d["itype"]
+    xyz = d["xyz1"]                       # true first interaction: eval basis
+    two_site = cfg["train"].get("targets", "first") == "two_site"
+    targ = two_site_targets(d) if two_site else xyz
+    sizeT = np.tile(size, targ.shape[1] // 3)
     n = len(npe)
     rng = np.random.default_rng(cfg["train"]["seed"])
     idx = rng.permutation(n)
     n_tr, n_va = int(0.7 * n), int(0.15 * n)
     tr, va, te = idx[:n_tr], idx[n_tr:n_tr + n_va], idx[n_tr + n_va:]
-    m_tr, p_tr, x_tr = d4_expand(maps[tr], npe[tr], xyz[tr], w_mm=size[0])
+    m_tr, p_tr, x_tr = d4_expand(maps[tr], npe[tr], targ[tr], w_mm=size[0])
     s_stats = (np.log(p_tr).mean(), np.log(p_tr).std())
     comp = {f"C{k}" if k else "photo": int(c)
             for k, c in zip(*np.unique(itype, return_counts=True))}
@@ -127,36 +132,41 @@ def main():
           f"device {device.type}", flush=True)
 
     def loader(m, p, x, shuffle):
-        ds = torch.utils.data.TensorDataset(*make_tensors(m, p, x, size, s_stats))
+        ds = torch.utils.data.TensorDataset(*make_tensors(m, p, x, sizeT, s_stats))
         return torch.utils.data.DataLoader(ds, batch_size=cfg["train"]["batch"],
                                            shuffle=shuffle)
 
     tr_loader = loader(m_tr, p_tr, x_tr, True)
-    va_loader = loader(maps[va], npe[va], xyz[va], False)
-    te_loader = loader(maps[te], npe[te], xyz[te], False)
-    y_va = to_norm(xyz[va], size)
+    va_loader = loader(maps[va], npe[va], targ[va], False)
+    te_loader = loader(maps[te], npe[te], targ[te], False)
+    y_va = to_norm(targ[va], sizeT)
 
     # ---- train CNN and MLP, fit Anger on the same training events ----
     t0 = time.time()
     results = {}
-    nets = [("cnn", CryspNet())]
+    nets = [("cnn", CryspNet(n_out=targ.shape[1]))]
     if cfg["train"].get("train_mlp", True):   # comparison made; off for iteration work
-        nets.append(("mlp", MLP()))
+        nets.append(("mlp", MLP(n_out=targ.shape[1])))
     for name, net in nets:
-        model, history = train_net(net, tr_loader, va_loader, y_va, size, device,
+        model, history = train_net(net, tr_loader, va_loader, y_va, sizeT, device,
                                    epochs, cfg["train"]["lr"],
                                    cfg["train"]["weight_decay"], f"{tag}:{name}")
         model.eval()
         with torch.no_grad():
             pt = run_model(model, te_loader, device)
-        results[name] = {"pred_mm": to_mm(pt, size), "history": history}
+        pred = to_mm(pt, sizeT)
+        # pred_mm holds the first-site estimate (slot 1 = shallower for two-site);
+        # the full two-site prediction is kept alongside
+        results[name] = {"pred_mm": pred[:, :3], "pred_full_mm": pred,
+                         "history": history}
         if name == "cnn":
             torch.save(model.state_dict(), outdir / "cnn_best.pt")
 
-    xc, yc, rr = anger_moments(maps[tr])
-    zfit = fit_anger_z(rr, xyz[tr][:, 2])
-    xc_t, yc_t, rr_t = anger_moments(maps[te])
-    results["anger"] = {"pred_mm": np.stack([xc_t, yc_t, zfit(rr_t)], axis=1)}
+    if not two_site:
+        xc, yc, rr = anger_moments(maps[tr])
+        zfit = fit_anger_z(rr, xyz[tr][:, 2])
+        xc_t, yc_t, rr_t = anger_moments(maps[te])
+        results["anger"] = {"pred_mm": np.stack([xc_t, yc_t, zfit(rr_t)], axis=1)}
 
     # ---- evaluate on the test split ----
     truth = xyz[te]
@@ -180,6 +190,17 @@ def main():
         metrics[name] = summarize(res)
         metrics[name]["by_type"] = {lab: summarize(res[m]) for lab, m in classes
                                     if m.any()}
+    if two_site:   # geometric accuracy of the depth-ordered pair + quality flag
+        p6 = results["cnn"]["pred_full_mm"]
+        yt = targ[te]
+        sep = np.linalg.norm(p6[:, 3:] - p6[:, :3], axis=1)
+        multi = d["n_int"][te] >= 2
+        metrics["cnn"]["two_site"] = {
+            "slot1_vs_shallow": summarize(p6[:, :3] - yt[:, :3]),
+            "slot2_vs_deep": summarize(p6[:, 3:] - yt[:, 3:]),
+            "slot2_vs_deep_multi": summarize((p6[:, 3:] - yt[:, 3:])[multi]),
+            "median_pred_sep_mm": {lab: round(float(np.median(sep[m])), 2)
+                                   for lab, m in classes if m.any()}}
     (outdir / "metrics.json").write_text(json.dumps(metrics, indent=2))
     with open(outdir / "history.json", "w") as f:
         json.dump({name: results[name]["history"] for name, _ in nets}, f, indent=2)
@@ -238,6 +259,21 @@ def main():
         ax.legend(fontsize=9)
         fig.tight_layout()
         fig.savefig(outdir / "distance_by_type.png", dpi=150)
+        plt.close(fig)
+
+    if two_site:   # the observable event-quality flag
+        fig, ax = plt.subplots(figsize=(6.5, 4.5))
+        for lab, m in classes:
+            if m.any():
+                ax.hist(sep[m], bins=100, range=(0, 30), histtype="step",
+                        label=f"{lab} (median {np.median(sep[m]):.1f} mm)")
+        ax.set_yscale("log")
+        ax.set_xlabel("predicted site separation |r2 - r1| [mm]")
+        ax.set_ylabel("test events")
+        ax.set_title(f"{tag}: predicted separation by true interaction type")
+        ax.legend(fontsize=9)
+        fig.tight_layout()
+        fig.savefig(outdir / "separation_by_type.png", dpi=150)
         plt.close(fig)
 
     fig, ax = plt.subplots(figsize=(5.5, 5))

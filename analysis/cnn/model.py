@@ -28,9 +28,10 @@ class ResBlock(nn.Module):
 
 
 class CryspNet(nn.Module):
-    """1x8x8 (+ scalar) -> (x, y, z) in normalized [-1, 1] coordinates."""
+    """1x8x8 (+ scalar) -> n_out/3 points in normalized [-1, 1] coordinates
+    (3 = single point; 6 = depth-ordered two-site prediction)."""
 
-    def __init__(self, in_ch=1, n_scalar=1):
+    def __init__(self, in_ch=1, n_scalar=1, n_out=3):
         super().__init__()
         self.stem = nn.Sequential(
             nn.Conv2d(in_ch, 64, 3, padding=1, bias=False),
@@ -42,7 +43,7 @@ class CryspNet(nn.Module):
         self.stage2 = nn.Sequential(ResBlock(128), ResBlock(128))
         self.head = nn.Sequential(
             nn.Linear(128 + n_scalar, 128), nn.ReLU(inplace=True),
-            nn.Linear(128, 3))
+            nn.Linear(128, n_out))
 
     def forward(self, m, s):
         h = self.stage2(self.down(self.stage1(self.stem(m))))
@@ -53,12 +54,12 @@ class CryspNet(nn.Module):
 class MLP(nn.Module):
     """Flat 64-pixel baseline: same inputs, no convolutional prior."""
 
-    def __init__(self, n_pix=64, n_scalar=1, width=256):
+    def __init__(self, n_pix=64, n_scalar=1, width=256, n_out=3):
         super().__init__()
         self.net = nn.Sequential(
             nn.Linear(n_pix + n_scalar, width), nn.ReLU(inplace=True),
             nn.Linear(width, width), nn.ReLU(inplace=True),
-            nn.Linear(width, 3))
+            nn.Linear(width, n_out))
 
     def forward(self, m, s):
         return self.net(torch.cat([m.flatten(1), s], dim=1))

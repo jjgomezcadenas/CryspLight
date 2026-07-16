@@ -22,19 +22,32 @@ E0_KEV = 511.0
 
 def _select(path, sel):
     with h5py.File(path, "r") as f:
-        maps = f["maps"][()][sel].astype(np.float32)
-        npe = f["npe"][()][sel].astype(np.float32)
-        xyz = f["xyz1_mm"][()][sel].astype(np.float32)
-        itype = f["int_type"][()][sel]
-    return maps, npe, xyz, itype
+        return {"maps": f["maps"][()][sel].astype(np.float32),
+                "npe": f["npe"][()][sel].astype(np.float32),
+                "xyz1": f["xyz1_mm"][()][sel].astype(np.float32),
+                "xyz2": f["xyz2_mm"][()][sel].astype(np.float32),
+                "n_int": f["n_int"][()][sel],
+                "itype": f["int_type"][()][sel]}
 
 
 def load_photo(path):
-    """Truth selection: contained photoelectric events.
-    Returns maps (n,8,8) float32, npe (n,), xyz1 (n,3), int_type (n,)."""
+    """Truth selection: contained photoelectric events. Returns a dict with
+    maps (n,8,8) float32, npe, xyz1 (n,3), xyz2, n_int, itype."""
     with h5py.File(path, "r") as f:
         sel = (f["int_type"][()] == 0) & (f["edep_kev"][()] > CONTAINED_KEV)
     return _select(path, sel)
+
+
+def two_site_targets(d):
+    """(n, 6) depth-ordered targets: columns 0-2 the shallower site, 3-5 the
+    deeper one; both set to the single site when only one deposit exists
+    (the coincident convention: 'single site' = 'the two points coincide')."""
+    a, b = d["xyz1"], d["xyz2"]
+    multi = (d["n_int"] >= 2)[:, None]
+    first_shallow = (a[:, 2] <= b[:, 2])[:, None]
+    shallow = np.where(multi & ~first_shallow, b, a)
+    deep = np.where(multi & first_shallow, b, a)
+    return np.concatenate([shallow, deep], axis=1).astype(np.float32)
 
 
 def window_mask(path, fwhm, nsigma=2.0, seed=2026):
@@ -92,12 +105,15 @@ def d4_ops(w_mm):
 
 
 def d4_expand(maps, npe, xyz, w_mm=48.0):
-    """Static 8x expansion of (maps, npe, xyz) over the D4 group."""
+    """Static 8x expansion of (maps, npe, xyz) over the D4 group. xyz may
+    carry one target triplet (n, 3) or several (n, 3k): each triplet is
+    transformed identically, so depth ordering is preserved."""
     ms, ns, ts = [], [], []
     for m_op, t_op in d4_ops(w_mm):
         ms.append(np.ascontiguousarray(m_op(maps)))
         ns.append(npe)
-        ts.append(t_op(xyz))
+        ts.append(np.concatenate([t_op(xyz[:, c:c + 3])
+                                  for c in range(0, xyz.shape[1], 3)], axis=1))
     return np.concatenate(ms), np.concatenate(ns), np.concatenate(ts)
 
 
