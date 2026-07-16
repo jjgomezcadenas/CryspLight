@@ -37,9 +37,14 @@ quarter of the light --- the light-pattern geometry, rather than
 photostatistics, sets the current limit. This note documents the dataset, the
 network architecture and its motivation, the exact symmetry augmentation, the
 classical and machine-learning reference estimators, and the results, in a
-pedagogical style. The study establishes the idealized-conditions baseline of
-the CryspLight reconstruction program; Compton topologies and timing
-information are the natural extensions.
+pedagogical style. A second study replaces the truth-based selection with the
+one available to a real experiment --- an energy window of $\pm2\sigma$ around
+511~keV at realistic energy resolution (FWHM 6\% for \csitl{}, 10\% for BGO)
+--- so that Compton topologies enter the sample; the global resolution on that
+mixture is $2.0/2.0/2.1$~mm (68\% quantile, $x/y/z$) with 27\% of events
+beyond 5~mm for \csitl{}, and $1.1/1.1/1.3$~mm with 10\% beyond 5~mm for BGO.
+The tail is identified with the soft-recoil Compton population, motivating a
+two-site reconstruction as the next step.
 \end{abstract}
 
 \tableofcontents
@@ -401,17 +406,144 @@ richer inputs --- finer readout granularity, a second input channel, or the
 multi-site topologies of Compton events.
 
 %=====================================================================
+\section{Reconstruction with realistic event selection}
+\label{sec:window}
+
+The study of Section~\ref{sec:results} selects events by their true
+interaction type --- information available in simulation and nowhere else. A
+real experiment selects on measured quantities, and the standard choice is an
+energy window around the photopeak, whose purity is set by the energy
+resolution of the detector. This section repeats the reconstruction under that
+realistic selection.
+
+\subsection{Selection and sample composition}
+
+The measured energy is modelled as the true deposited energy smeared with the
+full detector resolution: a Gaussian of fractional FWHM $6\%$ for \csitl{} and
+$10\%$ for BGO at 511~keV, the width scaling as $\sqrt{E}$ below the peak.
+Fully contained events deposit exactly 511~keV, so a window of
+$511 \pm 2\sigma$ ($[485, 537]$~keV for \csitl{}, $[468, 554]$~keV for BGO)
+retains $95.4\%$ of them by construction, together with a small leakage of
+almost-contained events from below. The smear is applied with a fixed random
+seed (configurations \code{analysis/cnn/runs/cnn\_\{csitl,bgo\}\_win.toml}),
+making the selection reproducible.
+
+The selected samples --- $243\,448$ events for \csitl{} and $360\,135$ for BGO
+--- have the composition of the physical photopeak: for \csitl{}, $34\%$
+single-site photoelectric events, $38\%$ with one Compton scatter, $28\%$ with
+two or more; for BGO, $50\%$, $35\%$ and $15\%$. The reconstruction problem
+changes character accordingly: for most events the light map is a superposition
+of two or more energy-weighted sites, and the network, unchanged in
+architecture and still regressing the \emph{first} interaction point, must
+learn the mixture as a whole. Training uses the 15-epoch schedule
+(Section~\ref{sec:net}), completing in 13 and 21 minutes.
+
+\subsection{Global resolution}
+
+Since the experiment has no means of separating the event classes, the
+performance figure of the detector is the global one, over the full selected
+sample. The residual distribution is now a narrow core under a long tail, and
+a single RMS number would describe neither; the resolution is therefore quoted
+as the pair (68\% quantile, fraction of events reconstructed farther than
+5~mm from the true first interaction):
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{lccccccc}
+  \toprule
+  & \multicolumn{3}{c}{68\% quantile [mm]} & \multicolumn{3}{c}{RMSE [mm]} &
+  tail \\
+  \cmidrule(lr){2-4}\cmidrule(lr){5-7}
+  crystal & $x$ & $y$ & $z$ & $x$ & $y$ & $z$ & $d > 5$~mm \\
+  \midrule
+  \csitl{} & 2.02 & 2.03 & 2.08 & 3.19 & 3.24 & 4.16 & 26.8\% \\
+  BGO      & 1.08 & 1.08 & 1.26 & 1.62 & 1.62 & 2.46 & 9.7\% \\
+  \bottomrule
+\end{tabular}
+\caption{Global resolution of the network under the energy-window selection:
+68\% quantile and RMSE of the residuals per coordinate, and the fraction of
+events whose reconstructed point lies beyond 5~mm (3D distance) from the true
+first interaction. Test samples of $36\,518$ (\csitl{}) and $54\,021$ (BGO)
+events.}
+\label{tab:window}
+\end{table}
+
+Millimetric localization survives contact with realistic selection: the
+typical event is still reconstructed to $\sim$2~mm in \csitl{} and
+$\sim$1.2~mm in BGO, in all three coordinates. BGO benefits doubly from its
+photoelectric-rich composition and its shorter depth, and carries a tail three
+times smaller.
+
+\subsection{Anatomy of the tail}
+
+Simulation truth, while unavailable for selection, remains the microscope for
+\emph{evaluation}: breaking the residuals down by true interaction type
+explains where the tail lives (Figure~\ref{fig:disttype} and
+Table~\ref{tab:bytype}).
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{llcccc}
+  \toprule
+  crystal & class & fraction & p68 $z$ [mm] & RMSE $z$ [mm] & $d > 5$~mm \\
+  \midrule
+  \csitl{} & photoelectric & 34\% & 1.07 & 1.46 & 2.0\% \\
+           & one scatter   & 38\% & 2.33 & 4.20 & 29.8\% \\
+           & two or more   & 28\% & 4.04 & 5.92 & 52.7\% \\
+  \midrule
+  BGO      & photoelectric & 50\% & 0.92 & 1.05 & 0.4\% \\
+           & one scatter   & 35\% & 1.59 & 2.91 & 14.1\% \\
+           & two or more   & 15\% & 2.82 & 4.17 & 31.4\% \\
+  \bottomrule
+\end{tabular}
+\caption{Diagnostic breakdown of the window-sample residuals by true
+interaction type (simulation truth used for evaluation only). The depth
+coordinate is shown; the transverse coordinates behave alike.}
+\label{tab:bytype}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.49\textwidth]{cnn_csitl_win/distance_by_type.png}
+  \hfill
+  \includegraphics[width=0.49\textwidth]{cnn_bgo_win/distance_by_type.png}
+  \caption{Distance between the reconstructed point and the true first
+  interaction, by true interaction type, for \csitl{} (left) and BGO (right).
+  The single-site class keeps a steeply falling distribution; the Compton
+  classes add a tail extending to the inter-site distance scale.}
+  \label{fig:disttype}
+\end{figure}
+
+Two findings frame the result. First, the single-site class survives the
+mixture essentially intact: trained on a sample two-thirds of which is
+multi-site, the network still reconstructs photoelectric events to
+$1.28/1.30/1.46$~mm in \csitl{} and $0.90/0.88/1.05$~mm in BGO, within
+$0.35$~mm of the truth-selected training of Section~\ref{sec:results} --- the
+network distinguishes the topologies internally. Second, the tail is physics:
+it is populated by Compton events whose first scatter deposits little energy,
+so that the light map is dominated by the second site, centimetres away. For
+that population a three-output network can only interpolate between the sites.
+The remedy is expressiveness rather than capacity --- a network that predicts
+\emph{both} interaction points, the subject of the next phase; its predicted
+two-site separation will also provide an \emph{observable} event-quality flag,
+turning the resolution--acceptance trade-off into an experimental choice. The
+reference perceptron, trained once more for this comparison, trails the
+network by $16$--$19\%$ globally and doubles its single-site tail; with the
+convolutional advantage confirmed on the harder problem, subsequent studies
+train the network alone.
+
+%=====================================================================
 \section{Outlook}
 
 The idealized baseline is established. The extensions, in the order the
 physics suggests them:
 
 \begin{enumerate}
-  \item \textbf{Compton topologies.} Events with one or more Compton scatters
-    produce multi-site light maps; the per-event truth (positions and energies
-    of the first two interactions, interaction type) is already in the data
-    files, enabling both a classification stage (single-site against
-    multi-site) and a regression of the first-interaction position.
+  \item \textbf{Two-site reconstruction.} A six-output network predicting both
+    interaction points of the window sample, with the second target set
+    coincident with the first for single-site events, addresses the Compton
+    tail of Section~\ref{sec:window} directly; the predicted site separation
+    doubles as an observable single-site discriminator.
   \item \textbf{Timing as a second channel.} The $8\times8$ matrix of
     first-photoelectron arrival times is recorded alongside the light map; the
     architecture accepts it as a second input channel by changing one number.

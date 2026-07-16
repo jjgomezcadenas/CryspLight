@@ -67,11 +67,17 @@ plots + containment stats from the 50k runs) and the CNN reconstruction
 (analysis/cnn: dataset.py with exact D4 augmentation — self-test via python3
 analysis/cnn/dataset.py; model.py CryspNet ~0.6M-param residual ConvNet + MLP +
 Anger baselines; train.py driven by analysis/cnn/runs/cnn_{csitl,bgo}.toml).
-Trained on the 500k runs (contained photoelectric events, torch MPS): test RMSE
-x/y/z = 1.21/1.24/1.11 mm CsI(Tl), 0.84/0.84/0.92 mm BGO; Anger ~11-12 mm
-transverse. Depth is linear over the FULL crystal (results in
-analysis/results/cnn). Next candidates: Compton events in the CNN (int_type >= 1,
-multi-site); two-channel input (tmin matrix) for timing-aided reconstruction;
+Trained on the 500k runs (torch MPS). Idealized (truth-selected photo): test
+RMSE x/y/z = 1.21/1.24/1.11 mm CsI(Tl), 0.84/0.84/0.92 mm BGO; depth linear over
+the FULL crystal. Phase 1 Compton (realistic 511 +- 2 sigma window on smeared
+energy, FWHM 6%/10%, configs cnn_*_win.toml): global p68 = 2.0/2.0/2.1 mm CsI(Tl)
+(26.8% of events beyond 5 mm), 1.1/1.1/1.3 mm BGO (9.7%); photo class survives
+the mixture nearly intact; tail = soft-recoil Compton (first site outshone by
+the second). All results in analysis/results/cnn; note updated. Next candidates:
+phase 2 = six-output two-site regression (x1..z2, coincident-target convention
+for single-site; min-over-orderings loss as fallback; predicted separation =
+observable quality flag); two-channel input (tmin matrix) for timing-aided
+reconstruction;
 response layer (intrinsic resolution ~5.3% FWHM + SiPM excess noise) for
 realistic spectra; per-event time histograms; Brose phase-2 frustum; cold-CsI
 gamma runs.
