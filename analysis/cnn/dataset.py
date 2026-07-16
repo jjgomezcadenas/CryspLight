@@ -17,16 +17,44 @@ CONTAINED_KEV = 510.5
 PITCH = 6.0
 
 
-def load_photo(path):
-    """Contained photoelectric events: maps (n,8,8) float32, npe (n,), xyz (n,3)."""
+E0_KEV = 511.0
+
+
+def _select(path, sel):
     with h5py.File(path, "r") as f:
-        int_type = f["int_type"][()]
-        edep = f["edep_kev"][()]
-        sel = (int_type == 0) & (edep > CONTAINED_KEV)
         maps = f["maps"][()][sel].astype(np.float32)
         npe = f["npe"][()][sel].astype(np.float32)
         xyz = f["xyz1_mm"][()][sel].astype(np.float32)
-    return maps, npe, xyz
+        itype = f["int_type"][()][sel]
+    return maps, npe, xyz, itype
+
+
+def load_photo(path):
+    """Truth selection: contained photoelectric events.
+    Returns maps (n,8,8) float32, npe (n,), xyz1 (n,3), int_type (n,)."""
+    with h5py.File(path, "r") as f:
+        sel = (f["int_type"][()] == 0) & (f["edep_kev"][()] > CONTAINED_KEV)
+    return _select(path, sel)
+
+
+def load_window(path, fwhm, nsigma=2.0, seed=2026):
+    """Realistic selection: measured energy inside 511 +- nsigma * sigma.
+
+    The measured energy is the true deposited energy smeared with the FULL
+    detector resolution (fractional FWHM at 511 keV given by fwhm), sigma
+    scaling as sqrt(E) below the peak. Fully contained events sit at exactly
+    511 keV before the smear, so the window keeps 95.4% of them (nsigma = 2)
+    and admits the partial-containment leakage from below. Seeded: the
+    selection is reproducible.
+    """
+    with h5py.File(path, "r") as f:
+        edep = f["edep_kev"][()].astype(np.float64)
+    sigma511 = fwhm / 2.355 * E0_KEV
+    sigma = sigma511 * np.sqrt(np.maximum(edep, 0.0) / E0_KEV)
+    rng = np.random.default_rng(seed)
+    e_meas = edep + rng.normal(0.0, 1.0, len(edep)) * sigma
+    sel = np.abs(e_meas - E0_KEV) < nsigma * sigma511
+    return _select(path, sel)
 
 
 def d4_ops(w_mm):

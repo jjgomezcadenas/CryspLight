@@ -1,0 +1,19 @@
+# Phase 1 Compton study: CsI(Tl), realistic energy-window selection.
+# Measured energy = true deposited energy smeared with the FULL detector
+# resolution (FWHM 6% at 511 keV); selection |E_meas - 511| < 2 sigma.
+[data]
+events = "output/gammas_csitl_500k/events.h5"
+size_mm = [48.0, 48.0, 37.2]
+
+[selection]
+mode = "window"
+fwhm = 0.06
+nsigma = 2.0
+smear_seed = 2026
+
+[train]
+epochs = 15
+batch = 512
+lr = 1e-3
+weight_decay = 1e-4
+seed = 42

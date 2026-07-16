@@ -26,6 +26,8 @@ def plot_history(outdir):
     h = json.loads((outdir / "history.json").read_text())
     fig, axs = plt.subplots(1, 2, figsize=(11, 4.5))
     for model, color in (("cnn", "C0"), ("mlp", "C1")):
+        if model not in h:
+            continue
         ep = [e["epoch"] for e in h[model]]
         loss = [e["train_loss"] for e in h[model]]
         rmse = np.array([e["val_rmse_mm"] for e in h[model]]).mean(axis=1)

@@ -24,7 +24,7 @@ import torch.nn as nn
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-from dataset import d4_expand, load_photo                     # noqa: E402
+from dataset import d4_expand, load_photo, load_window        # noqa: E402
 from model import MLP, CryspNet, anger_moments, fit_anger_z   # noqa: E402
 from plot_history import plot_history                         # noqa: E402
 
@@ -103,9 +103,16 @@ def main():
     device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
     torch.manual_seed(cfg["train"]["seed"])
 
-    # ---- data: contained photoelectric events, split, augment train ----
+    # ---- data: truth (photo) or energy-window selection, split, augment train ----
     root = HERE.parent.parent
-    maps, npe, xyz = load_photo(root / cfg["data"]["events"])
+    selcfg = cfg.get("selection", {"mode": "photo"})
+    if selcfg["mode"] == "window":
+        maps, npe, xyz, itype = load_window(root / cfg["data"]["events"],
+                                            selcfg["fwhm"],
+                                            nsigma=selcfg.get("nsigma", 2.0),
+                                            seed=selcfg.get("smear_seed", 2026))
+    else:
+        maps, npe, xyz, itype = load_photo(root / cfg["data"]["events"])
     n = len(npe)
     rng = np.random.default_rng(cfg["train"]["seed"])
     idx = rng.permutation(n)
@@ -113,8 +120,11 @@ def main():
     tr, va, te = idx[:n_tr], idx[n_tr:n_tr + n_va], idx[n_tr + n_va:]
     m_tr, p_tr, x_tr = d4_expand(maps[tr], npe[tr], xyz[tr], w_mm=size[0])
     s_stats = (np.log(p_tr).mean(), np.log(p_tr).std())
-    print(f"[{tag}] {n} photo events: train {n_tr} (x8 D4 = {len(p_tr)}), "
-          f"val {n_va}, test {len(te)}; device {device.type}", flush=True)
+    comp = {f"C{k}" if k else "photo": int(c)
+            for k, c in zip(*np.unique(itype, return_counts=True))}
+    print(f"[{tag}] {n} events ({selcfg['mode']} selection, {comp}): "
+          f"train {n_tr} (x8 D4 = {len(p_tr)}), val {n_va}, test {len(te)}; "
+          f"device {device.type}", flush=True)
 
     def loader(m, p, x, shuffle):
         ds = torch.utils.data.TensorDataset(*make_tensors(m, p, x, size, s_stats))
@@ -129,7 +139,10 @@ def main():
     # ---- train CNN and MLP, fit Anger on the same training events ----
     t0 = time.time()
     results = {}
-    for name, net in (("cnn", CryspNet()), ("mlp", MLP())):
+    nets = [("cnn", CryspNet())]
+    if cfg["train"].get("train_mlp", True):   # comparison made; off for iteration work
+        nets.append(("mlp", MLP()))
+    for name, net in nets:
         model, history = train_net(net, tr_loader, va_loader, y_va, size, device,
                                    epochs, cfg["train"]["lr"],
                                    cfg["train"]["weight_decay"], f"{tag}:{name}")
@@ -147,17 +160,29 @@ def main():
 
     # ---- evaluate on the test split ----
     truth = xyz[te]
-    metrics = {"tag": tag, "events": {"total_photo": n, "test": len(te)},
+    it_te = itype[te]
+    classes = [("photo", it_te == 0), ("C1", it_te == 1), ("C2plus", it_te >= 2)]
+    metrics = {"tag": tag, "selection": selcfg,
+               "events": {"selected": n, "test": len(te),
+                          "composition": comp},
                "epochs": epochs, "train_seconds": round(time.time() - t0, 1)}
-    for name, r in results.items():
-        res = r["pred_mm"] - truth
-        metrics[name] = {
+
+    def summarize(res):
+        d3 = np.sqrt((res**2).sum(axis=1))
+        return {
             "rmse_mm": [round(float(v), 3) for v in np.sqrt((res**2).mean(axis=0))],
             "p68_mm": [round(float(np.percentile(np.abs(res[:, k]), 68)), 3)
-                       for k in range(3)]}
+                       for k in range(3)],
+            "tail_frac_5mm": round(float((d3 > 5.0).mean()), 4)}
+
+    for name, r in results.items():
+        res = r["pred_mm"] - truth
+        metrics[name] = summarize(res)
+        metrics[name]["by_type"] = {lab: summarize(res[m]) for lab, m in classes
+                                    if m.any()}
     (outdir / "metrics.json").write_text(json.dumps(metrics, indent=2))
     with open(outdir / "history.json", "w") as f:
-        json.dump({k: results[k]["history"] for k in ("cnn", "mlp")}, f, indent=2)
+        json.dump({name: results[name]["history"] for name, _ in nets}, f, indent=2)
     plot_history(outdir)
 
     # ---- plots ----
@@ -165,6 +190,8 @@ def main():
     fig, axs = plt.subplots(1, 3, figsize=(14, 4))
     for k, ax in enumerate(axs):
         for name, color in (("cnn", "C0"), ("mlp", "C1"), ("anger", "C2")):
+            if name not in results:
+                continue
             res = results[name]["pred_mm"][:, k] - truth[:, k]
             ax.hist(res, bins=100, range=(-15, 15), histtype="step", color=color,
                     label=f"{name}  RMSE {metrics[name]['rmse_mm'][k]:.2f} mm")
@@ -181,6 +208,8 @@ def main():
     fig, axs = plt.subplots(1, 3, figsize=(14, 4))
     for k, ax in enumerate(axs):
         for name, color in (("cnn", "C0"), ("mlp", "C1"), ("anger", "C2")):
+            if name not in results:
+                continue
             res = results[name]["pred_mm"][:, k] - truth[:, k]
             rms = [np.sqrt(np.mean(res[(truth[:, 2] >= zb[b])
                                        & (truth[:, 2] < zb[b + 1])]**2))
@@ -194,6 +223,23 @@ def main():
     fig.savefig(outdir / "rmse_vs_z.png", dpi=150)
     plt.close(fig)
 
+    if (it_te > 0).any():   # mixture sample: core-plus-tail per interaction type
+        fig, ax = plt.subplots(figsize=(6.5, 4.5))
+        d3 = np.sqrt(((results["cnn"]["pred_mm"] - truth)**2).sum(axis=1))
+        for lab, m in classes:
+            if m.any():
+                ax.hist(d3[m], bins=100, range=(0, 30), histtype="step",
+                        label=f"{lab} ({m.sum()} ev, "
+                              f"{100 * (d3[m] > 5).mean():.1f}% beyond 5 mm)")
+        ax.set_yscale("log")
+        ax.set_xlabel("CNN 3D distance to first interaction [mm]")
+        ax.set_ylabel("test events")
+        ax.set_title(f"{tag}: core and tail by interaction type")
+        ax.legend(fontsize=9)
+        fig.tight_layout()
+        fig.savefig(outdir / "distance_by_type.png", dpi=150)
+        plt.close(fig)
+
     fig, ax = plt.subplots(figsize=(5.5, 5))
     h = ax.hist2d(truth[:, 2], results["cnn"]["pred_mm"][:, 2], bins=60,
                   cmap="viridis", cmin=1)
@@ -206,7 +252,7 @@ def main():
     fig.savefig(outdir / "z_true_vs_pred.png", dpi=150)
     plt.close(fig)
 
-    for name in ("cnn", "mlp", "anger"):
+    for name in results:
         print(f"[{tag}] {name:5s} test RMSE x/y/z = "
               + "/".join(f"{v:.2f}" for v in metrics[name]["rmse_mm"]) + " mm")
 
