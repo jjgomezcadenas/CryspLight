@@ -73,12 +73,40 @@ def main():
     d = load_window(HERE.parent.parent / cfg["data"]["events"], selcfg["fwhm"],
                     nsigma=selcfg.get("nsigma", 2.0),
                     seed=selcfg.get("smear_seed", 2026))
-    lab = (d["n_int"] >= 2).astype(np.float32)
-    n = len(lab)
+    n = len(d["npe"])
     rng = np.random.default_rng(cfg["train"]["seed"])
     idx = rng.permutation(n)
     n_tr, n_va = int(0.7 * n), int(0.15 * n)
     tr, va, te = idx[:n_tr], idx[n_tr:n_tr + n_va], idx[n_tr + n_va:]
+
+    label_mode = cfg["train"].get("label", "topology")
+    crystal = "csitl" if "csitl" in tag else "bgo"
+    if label_mode == "reco":
+        # positive class = badly reconstructed: run the phase-1 checkpoint
+        # (inference only) over the FULL sample and cut on its 3D error
+        good_mm = cfg["train"].get("good_mm", 5.0)
+        s_full = (np.log(d["npe"][tr]).mean(), np.log(d["npe"][tr]).std())
+        m_all, sc_all, _ = make_tensors(d["maps"], d["npe"], d["xyz1"],
+                                        size, s_full)
+        net1 = CryspNet(n_out=3)
+        net1.load_state_dict(torch.load(
+            HERE.parent / "results" / "cnn" / f"cnn_{crystal}_win" / "cnn_best.pt",
+            map_location="cpu"))
+        net1.eval()
+        outs = []
+        with torch.no_grad():
+            for k in range(0, len(m_all), 4096):
+                outs.append(net1(m_all[k:k + 4096], sc_all[k:k + 4096]))
+        pred1 = (torch.cat(outs).numpy() + 1.0) * size / 2.0
+        d3_all = np.linalg.norm(pred1 - d["xyz1"], axis=1)
+        lab = (d3_all >= good_mm).astype(np.float32)
+        pos_name = f"bad reco (> {good_mm:g} mm)"
+        print(f"[{tag}] reco labels: bad fraction train {lab[tr].mean():.3f}, "
+              f"test {lab[te].mean():.3f} (train-label optimism check)",
+              flush=True)
+    else:
+        lab = (d["n_int"] >= 2).astype(np.float32)
+        pos_name = "multi-site"
     m_tr, p_tr, _ = d4_expand(d["maps"][tr], d["npe"][tr], d["xyz1"][tr],
                               w_mm=size[0])
     l_tr = np.tile(lab[tr], 8)
@@ -138,7 +166,6 @@ def main():
     save_test_events(outdir / "test_events.h5",
                      {"row": d["row"][te], "label": l_te,
                       "int_type": it_te, "score": score})
-    crystal = "csitl" if "csitl" in tag else "bgo"
     win = load_test_events(f"cnn_{crystal}_win").set_index("row")
     two = load_test_events(f"cnn_{crystal}_2site").set_index("row")
     rows = d["row"][te]
@@ -154,11 +181,12 @@ def main():
     # acceptance sweep: keep events the classifier calls photo-like
     ts = np.quantile(score, np.linspace(0.02, 0.98, 97))
     sweep = [{"acceptance": round(float(acc.mean()), 4),
-              "single_site_purity": round(float((l_te[acc] < 0.5).mean()), 4),
+              "negative_purity": round(float((l_te[acc] < 0.5).mean()), 4),
               "tail_frac_5mm_accepted": round(float((d3[acc] > 5).mean()), 4)}
              for t in ts for acc in [score < t] if acc.mean() > 0.01]
     metrics = {"tag": tag, "test_events": int(len(l_te)),
-               "multi_fraction": round(float(l_te.mean()), 4),
+               "label_mode": label_mode, "positive_class": pos_name,
+               "positive_fraction": round(float(l_te.mean()), 4),
                "auc_classifier": round(float(auc_cls), 4),
                "auc_separation_flag": round(float(auc_sep), 4),
                "train_seconds": round(time.time() - t0, 1),
@@ -171,7 +199,7 @@ def main():
         axs[0].hist(score[m], bins=60, range=(0, 1), histtype="step",
                     density=True, label=label_)
     axs[0].set_yscale("log")
-    axs[0].set_xlabel("classifier score P(multi-site)")
+    axs[0].set_xlabel(f"classifier score P({pos_name})")
     axs[0].set_ylabel("density")
     axs[0].legend(fontsize=8)
     f1, e1 = roc(l_te, score)
@@ -179,20 +207,20 @@ def main():
     axs[1].plot(f1, e1, label=f"classifier (AUC {auc_cls:.3f})")
     axs[1].plot(f2, e2, "--", label=f"two-site separation (AUC {auc_sep:.3f})")
     axs[1].plot([0, 1], [0, 1], "k:", lw=0.7)
-    axs[1].set_xlabel("single-site events mistagged")
-    axs[1].set_ylabel("multi-site events tagged")
+    axs[1].set_xlabel("negative events mistagged")
+    axs[1].set_ylabel(f"{pos_name} events tagged")
     axs[1].legend(fontsize=8)
     accs = [s["acceptance"] for s in sweep]
     tails = [s["tail_frac_5mm_accepted"] for s in sweep]
-    purs = [s["single_site_purity"] for s in sweep]
+    purs = [s["negative_purity"] for s in sweep]
     axs[2].plot(accs, tails, label="tail (>5 mm) of accepted")
-    axs[2].plot(accs, purs, "--", label="single-site purity")
+    axs[2].plot(accs, purs, "--", label="purity of accepted (negative class)")
     axs[2].axhline((d3 > 5).mean(), color="k", ls=":", lw=0.8,
                    label="no selection tail")
-    axs[2].set_xlabel("acceptance (photo-like selection)")
+    axs[2].set_xlabel("acceptance")
     axs[2].set_ylabel("fraction")
     axs[2].legend(fontsize=8)
-    fig.suptitle(f"{tag}: single-site vs multi-site classification")
+    fig.suptitle(f"{tag}: classification, positive = {pos_name}")
     fig.tight_layout()
     fig.savefig(outdir / "classification.png", dpi=150)
     plt.close(fig)

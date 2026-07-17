@@ -1,0 +1,77 @@
+{
+  "tag": "cnn_csitl_rcls",
+  "test_events": 36518,
+  "label_mode": "reco",
+  "positive_class": "bad reco (> 5 mm)",
+  "positive_fraction": 0.2682,
+  "auc_classifier": 0.7958,
+  "auc_separation_flag": 0.7822,
+  "train_seconds": 463.7,
+  "acceptance_sweep": [
+    {
+      "acceptance": 0.02,
+      "negative_purity": 0.9644,
+      "tail_frac_5mm_accepted": 0.0356
+    },
+    {
+      "acceptance": 0.1,
+      "negative_purity": 0.9562,
+      "tail_frac_5mm_accepted": 0.0438
+    },
+    {
+      "acceptance": 0.18,
+      "negative_purity": 0.944,
+      "tail_frac_5mm_accepted": 0.056
+    },
+    {
+      "acceptance": 0.26,
+      "negative_purity": 0.9309,
+      "tail_frac_5mm_accepted": 0.0691
+    },
+    {
+      "acceptance": 0.34,
+      "negative_purity": 0.9196,
+      "tail_frac_5mm_accepted": 0.0804
+    },
+    {
+      "acceptance": 0.42,
+      "negative_purity": 0.9082,
+      "tail_frac_5mm_accepted": 0.0918
+    },
+    {
+      "acceptance": 0.5,
+      "negative_purity": 0.8919,
+      "tail_frac_5mm_accepted": 0.1081
+    },
+    {
+      "acceptance": 0.58,
+      "negative_purity": 0.878,
+      "tail_frac_5mm_accepted": 0.122
+    },
+    {
+      "acceptance": 0.66,
+      "negative_purity": 0.8625,
+      "tail_frac_5mm_accepted": 0.1375
+    },
+    {
+      "acceptance": 0.74,
+      "negative_purity": 0.8452,
+      "tail_frac_5mm_accepted": 0.1548
+    },
+    {
+      "acceptance": 0.82,
+      "negative_purity": 0.8228,
+      "tail_frac_5mm_accepted": 0.1772
+    },
+    {
+      "acceptance": 0.9,
+      "negative_purity": 0.7882,
+      "tail_frac_5mm_accepted": 0.2118
+    },
+    {
+      "acceptance": 0.98,
+      "negative_purity": 0.7442,
+      "tail_frac_5mm_accepted": 0.2558
+    }
+  ]
+}

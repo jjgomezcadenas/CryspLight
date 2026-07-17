@@ -1,0 +1,23 @@
+# Reconstructability classifier: positive = phase-1 3D error >= 5 mm (labels from
+# the cnn_*_win checkpoint run over the full sample); same selection and split.
+
+[data]
+events = "output/gammas_bgo_500k/events.h5"
+size_mm = [48.0, 48.0, 22.4]
+
+[selection]
+mode = "window"
+fwhm = 0.10
+nsigma = 2.0
+smear_seed = 2026
+
+[train]
+epochs = 10
+batch = 512
+lr = 1e-3
+weight_decay = 1e-4
+seed = 42
+# classifier: label = multi-site (n_int >= 2)
+train_mlp = false
+label = "reco"
+good_mm = 5.0
