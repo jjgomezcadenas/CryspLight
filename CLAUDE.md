@@ -89,7 +89,10 @@ BGO carrying 58-82%; reconstructability classifier (train_classifier.py, label =
 'reco': positive = phase-1 error >= 5 mm) AUC ~0.80 both crystals, acceptance
 dial: tail 26.8->10.8% CsI / 9.7->2.8% BGO at 50%; frozen-shape amplitude fits
 (selection_fits.py): A2/A1 in z 0.49->0.04 CsI, 0.22->0.04 BGO at constant core
-width; selection removes tail 18x faster than core. Per-run per-event dataframes
+width; selection removes tail 18x faster than core. PET smearing recipe
+for PTCrysp (pet_recipe.py -> selection_fits/pet_resolution_recipe.json,
+note section 'A resolution recipe'): window 0.954 x acceptance x
+per-coordinate two-Gaussian mixture, frozen shapes, scenario f_core. Per-run per-event dataframes
 test_events.h5 (dataset.load_test_events) make all such studies ~0.5 s pandas.
 All results in analysis/results/cnn (+ order_study); note updated. Next
 candidates: geometric barycenter label (needs 2 truth columns in events.h5 +

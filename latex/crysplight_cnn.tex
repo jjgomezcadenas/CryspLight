@@ -863,6 +863,79 @@ depth tail-to-core ratio from $\sim$$0.5$ to $\sim$$0.04$ at constant core
 width.
 
 %=====================================================================
+\section{A resolution recipe for the PET simulation}
+\label{sec:recipe}
+
+The results above compress into a compact prescription for the PTCrysp
+system-level PET simulation: given the true first-interaction position of a
+511~keV photon in the crystal, produce the measured position and the survival
+probability. Three scenarios are provided --- no selection, and the
+reconstructability selection at $80\%$ and $60\%$ single-photon acceptance
+--- with all constants in
+\code{analysis/results/cnn/selection\_fits/pet\_resolution\_recipe.json}
+(generator \code{analysis/cnn/pet\_recipe.py}).
+
+\paragraph{Step 1: photopeak entry.} The gamma-transport ladder (which
+PTCrysp models itself) gives, per shot gamma: interaction probability
+$0.781$ (\csitl{}) / $0.868$ (BGO), and full energy deposit in $0.653$ /
+$0.870$ of interacting events. The energy window adds one number: a
+full-energy event passes the $511 \pm 2\sigma$ cut with probability
+$0.954$ (two-sigma coverage; fully contained events sit at exactly 511~keV
+before resolution smearing). Partial-energy events fall far below the window
+and are discarded.
+
+\paragraph{Step 2: selection.} Scenario ``none'': every window event
+survives. Scenarios $80\%$ / $60\%$: keep each photon with probability
+$0.80$ / $0.60$, applied \emph{per single photon} --- a coincidence pays the
+factor twice.
+
+\paragraph{Step 3: position smearing.} For each surviving event and each
+coordinate independently: with probability $f_{\rm core}$ add Gaussian noise
+of width $\sigma_1$, otherwise of width $\sigma_2$
+(Table~\ref{tab:recipe}). The widths are \emph{scenario-independent} by
+construction --- the selection removes tail events rather than sharpening the
+response --- so the entire effect of tightening the selection appears as
+$f_{\rm core}$ rising, most strongly in depth.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{llccccc}
+  \toprule
+  & & & & \multicolumn{3}{c}{$f_{\rm core}$} \\
+  \cmidrule(lr){5-7}
+  crystal & coord & $\sigma_1$ [mm] & $\sigma_2$ [mm] &
+  no sel. & $80\%$ & $60\%$ \\
+  \midrule
+  \csitl{} & $x$ & 1.12 & 4.13 & 0.585 & 0.728 & 0.820 \\
+           & $y$ & 1.14 & 4.18 & 0.591 & 0.740 & 0.826 \\
+           & $z$ & 1.20 & 4.37 & 0.673 & 0.898 & 0.951 \\
+  \midrule
+  BGO      & $x$ & 0.80 & 2.50 & 0.716 & 0.805 & 0.846 \\
+           & $y$ & 0.82 & 2.59 & 0.737 & 0.828 & 0.866 \\
+           & $z$ & 0.96 & 2.59 & 0.821 & 0.959 & 0.963 \\
+  \bottomrule
+\end{tabular}
+\caption{The smearing recipe: per-coordinate two-Gaussian mixture,
+$\delta \sim f_{\rm core}\, N(0, \sigma_1) + (1 - f_{\rm core})\,
+N(0, \sigma_2)$, with shapes frozen across scenarios and the core weight
+carrying the full effect of the selection. Fitted means are compatible with
+zero ($|\mu| < 0.15$~mm).}
+\label{tab:recipe}
+\end{table}
+
+Two remarks complete the prescription. The decoupling of steps 2 and 3
+(a flat acceptance times the post-selection mixture) reproduces exactly the
+rate and the response distribution of the accepted sample, which is what an
+image-level simulation consumes; in reality the selection keeps core events
+preferentially, a distinction that matters only for studies following one
+event across scenarios. And the coordinates are smeared independently, while
+a genuine tail event displaces all three toward the second Compton site; for
+exact three-dimensional tail correlations, the alternative is to sample
+residual vectors directly from the per-event dataframes
+(\code{test\_events.h5}), which contain every test event's true and
+reconstructed positions.
+
+%=====================================================================
 \section{Outlook}
 
 The reconstruction programme has reached a self-consistent state: an
