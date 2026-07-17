@@ -79,14 +79,23 @@ the FULL crystal. Phase 1 Compton (realistic 511 +- 2 sigma window on smeared
 energy, FWHM 6%/10%, configs cnn_*_win.toml): global p68 = 2.0/2.0/2.1 mm CsI(Tl)
 (26.8% of events beyond 5 mm), 1.1/1.1/1.3 mm BGO (9.7%); photo class survives
 the mixture nearly intact; tail = soft-recoil Compton (first site outshone by
-the second). All results in analysis/results/cnn; note updated. Next candidates:
-phase 2 = six-output two-site regression (x1..z2, coincident-target convention
-for single-site; min-over-orderings loss as fallback; predicted separation =
-observable quality flag); two-channel input (tmin matrix) for timing-aided
-reconstruction;
-response layer (intrinsic resolution ~5.3% FWHM + SiPM excess noise) for
-realistic spectra; per-event time histograms; Brose phase-2 frustum; cold-CsI
-gamma runs.
+the second). Phase 2 COMPLETE and in the note: ordering study (containment
+enriches backscatter, P(z1<z2)=0.60/0.66, deterministic step at 255.5 keV in E1;
+analysis/order_study.py); two-site regressions (plain + (r,delta) loss) all equal
+phase 1 => the 27%/10% tails are the INFORMATION LIMIT of the integrated 8x8 map
+(timing evaluated and set aside: tau ~ 1 us drowns the sub-ns geometric signal);
+two-Gaussian response (fit_residuals.py): core 1.1-1.2 mm CsI(Tl) / 0.8-1.0 mm
+BGO carrying 58-82%; reconstructability classifier (train_classifier.py, label =
+'reco': positive = phase-1 error >= 5 mm) AUC ~0.80 both crystals, acceptance
+dial: tail 26.8->10.8% CsI / 9.7->2.8% BGO at 50%; frozen-shape amplitude fits
+(selection_fits.py): A2/A1 in z 0.49->0.04 CsI, 0.22->0.04 BGO at constant core
+width; selection removes tail 18x faster than core. Per-run per-event dataframes
+test_events.h5 (dataset.load_test_events) make all such studies ~0.5 s pandas.
+All results in analysis/results/cnn (+ order_study); note updated. Next
+candidates: geometric barycenter label (needs 2 truth columns in events.h5 +
+500k reruns); 16x16 granularity study; response layer (intrinsic resolution
+~5.3% FWHM + SiPM excess noise) for realistic spectra; coincidence-level
+studies; Brose phase-2 frustum; cold-CsI gamma runs.
 
 ## Layout (PTCryspMC conventions)
 
