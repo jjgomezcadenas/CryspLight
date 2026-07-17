@@ -48,8 +48,11 @@ sufficient to resume work without prior context:
    pipeline, first physics for CsI(Tl) and BGO with analytic cross-checks, and the
    per-event truth / CNN-dataset layer (format, encodings, first light-map figures).
 5. `crysplight_cnn.tex` — **reconstruction**: CryspNet architecture (pedagogical),
-   exact D4 augmentation, Anger/MLP baselines, millimetric (x,y,z) results for both
-   crystals; figures pulled via graphicspath from analysis/results/cnn.
+   exact D4 augmentation, Anger/MLP baselines, idealized + realistic-window results,
+   two-Gaussian response model, the ordering theorem (backscatter enrichment, the
+   255.5 keV step), two-site studies and the information limit of the 8×8 map, the
+   reconstructability classifier and the acceptance dial (A2/A1 0.5→0.04 in z);
+   figures via graphicspath from analysis/results.
 
 ## Status (2026-07-15) and next steps
 

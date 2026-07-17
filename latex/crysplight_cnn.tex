@@ -8,7 +8,7 @@
 \usepackage[margin=2.5cm]{geometry}
 \usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
 
-\graphicspath{{../analysis/results/cnn/}}
+\graphicspath{{../analysis/results/cnn/}{../analysis/results/}}
 
 \newcommand{\code}[1]{\texttt{#1}}
 \newcommand{\csitl}{CsI(Tl)}
@@ -42,9 +42,19 @@ one available to a real experiment --- an energy window of $\pm2\sigma$ around
 511~keV at realistic energy resolution (FWHM 6\% for \csitl{}, 10\% for BGO)
 --- so that Compton topologies enter the sample; the global resolution on that
 mixture is $2.0/2.0/2.1$~mm (68\% quantile, $x/y/z$) with 27\% of events
-beyond 5~mm for \csitl{}, and $1.1/1.1/1.3$~mm with 10\% beyond 5~mm for BGO.
-The tail is identified with the soft-recoil Compton population, motivating a
-two-site reconstruction as the next step.
+beyond 5~mm for \csitl{}, and $1.1/1.1/1.3$~mm with 10\% beyond 5~mm for BGO,
+described compactly by a two-Gaussian response: a $1.1$--$1.2$~mm
+(\csitl{}) / $0.8$--$1.0$~mm (BGO) core carrying $58$--$82\%$ of the events
+over a tail $3$--$4$ times wider. Two-site reconstruction studies --- built on
+a measured ordering theorem (containment enriches backscatter; depth ordering
+is a step function of the recoil energy at $m_ec^2/2$) --- converge across
+three loss formulations to the same accuracy, establishing the numbers above
+as the information limit of the time-integrated $8\times8$ map. That limit is
+then turned into an asset: a classifier trained on \emph{reconstructability}
+labels (AUC $\simeq 0.80$ for both crystals) provides a continuous
+statistics-versus-tail dial which removes tail events eighteen times faster
+than core events, tuning the depth tail-to-core amplitude ratio from
+$\sim$$0.5$ to $\sim$$0.04$ at constant core width.
 \end{abstract}
 
 \tableofcontents
@@ -523,36 +533,368 @@ network distinguishes the topologies internally. Second, the tail is physics:
 it is populated by Compton events whose first scatter deposits little energy,
 so that the light map is dominated by the second site, centimetres away. For
 that population a three-output network can only interpolate between the sites.
-The remedy is expressiveness rather than capacity --- a network that predicts
-\emph{both} interaction points, the subject of the next phase; its predicted
-two-site separation will also provide an \emph{observable} event-quality flag,
-turning the resolution--acceptance trade-off into an experimental choice. The
+A natural hypothesis is that expressiveness rather than capacity is the
+remedy --- a network that predicts \emph{both} interaction points ---
+and that its predicted two-site separation would provide an \emph{observable}
+event-quality flag; both ideas are explored quantitatively in
+Sections~\ref{sec:twosite} and~\ref{sec:selection}. The
 reference perceptron, trained once more for this comparison, trails the
 network by $16$--$19\%$ globally and doubles its single-site tail; with the
 convolutional advantage confirmed on the harder problem, subsequent studies
 train the network alone.
 
 %=====================================================================
+\section{The two-Gaussian description of the response}
+\label{sec:twogauss}
+
+The residual distributions of Section~\ref{sec:window} superpose two
+populations with different physics --- the well-reconstructed events and the
+multi-site mis-pointing tail --- and a transparent description fits each
+coordinate with the sum of two Gaussian components sharing a mean,
+\begin{equation}
+  \frac{dN}{dr} \;=\; \frac{A_1}{\sqrt{2\pi}\,\sigma_1}
+  \, e^{-(r-\mu)^2/2\sigma_1^2}
+  \;+\; \frac{A_2}{\sqrt{2\pi}\,\sigma_2}\, e^{-(r-\mu)^2/2\sigma_2^2},
+\end{equation}
+with $A_1, A_2$ the event counts of the core and the tail. The fits
+(Figure~\ref{fig:twogauss}, Table~\ref{tab:twogauss}; script
+\code{analysis/cnn/fit\_residuals.py}) yield a compact statement of the
+response: \textbf{a core of $\sigma_1 = 1.1$--$1.2$~mm in \csitl{} and
+$0.8$--$1.0$~mm in BGO, carrying $58$--$82\%$ of the photopeak events,
+over a tail component $3$--$4$ times wider}.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{lccccccccc}
+  \toprule
+  & \multicolumn{3}{c}{$\sigma_1$ [mm]} & \multicolumn{3}{c}{core fraction} &
+  \multicolumn{3}{c}{$\sigma_2$ [mm]} \\
+  \cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}
+  crystal & $x$ & $y$ & $z$ & $x$ & $y$ & $z$ & $x$ & $y$ & $z$ \\
+  \midrule
+  \csitl{} & 1.12 & 1.14 & 1.20 & 0.58 & 0.59 & 0.67 & 4.13 & 4.18 & 4.37 \\
+  BGO      & 0.80 & 0.82 & 0.96 & 0.72 & 0.74 & 0.82 & 2.50 & 2.59 & 2.59 \\
+  \bottomrule
+\end{tabular}
+\caption{Two-Gaussian description of the first-site residuals on the full
+window samples (no selection): core width, core fraction
+$A_1/(A_1{+}A_2)$, and tail width. Full parameters, including amplitudes and
+peak heights, in \code{analysis/results/cnn/*/residual\_fit.json}.}
+\label{tab:twogauss}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{cnn_csitl_win/residual_fit.png}
+  \caption{\csitl{}: residual distributions with the two-Gaussian fits (solid),
+  core (dashed) and tail (dotted) components, per coordinate.}
+  \label{fig:twogauss}
+\end{figure}
+
+The decomposition closes a consistency loop. The core widths reproduce the
+idealized photoelectric resolution of Section~\ref{sec:results} --- the narrow
+component \emph{is} the intrinsic single-site response, unchanged by the
+realistic mixture. The core fractions exceed the photoelectric shares (58\%
+against 34\% in \csitl{}) by exactly the population of close Compton pairs,
+whose compromise point is an excellent position estimate. And the tail widths
+match the median site separations measured in Section~\ref{sec:order}. One
+refinement the symmetric model smooths over: the depth residual carries a
+slight positive skew --- predictions pulled toward the deeper second site ---
+whose origin the next section makes quantitative.
+
+Studies of this kind are interactive-speed operations: every training stores a
+per-event dataframe of its test split (\code{test\_events.h5}: truth,
+predictions of every estimator, and the \code{events.h5} row as a join key),
+so the fits, the selections of Section~\ref{sec:selection}, and any future
+cross-study require pandas operations on files already on disk --- the
+complete amplitude analysis of Table~\ref{tab:ampsel} runs in half a second.
+
+%=====================================================================
+\section{Towards a two-site reconstruction}
+\label{sec:twosite}
+
+The tail invites an explicit two-point prediction: if the network reported
+\emph{both} interaction sites, the soft-recoil events would gain the
+vocabulary the single-point regression lacks. A two-point output first needs
+an ordering convention for its slots, and that question turns out to hold
+interesting physics of its own.
+
+\subsection{Which site comes first?}
+\label{sec:order}
+
+A natural hypothesis is that the first interaction is the one closer to the
+entry face ($z_1 < z_2$), since Compton scattering at 511~keV is
+forward-peaked. The measurement (script \code{analysis/order\_study.py},
+results in \code{analysis/results/order\_study/};
+Figure~\ref{fig:order}) refines this substantially:
+
+\begin{itemize}
+  \item \textbf{Raw depth ordering is weak}: $P(z_1 < z_2) = 0.603$ in
+    \csitl{} and $0.657$ in BGO over the multi-site window events, and a coin
+    flip ($0.488$) for the \csitl{} C1 class. The explanation is a selection
+    effect: \emph{containment enriches backscatter}. A forward-scattered
+    photon flies into the little crystal remaining ahead and often escapes; a
+    backscattered photon, soft and photoabsorption-hungry, is absorbed in the
+    bulk it re-crosses. The contained C1 sample therefore piles up at
+    backscatter kinematics --- already visible as the 180~keV peak of the
+    $E_2$ spectrum in the end-to-end note's control plots.
+  \item \textbf{Ordering is deterministic in the energy split}. A first
+    scatter goes forward exactly when the recoil takes less than
+    $E_0^2/(E_0 + m_ec^2) = m_ec^2/2 = 255.5$~keV; the measured
+    $P(z_1 < z_2)$ versus $E_1$ is a step function at precisely that value
+    (Figure~\ref{fig:order}, top right). Since a contained C1 event has
+    $E_1 + E_2 = 511$~keV, the energy split determines the order completely
+    --- a resource for any future estimator that predicts the energy sharing.
+  \item \textbf{Misordering is cheap}. The misordered pairs are the close
+    ones (median separation 3.5~mm in \csitl{}, 1.3~mm in BGO, against 7.0
+    and 3.6~mm for the ordered pairs): where the depth rule errs, the two
+    sites nearly coincide. Events both misordered and separated by more than
+    5~mm are $14.6\%$ ({\csitl}) and $2.7\%$ (BGO) of the multi-site sample.
+  \item \textbf{The tail points at the second site}: running the phase-1
+    network over its test split, $75\%$ (\csitl{}) and $89\%$ (BGO) of the
+    tail predictions lie closer to the second interaction than to the first
+    --- confirming the mis-pointing anatomy quantitatively.
+\end{itemize}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{order_study/cnn_csitl_win_order.png}
+  \caption{\csitl{} ordering study on multi-site window events: depth
+  ordering (top left), its exact dependence on the recoil energy with the
+  step at $m_ec^2/2$ (top right), ordering probability versus site
+  separation (bottom left), and the separation distributions of ordered and
+  misordered pairs (bottom right).}
+  \label{fig:order}
+\end{figure}
+
+The convention follows: the two-site targets are \emph{depth-ordered} ---
+slot one the shallower site, slot two the deeper, both coincident for
+single-deposit events, so that ``single site'' is expressed smoothly as ``the
+two points coincide''. Depth ordering is a deterministic function of the
+geometry, which the light map demonstrably encodes, and the symmetry
+augmentation preserves it exactly.
+
+\subsection{Depth-ordered six-output regression}
+
+The network of Section~\ref{sec:net}, with the head widened to six outputs,
+was trained on the window samples under this convention, in two loss
+formulations: the plain Huber loss on the six coordinates, and a
+reparametrization predicting $(\mathbf{r}_{\rm shallow}, \boldsymbol{\Delta})$
+with the deep site reconstructed as
+$\mathbf{r}_{\rm shallow} + \boldsymbol{\Delta}$, the depth component of
+$\boldsymbol{\Delta}$ non-negative by construction, and a dedicated,
+double-weighted Huber term on the separation vector --- a loss geometry
+designed to make pair collapse expensive. The results
+(\code{analysis/results/cnn/cnn\_\{csitl,bgo\}\_2site\{,\_delta\}/}) are
+remarkably consistent:
+
+\begin{itemize}
+  \item The first-site accuracy \emph{equals} the three-output baseline in
+    every variant and both crystals (e.g.\ \csitl{} tails of $27.3\%$,
+    $27.6\%$ and $26.8\%$ across the three formulations) --- six outputs cost
+    nothing and gain nothing for the first site.
+  \item The predicted pair opens only where the physics leaves room. In BGO
+    (median true separations $1.3$--$3.6$~mm) the two predicted points
+    essentially coincide for all classes. In \csitl{} (median $7$~mm for
+    ordered pairs) the predicted separations order with the true topology ---
+    medians $1.0/1.4/2.1$~mm for photo/C1/C2$+$ --- and above 5~mm the
+    Compton classes exceed the photoelectric class by an order of magnitude
+    (Figure~\ref{fig:sep}).
+  \item The deep slot is located distinctly better than the shallow one
+    (\csitl{} multi-site: $17.5\%$ against $25.6\%$ beyond 5~mm), with a
+    clean kinematic reason: \emph{the deep site is almost always the bright
+    one}. In a forward event the deep second site absorbs the scattered
+    photon ($E \ge 255$~keV); in a backscatter event the deep site is the
+    first, carrying the dominant recoil. The faint shallow companion is
+    precisely where predictions hedge.
+\end{itemize}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.62\textwidth]{cnn_csitl_2site/separation_by_type.png}
+  \caption{\csitl{}: predicted two-site separation by true interaction type.
+  The medians order with the topology and the Compton classes dominate above
+  5~mm; the bulk of the close pairs is predicted coincident.}
+  \label{fig:sep}
+\end{figure}
+
+\subsection{What the integrated light map determines}
+\label{sec:infolimit}
+
+Three loss formulations of increasing directness --- single-point regression,
+six-output slots, and the reparametrized separation loss --- land on
+statistically identical first-site accuracy and the same partial pair
+opening. The convergence is the finding: \textbf{the time-integrated
+$8\times8$ light map determines the first-interaction position to the
+accuracy of Table~\ref{tab:window}, and resolves the two-site structure
+exactly where it is energetic and wide}. For the close, soft pairs the second
+site contributes a few-percent perturbation spread by reflections across the
+map (a 30~keV recoil yields $\sim$600 photoelectrons against $\sim$9\,200
+from the bright site), below the shot noise for most geometries; a regression
+returns the conditional expectation given the map, and the near-coincident
+prediction is the optimal answer wherever the structure is invisible. The
+numbers of Table~\ref{tab:window} thus have the status of a measured
+information limit of this readout --- a property of the detector, which the
+next section turns into an asset. (The first-photoelectron time matrix was
+evaluated as a possible second input channel and set aside on physics
+grounds: with scintillation times of $\sim$1~$\mu$s, per-pixel first-arrival
+fluctuations exceed the sub-nanosecond geometric signal by three orders of
+magnitude, and the informative part of the timing reduces to a noisy copy of
+the light map.)
+
+%=====================================================================
+\section{Selecting reconstructable events}
+\label{sec:selection}
+
+An experiment cannot separate photoelectric from Compton events by truth, but
+it can ask a subtler and more useful question: \emph{which events should be
+trusted}? This section builds that selection and measures what it buys.
+
+\subsection{From topology to reconstructability}
+
+A first classifier (the network of Section~\ref{sec:net} with a single
+sigmoid output) was trained to tag the multi-site truth. Its performance ---
+AUC $0.719$ in \csitl{} and $0.640$ in BGO --- coincides to three digits with
+that of the two-site separation flag, a fourth manifestation of the
+information limit: every estimator extracts the same topology knowledge,
+because close pairs present maps genuinely identical to single-site events.
+
+The decisive step is to relabel by \emph{usefulness}. The events a topology
+label forces the classifier to reject include the close pairs --- invisible,
+and harmless, since their compromise point is an excellent position estimate.
+Defining the positive class instead as ``badly reconstructed'' (the phase-1
+network's error exceeding 5~mm; labels computed by running the saved
+checkpoint over the full sample, with the train-label bias checked at the
+percent level) aligns the label with what the light map actually encodes.
+The learnability jumps accordingly: \textbf{AUC $0.796$ in \csitl{} and
+$0.793$ in BGO} --- BGO, nearly hopeless under topology labels, becomes as
+classifiable as \csitl{}, because the unlearnable events moved out of the
+reject class. The classifier now also outperforms the separation flag: part
+of the ``badness'' it finds lies beyond topology, in single-site events at
+unfavourable edge geometries.
+
+\subsection{The acceptance dial}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{cnn_csitl_rcls/classification.png}
+  \caption{\csitl{} reconstructability classification: score distributions by
+  true interaction type (left), ROC against the two-site separation flag
+  (centre), and the operational curve (right): tail fraction and
+  well-reconstructed purity of the accepted sample versus global acceptance.}
+  \label{fig:rcls}
+\end{figure}
+
+Cutting on the classifier score yields a continuously tunable trade-off
+between statistics and tail contamination
+(Figure~\ref{fig:rcls}; sweeps in
+\code{analysis/results/cnn/cnn\_*\_rcls/metrics.json}). Selected working
+points, quoting the fraction of accepted events reconstructed beyond 5~mm:
+
+\begin{center}
+\begin{tabular}{lcccc}
+  \toprule
+  acceptance & 100\% & 80\% & 60\% & 50\% \\
+  \midrule
+  \csitl{} tail & 26.8\% & 17.1\% & 12.6\% & 10.8\% \\
+  BGO tail      & 9.7\%  & 5.6\%  & 3.7\%  & 2.8\% \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+At tight acceptance BGO reaches a regime of practical interest: keeping the
+18\% most trusted events leaves a sample with a $0.2\%$ tail and unit purity
+--- a selectable event class with a pure millimetric Gaussian response. For
+coincidence applications the selection compounds: requiring both 511~keV
+photons to pass at $50\%$ acceptance costs a factor four in rate while
+suppressing tail-affected coincidences by an order of magnitude.
+
+\subsection{Response amplitudes under selection}
+
+The descriptive closure combines both threads: the two-Gaussian model of
+Section~\ref{sec:twogauss} refitted on the selected samples. Free fits on
+tail-depleted distributions re-partition (the tail component migrates inward
+and absorbs the core's shoulder), so the meaningful comparison freezes the
+component shapes $(\mu, \sigma_1, \sigma_2)$ to their no-selection values and
+floats only the amplitudes (script \code{analysis/cnn/selection\_fits.py};
+Figure~\ref{fig:ampsel}, full table in
+\code{analysis/results/cnn/selection\_fits/}):
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{lcccccccc}
+  \toprule
+  & \multicolumn{4}{c}{\csitl{} \quad $A_2/A_1$} &
+    \multicolumn{4}{c}{BGO \quad $A_2/A_1$} \\
+  \cmidrule(lr){2-5}\cmidrule(lr){6-9}
+  acceptance & 100\% & 80\% & 60\% & 50\% & 100\% & 80\% & 60\% & 50\% \\
+  \midrule
+  $x$ & 0.71 & 0.37 & 0.22 & 0.18 & 0.40 & 0.24 & 0.18 & 0.16 \\
+  $y$ & 0.69 & 0.35 & 0.21 & 0.16 & 0.36 & 0.21 & 0.16 & 0.13 \\
+  $z$ & 0.49 & 0.11 & 0.05 & 0.04 & 0.22 & 0.04 & 0.04 & 0.04 \\
+  \bottomrule
+\end{tabular}
+\caption{Tail-to-core amplitude ratio $A_2/A_1$ versus acceptance of the
+reconstructability selection, component shapes frozen to the no-selection
+fits ($\sigma_1$ and $\sigma_2$ of Table~\ref{tab:twogauss}).}
+\label{tab:ampsel}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{selection_fits/selection_fits.png}
+  \caption{First-site residuals (steps) and two-Gaussian fits (dashed) at the
+  four acceptances, per crystal and coordinate.}
+  \label{fig:ampsel}
+\end{figure}
+
+Two statements summarize the table. \textbf{The selection removes tail, not
+core}: at $80\%$ acceptance the \csitl{} depth-core count is fully preserved
+($23\,320$ fitted core events against $22\,812$ unselected) --- the entire
+rejected quintile comes out of the tail component --- and even at $50\%$
+acceptance the classifier discards tail events eighteen times faster than
+core events. And \textbf{the largest gain lands in depth}, the coordinate of
+the DOI programme: a twelvefold tail suppression in \csitl{} at half
+acceptance, while BGO reaches its floor already at $80\%$ acceptance ---
+$20\%$ of statistics buys essentially all the achievable suppression. The
+quotable form of the campaign: \csitl{} responds with a $1.1$--$1.2$~mm core
+and BGO with $0.8$--$1.0$~mm, and the reconstructability selection tunes the
+depth tail-to-core ratio from $\sim$$0.5$ to $\sim$$0.04$ at constant core
+width.
+
+%=====================================================================
 \section{Outlook}
 
-The idealized baseline is established. The extensions, in the order the
-physics suggests them:
+The reconstruction programme has reached a self-consistent state: an
+idealized ceiling, a realistic global resolution with its two-Gaussian
+description, a measured information limit, and a selection that trades
+statistics for tail suppression at known exchange rates. The extensions, in
+the order the physics suggests them:
 
 \begin{enumerate}
-  \item \textbf{Two-site reconstruction.} A six-output network predicting both
-    interaction points of the window sample, with the second target set
-    coincident with the first for single-site events, addresses the Compton
-    tail of Section~\ref{sec:window} directly; the predicted site separation
-    doubles as an observable single-site discriminator.
-  \item \textbf{Timing as a second channel.} The $8\times8$ matrix of
-    first-photoelectron arrival times is recorded alongside the light map; the
-    architecture accepts it as a second input channel by changing one number.
+  \item \textbf{The geometric reconstructability label.} The selection of
+    Section~\ref{sec:selection} labels events by the network's own error; the
+    detector-independent formulation labels them by the distance between the
+    energy barycenter of the significant deposits and the main site. Making
+    it exact for all topologies requires two additional truth columns
+    (barycenter and spread over \emph{all} deposits) in \code{events.h5} and
+    a rerun of the 500k campaigns --- a natural cross-check expected to land
+    within a percent of the operational label.
+  \item \textbf{Readout granularity.} The information limit of
+    Section~\ref{sec:infolimit} is a property of the $8\times8$, 6~mm-pitch
+    readout; a $16\times16$ simulation would measure how much of the close-pair
+    structure finer sampling recovers --- a detector-design question the
+    simulation chain can answer directly.
   \item \textbf{The response layer.} Intrinsic resolution and SiPM excess
     noise, applied as a post-processing smear, connect these results to
     measurable spectra.
   \item \textbf{Transverse-position diagnostics.} Resolution as a function of
-    the distance to the crystal edge quantifies the boundary behaviour and
-    guides possible readout optimizations.
+    the distance to the crystal edge quantifies the boundary behaviour ---
+    the reconstructability classifier already hints that edge geometries
+    carry part of the single-site tail.
+  \item \textbf{Coincidence-level studies.} The selection compounds across
+    the two 511~keV photons; line-of-response quality versus rate is the
+    natural system-level figure of merit.
 \end{enumerate}
 
 All results in this note regenerate from tracked configurations: the
