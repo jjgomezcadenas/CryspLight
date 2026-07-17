@@ -17,6 +17,9 @@ with **bold** and write paths, filenames, config keys, and code identifiers as p
 with a throwaway inline/ad-hoc command. The script and the generated image are both committed, so
 any figure regenerates from the repo.
 
+**Results: always state where they live.** When reporting any result, give the paths —
+figures, metrics, dataframes, configs — so JJ can open them directly.
+
 **Papers: don't read PDFs directly — they are heavy on context (each page is an image). Ask JJ
 first: he can usually provide a .txt of the paper. Only fall back to reading the PDF (few, targeted
 pages) if no text version is available.**
