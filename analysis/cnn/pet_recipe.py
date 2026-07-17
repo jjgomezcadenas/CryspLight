@@ -29,6 +29,13 @@ def main():
     recipe = {"model": "delta ~ f_core*N(0,sigma1) + (1-f_core)*N(0,sigma2), "
                        "per coordinate, mm",
               "acceptance_is_per_single_photon_efficiency": True,
+              "efficiency_ladder_per_shot_gamma": {
+                  "CsI(Tl)": {"interacts": 0.781,
+                              "full_energy_given_interacting": 0.653,
+                              "window_given_full_energy": 0.954},
+                  "BGO": {"interacts": 0.868,
+                          "full_energy_given_interacting": 0.870,
+                          "window_given_full_energy": 0.954}},
               "source": "CryspLight window samples; shapes frozen to the "
                         "no-selection two-Gaussian fits",
               "scanners": {}}
