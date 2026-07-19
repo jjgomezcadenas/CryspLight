@@ -152,6 +152,29 @@ def main():
     idx = rng.permutation(n)
     n_tr, n_va = int(0.7 * n), int(0.15 * n)
     tr, va, te = idx[:n_tr], idx[n_tr:n_tr + n_va], idx[n_tr + n_va:]
+
+    gate = selcfg.get("gate")
+    if gate:   # two-stage pipeline: train/evaluate on classifier-accepted events
+        acc = selcfg.get("gate_acceptance", 0.6)
+        s_full = (np.log(npe[tr]).mean(), np.log(npe[tr]).std())
+        mg, sg, _ = make_tensors(maps, npe, xyz, size, s_full)
+        gnet = CryspNet(n_out=1)
+        gnet.load_state_dict(torch.load(
+            HERE.parent / "results" / "cnn" / gate / "cnn_best.pt",
+            map_location="cpu"))
+        gnet.eval()
+        scs = []
+        with torch.no_grad():
+            for k in range(0, len(mg), 4096):
+                scs.append(torch.sigmoid(gnet(mg[k:k + 4096], sg[k:k + 4096])))
+        score = torch.cat(scs).numpy().ravel()
+        keep = score <= np.quantile(score, acc)
+        # gate applied AFTER the split: the gated test set is a subset of the
+        # ungated run's test set, enabling event-matched comparisons
+        tr, va, te = tr[keep[tr]], va[keep[va]], te[keep[te]]
+        print(f"[{tag}] gate {gate} at {acc:.0%} acceptance: "
+              f"kept {int(keep.sum())} of {n}", flush=True)
+
     m_tr, p_tr, x_tr = d4_expand(maps[tr], npe[tr], targ[tr], w_mm=size[0])
     s_stats = (np.log(p_tr).mean(), np.log(p_tr).std())
     comp = {f"C{k}" if k else "photo": int(c)

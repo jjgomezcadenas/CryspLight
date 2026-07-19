@@ -1,0 +1,23 @@
+# Two-stage pipeline test: the phase-1 regressor retrained on the 60% most
+# photo-like events (reconstructability-classifier gate). The gate is applied
+# AFTER the train/val/test split, so the gated test set is a subset of
+# cnn_csitl_win's test set -- event-matched comparison by row key.
+[data]
+events = "output/gammas_csitl_500k/events.h5"
+size_mm = [48.0, 48.0, 37.2]
+
+[selection]
+mode = "window"
+fwhm = 0.06
+nsigma = 2.0
+smear_seed = 2026
+gate = "cnn_csitl_rcls"
+gate_acceptance = 0.6
+
+[train]
+epochs = 15
+batch = 512
+lr = 1e-3
+weight_decay = 1e-4
+seed = 42
+train_mlp = false
