@@ -138,6 +138,13 @@ studies; Brose phase-2 frustum; cold-CsI gamma runs.
   for every step of the simulation chain; `latex/` — the notes; `papers/` — reference
   papers (PDF + txt; read the txt, not the PDF).
 
+Supported platform: Apple Silicon macOS, Julia 1.11 or newer (the committed manifest
+was generated with Julia 1.12.6). Metal is a required package dependency; simulations
+fall back to the KernelAbstractions CPU backend when Metal is not functional. The
+Python analysis requires Python 3.11 or newer and the exact packages in
+analysis/requirements.txt. Public setup and quick-start instructions are in README.md.
+
+Instantiate: `julia --project=. -e 'using Pkg; Pkg.instantiate()'`
 Run: `julia --project=. --threads=auto scripts/run_point_source.jl runs/<cfg>.toml`
 Test: `julia --project=. --threads=8 -e 'using Pkg; Pkg.test()'`
 

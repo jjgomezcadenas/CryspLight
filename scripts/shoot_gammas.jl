@@ -26,11 +26,12 @@ for cfgpath in (isempty(ARGS) ? ["runs/gammas_csitl.toml", "runs/gammas_bgo.toml
     wrap = load_material(cfg["wrap"]["material"])
     sipm = load_material(cfg["sipm"]["material"])
     surf = cfg["surface"]
+    finish = get(surf, "finish", "backpainted")
     op = OpticalParams(Float32(mat["n"]), Float32(cfg["sipm"]["coupling_n"]),
                        Float32(mat["abs_length_mm"]),
                        Float32(get(mat, "rayleigh_mm", Inf)),
                        Float32(wrap["reflectivity"]), wrap["model"] == "specular",
-                       get(surf, "finish", "backpainted") == "backpainted",
+                       surface_has_gap(finish),
                        Float32(deg2rad(surf["sigma_alpha_deg"])),
                        Float32(get(cfg["sipm"], "pde_override", sipm["pde"])))
     grid = SipmGrid(Float32(sipm["pitch_mm"]), Int32(sipm["nx"]), Int32(sipm["ny"]))

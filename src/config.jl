@@ -18,6 +18,12 @@ struct RunSetup
     cfg_path::String
 end
 
+"Validate a configured surface finish and return true for an air-gap back-painted wrap."
+function surface_has_gap(finish::AbstractString)::Bool
+    finish in ("backpainted", "frontpainted") || error("unknown finish: $finish")
+    return finish == "backpainted"
+end
+
 function load_setup(cfg_path::AbstractString)
     cfg = TOML.parsefile(cfg_path)
     run = cfg["run"]
@@ -33,14 +39,13 @@ function load_setup(cfg_path::AbstractString)
     pde = Float32(get(cfg["sipm"], "pde_override", sipm["pde"]))
     surf = get(cfg, "surface", Dict{String,Any}())
     finish = get(surf, "finish", "backpainted")
-    finish in ("backpainted", "frontpainted") || error("unknown finish: $finish")
     op = OpticalParams(Float32(crystal["n"]),
                        Float32(cfg["sipm"]["coupling_n"]),
                        Float32(crystal["abs_length_mm"]),
                        Float32(get(crystal, "rayleigh_mm", Inf)),
                        Float32(wrap["reflectivity"]),
                        wrap["model"] == "specular",
-                       finish == "backpainted",
+                       surface_has_gap(finish),
                        Float32(deg2rad(get(surf, "sigma_alpha_deg", 0.0))),
                        pde)
 

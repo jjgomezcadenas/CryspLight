@@ -8,6 +8,12 @@ using CryspLight: face_axis, specular, emission_time
 const GRID = SipmGrid(6f0, Int32(8), Int32(8))
 const TB = TimeBinning(100f0, Int32(40))
 
+@testset "Configuration validation" begin
+    @test surface_has_gap("backpainted")
+    @test !surface_has_gap("frontpainted")
+    @test_throws ErrorException surface_has_gap("back-painted")
+end
+
 "Idealized params: no bulk absorption or scattering, perfect wrap, air gap, PDE = 1."
 ideal(n_crystal; wrap_R = 1f0, spec = false, abs_len = Inf32, ray = Inf32, gap = true,
       sigma = 0f0, pde = 1f0) =

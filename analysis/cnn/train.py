@@ -154,6 +154,7 @@ def main():
     tr, va, te = idx[:n_tr], idx[n_tr:n_tr + n_va], idx[n_tr + n_va:]
 
     gate = selcfg.get("gate")
+    gate_threshold = None
     if gate:   # two-stage pipeline: train/evaluate on classifier-accepted events
         acc = selcfg.get("gate_acceptance", 0.6)
         s_full = (np.log(npe[tr]).mean(), np.log(npe[tr]).std())
@@ -168,19 +169,23 @@ def main():
             for k in range(0, len(mg), 4096):
                 scs.append(torch.sigmoid(gnet(mg[k:k + 4096], sg[k:k + 4096])))
         score = torch.cat(scs).numpy().ravel()
-        keep = score <= np.quantile(score, acc)
+        # Fix the operating point using training data only. Validation and test
+        # scores must not influence the reported acceptance or reconstruction.
+        gate_threshold = np.quantile(score[tr], acc)
+        keep = score <= gate_threshold
         # gate applied AFTER the split: the gated test set is a subset of the
         # ungated run's test set, enabling event-matched comparisons
         tr, va, te = tr[keep[tr]], va[keep[va]], te[keep[te]]
-        print(f"[{tag}] gate {gate} at {acc:.0%} acceptance: "
-              f"kept {int(keep.sum())} of {n}", flush=True)
+        print(f"[{tag}] gate {gate} at {acc:.0%} training acceptance "
+              f"(threshold {gate_threshold:.6g}): kept "
+              f"{len(tr)}/{len(va)}/{len(te)} train/val/test", flush=True)
 
     m_tr, p_tr, x_tr = d4_expand(maps[tr], npe[tr], targ[tr], w_mm=size[0])
     s_stats = (np.log(p_tr).mean(), np.log(p_tr).std())
     comp = {f"C{k}" if k else "photo": int(c)
             for k, c in zip(*np.unique(itype, return_counts=True))}
     print(f"[{tag}] {n} events ({selcfg['mode']} selection, {comp}): "
-          f"train {n_tr} (x8 D4 = {len(p_tr)}), val {n_va}, test {len(te)}; "
+          f"train {len(tr)} (x8 D4 = {len(p_tr)}), val {len(va)}, test {len(te)}; "
           f"device {device.type}", flush=True)
 
     def loader(m, p, x, shuffle):
@@ -235,6 +240,8 @@ def main():
                "events": {"selected": n, "test": len(te),
                           "composition": comp},
                "epochs": epochs, "train_seconds": round(time.time() - t0, 1)}
+    if gate_threshold is not None:
+        metrics["gate_threshold_from_train"] = float(gate_threshold)
 
     def summarize(res):
         d3 = np.sqrt((res**2).sum(axis=1))

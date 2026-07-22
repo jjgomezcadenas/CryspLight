@@ -1,0 +1,389 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue]{hyperref}
+
+\graphicspath{{../analysis/results/cnn/}}
+
+\newcommand{\code}[1]{\nolinkurl{#1}}
+\newcommand{\csitl}{CsI(Tl)}
+\setlength{\emergencystretch}{2em}
+
+\title{How to reproduce the CryspLight CNN spatial-resolution study\\
+\large Direct three-dimensional regression and reconstructability selection
+in \csitl{} and BGO}
+\author{J.J.~G\'omez-Cadenas}
+\date{July 22, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note is an operational guide to the CNN spatial-resolution analysis already
+completed in CryspLight. It records the dependency order, commands,
+configurations, selections and outputs needed to reproduce two results for both
+\csitl{} and BGO: direct regression of the first-interaction position
+$(x,y,z)$, and the same response after retaining the 80\% of events judged most
+reconstructable by a learned classifier. It does not prescribe regenerating
+existing data or models: every stage begins with the artifact that can be
+reused. The classifier used in the published result is the
+\emph{reconstructability classifier}, not the exploratory single-site versus
+multi-site topology classifier.
+\end{abstract}
+
+\tableofcontents
+
+%=====================================================================
+\section{What is being reproduced}
+
+The input to every estimator is the time-integrated $8\times8$ SiPM
+photoelectron map plus the logarithm of the total number of photoelectrons. The
+target is the true position of the first gamma interaction in the crystal. The
+two crystals and realistic photopeak selections are
+
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+crystal & dimensions [mm$^3$] & energy FWHM at 511 keV & window \\
+\midrule
+\csitl{} & $48\times48\times37.2$ & 6\%  & $511\pm2\sigma$ keV \\
+BGO      & $48\times48\times22.4$ & 10\% & $511\pm2\sigma$ keV \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Two cases are measured on held-out test events:
+
+\begin{enumerate}
+  \item \textbf{Direct regression.} CryspNet maps each selected event directly
+  to $(x,y,z)$. The realistic energy window contains direct photoelectric and
+  multi-interaction Compton events.
+  \item \textbf{Regression after classification at 80\% acceptance.} A second
+  CryspNet assigns an event-quality score. The positive training label is
+  ``the direct regressor misses the first interaction by at least 5 mm in
+  three dimensions.'' Keeping the lowest-scoring 80\% produces the selected
+  response. The direct regressor is not retrained for this published result;
+  the classifier is an event-selection layer in front of its test predictions.
+\end{enumerate}
+
+The directory also contains classifiers named \code{cnn\_*\_cls}. They predict
+truth topology, with \code{n\_int >= 2} labelled multi-site. Those classifiers
+were an exploratory comparison and are \emph{not} used for the 80\% resolution
+reported here. The production classifiers are \code{cnn\_*\_rcls}, where
+\code{rcls} means reconstructability classification.
+
+%=====================================================================
+\section{Environment and artifact inventory}
+
+Run commands from the repository root. The supported setup is Apple Silicon
+macOS with Julia 1.11 or newer and Python 3.11 or newer. Instantiate the locked
+environments only if they are not already available:
+
+\begin{verbatim}
+julia --project=. -e 'using Pkg; Pkg.instantiate()'
+python3 -m venv .venv
+.venv/bin/python -m pip install -r analysis/requirements.txt
+\end{verbatim}
+
+Before running an expensive stage, check for its terminal artifact:
+
+\begin{center}
+\begin{tabular}{p{0.27\textwidth}p{0.63\textwidth}}
+\toprule
+stage & reusable terminal artifact \\
+\midrule
+500k event simulation &
+\code{output/gammas\_\{csitl,bgo\}\_500k/events.h5} \\
+direct regression &
+\code{analysis/results/cnn/cnn\_\{csitl,bgo\}\_win/cnn\_best.pt} and
+\code{test\_events.h5} \\
+two-site comparison &
+\code{analysis/results/cnn/cnn\_\{csitl,bgo\}\_2site/test\_events.h5} \\
+reconstructability classifier &
+\code{analysis/results/cnn/cnn\_\{csitl,bgo\}\_rcls/cnn\_best.pt} and
+\code{test\_events.h5} \\
+80\% response analysis &
+\code{analysis/results/cnn/selection\_fits/selection\_fits.json} \\
+PET response recipe &
+\code{analysis/results/cnn/selection\_fits/pet\_resolution\_recipe.json} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+If an artifact exists and its upstream configuration has not changed, start at
+the next stage. In particular, calculating tables or figures from the committed
+\code{test\_events.h5} files takes seconds and requires neither gamma simulation
+nor CNN training.
+
+%=====================================================================
+\section{Stage 0: event datasets}
+
+The simulation configurations are
+\code{runs/gammas\_csitl\_500k.toml} and
+\code{runs/gammas\_bgo\_500k.toml}. Each shoots 500,000 incident 511 keV
+gammas and writes the light map, detected photoelectrons and interaction truth.
+The common photodetection efficiency is 0.40. Seeds, materials, dimensions,
+surface model and binning are fixed in the TOML files.
+
+\textbf{Skip this stage} when both expected \code{events.h5} files exist. To
+recreate only missing datasets, run the corresponding command:
+
+\begin{verbatim}
+julia --project=. --threads=auto scripts/shoot_gammas.jl \
+    runs/gammas_csitl_500k.toml
+
+julia --project=. --threads=auto scripts/shoot_gammas.jl \
+    runs/gammas_bgo_500k.toml
+\end{verbatim}
+
+The outputs are \code{output/gammas\_csitl\_500k/events.h5} and
+\code{output/gammas\_bgo\_500k/events.h5}. This is the expensive optical
+transport stage.
+
+%=====================================================================
+\section{Stage 1: direct coordinate regression}
+\label{sec:direct}
+
+The production configurations are
+\code{analysis/cnn/runs/cnn\_csitl\_win.toml} and
+\code{analysis/cnn/runs/cnn\_bgo\_win.toml}. The suffix \code{win} identifies
+the realistic energy-window mixture. Do not substitute \code{cnn\_csitl.toml}
+or \code{cnn\_bgo.toml}: those configurations select idealized, contained
+direct-photoelectric events and answer a different question.
+
+To retrain only when the saved checkpoints or test dataframes are absent:
+
+\begin{verbatim}
+.venv/bin/python analysis/cnn/train.py \
+    analysis/cnn/runs/cnn_csitl_win.toml
+
+.venv/bin/python analysis/cnn/train.py \
+    analysis/cnn/runs/cnn_bgo_win.toml
+\end{verbatim}
+
+The driver performs the seeded window smearing, a seeded 70/15/15
+train/validation/test split, exact D4 augmentation of the training split, CNN
+and MLP training, checkpoint selection on validation RMSE, and final test
+evaluation. Its principal outputs are
+
+\begin{itemize}
+  \item \code{metrics.json}: coordinate RMSE, coordinate $p_{68}$ and the
+  fraction with three-dimensional error above 5 mm, globally and by event type;
+  \item \code{test\_events.h5}: event row key, truth, energy, topology and all
+  estimator predictions; this is the reusable input to later selections;
+  \item \code{cnn\_best.pt} and \code{history.json}: checkpoint and training
+  history;
+  \item \code{residuals.png}, \code{rmse\_vs\_z.png},
+  \code{distance\_by\_type.png} and \code{convergence.png}: diagnostic figures.
+\end{itemize}
+
+The outputs live below \code{analysis/results/cnn/cnn\_csitl\_win/} and
+\code{analysis/results/cnn/cnn\_bgo\_win/}. The already obtained headline
+test results are
+
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+crystal & RMSE $(x/y/z)$ [mm] & $p_{68}(|\Delta x|/|\Delta y|/|\Delta z|)$ [mm]
+& $P(|\Delta\mathbf r|>5\ \mathrm{mm})$ \\
+\midrule
+\csitl{} & $3.19/3.24/4.16$ & $2.02/2.03/2.08$ & 26.8\% \\
+BGO      & $1.62/1.62/2.46$ & $1.08/1.08/1.26$ & 9.7\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+For the unselected two-Gaussian core--tail description, use the saved
+test dataframes; no training is involved:
+
+\begin{verbatim}
+.venv/bin/python analysis/cnn/fit_residuals.py \
+    cnn_csitl_win cnn_bgo_win
+\end{verbatim}
+
+This writes \code{residual\_fit.json} and \code{residual\_fit.png} inside each
+run directory. The core widths are approximately 1.1--1.2 mm in \csitl{} and
+0.8--1.0 mm in BGO.
+
+%=====================================================================
+\section{Stage 2: prerequisite comparison products}
+
+The classifier driver evaluates its score against the predicted separation of
+a six-output, two-site network. Consequently it expects the two-site
+\code{test\_events.h5} files even though those networks are not inputs to the
+classifier training itself. If the files are absent, create them with
+
+\begin{verbatim}
+.venv/bin/python analysis/cnn/train.py \
+    analysis/cnn/runs/cnn_csitl_2site.toml
+
+.venv/bin/python analysis/cnn/train.py \
+    analysis/cnn/runs/cnn_bgo_2site.toml
+\end{verbatim}
+
+If \code{analysis/results/cnn/cnn\_*\_2site/test\_events.h5} already exists,
+skip this stage. The two-site regression is a diagnostic comparator; the
+selected spatial response still uses the three-output predictions from
+Section~\ref{sec:direct}.
+
+%=====================================================================
+\section{Stage 3: reconstructability classifier}
+\label{sec:classifier}
+
+The production classifier configurations are
+\begin{itemize}
+  \item \code{analysis/cnn/runs/cnn\_csitl\_rcls.toml};
+  \item \code{analysis/cnn/runs/cnn\_bgo\_rcls.toml}.
+\end{itemize}
+For every event, the saved direct regressor supplies a predicted
+first-interaction position. The classifier label is
+\begin{equation}
+ y_{\rm bad}=\mathbb{1}\!\left(
+ \|\widehat{\mathbf r}_1-\mathbf r_1\|\geq5\ {\rm mm}\right).
+\end{equation}
+The classifier is trained to assign high scores to these badly reconstructed
+events. A selection therefore accepts events below a score threshold.
+
+To recreate missing classifier artifacts:
+
+\begin{verbatim}
+.venv/bin/python analysis/cnn/train_classifier.py \
+    analysis/cnn/runs/cnn_csitl_rcls.toml
+
+.venv/bin/python analysis/cnn/train_classifier.py \
+    analysis/cnn/runs/cnn_bgo_rcls.toml
+\end{verbatim}
+
+These commands require the \code{cnn\_*\_win} checkpoints and the
+\code{cnn\_*\_win} and \code{cnn\_*\_2site} test dataframes. They write
+\code{cnn\_best.pt}, \code{test\_events.h5}, \code{metrics.json} and
+\code{classification.png} below \code{analysis/results/cnn/cnn\_*\_rcls/}.
+The test dataframe carries the original event row and classifier score, allowing
+an exact join to the regression dataframe. The obtained classifier AUC is
+0.796 for \csitl{} and 0.793 for BGO.
+
+The topology configurations \code{cnn\_*\_cls.toml} must not be used here.
+Their AUCs, 0.719 and 0.640, quantify single/multi-site discrimination, but
+topology is not identical to reconstruction quality: close multi-site events
+are often reconstructed accurately and should not be rejected.
+
+%=====================================================================
+\section{Stage 4: the 80\% selected response}
+\label{sec:selection}
+
+The response calculation is an analysis of existing held-out predictions:
+
+\begin{verbatim}
+.venv/bin/python analysis/cnn/selection_fits.py
+\end{verbatim}
+
+For each crystal the script joins \code{cnn\_*\_win/test\_events.h5} with
+\code{cnn\_*\_rcls/test\_events.h5} by the original event row. It considers
+100\%, 80\%, 60\% and 50\% global acceptance, retaining the events with the
+lowest reconstructability scores. For each coordinate it fits
+\begin{equation}
+ p(\Delta q)=f_{\rm core}\,
+ \mathcal N(\mu,\sigma_1)+(1-f_{\rm core})\,
+ \mathcal N(\mu,\sigma_2), \qquad q\in\{x,y,z\}.
+\end{equation}
+The no-selection fit determines $\mu$, the core width $\sigma_1$ and tail width
+$\sigma_2$. In the comparison used for the resolution prescription these
+shapes are frozen and only the two amplitudes are refitted after selection.
+This tests whether classification removes the broad component instead of
+artificially redefining or narrowing the core.
+
+The outputs are
+
+\begin{itemize}
+  \item \code{analysis/results/cnn/selection\_fits/selection\_fits.json}, the
+  complete machine-readable result;
+  \item \code{selection\_fits.txt}, a compact table of free-fit and fixed-shape
+  amplitudes;
+  \item \code{selection\_fits.png}, all residual distributions and fits.
+\end{itemize}
+
+At 80\% acceptance the measured fraction of events with a 3D error above 5 mm
+falls from 26.8\% to approximately 17.1\% in \csitl{}, and from 9.7\% to 5.6\%
+in BGO. The fixed-shape depth tail-to-core amplitude ratio changes from 0.486 to
+0.114 in \csitl{} and from 0.218 to 0.043 in BGO. The core widths remain those
+of the unselected response.
+
+%=====================================================================
+\section{Stage 5: compact resolution recipe}
+
+To turn the fitted response into parameters for a system-level PET simulation,
+run
+
+\begin{verbatim}
+.venv/bin/python analysis/cnn/pet_recipe.py
+\end{verbatim}
+
+The script reads \code{selection\_fits.json} and writes
+\code{pet\_resolution\_recipe.json} in the same directory. For each crystal,
+coordinate and selection scenario it provides $\sigma_1$, $\sigma_2$ and
+$f_{\rm core}$. The scenarios included are no classifier selection, 80\%
+acceptance and 60\% acceptance. Acceptance is a per-photon efficiency; requiring
+both photons in a coincidence to pass gives the square of that efficiency.
+
+%=====================================================================
+\section{Minimal rerun recipes}
+
+\subsection*{Only regenerate the published tables and figures}
+
+When all committed/saved test dataframes are present, run only
+
+\begin{verbatim}
+.venv/bin/python analysis/cnn/fit_residuals.py \
+    cnn_csitl_win cnn_bgo_win
+.venv/bin/python analysis/cnn/selection_fits.py
+.venv/bin/python analysis/cnn/pet_recipe.py
+\end{verbatim}
+
+\subsection*{Retrain classifiers but reuse regression and simulation}
+
+Provided the \code{cnn\_*\_win} and \code{cnn\_*\_2site} products exist:
+
+\begin{verbatim}
+.venv/bin/python analysis/cnn/train_classifier.py \
+    analysis/cnn/runs/cnn_csitl_rcls.toml
+.venv/bin/python analysis/cnn/train_classifier.py \
+    analysis/cnn/runs/cnn_bgo_rcls.toml
+.venv/bin/python analysis/cnn/selection_fits.py
+.venv/bin/python analysis/cnn/pet_recipe.py
+\end{verbatim}
+
+\subsection*{Rebuild the full analysis from existing events.h5 files}
+
+Run Stages 1 through 5 in order. Stage 0 remains unnecessary. The seeds in all
+TOML configurations make the energy smearing and dataset partitions
+reproducible; the event-row join guarantees that regression and classification
+are compared on the same held-out events.
+
+%=====================================================================
+\section{Interpretation checklist}
+
+\begin{itemize}
+  \item Quote both the narrow core and broad tail; a single RMS obscures the
+  response structure of the realistic Compton mixture.
+  \item Treat 80\% as event acceptance, not an 80\% classification accuracy or
+  an 80\% geometric tolerance.
+  \item Use \code{rcls}, not \code{cls}, for the published selection.
+  \item Do not describe the selected result as a newly trained 80\% regressor.
+  It is the direct regressor evaluated after an event-quality selection.
+  \item Keep the ±5 mm residual definition and energy-window parameters fixed
+  when comparing crystals or reruns.
+  \item For provenance, retain the TOML configuration, checkpoint,
+  \code{metrics.json} and \code{test\_events.h5} together under the run tag.
+\end{itemize}
+
+The full scientific motivation, architecture and interpretation are in
+\code{latex/crysplight\_cnn.tex}. This how-to is deliberately narrower: it is
+the executable map from existing artifacts to the direct and 80\%-selected
+spatial-resolution results.
+
+\end{document}
