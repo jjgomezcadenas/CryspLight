@@ -20,7 +20,7 @@
 \begin{abstract}
 CryspLight simulates the transport of scintillation photons in a wrapped crystal read
 out by a SiPM matrix, for the CRYSP program. This note documents the \emph{software}:
-the package architecture, the reference CPU transport and its GPU twin written with
+the package structure, the reference CPU transport and its corresponding GPU implementation written with
 KernelAbstractions.jl, the random-number and reproducibility design, the validation
 machinery, and the measured performance (33~Mphotons/s on Apple Metal, $6.2\times$ an
 8-thread CPU). It complements two physics documents: the design note
@@ -45,23 +45,23 @@ gap, bulk absorption and Rayleigh scattering --- until absorbed or detected by t
 $8\times8$ SiPM array grease-coupled to the back face. The observables are the
 per-event $8\times8$ photoelectron map in 100~ns time bins and the first-photoelectron
 time per SiPM. The photons are mutually independent, which makes the problem
-embarrassingly parallel; the physics fidelity question (surface model, the
+independent and can therefore be processed concurrently; the physics fidelity question (surface model, the
 absorption/scattering split of the measured extinction) is treated in the two physics
 notes. This note is about how the code is built.
 
 %=====================================================================
-\section{Package architecture}
+\section{Package structure}
 
 CryspLight is a Julia package (\code{Project.toml}; dependencies: HDF5, TOML,
 KernelAbstractions, Metal) organized in the PTCryspMC convention:
 
 \begin{itemize}
-  \item \code{src/} --- the library, one concern per file:
+  \item \code{src/} --- the library, with each file assigned a distinct function:
     \code{philox.jl} (RNG), \code{geometry.jl} (axis-aligned box, slab intersection),
     \code{optics.jl} (Fresnel/TIR, specular and Lambertian reflection, the UNIFIED
     micro-facet lobe, Rayleigh phase function), \code{generation.jl} (isotropic
     emission, scintillation delay), \code{transport.jl} (the \textbf{reference} bounce
-    loop, threaded, plus accumulators), \code{kernel.jl} (the \textbf{GPU twin} ---
+    loop, threaded, plus accumulators), \code{kernel.jl} (the \textbf{corresponding GPU implementation} ---
     Sec.~\ref{sec:ka}), \code{materials.jl}/\code{config.jl}/\code{output.jl}
     (TOML materials, run configs, HDF5 output with provenance attributes).
   \item \code{runs/} --- \emph{tracked} TOML configurations: the parameter source of
@@ -82,7 +82,10 @@ Two structural decisions define the codebase. First, \textbf{physics state is is
 \code{OpticalParams}, \code{Readout}, \code{SipmGrid}, \code{Box} are plain immutable
 structs of \code{Float32}/\code{Int32}/\code{Bool}, so the same values flow unchanged
 from TOML parsing to CPU loop to GPU kernel argument. Second, \textbf{the transport
-loop exists twice, on purpose} (Sec.~\ref{sec:twins}).
+loop has separate reference and accelerator implementations, deliberately}
+(Sec.~\ref{sec:twins}). Keeping both makes the CPU code readable while allowing the GPU
+code to obey device-language restrictions; automated comparisons prevent them from
+silently implementing different physics.
 
 %=====================================================================
 \section{Random numbers and reproducibility}
@@ -103,7 +106,7 @@ keyed by its global photon id. Consequences, all deliberate:
 
 Uniforms are mapped to $(0,1]$ (safe as $\log$ arguments) via
 $((x \gg 8) + 1) \cdot 2^{-24}$. The CPU path wraps the stream in a small mutable
-buffer (\code{PhiloxStream}); the kernel uses a \emph{functional} isbits twin
+buffer (\code{PhiloxStream}); the kernel uses a corresponding immutable
 (\code{PhiloxState}, returning (value, new state)) producing the same sequence ---
 mutable structs do not belong in GPU kernels.
 
@@ -114,7 +117,7 @@ race silently (this once lost 40\% of all photons before the conservation test c
 it).
 
 %=====================================================================
-\section{The twin transports and the bit-parity contract}
+\section{The two transport implementations and exact CPU agreement}
 \label{sec:twins}
 
 The bounce loop is implemented twice: \code{transport.jl} (reference: readable,
@@ -166,12 +169,14 @@ photons --- negligible on Apple silicon) and a single-threaded host reduction th
 part of the quoted timings and is the first place to optimize if ever needed
 (device-side \code{@atomic} accumulation is the proven alternative).
 
-\paragraph{The 31-buffer lesson.} Metal caps kernel arguments at 31 buffer bindings,
+\paragraph{Metal's 31-buffer limit.} Metal limits a kernel to 31 bound resources,
 and \emph{every scalar argument counts as one}. The first kernel version passed
-$\sim$30 unpacked scalars and failed at pipeline creation with ``Total number of
+$\sim$30 unpacked scalars and failed when Metal created the executable GPU kernel
+with ``Total number of
 indirect argument buffer resources exceeded (33/31)''. The fix --- pass the isbits
-configuration structs (\code{OpticalParams}, \code{Readout}) whole --- is also the
-cleaner design. Recorded here because the error message does not suggest the cause.
+configuration structures (\code{OpticalParams}, \code{Readout}) as complete values ---
+also groups related parameters explicitly. This detail is recorded because the Metal
+error message reports only the resource count, not which arguments caused it.
 
 \paragraph{Sources and outputs.} Multi-position sources (calibration scans) travel as
 three small device arrays with round-robin photon assignment; the two-sided readout
@@ -216,7 +221,7 @@ note.
 \label{sec:perf}
 
 Measured with \code{scripts/bench\_metal.jl} (warm-up run absorbs JIT and Metal
-pipeline compilation; best of 5), on the calibrated cold-CsI CRYSP configuration
+GPU-kernel compilation; best of 5), on the calibrated cold-CsI CRYSP configuration
 (saturated Teflon, $\sigma_\alpha = 1.3^\circ$, $\Lambda_{\rm abs} = 3$~m,
 $\Lambda_{\rm R} = 0.33$~m, $\mathrm{PDE}=1$, delta emission), $4\times10^6$ photons,
 8 CPU threads, Apple silicon:
@@ -239,8 +244,9 @@ full-energy 511~keV event in cold CsI emits $\sim$27\,600 photons, so the GPU pa
 sustains $\sim$1200 events/s --- $10^6$-event studies are minutes. Observed cost
 scales with the mean bounce count (the calibrated CsI configuration averages
 $\sim$17 wall interactions per detected photon); heavier configurations (high-$R$
-idealized limits) cost proportionally more. Known headroom, in order: parallel or
-device-side reduction; event batching amortizing launch overhead (relevant once the
+idealized limits) cost proportionally more. The remaining performance improvements,
+in expected order of importance, are: parallel or device-side reduction; event batching
+to distribute the fixed GPU-launch cost over more photons (relevant once the
 gamma stage produces per-event deposit lists); and only then occupancy tuning ---
 RecoCrysp's experience is that Float32 + resident device arrays dominate, not launch
 configuration.

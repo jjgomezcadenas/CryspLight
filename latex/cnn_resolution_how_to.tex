@@ -156,7 +156,7 @@ the realistic energy-window mixture. Do not substitute \code{cnn\_csitl.toml}
 or \code{cnn\_bgo.toml}: those configurations select idealized, contained
 direct-photoelectric events and answer a different question.
 
-To retrain only when the saved checkpoints or test dataframes are absent:
+To retrain only when the saved model files or test-event tables are absent:
 
 \begin{verbatim}
 .venv/bin/python analysis/cnn/train.py \
@@ -168,7 +168,7 @@ To retrain only when the saved checkpoints or test dataframes are absent:
 
 The driver performs the seeded window smearing, a seeded 70/15/15
 train/validation/test split, exact D4 augmentation of the training split, CNN
-and MLP training, checkpoint selection on validation RMSE, and final test
+and MLP training, selection of the saved model state using validation RMSE, and final test
 evaluation. Its principal outputs are
 
 \begin{itemize}
@@ -176,8 +176,8 @@ evaluation. Its principal outputs are
   fraction with three-dimensional error above 5 mm, globally and by event type;
   \item \code{test\_events.h5}: event row key, truth, energy, topology and all
   estimator predictions; this is the reusable input to later selections;
-  \item \code{cnn\_best.pt} and \code{history.json}: checkpoint and training
-  history;
+  \item \code{cnn\_best.pt} and \code{history.json}: the saved network parameters
+  from the best validation epoch and the training history;
   \item \code{residuals.png}, \code{rmse\_vs\_z.png},
   \code{distance\_by\_type.png} and \code{convergence.png}: diagnostic figures.
 \end{itemize}
@@ -259,7 +259,7 @@ To recreate missing classifier artifacts:
     analysis/cnn/runs/cnn_bgo_rcls.toml
 \end{verbatim}
 
-These commands require the \code{cnn\_*\_win} checkpoints and the
+These commands require the saved \code{cnn\_*\_win} network parameters and the
 \code{cnn\_*\_win} and \code{cnn\_*\_2site} test dataframes. They write
 \code{cnn\_best.pt}, \code{test\_events.h5}, \code{metrics.json} and
 \code{classification.png} below \code{analysis/results/cnn/cnn\_*\_rcls/}.
@@ -377,7 +377,7 @@ are compared on the same held-out events.
   It is the direct regressor evaluated after an event-quality selection.
   \item Keep the ±5 mm residual definition and energy-window parameters fixed
   when comparing crystals or reruns.
-  \item For provenance, retain the TOML configuration, checkpoint,
+  \item For provenance, retain the TOML configuration, saved network parameters,
   \code{metrics.json} and \code{test\_events.h5} together under the run tag.
 \end{itemize}
 

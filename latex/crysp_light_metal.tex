@@ -34,7 +34,8 @@ $\mathcal{O}(10^3\text{--}10^5)$ scintillation photons, emitted isotropically wi
 exponential time profile ($\tau \simeq 800$~ns for \csi{} at 77~K, $\simeq 1770$~ns for \bgo{}
 at 195~K), which then bounce inside the crystal until they are either absorbed (in the bulk or
 at a wall) or detected at the SiPM plane. Because the photons are mutually independent, the
-transport is embarrassingly parallel; we propose to implement it as a Metal compute kernel on
+transport consists of independent photon histories that can be processed concurrently;
+we therefore implement it as a Metal compute kernel on
 Apple-silicon GPUs, written in Julia via Metal.jl with a CPU-identical reference path. This
 note collects the optical properties needed (crystal refractive index, bulk attenuation,
 emission spectrum and time constants; reflector behaviour and how Geant4 parameterizes it),
@@ -99,8 +100,11 @@ Each deposit $k$ converts into scintillation photons:
 \end{equation}
 with $Y$ the light yield (Table~\ref{tab:crystals}). For a full-energy 511~keV event this
 means $\sim 5\times10^4$ photons in cold \csi{} and $\sim 7\times10^3$ in \bgo{} at 195~K.
-Each photon is emitted isotropically from $\mathbf{r}_k$, with a wavelength drawn from the
-emission spectrum and an emission time
+Each photon is emitted isotropically from $\mathbf{r}_k$. In the implemented scalar model,
+all photons of a material use the calibrated representative emission wavelength and the
+corresponding fixed values of refractive index, attenuation lengths, wrap reflectivity and
+PDE. Sampling an individual wavelength from the emission spectrum is a planned extension.
+The emission time is
 \begin{equation}
   t_{\gamma} = t_k + \Delta t, \qquad \Delta t \sim \mathrm{Exp}(\tau),
   \label{eq:emission-time}
@@ -206,10 +210,12 @@ Remarks:
     --- \bgo{} at lower temperatures develops a slow component, and cold \csi{} has a known
     fast/slow structure --- exactly like Geant4's
     \texttt{SCINTILLATIONCOMPONENT1/2} + \texttt{SCINTILLATIONTIMECONSTANT1/2}.
-  \item \textbf{Emission spectrum.} Sampled once per photon at generation. In v1 a photon's
-    wavelength enters through three lookups: $n(\lambda)$, $\Lambda_{\rm abs}(\lambda)$,
-    $\mathrm{PDE}(\lambda)$, plus the ESR reflectivity edge (below). We precompute these at
-    generation time and store per-photon scalars, so the kernel never interpolates tables.
+  \item \textbf{Emission spectrum.} The present implementation uses scalar values at one
+    representative wavelength per material; it does not sample the emission spectrum.
+    A wavelength-resolved extension would sample $\lambda$ once at photon generation and
+    evaluate $n(\lambda)$, $\Lambda_{\rm abs}(\lambda)$,
+    $\mathrm{PDE}(\lambda)$ and the ESR reflectivity. Those four values can be computed
+    before transport so the GPU kernel need not interpolate tables during every reflection.
 \end{itemize}
 
 \subsection{Reflectors: Vikuiti ESR and PTFE}
@@ -309,18 +315,22 @@ A photon reaching the back face:
     $(i,j) = (\lfloor x/6~\mathrm{mm} \rfloor, \lfloor y/6~\mathrm{mm} \rfloor)$; the 6~mm
     pitch exactly tiles the face, so v1 takes the back plane as fully active, with a
     fill-factor test (dead border between packages) as a later config option;
-  \item is detected with probability $\mathrm{PDE}(\lambda)$ (S14160-6050HS: $\simeq 0.5$ at
+  \item is detected with probability $\mathrm{PDE}$ at the configured representative
+    wavelength (S14160-6050HS: $\simeq 0.5$ at
     the 450~nm peak, falling toward the UV; for 340~nm \csi{} light the PDE is substantially
     lower, another crystal--sensor coupling the simulation must expose). If not detected it
     is absorbed (v1; window reflection can be added later).
 \end{enumerate}
-\textbf{PDE is applied on the fly}, as the Bernoulli draw of step 3 inside the kernel, and
-the outputs record \emph{detected} photons (photoelectrons) only. This choice is exact in
-wavelength --- each photon carries its own $\mathrm{PDE}(\lambda)$, looked up at generation
---- and exact for first-photon statistics --- the earliest recorded time \emph{is} the
+\textbf{PDE is applied during photon transport}, through the Bernoulli trial in step 3
+inside the kernel, and the outputs record \emph{detected} photons (photoelectrons) only.
+For a photon with detection probability $p$, the trial returns a detected hit with
+probability $p$ and an absorbed photon with probability $1-p$. In the present scalar
+model, $p$ is constant for a run; a future spectral model can assign a different value
+to each photon at generation. Applying the trial inside transport is exact for
+first-photon statistics: the earliest recorded time \emph{is} the
 first photoelectron, with no downstream thinning bias. The price is that a production is
 tied to one sensor's PDE curve; changing SiPM means re-running, which at the throughputs of
-Sec.~\ref{sec:metal} is cheap. (Sensor effects beyond photon detection --- dark counts,
+Sec.~\ref{sec:metal} is computationally inexpensive. (Sensor effects beyond photon detection --- dark counts,
 crosstalk, afterpulsing, pulse shape --- are downstream detector response, not simulated
 here.)
 
@@ -340,16 +350,20 @@ the SiPM plane at $z = L_z$). A photon is
 \begin{equation}
   \gamma = (\mathbf{r},\, \hat{\mathbf{u}},\, t,\, w),
 \end{equation}
-position, unit direction, running time, and the per-photon wavelength-derived scalars
-$w = (n, \Lambda_{\rm abs}, R_{\rm wrap}, \mathrm{PDE})$ precomputed at generation
-(Sec.~\ref{sec:crystals}). No acceleration structures, no volume hierarchy: the distance to
+position, unit direction, and running time. The transport parameters
+$w = (n, \Lambda_{\rm abs}, \Lambda_{\rm R}, R_{\rm wrap}, \mathrm{PDE})$ are scalar
+run parameters in the current implementation; a spectral extension would compute them
+per photon at generation (Sec.~\ref{sec:crystals}). No spatial search structure or nested
+volume hierarchy is needed: the distance to
 the wall along $\hat{\mathbf{u}}$ is the closed-form axis-aligned slab test (3 divisions,
 3 min/max).
 
 \subsection{The bounce loop}
 
-Each photon runs the same loop until it terminates or reaches a bounce cap
-$B_{\max}$ (default 1000, never reached in practice with $R<1$):
+Each photon runs the same loop until it terminates or reaches the configured reflection
+limit $B_{\max}$ (default 100,000). The limit prevents an infinite history in idealized
+perfect-reflector cases; reaching it is recorded as a distinct terminal status rather
+than silently treating the photon as absorbed:
 
 \begin{enumerate}
   \item \textbf{Free flight.} Draw the absorption and Rayleigh distances
@@ -408,19 +422,22 @@ A photon inside the TIR cone of the back face ($\theta < \theta_c'$ w.r.t.\ $z$)
 $\mathcal{O}(1)$ bounces. The trapped majority random-walks until the wrap losses
 ($1 - R \simeq 1$--2\% per sub-critical wall hit) or bulk absorption kill it, or until a
 diffuse (PTFE) bounce redirects it into the escape cone. Mean bounce counts are
-$\mathcal{O}(10\text{--}100)$; the light collection efficiency at the SiPM plane is expected
-in the 30--70\% range depending on wrap and crystal, with strong depth dependence --- these
-distributions are primary outputs of the simulation, not inputs.
+$\mathcal{O}(10\text{--}100)$ in realistic configurations. The calibrated PDE$=1$
+collection efficiencies are about 83\% for cold CsI and 88\% for BGO; they depend on
+crystal, wrap and interaction depth. The path-length and reflection-count distributions
+are calculated outputs of the simulation, not imposed inputs.
 
 %=====================================================================
 \section{GPU implementation on Metal}
 \label{sec:metal}
 
-\subsection{Language and stack}
+\subsection{Language and software components}
 
-We propose \textbf{Julia + Metal.jl}, writing the kernel with KernelAbstractions.jl so the
-\emph{same} kernel source runs on the CPU (reference/debug path, thread-parallel) and on the
-Metal backend, and ports to CUDA later if needed. This keeps CryspLight in the same language
+We use \textbf{Julia + Metal.jl}, writing the transport kernel with
+KernelAbstractions.jl. A kernel is the function executed concurrently for many photons.
+The \emph{same} kernel source runs either on the CPU (the processor implementation used
+for testing and comparison) or on the Apple GPU through Metal. KernelAbstractions calls
+the selected processor implementation a \emph{backend}. This keeps CryspLight in the same language
 as the vendored PTCrysp engine (Julia), with one build system and shared I/O. The alternative
 --- a standalone Swift/C++ core with metal-cpp --- would give marginally more control over
 kernel scheduling at the cost of a language boundary through the middle of the physics; we
@@ -439,12 +456,13 @@ take it only if Metal.jl proves limiting.
     (Philox\,$4\times32$-10~\cite{philox}): stateless, keyed by (event id, photon id, draw
     counter), giving bit-reproducible results independent of thread scheduling --- important
     for regression tests and for resuming/replaying single photons on the CPU path.
-  \item \textbf{Divergence.} The bounce loop has data-dependent length. With one thread per
-    photon, a warp lives as long as its slowest photon. The bounce-count distribution has a
-    modest tail (absorption caps it geometrically), so v1 accepts the divergence; if
-    profiling shows it matters, the standard fix is a persistent-kernel/compaction scheme
-    (terminate-and-refill from a global photon queue). This is an optimization, not a design
-    change.
+  \item \textbf{Different execution lengths.} The number of reflections differs from
+    photon to photon. GPU threads execute in groups, and a group cannot finish until its
+    longest photon history finishes. This effect is often called \emph{thread divergence}.
+    Absorption limits the number of unusually long histories, so the present implementation
+    accepts this cost. If measurements show a significant loss, completed histories can be
+    replaced from a queue of unprocessed photons. This would change performance but not the
+    physical model.
   \item \textbf{Memory layout.} Structure-of-arrays MtlArrays:
     $x, y, z, u_x, u_y, u_z, t, n, \Lambda, R, \mathrm{pde}$ (Float32) + photon id
     (UInt32). A batch is \emph{all photons of many events} concatenated ($10^6$--$10^7$
