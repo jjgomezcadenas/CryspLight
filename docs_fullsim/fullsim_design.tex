@@ -123,9 +123,7 @@ For every event the acquisition records one charge per channel, in ADC
 counts: the value stored by the peak detector of the Citiroc on its
 high-gain path (the chip holds a low-gain value as well, but our acquisition
 does not read it). The hit register of the chip, which says which channels
-fired their discriminator, is probably recorded too; the files we analyse
-have already been processed by the acquisition software, and whether the
-register survives in them is to be checked on the first run. For every run it records the conditions: how the SiPMs were biased
+fired their discriminator, is recorded as well. For every run it records the conditions: how the SiPMs were biased
 (the bias voltage and the breakdown voltages measured in situ), how the ASIC
 was configured (thresholds, hold delay, shaping time and gains) and the
 temperatures. The
@@ -544,8 +542,8 @@ per photoelectron with its error, and the mean and rms of its pedestal, on
 each path that is recorded; its dark rate. Measured on the run or on its
 calibration runs; for a simulated run, the values used. \\
 \code{/events} & For every event: the high-gain charge of the 64 channels as
-16-bit integers; the hit register of the 64 channels if the acquisition
-records it; the trigger time; and flags for saturation and for pile-up. A
+16-bit integers; the hit register of the 64 channels; the trigger time; and
+flags for saturation and for pile-up. A
 simulated run may also carry the low-gain charge, which the Citiroc holds but
 our acquisition does not read, and which the Radioroc2 acquisition will. \\
 \code{/generated} & Simulated runs only: the quantities written by the optical
