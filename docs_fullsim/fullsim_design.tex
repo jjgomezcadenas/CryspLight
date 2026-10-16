@@ -1,0 +1,542 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=25mm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{xspace}
+\usepackage{hyperref}
+\graphicspath{{figs/}}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\us}{\textmu s\xspace}
+\newcommand{\Na}{\ensuremath{{}^{22}\mathrm{Na}}\xspace}
+\newcommand{\Vov}{\ensuremath{V_{\rm ov}}\xspace}
+\newcommand{\Vbr}{\ensuremath{V_{\rm br}}\xspace}
+\newcommand{\csitl}{CsI(Tl)\xspace}
+
+\title{CryspLight full simulation: design\\[2mm]
+\large From the crystal to the ASIC words, for the comparison with the bench data}
+\author{J.\,J.~Gómez-Cadenas}
+\date{16 October 2026 \\[2mm] \small Version 0.1 --- written before the code}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The pedagogical simulation (git tag \code{pedsim}) transports scintillation
+light in an ideal detector: a uniform $8\times8$ array covering the whole
+readout face, one wavelength, one photon detection efficiency, photoelectrons
+counted exactly. This document specifies the full simulation that produces
+what the bench measures: the real SiPM layout with its gaps, the grease and the
+window, the emission spectra, the SiPM as a device with gain, crosstalk and
+dark counts, and the Citiroc (later the Radioroc2) chain down to the ADC
+words. Every addition is switched on by a configuration key and switched off
+by its absence, so the pedagogical results are reproduced bit for bit. The
+measured data and the emulated data are written in the same HDF5 layout, and
+one analysis reads both.
+\end{abstract}
+
+\tableofcontents
+
+\section{Purpose and the measurements to reproduce}
+\label{sec:purpose}
+
+Three configurations, all with the same crystal size per material, the same
+SiPM array, Teflon wrapping and grease coupling, read out by two Citiroc~1A
+chips (32 channels each) and later by one Radioroc2 (64 channels). The ASICs
+sit at ambient temperature in every case; in the cold configuration the
+crystal and the SiPMs are in the cryostat and the signals come out through
+cables and feedthroughs.
+
+\begin{table}[htb]
+\centering
+\begin{tabular}{l c c c}
+\toprule
+ & BGO ambient & \csitl ambient & BGO cold \\
+\midrule
+crystal ($x \times y \times z$, mm) & $48\times48\times22.4$ & $48\times48\times37.2$ & $48\times48\times22.4$ \\
+thickness in radiation lengths & 2 ($X_0 = 11.2$~mm) & 2 ($X_0 = 18.6$~mm) & 2 \\
+temperature & laboratory (about 295~K) & laboratory & 196~K \\
+light yield (ph/MeV) & 7000 to 8200$^{a}$ & 54\,000 & 14\,000 to 16\,000$^{a}$ \\
+decay time & 300~ns ($+$ 60~ns minor) & 730~ns (64\%), 3340~ns (36\%) & 2.7~\us$^{b}$ \\
+emission peak & 480~nm & 550~nm & 480~nm \\
+refractive index & 2.15 & 1.79 & 2.15 \\
+intrinsic resolution at 511~keV (FWHM) & 3 to 4\%$^{c}$ & 6\% & 3 to 4\%$^{c}$ \\
+source & \multicolumn{3}{c}{\Na, on axis, 30~mm from the face opposite the SiPMs} \\
+readout & \multicolumn{3}{c}{Citiroc 1A $\times 2$, then Radioroc2} \\
+\bottomrule
+\end{tabular}
+\caption{The three configurations. $^{a}$ Parameter: the ambient yield from the
+Gironnet quenching curve relative to the Ding calibration at 195~K; the cold
+yield between the Ding chain (14k) and the value implied by the longer decay
+time measured on our crystal. The warm-to-cold ratio of the measured
+photoelectrons fixes it. $^{b}$ Measured on this crystal in the Antarctica runs
+($2.72 \pm 0.01$~\us at T3 = 196~K); replaces the 1768~ns of the Ding
+calibration for this crystal only. $^{c}$ Parameter; BGO is nearly
+proportional, the value is to be taken from the data once the statistical and
+noise terms are subtracted.}
+\label{tab:configs}
+\end{table}
+
+The simulation has three stages with a file between each pair, so that a
+change downstream never requires rerunning upstream:
+
+\begin{enumerate}
+\item \textbf{Optical stage} (Julia, the existing pipeline extended). Gammas
+  from the source, energy deposits, scintillation photons transported on the
+  GPU to the SiPMs. Output: the truth already written by \code{pedsim}, plus
+  one record per detected photoelectron (channel, time, wavelength).
+\item \textbf{Device and front-end stage} (Julia, new module). SiPM response
+  and the electronics chain applied to the photoelectron records. Output: the
+  words the DAQ would write, per event and channel, in the common HDF5 layout.
+\item \textbf{Comparison stage} (Python, \code{fullsim\_analysis/}). The same
+  code on the emulated and the measured files: gains, pedestals, spectra,
+  resolution, maps.
+\end{enumerate}
+
+\section{Principles}
+\label{sec:principles}
+
+\begin{itemize}
+\item \textbf{Additive.} No existing behaviour changes. Each new feature is a
+  configuration block; absent, the code follows the \code{pedsim} path with the
+  same random draws. A frozen-output test runs a small pedagogical
+  configuration and compares its output with stored checksums.
+\item \textbf{Kernel invariant kept.} Every physics addition is written in both
+  \code{src/transport.jl} (reference) and \code{src/kernel.jl} (GPU), and the
+  parity test proves them identical on the CPU backend.
+\item \textbf{Measured where measurable.} Noise, gains, breakdown voltages,
+  thresholds and hold timing are inputs read from the run, never datasheet
+  defaults, once the run exists. Until then the defaults are stated here with
+  their provenance.
+\item \textbf{One layout for data and emulation.} Section~\ref{sec:formats}.
+\end{itemize}
+
+\section{Geometry}
+\label{sec:geometry}
+
+\subsection{Crystal and wrapping}
+
+A rectangular box, $48 \times 48$~mm$^2$ transverse, 22.4~mm (BGO) or
+37.2~mm (\csitl) thick, polished on all six faces. The polish is the measured
+one of the pedagogical calibration: a micro-facet Gaussian with
+$\sigma_\alpha = 1.3^\circ$. Five faces are hand-wrapped in several layers of
+PTFE tape: a thin air gap between crystal and tape (the UNIFIED
+``back-painted'' finish, the \code{pedsim} default) and a Lambertian
+reflector of $R = 0.99$ behind it (Janecek and Moses; saturated for three or
+more layers). Nothing here is new.
+
+\subsection{Coupling and window}
+
+The readout face is coupled through optical grease, $n = 1.42$, to the SiPM
+tiles, whose photosensitive surface is covered by 0.15~mm of silicone resin
+with $n = 1.57$ (datasheet). The photon crosses two interfaces, crystal to
+grease and grease to resin, each treated with Fresnel reflection and
+transmission; the first dominates (BGO 2.15 to 1.42; \csitl 1.79 to 1.42),
+the second reflects 0.3\% at normal incidence. The resin-to-silicon step is
+not simulated: the datasheet PDE is measured from air through the resin and
+already contains it. The PDE is applied once the photon is in the resin above
+an active area, as a function of wavelength and overvoltage
+(Section~\ref{sec:sipm}) and independent of angle; this angular assumption
+is the one unverified element of the coupling model and is listed in
+Section~\ref{sec:open}. Reflected photons return to the crystal and continue.
+
+\subsection{SiPM layout}
+\label{sec:layout}
+
+Four Hamamatsu S14161-6050HS-04 tiles of $4\times4$ channels, 6.0~mm active
+width on a 6.2~mm pitch inside a tile, 0.4~mm between the active areas of
+neighbouring tiles. The 64 centres, with the origin at the centre of the
+matrix, are at $\pm 3.2, \pm 9.4, \pm 15.6, \pm 21.8$~mm in each coordinate.
+Consequences for the model:
+
+\begin{itemize}
+\item the matrix is 49.6~mm wide: the outer channels overhang the crystal by
+  0.8~mm and only 5.2~mm of their width sees the crystal;
+\item inside the $48 \times 48$~mm$^2$ footprint the active fraction is
+  $0.934$: 0.2~mm gaps between channels, the 0.4~mm seam through the centre
+  in both directions, and the overhang;
+\item a photon transmitted into the resin above a dead strip meets the
+  package surface between the channels. Its reflectivity is unknown; the
+  default is diffuse with $R_{\rm dead} = 0.5$, and
+  Section~\ref{sec:comparison} says how the data constrain it.
+\end{itemize}
+
+The layout enters the configuration as a list of active rectangles with a
+channel number each. The \code{pedsim} path (pitch 6.0, no gaps) is the
+default when the block is absent. The channel numbering follows the DAQ
+cabling and is part of the run description (Section~\ref{sec:formats}).
+
+\section{Source and gamma stage}
+\label{sec:gamma}
+
+A \Na point source on the crystal axis, 30~mm from the centre of the face
+opposite the SiPMs. Per decay: a 1274.5~keV gamma (99.9\%), and with 90.3\%
+probability a positron whose annihilation gives two back-to-back 511~keV
+gammas. Directions are isotropic; only the gammas whose line meets the front
+face are transported (13\% of the sphere for the 511~keV pair, counted once
+since the two partners cannot both reach the crystal; 13\% for the 1275~keV
+gamma). The two lines of one decay are kept together so that true
+coincidence summing (the 1786~keV sum peak) and the 1275~keV Compton
+continuum under the 511~keV line appear with their real weights. Incidence
+angles reach $49^\circ$ at the corners.
+
+The gamma transport is the vendored PTCrysp core (see
+\code{src/gamma/VENDORED.md}): photoelectric absorption, Compton scattering,
+pair production above 1.022~MeV treated as local absorption (at 1275~keV it
+is below 1\% of the cross section), tables to 10~MeV. Not modelled, and
+listed in Section~\ref{sec:open}: K-shell fluorescence and its escape (the
+Bi K X-ray at 77~keV gives an escape peak at 434~keV for interactions within
+a fraction of a millimetre of a surface), Doppler broadening, scattering in
+the source holder and the cryostat walls.
+
+The \code{pedsim} source (511~keV, uniform over the front face, normal
+incidence) remains the default; the point source is a \code{[source]} block.
+
+\section{Scintillation}
+\label{sec:scintillation}
+
+Each deposit emits a Poisson number of photons with mean yield times energy
+(Table~\ref{tab:configs}); the intrinsic resolution of the crystal, which the
+optics cannot produce, is applied as a Gaussian smearing of the yield per
+event with the FWHM of the table, a parameter per material. Emission times
+follow the decay profile: a single exponential for BGO, two components for
+\csitl, sampled per photon, added to the deposit time. Wavelengths are drawn
+from the tabulated emission spectrum of each material; the refractive index,
+the Rayleigh length ($\propto \lambda^{-4}$ from the calibrated value at the
+peak) and the PDE then depend on the drawn wavelength. Bulk absorption keeps
+the calibrated scalar value. The scalar \code{pedsim} path (one wavelength,
+one decay time) is the default.
+
+The cold BGO yield and decay time are a new material file; the pedagogical
+\code{data/bgo.toml} (Ding calibration, 1768~ns) is untouched.
+
+\section{Optical transport}
+\label{sec:transport}
+
+The transport is the \code{pedsim} kernel: Philox counter-based random
+numbers per photon, the box geometry, UNIFIED surfaces with the air gap and
+the specular lobe, Rayleigh scattering, bulk absorption, Fresnel at the
+readout face, exact photon conservation across the terminal statuses. Three
+additions, each gated:
+
+\begin{enumerate}
+\item the active-rectangle layout and the dead-area reflection
+  (Section~\ref{sec:layout}),
+\item the second interface and the resin layer (the photon crosses it with no
+  lateral displacement worth tracking: 0.15~mm over a 6~mm pitch),
+\item per-photon wavelength with the tabulated $n(\lambda)$,
+  $\Lambda_{\rm Rayleigh}(\lambda)$ and PDE($\lambda$).
+\end{enumerate}
+
+Metal constraints: tables travel packed in one Float32 buffer, flags and
+scalars in one isbits struct, no dynamic tuple indexing. New random draws
+occur only inside enabled branches.
+
+Output of the stage, per event: the \code{pedsim} truth (deposits, first and
+second interaction, energies, map, first-photoelectron times) unchanged, and
+a ragged list of detected photoelectrons: channel (UInt8), time (Float32,
+ns), wavelength (UInt16, nm). At 7 bytes per photoelectron a 511~keV event
+is about 70~kB in \csitl and 15~kB in BGO; $10^5$ events per configuration fit
+in a few gigabytes and take minutes on the GPU. The pedagogical
+\code{events.h5} is not changed; the records go to \code{pes.h5} in the same
+output directory.
+
+\section{SiPM response}
+\label{sec:sipm}
+
+The device is the S14160-6050HS element (datasheet KAPD1064E, November
+2024; the S14161 tiles carry the same element). The model, per channel:
+
+\begin{description}
+\item[Breakdown voltage.] $\Vbr(T) = 38.0~\mathrm{V} + 0.034~\mathrm{V/K}\,(T - 298~\mathrm{K})$,
+  typical; 34.5~V at 196~K, measured 34.3~V on the Antarctica channel~49.
+  Per-channel spread 0.1~V typical, 0.2~V maximum within a tile. The
+  simulation takes $\Vbr$ per channel from the run (measured as in
+  \code{overvoltage\_recipe.tex}) or draws it from the spread.
+\item[Overvoltage.] $\Vov = V_{\rm bias} - \Vbr$ per channel, after the
+  input-DAC trim if used.
+\item[Gain.] $G = 0.93 \times 10^6\,\Vov/\mathrm{V}$ (linear, zero at
+  breakdown); $2.5 \times 10^6$ at 2.7~V.
+\item[PDE.] $\mathrm{PDE}(\lambda, \Vov) = \mathrm{PDE}_{450}(\Vov) \times s(\lambda)$,
+  with $\mathrm{PDE}_{450}$ from the datasheet curve (37\% at 1.7~V, 50\% at
+  2.7~V, 54\% at 3.2~V, flat above) and $s(\lambda)$ the normalised spectral
+  curve (digitised from the datasheet figure).
+\item[Crosstalk.] Probability $p_{\rm xt} = 0.05\,\Vov/\mathrm{V} - 0.06$
+  (2.5\% at 1.6~V, 7\% at 2.7~V, 13\% at 3.7~V), applied as a geometric
+  number of extra, simultaneous avalanches per primary.
+\item[Afterpulsing.] Not quoted by Hamamatsu for this series beyond ``low'';
+  default 2\% with a 100~ns time constant, parameter.
+\item[Dark counts.] Rate per device $R(T, \Vov)$, from the typical dark
+  current at 25~$^\circ$C and 2.7~V ($2.5~\mu$A, i.e.\ $6 \times 10^6$
+  avalanches per second after crosstalk), scaled with $\Vov$ like the PDE and
+  with temperature by a factor 2 per 9~K; anchored cold by the measured 8 to
+  15~kHz per channel at 196~K and 6.5~V. Dark avalanches are added to the
+  photoelectron train over the whole acquisition window, with crosstalk.
+\item[Single-photoelectron pulse.] The current pulse of one avalanche into the
+  front-end input impedance; the shape measured in the Antarctica runs into
+  100~$\Omega$ (rise 16~ns, 24~ns FWHM, 50~ns decay) is the default template,
+  with the amplitude scaled by the gain. The Citiroc input (50~$\Omega$ and
+  100~nF in series, into a voltage preamplifier with 15~pF input capacitance)
+  sees a different shape; it is a parameter until measured.
+\item[Cell occupancy.] 14\,331 cells per device; the probability that a
+  photoelectron lands on a cell still recovering is tracked with a 50~ns
+  recovery. Only the brightest \csitl channel approaches a percent effect.
+\end{description}
+
+The stage output is, per channel, a train of avalanche times with their
+charge (one or more cells, after crosstalk), which is the input to the
+electronics.
+
+\section{Electronics}
+\label{sec:electronics}
+
+\subsection{Citiroc 1A}
+
+Two chips read the 64 channels (32 each, channels assigned by the cabling in
+the run description). Per channel, the chain of the datasheet (DS7004 v2.5)
+as emulated:
+
+\begin{enumerate}
+\item \textbf{Input.} The avalanche train becomes a voltage at the preamplifier
+  input through the termination; the input DAC (8 bits, 2.5 or 4.5~V range)
+  only shifts the SiPM bias and enters through \Vov.
+\item \textbf{Preamplifiers.} High gain (15~pF input capacitance, gain 10 to
+  600 by feedback capacitor) and low gain (1.5~pF, gain 1 to 60) in parallel,
+  per-channel settings; a gain-spread parameter per channel.
+\item \textbf{Slow shapers.} CR-RC$^2$ with peaking time $t_p$ from 12.5 to
+  87.5~ns in 12.5~ns steps, one value per gain path common to the chip. The
+  shaped signal is the convolution of the input with the normalised impulse
+  response $(t/\theta)^2 e^{-t/\theta}$, $t_p = 2\theta$. The order of the
+  shaper is what the datasheet states; its exact transfer function is a
+  parameter to be checked against a single-photoelectron waveform if one can
+  be probed.
+\item \textbf{Noise.} Added after the shaper as a Gaussian series with the
+  spectrum measured on pedestal or control events of the run; default white
+  with rms 0.1 photoelectron on the high-gain path (the datasheet
+  signal-to-noise of 10 for one photoelectron).
+\item \textbf{Trigger.} Fast shaper (15~ns peaking) on the high-gain path,
+  two discriminators with chip-wide 10-bit thresholds and 4-bit per-channel
+  trims: the time discriminator gives the per-channel trigger output, the
+  charge discriminator feeds the hit register and the chip OR. The emulation
+  provides, per channel, the first threshold crossing of the fast-shaped
+  signal; the acquisition trigger is a configurable function of them (OR of
+  one chip, OR of both, majority $N$ within a coincidence window), built by
+  the FPGA in the real system.
+\item \textbf{Peak detector and hold.} Armed at the trigger, it stores the
+  maximum of each shaped signal (high and low gain separately, all 32
+  channels of a chip at once) until the hold, a fixed delay after the trigger
+  (parameter; up to 500~ns in our DAQ). Each of the 64 channels stores its
+  own maximum, including the maximum of its noise when it holds little
+  light: the positive bias this gives to dim channels is in the emulation by
+  construction. Track-and-hold mode is available as an alternative.
+\item \textbf{Readout and ADC.} The stored values are multiplexed at up to
+  5~MHz and digitised externally; the emulation applies the ADC gain,
+  offset, 12-bit quantisation (parameter) and the saturation of the chain,
+  400~pC of input charge or the ADC full scale, whichever comes first, per
+  path. Readout dead time is recorded but not simulated as an efficiency:
+  the source rates are low.
+\end{enumerate}
+
+With $t_p = 87.5$~ns the shaper integrates about $e\,t_p = 240$~ns of light.
+The stored fraction of the photoelectrons is then about 0.4 for BGO at
+ambient, 0.24 for \csitl (the 730~ns component carries 64\%), 0.09 for BGO at
+2.7~\us, and the statistical floor of the resolution follows from the
+photoelectrons inside that fraction; the emulation computes it with the 64
+independent channels, the noise and the dark pulses.
+
+\subsection{Radioroc2}
+
+One chip (datasheet v2.0, January 2025). Same structure, with the differences
+that matter: 64 channels; per-channel shaping time from 20 to 300~ns, or 120~ns
+to 1.8~\us in the slow mode (the natural choice for \csitl and cold BGO);
+charge preamplifiers with per-channel gains (high 5 to 80, low 0.5 to 8);
+two time discriminators (thresholds T1 and T2) and a charge discriminator on
+the low-gain shaper; the hold generated on chip by a delay cell (2~ns to
+2.6~\us) or externally; saturation at 2000 photoelectrons times $10^6$ gain
+(about 320~pC); the option of routing each channel's shaped waveform to its
+own output pin. The emulation is the same code with a different parameter
+block; the shaper order is assumed CR-RC$^2$ until measured.
+
+\subsection{Not planned}
+
+A waveform-digitiser variant (window integration with measured $1/f$ noise,
+majority trigger on dark pulses) was considered for the Antarctica runs and
+dropped: those runs are not to be simulated.
+
+\section{File formats}
+\label{sec:formats}
+
+\subsection{Photoelectron records (simulation only)}
+
+\code{output/<tag>/pes.h5}: datasets \code{offset} (n\_events+1, Int64),
+\code{channel} (UInt8), \code{t\_ns} (Float32), \code{lambda\_nm} (UInt16),
+with the event index aligned with \code{events.h5}; attributes copy the
+configuration and the git revision.
+
+\subsection{Event words: one layout for measured and emulated data}
+
+The measured Citiroc files are converted, as the first step of the analysis,
+to this layout; the front-end stage writes it directly. HDF5, one file per
+run:
+
+\begin{description}
+\item[\code{/run} attributes] date, crystal, material, temperature readings and
+  their placement, bias per chip, measured \Vbr per channel, overvoltage per
+  channel, thresholds, hold delay, shaping times, preamplifier gains, ADC
+  description, DAQ trigger definition, git revision of the converter or the
+  emulator; for emulated runs, the full simulation configuration and the
+  source of every parameter.
+\item[\code{/channels}] \code{x\_mm}, \code{y\_mm} (64), \code{tile} (64),
+  \code{chip}, \code{asic\_channel} (64), \code{status} (64: live, dead,
+  noisy), the mapping from DAQ channel to the geometry of
+  Section~\ref{sec:layout}.
+\item[\code{/calib}] \code{spe\_gain\_hg}, \code{spe\_gain\_lg} (64, ADC per
+  photoelectron, with errors), \code{pedestal\_mean}, \code{pedestal\_rms} (64,
+  per path), \code{dark\_rate} (64, Hz), measured on the run or on its
+  calibration runs; for emulated runs, the true values used.
+\item[\code{/events}] \code{hg} (n, 64, UInt16), \code{lg} (n, 64, UInt16),
+  \code{hit} (n, 64, Bool: the hit register), \code{t\_trig} (n), per-event
+  flags (saturation per path, pile-up); and, for emulated runs only, a
+  \code{/truth} group with the \code{events.h5} truth (interaction positions,
+  energies, total photoelectrons, the integrated map) so that any observable
+  can be resolved against the truth.
+\end{description}
+
+Arrays are event-major, so \code{h5py} reads $(n, 64)$ directly. The pedagogical
+\code{events.h5} layout is not modified.
+
+\section{Comparison observables}
+\label{sec:comparison}
+
+The same scripts on both kinds of file, in this order; each line names what
+the observable constrains.
+
+\begin{enumerate}
+\item \textbf{Single-photoelectron spectra} from dark pulses, per channel: the
+  gain table and its spread; against bias, the breakdown voltage per channel.
+  Constrains \Vov and the gain model; it is also the thermometer of the
+  SiPMs.
+\item \textbf{Pedestals and control charges}: the noise term per channel and
+  on the sum. Measured input to the emulation, not a prediction.
+\item \textbf{Dark rate per channel} against temperature and bias.
+\item \textbf{Total charge spectrum} (equalised sum of the 64 channels, high
+  and low gain): the 511 and 1275~keV lines, the sum peak, the Compton
+  continua, the backscatter region. The ratio of the two photopeaks (2.5 if
+  linear) tests the dynamic range and the trigger; the line widths and their
+  decomposition (noise from the pedestals, statistics from the stored
+  fraction, intrinsic from what remains) test the front-end model.
+\item \textbf{Light yield}: photoelectrons at 511~keV, converted through the
+  simulated collection efficiency and PDE to photons per MeV; the
+  warm-to-cold BGO ratio against the quenching curve.
+\item \textbf{Brightest-channel distribution}: its tail and the saturation kink
+  in \csitl; the ratio of brightest channel to total against the simulated
+  light maps tests the optics near the readout face.
+\item \textbf{Occupancy and mean-charge maps} per channel: the edge channels
+  (5.2~mm under the crystal), the central seam, the tile boundaries. The
+  dead-area reflectivity $R_{\rm dead}$ and the surface roughness are the
+  free parameters these maps constrain.
+\item \textbf{Seed-channel photopeak map}: the photopeak position of the events
+  grouped by their brightest channel, in units of the median. In a healthy
+  array this is a map of the collection non-uniformity (edges, seam), to be
+  reproduced by the simulation, not corrected away.
+\item \textbf{Overvoltage dependence}, when a bias scan exists: light,
+  crosstalk excess, resolution, saturated fraction against \Vov, against the
+  curves of Section~\ref{sec:sipm}.
+\end{enumerate}
+
+\section{Validation}
+\label{sec:validation}
+
+\begin{itemize}
+\item Frozen-output test: a small \code{pedsim} configuration reproduces stored
+  checksums of its maps and truth after every change.
+\item Parity test (existing): reference and kernel identical on the CPU
+  backend, extended to every gated branch switched on.
+\item Layout test: the active-rectangle layout with the \code{pedsim} rectangles
+  gives the \code{pedsim} maps; with gaps, the dead fraction of detected
+  photons at $R_{\rm dead} = 0$ equals the geometric dead fraction for a
+  uniform illumination.
+\item Window test: with $n_{\rm grease} = n_{\rm resin}$ the second interface
+  reflects nothing; with the resin index equal to the crystal index and no
+  grease the result equals the contact case.
+\item Spectral test: a delta emission spectrum reproduces the scalar run.
+\item Photoelectron records test: the records re-binned in 100~ns give the
+  \code{pedsim} maps exactly.
+\item Source test: the 511~keV rate on the face equals the solid-angle fraction;
+  the incidence-angle distribution matches the analytic one.
+\item Front-end unit tests: a delta input gives the analytic CR-RC$^2$ peak at
+  $t_p$; a Poisson train with a long decay gives the stored fraction of
+  Section~\ref{sec:electronics} within statistics; the noise-only peak
+  detector gives the expected maximum-of-Gaussian bias; the saturation clips
+  at the configured charge.
+\item End-to-end analytic check: the energy resolution of a configuration from
+  the emulation against the quadrature of its stated terms.
+\end{itemize}
+
+\section{Parameters and provenance}
+\label{sec:parameters}
+
+\begin{table}[htb]
+\centering
+\small
+\begin{tabular}{l l l l}
+\toprule
+parameter & value & source & status \\
+\midrule
+crystal sizes & Table~\ref{tab:configs} & setup & fixed \\
+polish $\sigma_\alpha$ & $1.3^\circ$ & pedsim calibration & fixed \\
+Teflon & Lambertian, $R = 0.99$, air gap & Janecek \& Moses; pedsim & fixed \\
+grease index & 1.42 & setup & fixed \\
+resin index, thickness & 1.57, 0.15~mm & datasheet & fixed \\
+SiPM layout & centres at $\pm3.2, \pm9.4, \pm15.6, \pm21.8$~mm & setup & fixed \\
+dead-area reflectivity & 0.5, diffuse & assumption & to fit on maps \\
+BGO yield ambient & 7000 to 8200 ph/MeV & Gironnet curve, Moszynski & to fit on data \\
+BGO yield 196~K & 14\,000 to 16\,000 ph/MeV & Ding chain; Antarctica $\tau$ & to fit on data \\
+BGO decay 196~K & 2.7~\us & Antarctica runs & fixed \\
+BGO decay ambient & 300~ns & literature & fixed \\
+\csitl yield, decay & 54\,000; 730/3340~ns, 64/36\% & pedsim calibration; literature & fixed \\
+intrinsic resolution & 6\% \csitl; 3 to 4\% BGO & CRYSP Citiroc data; assumption & BGO to fit \\
+emission spectra & tabulated & literature & to digitise \\
+\Vbr(T) & $38~\mathrm{V} + 34~\mathrm{mV/K}\,(T-298~\mathrm{K})$ & datasheet; Antarctica & measured per run \\
+gain, PDE, crosstalk vs \Vov & Section~\ref{sec:sipm} & datasheet curves & fixed \\
+dark rate & $6$~MHz at 25~$^\circ$C, 2.7~V; 10~kHz at 196~K, 6.5~V & datasheet; Antarctica & measured per run \\
+afterpulsing & 2\%, 100~ns & assumption & parameter \\
+SPE pulse shape & 16/24/50~ns into 100~$\Omega$ & Antarctica & parameter for Citiroc input \\
+Citiroc shaper & CR-RC$^2$, $t_p = 87.5$~ns & datasheet & setting of the run \\
+Citiroc noise & 0.1 pe rms on HG & datasheet SNR & measured per run \\
+hold delay & up to 500~ns & our DAQ & setting of the run \\
+ADC & 12 bit & assumption & setting of the run \\
+source distance & 30~mm, on axis, far face & setup & fixed \\
+\bottomrule
+\end{tabular}
+\caption{Every parameter of the full simulation with its value, where it comes
+from, and whether it is fixed, measured on the run, or to be fitted on the
+comparison.}
+\label{tab:params}
+\end{table}
+
+\section{Open items}
+\label{sec:open}
+
+\begin{itemize}
+\item Angular dependence of the PDE through the resin when illuminated from
+  grease rather than air (assumed none).
+\item Reflectivity and specularity of the package surface between channels.
+\item BGO light yield at ambient and at 196~K for this crystal; whether the
+  2.7~\us decay implies an effective temperature below T3.
+\item BGO intrinsic resolution.
+\item Citiroc: shaper transfer function beyond ``CR-RC$^2$'', noise spectrum,
+  peak-detector droop over the readout, pulse shape at the preamplifier
+  input with a 2~nF device.
+\item Radioroc2: shaper order, noise, 100~$\Omega$ input mode with 2~nF, DAQ
+  board and ADC.
+\item Gamma stage: K-shell fluorescence and escape, Doppler broadening,
+  scattering in the source holder and cryostat.
+\item Temperature of the SiPMs in the cold run relative to the crystal
+  (resolved operationally by the measured \Vbr).
+\end{itemize}
+
+\end{document}

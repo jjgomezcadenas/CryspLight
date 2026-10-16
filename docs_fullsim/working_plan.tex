@@ -1,0 +1,174 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=25mm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{xspace}
+\usepackage{hyperref}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\us}{\textmu s\xspace}
+\newcommand{\csitl}{CsI(Tl)\xspace}
+\newcommand{\planned}{planned}
+\newcommand{\doing}{in progress}
+\newcommand{\done}{done}
+
+\title{CryspLight full simulation: working plan}
+\author{J.\,J.~Gómez-Cadenas}
+\date{Live document --- last edited 16 October 2026}
+
+\begin{document}
+\maketitle
+
+\section{Scope}
+
+Build the full simulation specified in \code{fullsim\_design.tex} and compare
+it with the bench measurements: BGO and \csitl at ambient temperature with the
+Citiroc~1A (data taking the week of 20 October 2026), BGO at 196~K
+afterwards, Radioroc2 when the board arrives. This document tracks what is
+planned, in progress and done, the decisions taken and the questions open. It
+is edited at every step; the physics stays in the design document.
+
+\section{Principles}
+
+\begin{itemize}
+\item The pedagogical simulation is the git tag \code{pedsim} and the branch
+  \code{main}; the full simulation grows on the branch \code{fullsim}.
+  Nothing is replaced: every feature is gated by a configuration key and the
+  frozen-output test proves the pedagogical path unchanged.
+\item Repository layout for the full simulation: \code{docs\_fullsim/}
+  (documents), \code{fullsim\_runs/<campaign>/} (simulation and analysis
+  configurations plus the run log of each measurement campaign),
+  \code{fullsim\_analysis/} (Python comparison layer, committed figures under
+  \code{results/<campaign>/}), engine additions in \code{src/}, the
+  electronics emulation in \code{src/frontend/}, tests in \code{test/}.
+  Simulation output in the gitignored \code{output/<tag>/}. Measured data
+  outside the repository, referenced by path from the campaign configuration.
+\item Documents are written before the code they describe; results are
+  produced by tracked scripts and committed with their images; every reported
+  result states where it lives.
+\end{itemize}
+
+\section{Phases and tasks}
+
+\subsection*{Phase 0 --- before and during the ambient runs}
+
+\begin{longtable}{p{0.06\textwidth} p{0.62\textwidth} p{0.14\textwidth} p{0.1\textwidth}}
+\toprule
+id & task & status & date \\
+\midrule
+\endhead
+0.1 & Tag \code{pedsim}, branch \code{fullsim}, datasheets committed & \done & 16 Oct \\
+0.2 & Design document and this plan & \done & 16 Oct \\
+0.3 & Overvoltage recipe for the bench (\code{BGOTSCAN/docs/overvoltage\_recipe.tex}) & \done & 16 Oct \\
+0.4 & Frozen-output test of the pedagogical path & \planned & \\
+0.5 & Readout layout: active rectangles, dead-area reflection, overhang; parity and layout tests & \planned & \\
+0.6 & Grease and resin window: second Fresnel interface; window test & \planned & \\
+0.7 & Materials: cold BGO file (2.7~\us), ambient BGO file; two-component \csitl timing & \planned & \\
+0.8 & \Na point source with both lines and coincidence summing; source test & \planned & \\
+0.9 & Photoelectron records \code{pes.h5}; re-binning test & \planned & \\
+0.10 & SiPM device model (gain, PDE, crosstalk, afterpulsing, dark counts, pulse) as a module with unit tests & \planned & \\
+0.11 & Citiroc chain: shapers, noise, trigger, 64 peak detectors, hold, ADC, saturation; unit tests & \planned & \\
+0.12 & Common event layout writer (emulation) and the converter skeleton for measured files & \planned & \\
+0.13 & First emulated campaign: BGO ambient and \csitl ambient at 2, 2.7, 3, 4~V overvoltage; tables of photoelectrons per channel, brightest-channel tail, stored fraction, resolution floor, trigger margin & \planned & \\
+0.14 & Overvoltage scan figure and numbers delivered to the bench & \planned & \\
+\bottomrule
+\end{longtable}
+
+\subsection*{Phase 1 --- when the ambient data exist}
+
+\begin{longtable}{p{0.06\textwidth} p{0.62\textwidth} p{0.14\textwidth} p{0.1\textwidth}}
+\toprule
+id & task & status & date \\
+\midrule
+\endhead
+1.1 & Converter from the bench files to the common layout, with the run log (bias, measured breakdown, thresholds, hold, shaping, temperatures) & \planned & \\
+1.2 & Single-photoelectron gains and breakdown per channel; pedestals and noise term; dark rates & \planned & \\
+1.3 & Spectra: 511, 1275, sum peak; resolution and its decomposition; 1275 to 511 ratio & \planned & \\
+1.4 & Light yield in photoelectrons and in photons per MeV through the simulated collection & \planned & \\
+1.5 & Maps: occupancy, mean charge, seed-channel photopeak; fit of the dead-area reflectivity and check of the roughness & \planned & \\
+1.6 & Brightest-channel distribution and saturation in \csitl & \planned & \\
+1.7 & Emulation rerun with the measured noise, gains and settings; side-by-side figures & \planned & \\
+1.8 & Note section per campaign in the results document & \planned & \\
+\bottomrule
+\end{longtable}
+
+\subsection*{Phase 2 --- accuracy and the next setups}
+
+\begin{longtable}{p{0.06\textwidth} p{0.62\textwidth} p{0.14\textwidth} p{0.1\textwidth}}
+\toprule
+id & task & status & date \\
+\midrule
+\endhead
+2.1 & Spectral sampling: emission spectra, $n(\lambda)$, PDE($\lambda$); spectral test & \planned & \\
+2.2 & Cold BGO campaign at 196~K: breakdown measured in situ, emulation, comparison; warm-to-cold yield ratio against the quenching curve & \planned & \\
+2.3 & Radioroc2 chain and its campaign & \planned & \\
+2.4 & Gamma stage: K-shell fluorescence and escape & \planned & \\
+2.5 & Position reconstruction on emulated maps: how much of the \code{pedsim} CNN resolution survives each front end & \planned & \\
+2.6 & Design document version 1.0 with the measured parameters & \planned & \\
+\bottomrule
+\end{longtable}
+
+\section{Campaigns}
+
+\begin{tabular}{l l l l}
+\toprule
+campaign & configuration & readout & dates \\
+\midrule
+\code{2026-10\_citiroc\_ambient} & BGO ambient, \csitl ambient & Citiroc 1A $\times 2$ & week of 20 Oct 2026 \\
+\code{2026-xx\_citiroc\_cold} & BGO 196~K & Citiroc 1A $\times 2$ & to be scheduled \\
+\code{2026-xx\_radioroc} & all three & Radioroc2 & on delivery \\
+\bottomrule
+\end{tabular}
+
+\section{Decisions}
+
+\begin{description}
+\item[16 Oct 2026] Full simulation as a subproject of CryspLight, not a client
+  package: most of the work is engine work under the parity test; one history,
+  one test suite.
+\item[16 Oct 2026] Additive only. Tag \code{pedsim}; frozen-output test; gated
+  features; separate files for the photoelectron records and the emulated
+  events; pedagogical configurations and outputs untouched.
+\item[16 Oct 2026] Three-stage pipeline with files between stages, so that the
+  front end can be re-tuned against data without rerunning the optics.
+\item[16 Oct 2026] Grease ($n = 1.42$) in every configuration; not a parameter.
+\item[16 Oct 2026] Cold BGO decay time 2.7~\us from the Antarctica runs, in a
+  new material file; the Ding file stays for the pedagogical runs.
+\item[16 Oct 2026] The Antarctica runs are not simulated (dead channels, noisy
+  chain); the first comparison is the Citiroc ambient campaign.
+\item[16 Oct 2026] Overvoltage set from the measured breakdown, 3.0~V for BGO
+  and 2.7~V for \csitl; recipe in \code{BGOTSCAN/docs/overvoltage\_recipe.tex}.
+\item[16 Oct 2026] Measured and emulated events share one HDF5 layout; the
+  bench files are converted to it as the first analysis step.
+\item[16 Oct 2026] No waveform-digitiser emulation.
+\end{description}
+
+\section{Open questions}
+
+\begin{itemize}
+\item Reflectivity of the tile surface between channels (default diffuse 0.5;
+  to fit on the occupancy maps).
+\item BGO light yield at ambient and at 196~K for this crystal; BGO intrinsic
+  resolution.
+\item Citiroc settings of the ambient runs (shaping time, gains, hold delay,
+  thresholds, trigger definition in the FPGA) and the ADC; to be written in
+  the run log.
+\item Angular dependence of the PDE through the resin from grease.
+\item Citiroc shaper transfer function and noise spectrum; whether a
+  single-photoelectron waveform can be probed on the test board.
+\item Temperature of the SiPMs in the cold run (resolved by the measured
+  breakdown; a thermometer on the SiPM board would still help).
+\end{itemize}
+
+\section{Log}
+
+\begin{description}
+\item[16 Oct 2026] Project assessed; datasheets read (Citiroc 1A, Radioroc2,
+  S14160/S14161); Antarctica draft read; tag and branch; design document
+  v0.1 and this plan; overvoltage recipe written.
+\end{description}
+
+\end{document}
