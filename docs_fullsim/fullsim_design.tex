@@ -119,10 +119,13 @@ Section~\ref{sec:implementation}.
 
 \subsection{The measured data}
 
-For every event the acquisition records, for each of the 64 channels, two
-charges measured by the Citiroc peak detectors, one on the high-gain and one
-on the low-gain path, both in ADC counts, and whether the channel fired its
-discriminator. For every run it records the conditions: how the SiPMs were biased
+For every event the acquisition records one charge per channel, in ADC
+counts: the value stored by the peak detector of the Citiroc on its
+high-gain path (the chip holds a low-gain value as well, but our acquisition
+does not read it). The hit register of the chip, which says which channels
+fired their discriminator, is probably recorded too; the files we analyse
+have already been processed by the acquisition software, and whether the
+register survives in them is to be checked on the first run. For every run it records the conditions: how the SiPMs were biased
 (the bias voltage and the breakdown voltages measured in situ), how the ASIC
 was configured (thresholds, hold delay, shaping time and gains) and the
 temperatures. The
@@ -158,10 +161,11 @@ file.
   stored by the peak detector until the hold, and the stored value is
   converted to ADC counts.
 \item It writes one file per run with the same content as a measured run
-  (for every event and channel, the two charges in ADC counts and the
-  discriminator flag), in the format of Section~\ref{sec:formats}, together
-  with the energy deposits and the photoelectron counts of the first stage,
-  which the analysis needs to interpret the result.
+  (for every event and channel, the charge in ADC counts, and the second
+  path and the discriminator flag when the acquisition records them), in the
+  format of Section~\ref{sec:formats}, together with the energy deposits and
+  the photoelectron counts of the first stage, which the analysis needs to
+  interpret the result.
 \end{itemize}
 \item {\bf Analysis.}
 \begin{itemize}
@@ -535,13 +539,15 @@ every parameter. \\
 millimetres, its tile, its chip and channel number on the chip, and its
 status (live, dead or noisy). This group ties the acquisition channel to the
 geometry of Section~\ref{sec:layout}. \\
-\code{/calib} & The single-photoelectron gain of each channel on both paths,
-in ADC counts per photoelectron with its error; the mean and rms of its
-pedestal on both paths; its dark rate. Measured on the run or on its
+\code{/calib} & The single-photoelectron gain of each channel, in ADC counts
+per photoelectron with its error, and the mean and rms of its pedestal, on
+each path that is recorded; its dark rate. Measured on the run or on its
 calibration runs; for a simulated run, the values used. \\
-\code{/events} & For every event: the high-gain and low-gain charges of the
-64 channels as 16-bit integers, the hit register of the 64 channels, the
-trigger time, and flags for saturation on either path and for pile-up. \\
+\code{/events} & For every event: the high-gain charge of the 64 channels as
+16-bit integers; the hit register of the 64 channels if the acquisition
+records it; the trigger time; and flags for saturation and for pile-up. A
+simulated run may also carry the low-gain charge, which the Citiroc holds but
+our acquisition does not read, and which the Radioroc2 acquisition will. \\
 \code{/generated} & Simulated runs only: the quantities written by the optical
 simulation for the same events (positions and energies of the interactions,
 photons emitted and detected, the integrated photoelectron map), so that any
@@ -567,8 +573,7 @@ measured file alike, and each of them tests a different part of the model.
   channel and of the sum. They are an input of the simulation, not a
   prediction of it.
 \item {\bf Dark rate per channel}, against temperature and bias.
-\item {\bf The energy spectrum} of the equalised sum of the 64 channels, on
-  both paths: the 511 and 1275~keV lines, the sum peak, the Compton
+\item {\bf The energy spectrum} of the equalised sum of the 64 channels: the 511 and 1275~keV lines, the sum peak, the Compton
   continua and the backscatter region. The ratio of the two photopeak
   positions, 2.5 if the chain is linear, tests the dynamic range and the
   trigger. The width of the 511~keV line, decomposed into the noise measured
