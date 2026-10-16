@@ -1,0 +1,1871 @@
+                                                                              rev. 2.5 - 29/05/2019
+
+
+
+
+                                   CITIROC 1A
+                                   Scientific Instrumentation SiPM Read-out Chip
+
+
+
+
+weeroc
+High-end Nicroelectronics Design
+
+
+
+
+CAEN
+Tools for Discovery
+                                                                                     Data Sheet
+                                                                                           DS7004
+CAEN
+Tools for Discovery
+                          n                                                                  Electronic Instrumentation
+
+
+
+               CAEN is the exclusive Weeroc¬Worldwide distributor, providing¬ASICs and ASICs-based development¬systems for the
+               industry and the¬physics community.
+
+
+
+
+                  WHAT WE DO                                                                                       +
+
+
+                                                         ASICs
+                                                         Weeroc designs and provides analog and mixed
+                                                         ASICs for science and industry
+
+
+
+
+                                                         Testboard
+                                                         The simplest way to work with Weeroc ASICs
+
+
+
+
+                                                         DT5550W
+                                                         CAEN development and DAQ platform with programmable FPGA designed
+                                                         to read out multiple Weeroc ASICs
+
+
+
+
+                                                         DT5702 (application)
+                                                         CAEN solution based on Weeroc CITIROC ASIC for the readout of SiPM arrays
+
+
+
+
+                Weeroc is a spin-off company from Omega laboratory (IN2P3/CNRS French governmental agency for fundamental
+                research in astrophysics, particle physics and nuclear physics) and today offers a full range of products to read out
+                almost any kind of detector. In particular, it provides off-the-shelf programmable analog and mixed front-end ASICs
+                for photon and particle detectors readout, together with Testboards specifically designed for each ASIC.
+
+
+
+
+                                 CAEN SpA                    CAENspa India Private Limited            CAEN GmbH                      CAEN Technologies, Inc.
+
+
+    n CAENTools for Discovery
+                                 Via Vetraia 11
+                                 55049 - Viareggio • Italy
+                                 Phone +39.0584.388.398
+                                                             B205, BLDG42, B Wing,
+                                                             Azad Nagar Sangam CHS,
+                                                             Mhada Layout, Azad Nagar, Andheri West
+                                                                                                      Brunnenweg 9
+                                                                                                      64331 Weiterstadt • Germany
+                                                                                                      Tel. +49 (0)212 254 4077
+                                                                                                                                     1 Edgewater Street - Suite 101
+                                                                                                                                     Staten Island, NY 10305 • USA
+                                                                                                                                     Phone +1.718.981.0401
+                                 Fax +39.0584.388.959        Mumbai, Maharashtra 400053 • India       Mobile +49 (0)151 16 548 484   Fax +1.718.556.9185
+                                 info@caen.it                info@caen-india.in                       info@caen-de.com               info@caentechnologies.com
+                                 www.caen.it                 https://www.caen-india.in                www.caen-de.com                www.caentechnologies.com
+
+
+                                                                                                                                      www.caen.it
+                                               Datasheet
+
+                                       Citiroc1A
+                                          Scientific instrumentation SiPM read-out chip
+
+Citiroc 1A is a 32-channel front-end ASIC designed to
+readout silicon photo-multipliers (SiPM) for scientific
+instrumentation application.
+Citiroc 1A allows triggering down to 1/3 pe and provides
+the charge measurement with a good noise rejection.
+Citiroc 1A outputs the 32-channel triggers with a high
+accuracy (better than 100 ps).
+An adjustment of the SiPM high-voltage is possible
+using a channel-by-channel DAC connected to the ASIC
+inputs. That allows a fine SiPM gain and dark noise
+adjustment at the system level to correct for the non-
+uniformity of SiPMs. CITIROC 1A can be calibrated using
+a unique calibration signal.
+Timing measurement better than 100 ps RMS jitter is
+possible along with 1% linearity energy measurement up
+to 2500 p.e. The power consumption is about
+7mW/channel with all features ON.
+
+Detector Read-Out                 SiPM, SiPM array
+Number of Channels                32
+Signal Polarity                   Positive
+Sensitivity                       Trigger on 1/3 of photo-electron
+Timing Resolution                 Better than 100 ps RMS on single photo-electron
+Dynamic Range                     0-400 pC i.e. 2500 photo-electrons @ 106 SIPM gain
+Packaging & Dimension             TQFP 160 – TFBGA353
+Power Consumption                 225mW – Supply voltage : 3.3V
+Inputs                            32 voltage inputs with independent SiPM HV adjustments
+Outputs                           32 trigger outputs
+                                  2 multiplexed charge output, 1 multiplexed hit register
+                                  2 ASIC trigger output (Trigger OR)
+Internal Programmable Features    32 HV adjustment for SiPM (32x8bits), Trigger Threshold Adjustment (10bits),
+                                  channel by channel gain tuning, 32 Trigger Masks, Trigger Latch, internal
+                                  temperature sensor
+                                       Table 1 – ASIC main parameters
+
+
+
+
+                                           Learn more about Citiroc 1A
+
+                                           Contact             Jean-Baptiste Cizel
+                                           Web                 http://www.weeroc.com/en/products/citiroc-1
+                                           Email               citiroc@weeroc.com
+                                           Phone               +33 1 69 59 69 27
+
+
+
+
+Doc date: 29/05/2019                              1 / 46
+                                                                           Datasheet – Citiroc 1A                                                                            Version 2.5
+
+
+
+Table of content                                                                                     9        Performances ........................................................ 28
+
+1         General description ..................................................4                    10       I/Os connection ..................................................... 29
+
+    1.1       SiPM Gain trimming............................................4                             10.1         SiPM connection ......................................... 29
+
+    1.2       Charge measurement .........................................4                               10.2         Trigger output connection ......................... 30
+
+    1.3       Trigger line ...........................................................4                   10.3         Digital control & read-out connection ...... 30
+
+    1.4       Service blocks ......................................................4                      10.4    Power connection & bias or reference
+                                                                                                          decoupling ...................................................................32
+2         Maximum ratings .....................................................6
+                                                                                                          10.5         Bias and references values ........................ 33
+3         Operating modes ...................................................... 7
+                                                                                                     11       Pinout & mechanics ............................................. 35
+    3.1       Analogue charge integration ............................. 7
+                                                                                                          11.1         Pin type description .................................... 35
+    3.2            Photon counting............................................ 8
+                                                                                                          11.2         LQFP 160 packaging ................................... 36
+4         SiPM high voltage trimming ...................................9
+                                                                                                              11.2.1       Package layout & mechanics ............... 36
+    4.1       Program the input DACs.....................................9
+                                                                                                              11.2.2       Pin list ...................................................... 37
+5         Trigger scheme ....................................................... 10
+                                                                                                          11.3         TFBGA 353 package ................................... 40
+    5.1       Trigger mode ..................................................... 10
+                                                                                                              11.3.1       Package layout & mechanics ............... 40
+    5.2            Trigger chain ................................................. 10
+                                                                                                     12       Bug list & log ......................................................... 45
+          5.2.1        Fast shaper .............................................. 10
+                                                                                                     13       Document version ................................................. 46
+          5.2.2        Discriminators, trigger outputs ............... 11
+          5.2.3 Time windowing, channel mask and
+          trigger latch .............................................................. 11
+6         Charge measurement scheme ............................. 14
+    6.1       Preamplifiers...................................................... 14
+    6.2            Slow Shaper .................................................. 15
+    6.3      Peak sampling: Track and hold or peak
+    detector 16
+          6.3.1        Track & hold ............................................ 16
+          6.3.2        Peak detector ........................................... 17
+7         Data outing - analogue chip multiplexed read out
+          20
+8    Programmable parameters, internal probing and
+power pulsing................................................................... 23
+    8.1 General description of slow control shift-
+    register ......................................................................... 23
+    8.2            Slow control register parameters ............... 24
+    8.3            General description of probe shift-register
+                   25
+    8.4            Probe register parameters .......................... 26
+    8.5            Power pulsing and ON/OFF functions .......27
+
+
+
+Doc date: 29/05/2019                                                                        2 / 46
+                                                                               Datasheet – Citiroc 1A                                                                                   Version 2.5
+
+
+
+Table of figures
+
+Figure 1 - General ASIC block scheme..............................5                                       Table 1 – ASIC main parameters .......................................1
+Figure 2 - Block scheme of the trigger chain ................ 10                                          Table 2 - Maximum rating operation condition.............. 6
+Figure 3 - Fast shaper block scheme .............................. 11                                     Table 3 - Preamplifier Gain versus slow control program
+Figure 4 - Trigger logic of charge discriminator ........... 12                                           ............................................................................................ 14
+Figure 5 – Val Evt signal effect ....................................... 12                               Table 4– Slow shaper peaking time value vs slow
+Figure 6 - – Trigger output using Latch......................... 12                                       control parameters ........................................................... 16
+Figure 7 – Trigger output in direct discriminator mode 13                                                 Table 5 – slow control register parameters ...................25
+Figure 8 – High gain and low gain voltage sensitive                                                       Table 6 – Probe register parameters ............................. 26
+preamplifier ....................................................................... 14                   Table 7 – Power mode truth table .................................. 27
+Figure 9 - Ctest schematic. ............................................. 15                              Table 8 - Bias point list & values .................................. 33
+Figure 10 – Slow shaper schematic ................................ 15                                     Table 9 - Reference voltage list and values .................. 34
+Figure 11 – Schematic of track and hold cell ................. 16                                         Table 10 – pin type description ...................................... 35
+Figure 12– Standard Track & Hold working mode ........ 17                                                 Table 11 – LQFP 160 pinout ............................................ 39
+Figure 13– Peak detector working mode........................ 18
+Figure 14 - Peak detector chronogram........................... 19
+Figure 15 – Peak detector block scheme ....................... 19
+Figure 16 - Read register description scheme .............. 20
+Figure 17− Read Register high impedance output ........ 21
+Figure 18 − Read Register Chronogram ........................ 22
+Figure 19 - Select bit for Citiroc 1A programming ........ 23
+Figure 20: Slow control chronogram and explanation. 23
+Figure 21 - Scheme block of internal probing system . 26
+Figure 22 - SiPM connection scheme - DC bias .......... 29
+Figure 23 - SiPM charge transfer scheme - Fast signal
+........................................................................................... 29
+Figure 24 - Trigger output connection .......................... 30
+Figure 25 - Citiroc 1A shift register connection to
+controller............................................................................ 31
+Figure 26 - Citiroc 1A analog and digital output signals
+connection......................................................................... 31
+Figure 27 – Citiroc 1A direct digital control signal
+connection to controller .................................................. 32
+Figure 28 – North-west Citiroc 1A ball out ................... 40
+Figure 29 – North-east Citiroc 1A ball-out..................... 41
+Figure 30 – South-west Citiroc 1A ball-out .................. 42
+Figure 31 – South-east Citiroc1A ball-out ..................... 43
+Figure 32 - Citiroc1A TFBGA353 mechanics ................ 44
+
+
+
+
+Doc date: 29/05/2019                                                                             3 / 46
+                                                   Datasheet – Citiroc 1A                                        Version 2.5
+
+
+
+
+1     General description
+Citiroc 1A is a 32-channel analogue front end ASIC dedicated to the gain-trimming and read-out of SiPM detectors.
+
+1.1       SiPM Gain trimming
+Each of the 32 inputs features a low power 4.5V-range 8-bit DAC to easily adjust the SiPM high-voltage channel by
+channel to correct for the gain and noise non-uniformity of system using several SiPM. The virtual ground of each SiPM
+can be adjusted to fine tune each SiPM high voltage that are all connected to a same high voltage source.
+
+1.2       Charge measurement
+Citiroc 1A is compatible with positive-charge SiPM signals. Two measurement lines with different gain (1 to 10 ratio) are
+working in parallel in order to maximize the dynamic range of Citiroc 1A. The two measurement lines have a significant
+overlap to help user for gain inter-calibration.
+
+For each channel, two parallel AC coupled voltage preamplifiers are embedded to ensure a dynamic range from 160fC
+to 400pC1. Each preamplifier is followed by a variable shaper with an adjustable time constant2 to filter the signal
+bandwidth and optimize the signal-to-noise ratio.
+
+The signal from the two shapers can be sampled using either a sample & hold controlled by an external signal3 or by a
+peak-detector disabled by an external signal4.
+
+The stored charge information is read-out in serial using two analogue multiplexed outputs, one for low gain and one
+for high gain. The multiplexed outputs are controlled by a read shift-register. Both information of low gain and high
+gain of a same channel are present at the same time. Along the two charge measurement information, a hit-register
+provides a trigger status information described in chapter 1.3.
+
+1.3       Trigger line
+Citiroc 1A features a programmable trigger line that can be connected either to the high-gain or low gain preamplifier. It
+embeds a 15 ns peaking time fast shaper followed by two discriminators.
+
+          The first provides the trigger of the chip (one unmask channel at least has triggered – OR of the 32 channels)
+           and is also used for the hit register storing channel by channel if a channel has triggered for sequential read-
+           out.
+          The second provides accurate trigger time flag on each channel. The 32 trigger are outed.
+
+The two discriminators thresholds are common for the 32 channels and are set by two 10-bit DAC. A 4-bit DAC on each
+discriminator allows adjusting each of the 2x32 thresholds channel by channel to compensate non-uniformities.
+
+1.4       Service blocks
+Citiroc 1A can be programmed using a shift register described in chapter 2 of that datasheet. A probe register allow
+probing internal analogue points of the chip for debug or study purpose. The power can be switched of using the power
+pulsing mode and each stage can be switched off if not used by the user to save power. A bandgap set the different
+reference voltage for good temperature stability and a temperature sensor is embedded.
+
+
+
+
+1
+  1 to 2500 photoelectrons with SiPM Gain = 106, with a photoelectron to noise ratio of 10
+2
+  from 12.5 ns to 87.5 ns with a 12.5ns pitch
+3
+  All the 32 channels are hold at the same time
+4
+  The maximum of each channel is memorized until the peak detector is set blind by external signal
+
+
+Doc date: 29/05/2019                                          4 / 46
+                          Datasheet – Citiroc 1A              Version 2.5
+
+
+
+
+                       Figure 1 - General ASIC block scheme
+
+
+
+
+Doc date: 29/05/2019                 5 / 46
+                                                Datasheet – Citiroc 1A                                       Version 2.5
+
+
+
+2    Maximum ratings
+The operating condition of Citiroc 1A should not exceed the parameters listed in Table 2.
+
+Parameter                            Note                                     Minimum          Maximum      Unit
+Storage temperature range                                                                -40          125             °C
+Operating temperature range                                                              -20          110             °C
+Power pin                            All power pins                                        0          3.5              V
+Ground pin                           All ground (gnd_xx) and vss pins                      0            0              V
+Analogue input                                                                          -0.5      VDD+0.3              V
+Digital input TTL                                                                       -0.5      VDD+0.3              V
+Digital input LVDS                                                                      -0.5      VDD+0.3              V
+                                         Table 2 - Maximum rating operation condition
+
+Citiroc 1A electrostatic discharge (ESD) protection is HBM (Human Body Model) compatible on every pin.
+
+
+
+
+Doc date: 29/05/2019                                       6 / 46
+                                                Datasheet – Citiroc 1A                                             Version 2.5
+
+
+
+3     Operating modes
+Citiroc 1A is an analogue chip that can operate in two different modes.
+
+          Analogue charge integration where the number of photon of each channel is measured in an analogue way,
+           integrating the total energy in two shapers. The two gains allow a large dynamic range. Both gains are outed in
+           parallel to choose offline which gain to use and build easy gain inter-calibration.
+          Photon counting mode where the total amount of light is measured by counting the photons channel-by-
+           channel using the 32 trigger outputs. Because photon counting is limited by the fast shaper peaking time, that
+           mode can only be used for low light environment, below 20M photons per second.
+
+These two modes can be combined to get all the single photons out of each channel using the 32 trigger outputs and the
+analogue charge integration upon specific trigger or photon counting calibration.
+
+3.1       Analogue charge integration
+In analogue charge injection mode, the use of the 32 trigger output is not required. The general trigger of the chip is given
+by one of the OR signal and validate the acquisition of the event. Upon validation of the event, the FPGA will start the
+read-out sequence using the serial output read-out providing in parallel the low gain analog value, high gain analog value
+and trigger status of each channel sequentially. Citiroc1A will be blind during that read-out sequence.
+
+
+
+
+               trigger valid                    read-out sequence                        Citiroc 1A reset
+
+
+
+
+Doc date: 29/05/2019                                       7 / 46
+                                                 Datasheet – Citiroc 1A                                             Version 2.5
+
+
+
+3.2     Photon counting
+In photon counting mode, Citiroc 1A will provide a trigger for each channel upon each threshold crossing. The trigger
+threshold is set on the time discriminators that are connected to the 32 trigger outputs. Threshold can be set lower than
+one photon to get all photon or to any value decided by the user. Citiroc 1A will be blind at a channel level if threshold is
+crossed twice within a short time of 50ns. That value depends on the threshold value. Maximum photon counting rate is
+20MHz per channel.
+
+
+
+
+Doc date: 29/05/2019                                        8 / 46
+                                                 Datasheet – Citiroc 1A                                         Version 2.5
+
+
+
+4     SiPM high voltage trimming
+4.1       Program the input DACs
+Connection of the SIPM to Citiroc 1A is described in section 10.1 of this datasheet.
+
+The chip is foreseen to be connected to an external power supply and to provide a common forward high voltage to all
+connected 32 SiPM. Tuning of the applied voltage, channel by channel, is achieved using a high impedance output 8-bit
+DAC dedicated to each detector power line. A slow control bit permits to use either the 2.5V internal reference or a 4.5V
+external reference as dynamic range for this High Voltage tuning. Input DACs have 9 control bits:
+
+          1 to enable/disable the DAC
+          8 to set voltage.
+
+Note: to perform a linearity test of these input DACs, a very high impedance multimeter is required (~1Gohm) to keep the
+DAC biased.
+
+
+
+
+Doc date: 29/05/2019                                       9 / 46
+                                                  Datasheet – Citiroc 1A                                              Version 2.5
+
+
+
+5     Trigger scheme
+5.1       Trigger mode
+Citiroc 1A is an analogue ASIC and there is no auto-trigger capability with Citiroc 1A. The trigger going out of Citiroc 1A
+must be sent to a data acquisition system where a decision to convert the event in digital or not can be taken.
+
+However, Citiroc 1A can easily be used in a synchronous system by holding the analogue memory when a machine trigger
+occurs, considering that the shaping time is well known.
+
+Using the Citiroc 1A trigger to build a trigger is easy. User has access to channel level trigger as well as ASIC trigger with 2
+threshold.
+
+The peak detector can be armed (switching from track to peak sensing mode) either with the internal trigger of a channel
+or with an external signal (PS_global_trig).
+
+5.2       Trigger chain
+Citiroc trigger chain can be connected either to the low gain or the high gain preamplifier depending on the requested
+level of trigger. The chain is composed of a fast shaper followed by two discriminators.
+
+          The first defined as “charge discriminator” provides the trigger (OR32) and is also used for the “hit register”.
+           Discriminator outputs provide an ASIC level trigger (OR32) which is a logic OR of the 32 channels. The OR32
+           signal toggle at the first charge discriminator trigger.
+           Charge discriminator outputs can be latched by slow control command (“RS_or_discri”). The reset of the
+           latched (if used) triggers is performed by the LVDS signal “Raz_Chn”.
+          The second defined as “time discriminator” provides the event time information on each channel. The 32
+           discriminators outputs are available on the trigb[0-31] digital outputs. The logic NOR of the 32 time
+           discriminator is available as an open collector digital output on pin NOR32t_oc.
+
+
+
+
+                                            Figure 2 - Block scheme of the trigger chain
+
+5.2.1    Fast shaper
+A 15ns peaking-time fast shaper can either be connected to the high gain preamplifier or to the low gain. That
+connection is set by slow control. The fast shaper peaking time and gain are not programmable.
+
+
+
+
+Doc date: 29/05/2019                                         10 / 46
+                                                Datasheet – Citiroc 1A                                          Version 2.5
+
+
+
+
+                                             Figure 3 - Fast shaper block scheme
+
+5.2.2    Discriminators, trigger outputs
+Two discriminators are connected to the output of the fast shaper. The time discriminator is outed on a trigger out pin,
+channel by channel. That discriminator cannot be neither masked nor time windowed. It is always active and the digital
+treatment of time windowing, channel masking, trigger decision making is to be taken in the data acquisition system.
+
+The charge discriminator is followed by a programmable logic system allowing simple validation operation.
+
+Each time discriminator connects to:
+
+        A direct trigger output (pin T<Nch>)buffered with a user-level defined high level (pin VHi)
+        A 32-NOR logic outing the ASIC with an open collector output (NOR32t_oc)
+
+Each charge discriminator is followed by a trigger validation logic (see 5.2.3) connecting to:
+
+        A OR-32 logic (pin OR32) buffered with a user-level defined high level (pin VHi)
+        A NOR-32 logic outing the ASIC with an open collector output (NOR32_oc)
+        The hit register that can be read out sequentially (require the trigger to be latched)
+        The peak sensing arming system ( that toggle the peak detector from track to peak sensing)
+
+5.2.3    Time windowing, channel mask and trigger latch
+The charge discriminator is followed by a logic system as shown in. That logic system allows the following choice:
+
+        Mask a channel: allows inhibiting a charge discriminator channel by channel to quiet a noisy channel for
+         example. That parameter is programmed by slow control. The slow control parameter is discriminator mask ch.
+         N (slow control parameter #265+N)
+        Enable/inhibit trigger during a specific period of time: that LVDS signal allows enabling all the triggers
+         during a specific time window only if the user know when an event is supposed to occur for example. The signal
+         name on the pin list is ValEvt [ValEvt_p / ValEvt_n]
+        Latch the discriminator output: allows latching the discriminators output to memorize the trigger status.
+         Triggers can be reset with the RazChn LVDS signal to be ready for the next event(RazChn_p / RazChn_n).
+         Charge discriminators must be latched to use the hit register and shall only be reset after the read sequence.
+
+The output of the trigger logic can be used to arm the peak detector. It is not mandatory to latch the discriminator
+output to use the peak detector.
+
+
+
+
+Doc date: 29/05/2019                                      11 / 46
+                                                  Datasheet – Citiroc 1A                                          Version 2.5
+
+
+
+
+                                          Figure 4 - Trigger logic of charge discriminator
+
+The different parameters described above allow the user to set the ASIC in a correct configuration for its specific use. The
+figure below shows chronogram examples of different modes.
+
+                            V_Threshold
+
+                            Fast_Shaper output
+
+                            RS_or_DISCRI (slow control)      X : 0 (discri) or 1 (RS)
+
+                            VAL_EVT input                    when v al_ev t = 0, no change on the output
+
+                            RAZ_CHN input
+
+                            DISCRI output (internal)
+
+                            TRIGGER (channel) output
+
+
+
+                                                  Figure 5 – Val Evt signal effect
+
+
+
+
+                            V_Threshold
+
+                            Fast_Shaper output
+
+                            RS_or_DISCRI (slow control)       1 : RS
+
+                            VAL_EVT input
+
+                            RAZ_CHN input
+
+                            DISCRI output (internal)
+
+                            TRIGGER (channel) output
+
+
+
+                                              Figure 6 - – Trigger output using Latch
+
+
+
+
+Doc date: 29/05/2019                                         12 / 46
+                                             Datasheet – Citiroc 1A                        Version 2.5
+
+
+
+                       V_Threshold
+
+                       Fast_Shaper output
+
+                       RS_or_DISCRI (slow control)      0 : discri
+
+                       VAL_EVT input
+
+                       RAZ_CHN input                   raz_chn is useless in discri mode
+
+                       DISCRI output (internal)
+
+                       TRIGGER (channel) output
+
+
+
+                                 Figure 7 – Trigger output in direct discriminator mode
+
+
+
+
+Doc date: 29/05/2019                                    13 / 46
+                                                 Datasheet – Citiroc 1A                                          Version 2.5
+
+
+
+6     Charge measurement scheme
+6.1    Preamplifiers
+Each channel of Citiroc 1A embeds two channel-by-channel independent programmable variable-gain preamplifiers
+ensuring a wide coverage of the dynamic range depending on the application. Both low gain and high gain preamplifier
+can be tuned on 6 bits (Cf can be tuned from 0 to 1575fF with a step of 25fF). The voltage gain is given by C in/Cf,
+Cin=15pF for high gain and 1.5pF for low gain. The slow control bits are active low as shown in Table 3.
+
+
+
+
+                                 Figure 8 – High gain and low gain voltage sensitive preamplifier
+
+
+
+
+6-bit feedback config          Feedback capacitance     Low gain preamp gain    High gain preamp gain
+               111110 [62]                        25 fF                  60 V/V                 600 V/V
+                111101 [61]                       50 fF                  30 V/V                 300 V/V
+                         ….
+                011111 [31]                           800 fF                           1.875 V/V                18.75 V/V
+                         ….
+               000001 [1]                             1550 fF                          0.97 V/V                   9.7 V/V
+             000000 [0]                               1575 fF                          0.95 V/V                   9.5 V/V
+                                     Table 3 - Preamplifier Gain versus slow control program
+
+Any channel preamplifier can be shut down by slow control bit (“disable PA”), to disconnect any noisy channel from the
+measurement chain.
+
+A calibration input is included in each channel and can be enabled individually by slow control parameters (“In_calib
+enabled”). In order to have a good precision, only one calibration input should be allowed at the same time. The injection
+calibration capacitance value is about 3pF.
+
+
+
+
+Doc date: 29/05/2019                                        14 / 46
+                                               Datasheet – Citiroc 1A                                          Version 2.5
+
+
+
+
+                                                Figure 9 - Ctest schematic.
+
+Linearity of Low Gain preamplifier can be improved by increasing its current consumption. The slow control bit “Low Gain
+PreAmp Bias” controls that feature.
+
+6.2    Slow Shaper
+Two CRRC2 slow shapers are connected on the two preamplifiers outputs for each channel. The peaking time of each
+slow shaper can be tuned from 12.5 ns to 87.5 ns with a 12.5ns pitch. The peaking time is set commonly for all the 32
+channels, however it can be different between low gain shaper [slow control bits 315-317] and high gain shaper [slow
+control bits 318-320]. The slow control bits for shaping time selection are active low, see Table 4 for details.
+
+
+
+
+                                             Figure 10 – Slow shaper schematic
+
+
+                              Slow control value             Peaking time value
+                               6 (110)                       12.5 ns
+                               5 (101)                       25.0 ns
+                               4 (100)                       37.5 ns
+                               3 (011)                       50.0 ns
+                               2 (010)                       62.5 ns
+                               1 (001)                       75.0 ns
+                               0 (000)                       87.5 ns
+
+
+
+Doc date: 29/05/2019                                     15 / 46
+                                                  Datasheet – Citiroc 1A                                         Version 2.5
+
+
+                                Table 4– Slow shaper peaking time value vs slow control parameters
+
+
+
+
+6.3       Peak sampling: Track and hold or peak detector
+Two peak sensing systems are embedded for each shaper. A peak detector that automatically stores the highest value of
+the slow shaper after being armed, and a track and hold that requires an external hold signal at the peaking time. They
+cannot run concurrently and a slow control bit allows choosing between the two. The selection of the peak sampling
+solution is independent between low gain and high gain and is common for the 32 channel of each gain.
+
+          Slow control bit #306 selects high gain peak sampling system [0: peak sensing – 1: track&hold]
+          Slow control bit #307 selects low gain peak sampling system [0: peak sensing – 1: track&hold]
+
+The choice of the best peak sampling solution depends on the final application.
+
+          Track & hold is more suitable for events where photons are all detected at the same time (few ns spread)
+          Peak detector is more suitable for events where photons are spread in time (several 10 or 100ns)
+
+6.3.1      Track & hold
+The track & hold cell of each gain is controlled by a hold signal - hold_lg for low gain, hold_hg for high gain (both are 0:
+track – 1: hold). The hold signals must remain high (in hold mode) until the read-out sequence has been completed. The
+hold signal is active on level.
+
+
+
+
+                                            Figure 11 – Schematic of track and hold cell
+
+
+
+
+Doc date: 29/05/2019                                         16 / 46
+                                                Datasheet – Citiroc 1A                                          Version 2.5
+
+
+
+
+                                        Figure 12– Standard Track & Hold working mode
+
+
+
+
+The readout of these analogue memories is controlled by the read register as detailed in chapter 7.
+
+
+
+6.3.2     Peak detector
+User can use a peak detector to sample the maximum of the shaped signal instead of the track and hold. The peak
+detector allow to get the maximum of the peak even if that peak is not precisely defined in time – for example if incident
+photons come with a delay from channel to channel or if photon are spread in time in a single channel.
+
+The peak detector acquisition sequence works in 3 phases:
+
+        Track phase: before any trigger, the peak detector is in track mode to avoid noise pile-up. Upon trigger, the peak
+         detector switch to peak detection phase
+        Peak detection phase: in that mode, the peak detector memorizes the maximum of the input signal. That mode
+         is kept until user provides a rising edge on the hold_xg (hold_lg for low gain and hold_hg for high gain). The
+         peak detector switch to hold phase when that signal occurs.
+        Hold phase: disconnect the input of the peak detector from the shaper and ensure that any input signal will not
+         be memorized. That phase is used during serial read-out of the ASIC. Falling edge on hold_xg will release the
+         hold phase and switch back to track phase for the next acquisition
+
+
+
+
+Doc date: 29/05/2019                                      17 / 46
+                                                Datasheet – Citiroc 1A                                            Version 2.5
+
+
+
+
+                                            Figure 13– Peak detector working mode
+
+A reset pin (rstb_PSC) reset the peak detector to track mode on low level. The reset doesn’t need to be used at each
+acquisition, the system get back to track mode automatically as shown in Figure 13 and Figure 14.
+
+The trig signal shown on Figure 14 can be either internal by using the channel charge trigger or external by using the
+PS_global_trig signal. In the first case, the trigger can occur at different timing channel by channel (auto-trigger). In the
+second case, the trigger is external and global to the 32 channels. Slow control bit Sel TrigExt PSC allows to choose
+between internal and external trigger [0: internal trigger – 1: external trigger].
+
+The peak sensing control cell can be bypassed and the hold/track and peak detection / track signal can be controlled
+externally by setting the Bypass PSC slow control parameter to 1 [0: peak sensing cell used – 1: peak sensing cell
+bypassed]. When the cell is bypassed, the peak detection track signal is connected to pin PS_modeb_ext [0: track – 1:
+peak detection]. Hold signal keep the same behavior [0:track – 1: hold].
+
+
+
+
+Doc date: 29/05/2019                                      18 / 46
+                           Datasheet – Citiroc 1A               Version 2.5
+
+
+
+
+                       Figure 14 - Peak detector chronogram
+
+
+
+
+                       Figure 15 – Peak detector block scheme
+
+
+
+
+Doc date: 29/05/2019                  19 / 46
+                                                Datasheet – Citiroc 1A                                           Version 2.5
+
+
+
+7    Data outing - analogue chip multiplexed read out
+The two analogue charge measurement can be read in serial using a multiplexed output providing sequentially the 32
+charge measurement as well as the charge trigger status (if the charge trigger is latched). These three signals are
+provided concomitantly for each channel. The channel selection is done with a shift register equivalent to the slow control
+register and the probe register and work the same way.
+
+
+
+
+                                         Figure 16 - Read register description scheme
+
+A single 1 must be presented at the input of the shift register (srin_read) then propagated along the register to
+sequentially connect the 32 channels to the multiplexed output at the shift register clock pace (ck_read). The clock
+
+
+Doc date: 29/05/2019                                      20 / 46
+                                                 Datasheet – Citiroc 1A                                          Version 2.5
+
+
+should not be faster than 5MHz to get a 10-bit resolution on the energy. The temperature sensor is connected on that
+read register as a 33rd channel. However, the temperature information should not be read at the same pace as the 32
+channel and a 1 ms timing is required to stabilize that analogue information prior to conversion. A temperature
+measurement should then be considered as an independent and specific slow measurement. If the power
+consumption is a critical parameter and the read-out speed does not require to be fast, it is possible to reduce the biasing
+current of the back-end stages along with a read register clock speed reduction to 600KHz maximum ( slow control bit
+#301 SCA bias [0: weak bias – 1: strong bias]).
+
+When no channel is selected, an OR function of the contents of this “read” register ensures high impedance the 3
+outputs (low gain, high gain and digital output).
+
+
+
+                                               _                                         OUT
+
+                                                   BUFFER                                PIN
+                                               +
+
+                                           Read Re gister OR 32
+                                                      ENABLE
+
+
+
+
+                                        Figure 17− Read Register high impedance output
+
+
+That high impedance features allow using only three lines (High gain, Low gain, Hit register) to read several daisy-chained
+Citiroc 1A.
+
+A chronogram in Figure 18 show the different signal and timing to be used to read-out Citiroc 1A through the serial
+output register.
+
+
+
+
+Doc date: 29/05/2019                                           21 / 46
+                          Datasheet – Citiroc 1A              Version 2.5
+
+
+
+
+                       Figure 18 − Read Register Chronogram
+
+
+
+
+Doc date: 29/05/2019                22 / 46
+                                                   Datasheet – Citiroc 1A                                   Version 2.5
+
+
+
+8     Programmable parameters, internal probing and power pulsing
+The slow control and probe registers are using the same programming pin and a select signal allows choosing between
+the two registers as shown in Figure 19.
+
+
+
+
+                                          Figure 19 - Select bit for Citiroc 1A programming
+
+
+
+
+8.1       General description of slow control shift-register
+The slow control register allows programming Citiroc 1A with all required parameters such as:
+
+           switching on or off the different stages of the ASIC
+           setting the signal polarities and threshold values
+           activating or bypassing latches
+           routing triggers, etc.
+
+
+
+
+                                        Figure 20: Slow control chronogram and explanation.
+
+
+
+Doc date: 29/05/2019                                          23 / 46
+                                                    Datasheet – Citiroc 1A                                                                 Version 2.5
+
+
+The slow control is a shift register composed of 1144 flip flops (first bit is B0 = DAC_t<0> and last is B1143 = EN_32
+triggers). Data are stored in flip-flops on leading edge of the clock. The data are shifted at each clock cycle as seen on
+Figure 20. Between srout and the output of the last slow control register’s flip flop, there is another flip flop clocked on
+!clk so an additional falling edge is needed to send the data out on Srout. In order to load the slow control parameter
+into the ASIC, it is needed to apply a rising edge on load_sc after bit shift of the configuration of the configuration.
+
+8.2         Slow control register parameters
+The first bit of the slow control register is the last bit to enter the register as the data are pushed on a forward path
+regarding the slow control register.
+
+
+
+      DAC_t ch. 0 [0]              DAC_t ch. 0 [1]                      ...          EN_NOR32T_oc                                  EN_32_triggers
+
+
+
+
+                   Register Name       bits                                            Register description                                   Subadd
+Channel 0 to 31 4-bit_t                 128       Ch0 to 31 4-bit DAC_t ([0..3])                                                                     0
+Channel 0 to 31 4-bit                   128       Ch0 to 31 4-bit DAC ([0..3])                                                                    128
+EN_discri                                     1   Enable Discriminator Charge [0 : disabled, force off – 1 : Enabled] – see Table 7               256
+Discriminator                                 1   discriminator Charge power pulsing mode [0: power pin - 1 : force on] – see Table 7             257
+RS_or_discri                                  1   Select latched (RS : 1) or direct output (trigger : 0) on charge discriminator                 258
+EN_discri_t                                   1   Enable Discriminator Time [0 : disabled, force off – 1 : Enabled] – see Table 7                 259
+Discriminator_t                               1   discriminator Time power pulsing mode [0: power pin - 1 : force on] – see Table 7              260
+EN_4b_dac                                     1   Enable 4-bit DAC charge [0 : disabled, force off – 1 : Enabled] – see Table 7                   261
+4b_dac                                        1   4-bit DAC charge power pulsing mode [0: power pin - 1 : force on] – see Table 7                 262
+EN_4b_dac_t                                   1   Enable 4-bit DAC time [0 : disabled, force off – 1 : Enabled] – see Table 7                     263
+4b_dac_t                                      1   4-bit DAC time power pulsing mode [0: power pin - 1 : force on] – see Table 7                   264
+Discriminator Mask                       32       Discriminator mask (channel 0 to 31) [0: Masked – 1 : unmasked]                                 265
+HG T&H (Widlar SCA)                           1   High Gain Track & Hold power pulsing mode [0: power pin - 1 : force on] – see Table 7           297
+EN_HG_T&H (Widlar SCA)                        1   Enable High Gain Track & Hold [0 : disabled, force off – 1 : Enabled] – see Table 7            298
+LG T&H (Widlar SCA)                           1   Low Gain Track & Hold power pulsing mode [0: power pin - 1 : force on] – see Table 7            299
+EN_LG_T&H (Widlar SCA)                        1   Enable Low Gain Track & Hold [0 : disabled, force off – 1 : Enabled] – see Table 7             300
+SCA bias                                      1   SCA bias ( 1 = weak bias, 0 = high bias 5MHz ReadOut Speed)                                     301
+HG Pdet                                       1   High Gain Peak detector power pulsing mode [0: power pin - 1 : force on] – see Table 7         302
+EN_HG_Pdet                                    1   Enable High Gain Peak detector [0 : disabled, force off – 1 : Enabled] – see Table 7           303
+LG Pdet                                       1   Low Gain Peak detector power pulsing mode [0: power pin - 1 : force on] – see Table 7          304
+EN_LG_Pdet                                    1   Enable Low Gain Peak detector [0 : disabled, force off – 1 : Enabled] – see Table 7            305
+Sel SCA or PeakD HG                           1   Select Track & Hold or Peak Detector – High Gain [0: peak detector – 1 : T&H]                  306
+Sel SCA or PeakD LG                           1   Select Track & Hold or Peak Detector – Low Gain [0: peak detector – 1 : T&H]                    307
+bypass PSC                                    1   Bypass Peak Sensing Cell [0 : cell active – 1 : cell bypassed]                                 308
+Sel Trig Ext PSC                              1   Select peak sensing cell trigger [0 : internal trigger – 1 : external trigger]                 309
+Fast Shapers Follower                         1   fast shaper follower power pulsing mode [0: power pin - 1 : force on] – see Table 7             310
+EN_Fast Shaper                                1   Enable fast shaper [0 : disabled, force off – 1 : Enabled] – see Table 7                          311
+Fast Shaper                                   1   fast shaper power pulsing mode [0: power pin - 1 : force on] – see Table 7                      312
+Low Gain Slow Shaper                          1   low gain slow shaper power pulsing mode [0: power pin - 1 : force on] – see Table 7             313
+EN_Low_Gain_Slow Shaper                       1   Enable Low Gain Slow Shaper [0 : disabled, force off – 1 : Enabled] – see Table 7               314
+Time Constant LG Shaper                   3       Low gain shaper time constant commands (0..2) [active low] – see Table 4                        315
+High Gain Slow Shaper                         1   high gain slow shaper power pulsing mode [0: power pin - 1 : force on] – see Table 7            318
+EN_High_Gain_Slow Shaper                      1   Enable high gain Slow Shaper [0 : disabled, force off – 1 : Enabled] – see Table 7              319
+Time Constant HG Shaper                   3       High gain shaper time constant commands (0..2) [active low] – see Table 4                      320
+
+
+
+
+Doc date: 29/05/2019                                              24 / 46
+                                                         Datasheet – Citiroc 1A                                                                       Version 2.5
+
+
+LG PA bias                                     1      Low Gain PreAmp bias [0: normal bias - 1: weak bias]                                                  323
+High Gain PreAmplifier                         1      High Gain preamp power pulsing mode [0: power pin - 1 : force on] – see Table 7                       324
+EN_High_Gain_PA                                1      Enable High Gain preamp [0 : disabled, force off – 1 : Enabled] – see Table 7                         325
+Low Gain PreAmplifier                          1      Low Gain preamp power pulsing mode [0: power pin - 1 : force on] – see Table 7                        326
+EN_Low_Gain_PA                                 1      Enable Low Gain preamp [0 : disabled, force off – 1 : Enabled] – see Table 7                          327
+Fast Shaper on LG                              1       Select preamp to connect to Fast Shaper                                                              328
+                                                      [0: fast shaper on HG preamp – 1: fast shaper on LG preamp]
+EN_input_dac                                   1       Enable 32 input 8-bit DACs [0 : disabled, force off – 1 : Enabled] – see Table 7                     329
+8-bit DAC reference                            1      8-bit input DAC Voltage Reference (1 = internal 4,5V , 0 = internal 2,5V)                             330
+Input 8-bit DAC                              288      Input 8-bit DAC Data from channel 0 to 31 – (DAC7…DAC0 + DAC ON)                                      331
+Channel 0 to 31 PA                           480       Ch0 to 31 Preamps config                                                                             619
+                                                      15 bit * 32 channels [HG gain[5..0], LG gain [5..0], CtestHG, CtestLG, PA disabled]
+                                                      HG gain and LG gain are active low – see Table 3
+                                                      CtestHG, CtestLG : connect injection capacitance to preamp
+                                                      [0: Cinj disconnected – 1: Cinj connected]
+                                                      PA disabled : disable preamplifier [0: preamplifier enabled – 1: preamplifier disabled]
+Temp                                           1       Temperature Sensor power pulsing mode [0: power pin - 1 : force on] – see Table 7                   1099
+EN_Temp                                        1      Enable Temperature Sensor [0 : disabled, force off – 1 : Enabled] – see Table 7                       1100
+BandGap                                        1      BandGap power pulsing mode [0: power pin - 1 : force on] – see Table 7                                1101
+EN_BandGap                                     1      Enable BandGap [0 : disabled, force off – 1 : Enabled] – see Table 7                                  1102
+EN_DAC1                                        1      Enable DAC charge [0 : disabled, force off – 1 : Enabled] – see Table 7                               1103
+DAC1                                           1      DAC charge power pulsing mode [0: power pin - 1 : force on] – see Table 7                             1104
+EN_DAC2                                        1      Enable DAC time [0 : disabled, force off – 1 : Enabled] – see Table 7                                 1105
+DAC2                                           1      DAC time power pulsing mode [0: power pin - 1 : force on] – see Table 7                               1106
+DAC1 code                                     10      10-bit DAC1 (MSB-LSB) – Charge discriminator threshold                                                1107
+DAC2 code                                     10      10-bit DAC2 (MSB-LSB) – Time discriminator threshold                                                  1117
+EN_High Gain OTAq                              1      Enable High Gain OTA [0 : disabled, force off – 1 : Enabled] – see Table 7                            1127
+High Gain OTAq                                 1      High Gain OTA power pulsing mode [0: power pin - 1 : force on] – see Table 7                          1128
+EN_Low Gain OTAq                               1      Enable Low Gain OTA [0 : disabled, force off – 1 : Enabled] – see Table 7                             1129
+Low Gain OTAq                                  1      Low Gain OTA power pulsing mode [0: power pin - 1 : force on] – see Table 7                           1130
+EN_Probe OTAq                                  1      Enable Probe OTA [0 : disabled, force off – 1 : Enabled] – see Table 7                                1131
+Probe OTAq                                     1      Probe OTA power pulsing mode [0: power pin - 1 : force on] – see Table 7)                             1132
+Testb_Otaq                                     1      Output OTA buffer bias automatic off [0 : auto-bias – 1 : force on]                                   1133
+EN_Val_Evt receiver                            1      Enable Val_Evt receiver [0 : disabled, force off – 1 : Enabled] – see Table 7                         1134
+Val_Evt receiver                               1      Val_Evt receiver power pulsing mode [0: power pin - 1 : force on] – see Table 7                       1135
+EN_Raz_Chn receiver                            1      Enable Raz_Chn receiver [0 : disabled, force off – 1 : Enabled] – see Table 7                         1136
+Raz Chn receiver                               1      Raz Chn receiver power pulsing mode [0: power pin - 1 : force on] – see Table 7                       1137
+EN_out_dig                                     1      Enable digital multiplexed output (hit mux out) [0 : disabled, force off – 1 : Enabled] – see         1138
+                                                      Table 7
+EN_OR32                                        1      Enable digital OR32 output [0 : disabled, force off – 1 : Enabled] – see Table 7                      1139
+EN_NOR32_oc                                    1      Enable digital OR32 Open Collector output [0 : disabled, force off – 1 : Enabled] – see               1140
+                                                      Table 7
+                                                                                                                                                5
+Trigger Polarity                               1      Output trigger polarity choice [0 : positive (rising edge) – 1 : negative (falling edge)]             1141
+EN_NOR32T_oc                                   1      Enable digital OR32_T Open Collector output [0 : disabled, force off – 1 : Enabled] – see             1142
+                                                      Table 7
+EN_32 triggers                                 1      Enable 32 channels triggers outputs [0 : disabled, force off – 1 : Enabled] – see Table 7             1143
+Total                                       1144                                                                                                            1144
+                                                   Table 5 – slow control register parameters
+
+8.3         General description of probe shift-register
+A probing system is embedded in Citiroc 1A. It routes internal points of the ASIC to specific probe pins in order to measure
+internal point in case of debug need. Three dedicated pins are available for probing:
+
+             Digital_probe: for digital signal giving peak detector real time status
+             Out_probe: for analog signals such as shaper or preamplifiers outputs
+             Input_DAC: for input 5V DAC output, that pin can be used for DAC intercalibration
+
+5
+    It is recommended to use negative polarity for EMC consideration
+
+
+Doc date: 29/05/2019                                                   25 / 46
+                                                Datasheet – Citiroc 1A                                               Version 2.5
+
+
+The probing points are set by the probe register. This “probe” register shares the same I/O with the “slow control” register
+as both are multiplexed. Selection of either “probe” or “slow control” is done by the “Select” pin as shown inFigure 19.
+
+For each of the 32 channels, output of low and high gain preamplifier, of low gain and high gain slow shaper, of fast
+shaper and the internal signals “PeakSensing_modeb_LG” and“PeakSensing_modeb_HG” can be monitored.
+
+Only one analogue, one digital output and one in put DAC can be routed at the same time. Connecting several point to
+the same probe induce CMOS short inside Citiroc 1A.
+
+
+
+
+                                      Figure 21 - Scheme block of internal probing system
+
+In normal use, this probe output should be disabled by Slow Control to save power. The probe can be useful for debug or
+calibration purpose.
+
+8.4      Probe register parameters
+Signal name                Probe    Comments                                    Type        Subadd   Routed to
+Out_fs                        32    Fast shaper output                          Analog          0    Out_probe
+                                    channel 0 to 31
+Out_ssh_LG                    32    Low gain slow shaper, output                Analog          32   Out_probe
+                                    channel 0 to 31
+PeakSensing_modeb_LG          32    Low gain peak detector status               Digital         64   Digital_probe
+                                    (follower or peak sensing)
+                                    channel 0 to 31
+Out_ssh_HG                    32    High gain slow shaper output                Analog          96   Out_probe
+                                    channel 0 to 31
+PeakSensing_modeb_HG          32    High gain peak detector status              Digital        128   Digital_probe
+                                    (follower or peak sensing)
+                                    channel 0 to 31
+Out_PA_HG/Out_PA_LG           64    High gain preamp output                     Analog         160   Out_probe
+                                    Low gain preamp output
+                                    channel 0 to 31
+Input DAC                     32    Input DAC output                            Analog         224   Out_probe_dac_5V
+                                    channel 0 to 31
+          Total              256
+                                              Table 6 – Probe register parameters
+
+
+
+
+Doc date: 29/05/2019                                       26 / 46
+                                                Datasheet – Citiroc 1A                                           Version 2.5
+
+
+
+8.5    Power pulsing and ON/OFF functions
+Each unused stage can be disabled to reduce power consumption. This is controlled by the slow control bits Enable
+(EN_xxxx). Moreover, in order to save more power, chosen chip stages can be switched off dynamically thanks to the
+“pwr_on” command (provided by a pin). This mode is the power pulsing function.
+
+Caution, for each stage, the slow control bit Power Pulsing (PP_xxxx) allows to bypass this feature by forcing it ON. Refer
+to the Table 7.
+
+Note that turning OFF a stage has the highest priority.
+
+      Slow Control :       Slow Control :      Power PIN :              Comments
+      EN_xxxx              PP_xxxx             pwr_on
+      0                    X                   X                        Stage disabled
+      1                    0                   0 (OFF)                  Power pulsing mode : Stage shut down
+      1                    0                   1 (ON)                   Power pulsing mode : Stage powered
+      1                    1                   X                        Stage powered
+                                               Table 7 – Power mode truth table
+
+
+
+
+Doc date: 29/05/2019                                      27 / 46
+                                             Datasheet – Citiroc 1A                                     Version 2.5
+
+
+
+9    Performances
+                  That section is under validation and will be released in next version of Datasheet.
+
+
+
+
+Doc date: 29/05/2019                                   28 / 46
+                                                 Datasheet – Citiroc 1A                                          Version 2.5
+
+
+
+10 I/Os connection
+10.1   SiPM connection
+The 32 SiPM must be connected to the 32 inputs named in<0> to in<31>. The SIPM must be connected to provide a
+positive charge to Citiroc 1A. The SiPM anode must be connected to the Citiroc 1A input with the shortest possible cable
+length for good timing resolution (few cm). The capacitance on the SiPM anode must be minimized (few pC). The line
+shall be terminated with a 50 Ohm & 100nF load in series. The 50 Ohm resistor is for RF signal termination (can be
+anything else matching the input line) and the 100nF is for DC block to allow the input DAC adjusting the DC value on the
+input point. The SiPM cathode should be connected to the common high voltage. Connection scheme is shown in Figure
+22.
+
+
+
+
+                                         Figure 22 - SiPM connection scheme - DC bias
+
+The SiPM bias voltage must be equal to the recommended voltage by the SIPM manufacturer according to the specified
+breakdown voltage (VBR) and the required overvoltage (VOV). The SiPM bias is equal to the High Voltage (HV) supply minus
+the input DAC voltage (VDAC). The input DAC voltage can be adjusted channel by channel to correct non uniformity in the
+breakdown voltage of the different SIPM connected to Citiroc 1A.
+
+                                                 =         +        =        −
+
+Once correctly biased, the SIPM will provide a positive charge upon incident photon. The input DAC is high impedance on
+fast signal and the fast charge generated by the SiPM will be injected in the Citiroc 1A preamplifier as shown on Figure 23.
+
+
+
+
+                                      Figure 23 - SiPM charge transfer scheme - Fast signal
+
+The input DAC can be connected to get a 4.5V dynamic range or a 2.5V dynamic range.
+
+
+Doc date: 29/05/2019                                        29 / 46
+                                                 Datasheet – Citiroc 1A                                            Version 2.5
+
+
+
+         4.5V dynamic range
+              o Connect Vdd_dac_5V to a 5V power supply
+              o Slow control bit “8-bit DAC reference” must be set to 1
+         2.5V dynamic range
+              o Connect Vdd_dac_5V to a 3.3V power supply
+              o Slow control bit “8-bit DAC reference” must be set to 0
+
+10.2 Trigger output connection
+The Citiroc 1A 32 trigger output and OR32 general chip trigger have a user-defined voltage swing. The open collector
+signals of general trigger for each discriminator (discriminator Q and discriminator T) have the same user-defined voltage
+swing but requires external pull-up resistor/ The power supply pins VH (V high) and VL (V low) define the digital high level
+and digital low level of these pins. It is strongly recommended to set VL to zero volt (GND) to get better and faster signal.
+VH can be set to 1.8V – 2.5V or 3.3V depending on user needs. The higher the voltage swing, the faster the signal.
+However, the EMC is better for low VH. That choice will be a design trade-off depending on the application and the timing
+performance required. The trigger signal receiving device (FPGA, microcontroller, etc.) must have a consistent voltage
+swing to operate correctly as shown in Figure 24.
+
+
+
+
+                                             Figure 24 - Trigger output connection
+
+The pull-up resistor for the open collector signal must have a value between 1k and 10k. The larger the resistance, the
+slower the signal will be to get back to baseline after a trigger. This is dependent on the line capacitance that should be
+minimized to have fast trigger count if Citiroc 1A is used in photon counting mode. It is possible to connect several
+Citiroc 1A NOR32_OC and NOR32T_OC together to build a general trigger of several chips with a cabled OR.
+
+10.3 Digital control & read-out connection
+The digital control of Citiroc 1A can be break down into two categories. The first category is the control of the different
+shift registers in Citiroc 1A. The slow control and probe register and the read register must be connected to a 3.3V power
+bank on the driving device (FPGA, microcontroller, etc.) as shown in Figure 25.
+
+
+
+
+Doc date: 29/05/2019                                       30 / 46
+                                                   Datasheet – Citiroc 1A                                          Version 2.5
+
+
+
+
+                                    Figure 25 - Citiroc 1A shift register connection to controller
+
+The two slow control register allow programming the ASIC parameters and the probing for debug for the slow
+control/probe shift register (the select bit allow to choose as described in) and drive the multiplexed outputs for the read
+register as described in Figure 26. The analog output signals must be connected to an ADC or an analog buffer with
+impedance higher than 1k. The analog output should not be 50 Ohm terminated. The hit multiplexer must be
+connected to a controller with a VH power bank as for the trigger outputs. The connection of the analog and digital
+output signals is described in Figure 26.
+
+
+
+
+                                 Figure 26 - Citiroc 1A analog and digital output signals connection
+
+The second category is the direct connection signals. Two signals (RAZ_chn and Val_Evt) are LVDS. It is recommended to
+terminate the line with a 100 Ohm resistance between the plus and minus branch at the Citiroc 1A receiver level for these
+two signals. However this is not mandatory. Please refer to your FPGA or microcontroller datasheet for further information
+on how to handle LVDS signals from the transmitter point of view. There is no 100 Ohm termination resistance inside
+the Citiroc 1A LVDS receiver.
+
+
+
+
+Doc date: 29/05/2019                                          31 / 46
+                                                   Datasheet – Citiroc 1A                                         Version 2.5
+
+
+
+
+                             Figure 27 – Citiroc 1A direct digital control signal connection to controller
+
+Other signals are standard 3.3V and should be connected to a same voltage power bank on the controller as shown in
+Figure 27.
+
+10.4 Power connection & bias or reference decoupling
+All the ground (gnd_XXX) and substrate reference (vss) must be connected to the ground of the board or system to
+ensure good signal integrity. Indeed that ground must be built out of a plane on the hosting PCB and cannot be only
+wired.
+
+The different supply voltage must be carefully decoupled and should not be build out of a DC-DC converter. Prefer a LDO
+in your design to have a cleaner power supply. The VDDA power supply is the most critical in term of noise because it
+powers the preamplifiers. Bad decoupling on VDDA will induce coherent noise in your system.
+
+The most critical point to decouple is the bandgap reference (V_bg). 100nF on that point is useful and strongly
+recommended. If possible, decouple as well the shaper references:
+
+        Vref_ssh_lg : Low gain slow shaper reference
+        Vref_ssh_hg : High gain slow shaper reference
+        Vref_fs : Fast shaper reference
+
+
+
+
+Doc date: 29/05/2019                                           32 / 46
+                                                Datasheet – Citiroc 1A                                               Version 2.5
+
+
+
+10.5 Bias and references values
+All references and bias point of Citiroc 1A are described in that section. References are bias point are not to be changed
+unless specifically required by Weeroc. Contact us if you have specific request concerning fine tuning.
+
+Reference bias name      LQFP160     TFBGA353      Value (V)      Description
+
+ib_1nA_dac               NC          A1            0,8            Input DAC bias - referenced to ground
+ib_1nA_peak              146         B9            2,75           Peak detector bias - referenced to VDD
+ib_dac_4b                3           D2            2,6            4bit DAC bias - referenced to VDD
+ib_dac_5V                159         B3            3              Input DAC bias - referenced to VDD
+ib_ota_bg                NC          AC1           0,65           Bandgap buffer bias - referenced to GND
+ib_otaq                  64          AB13          0,85           Output analogue buffer bias - referenced to GND
+ib_rec                   69          AB15          0,8            LVDS receiver bias – referenced to GND
+ib_sca                   144         B10           1,6            SCA bias - referenced to GND
+ib_suiv_fs               NC          B13           0,9            Fast shaper input follower - referenced to GND
+ib_suiv_rc_hg            NC          A11           0,85           High gain slow shaper follower bias - referenced to GND
+ib_suiv_rc_lg            NC          A8            0,85           Low gain slow shaper follower bias - referenced to GND
+ib_temp                  39          Y2            0,52           Temperature sensor bias - referenced to GND
+ibfol_discri_t           NC          B12           0,8            Time discriminator follower bias - referenced to GND
+ibi_dac                  NC          AB5           0,75           10b DAC input stage bias - referenced to GND
+ibi_discri               NC          E16           0,8            Charge discriminator input stage bias - referenced to GND
+ibi_discri_t             160         B17           0,7            Time discriminator input stage bias - referenced to GND
+ibi_fs                   NC          E12           0,7            Fast shaper input stage bias - referenced to GND
+ibi_ota_dac              NC          A3            0,7            10b DAC buffer input stage bias - referenced to GND
+ibi_pa_hg                NC          A4            1,1            High gain preamplifier input stage bias - referenced to GND
+ibi_pa_lg                NC          B8            1,1            Low gain preamplifier input stage bias - referenced to GND
+ibi_peak                 148         E10           0,65           Peak detector input stage bias - referenced to GND
+ibi_ssh_hg               NC          B11           0,7            High gain slow shaper input stage bias - referenced to GND
+ibi_ssh_lg               NC          A9            0,75           Low gain slow shaper input stage bias - referenced to GND
+ibm_discri               NC          B15           2,5            Charge discriminator medium stage bias - referenced to VDD
+ibm_discri_t             NC          B14           0,6            Time discriminator medium stage bias - referenced to GND
+ibm_pa_hg                NC          B6            2,4            High gain preamplifier medium stage bias - referenced to
+                                                                  VDD
+ibm_pa_lg                NC          B7            2,1            Low gain preamplifier medium stage bias - referenced to VDD
+ibmin_discri             NC          B16           3              Power-off discriminator quiescent current bias - referenced to
+                                                                  VDD
+ibmin_pa                 NC          A6            0,65           Power-off preamplifier quiescent current bias - referenced to
+                                                                  GND
+ibo_dac                  NC          AC6           0,62           10b DAC output stage bias - referenced to GND
+ibo_discri               NC          A16           0,77           Charge discriminator output stage bias - referenced to GND
+ibo_discri_t             NC          B2            0,95           Time discriminator output stage bias - referenced to GND
+ibo_fs                   NC          A13           0,7            Fast shaper output stage bias - referenced to GND
+ibo_ota_dac              NC          A2            0,85           10b DAC buffer output stage bias - referenced to GND
+ibo_pa_hg                NC          A5            2,5            High gain preamplifier output stage bias - referenced to VDD
+ibo_pa_lg                NC          A7            2,5            Low gain preamplifier output stage bias - referenced to VDD
+ibo_peak                 147         E11           2,15           Peak detector output stage bias - referenced to VDD
+ibo_ssh_hg               NC          A12           0,75           High gain slow shaper output stage bias - referenced to GND
+ibo_ssh_lg               NC          A10           0,75           Low gain slow shaper output stage bias - referenced to GND
+                                                Table 8 - Bias point list & values
+
+These bias points may be useful to finely tune some parameter. Please do not connect these pins unless specifically
+required by Weeroc team. Contact citiroc@weeroc.com in case you need specific ASIC tuning.
+
+
+
+
+Doc date: 29/05/2019                                           33 / 46
+                                              Datasheet – Citiroc 1A                                           Version 2.5
+
+
+Voltage reference name   LQFP160   TFBGA353        Value      Description
+
+v_bg                     45        AC3             2,5        Bandgap reference output - do not change
+va_pa                    NC        AC4             1,25       Feedback resistor reference - do not change
+vg_pa_hg                 NC        AB3             1,25       folded cascode reference - do not change
+vg_pa_lg                 NC        AC2             0,66       folded cascode reference - do not change
+vref_dac                 NC        AB4             0,82       10b DAC reference (value #000) - adjust pedestal of 10b
+                                                              DACs
+vref_dac_5V              157       B4              4,5        90% of VDD_5V - input DACs reference (value #00)
+vref_fs                  53        AC8             1,2        Fast shaper quiescent voltage
+vref_iGen_dac_5V         2         C2              0,6        Input DACs slope reference
+                                                   0,3        0,6 if input DACs reference is 4,5 (SC bit #330=0)
+                                                              0,3 if input DACs reference is 2,5 (SC bit #330=0)
+vref_ssh_hg              52        AB8             1,25       High gain slow shaper quiescent voltage
+vref_ssh_lg              50        AB7             1,25       Low gain slow shaper quiescent voltage
+iref_dac                 49        AB6             1,85       Threshold DACs slope reference
+                                         Table 9 - Reference voltage list and values
+
+ Reference points may be decoupled with 100nF capacitance. V_bg decoupling is mandatory. Shapers reference
+decoupling is highly recommended. Other decoupling are advised but not necessary. Please do not change the
+reference values unless specifically asked by Weeroc team.
+
+
+
+
+Doc date: 29/05/2019                                       34 / 46
+                                               Datasheet – Citiroc 1A                                       Version 2.5
+
+
+
+11 Pinout & mechanics
+Citiroc is available in a LQFP 160 or TFBGA 353 package.
+
+11.1   Pin type description
+Pin type                Description                                              Connection
+Power                   Power or Ground pin                                      Decoupling adviced
+Analogue input          Analogue signal input                                    See specifics
+Analogue output         Analogue signal output                                   External buffering required if cable
+                                                                                 driving
+Analogue bias           Analogue bias connection. Bias is internal and can be    Not mandatory if not specifically
+                        tuned externally through these pins                      specified
+Digital input           Digital input connection                                 TTL levels
+Digital output          Digital output connection                                TTL levels
+Digital output OC       Open Collector digital output connection                 External pull-up resistor required
+Digital input LVDS      LVDS pair connection                                     See LVDS norm, matching resistor
+                                                                                 outside ASIC
+Digital output LVDS     LVDS pair connection                                     See LVDS norm, matching resistor
+                                                                                 outside ASIC
+                                               Table 10 – pin type description
+
+
+
+
+Doc date: 29/05/2019                                       35 / 46
+                                       Datasheet – Citiroc 1A   Version 2.5
+
+
+
+11.2     LQFP 160 packaging
+
+11.2.1    Package layout & mechanics
+
+
+
+
+Doc date: 29/05/2019                          36 / 46
+                                               Datasheet – Citiroc 1A                                                   Version 2.5
+
+
+11.2.2   Pin list
+
+
+Pin #    Pin name           Pin type            Description                                          Connection
+   1     vssi                     Power         Analogue part Bulk                                   to GND
+                                                8-bit DAC reference bias voltage (for 4,5V dynamic
+  2      vref_iGen_dac_5V     Analogue Bias                                                          100nF decoupling
+                                                range)
+   3     ib_dac_4b            Analogue Bias
+   4     in<0>                Analogue Input    Channel 0 input                                      See Figure 22
+   5     in<1>                Analogue Input    Channel 1 input                                       See Figure 22
+   6     in<2>                Analogue Input    Channel 2 input                                       See Figure 22
+   7     in<3>                Analogue Input    Channel 3 input                                       See Figure 22
+   8     in<4>                Analogue Input    Channel 4 input                                       See Figure 22
+   9     in<5>                Analogue Input    Channel 5 input                                       See Figure 22
+  10     in<6>                Analogue Input    Channel 6 input                                       See Figure 22
+  11     in<7>                Analogue Input    Channel 7 input                                       See Figure 22
+  12     vdda_pa                  Power         Analogue (PreAmplifier) Power Supply                 to 3.3V
+  13     in<8>                Analogue Input    Channel 8 input                                       See Figure 22
+  14     in<9>                Analogue Input    Channel 9 input                                       See Figure 22
+  15     in<10>               Analogue Input    Channel 10 input                                      See Figure 22
+  16     in<11>               Analogue Input    Channel 11 input                                      See Figure 22
+  17     in<12>               Analogue Input    Channel 12 input                                      See Figure 22
+  18     in<13>               Analogue Input    Channel 13 input                                      See Figure 22
+  19     in<14>               Analogue Input    Channel 14 input                                      See Figure 22
+  20     in<15>               Analogue Input    Channel 15 input                                      See Figure 22
+  21     vssi                     Power         Analogue part Bulk                                   to GND
+  22     in<16>               Analogue Input    Channel 16 input                                      See Figure 22
+  23     in<17>               Analogue Input    Channel 17 input                                      See Figure 22
+  24     in<18>               Analogue Input    Channel 18 input                                      See Figure 22
+  25     in<19>               Analogue Input    Channel 19 input                                      See Figure 22
+  26     in<20>               Analogue Input    Channel 20 input                                      See Figure 22
+  27     in<21>               Analogue Input    Channel 21 input                                      See Figure 22
+  28     in<22>               Analogue Input    Channel 22 input                                      See Figure 22
+  29     in<23>               Analogue Input    Channel 23 input                                      See Figure 22
+  30     vdda_pa                  Power         Analogue (PreAmplifier) Power Supply                 to 3.3V
+  31     in<24>               Analogue Input    Channel 24 input                                      See Figure 22
+  32     in<25>               Analogue Input    Channel 25 input                                      See Figure 22
+  33     in<26>               Analogue Input    Channel 26 input                                      See Figure 22
+  34     in<27>               Analogue Input    Channel 27 input                                      See Figure 22
+  35     in<28>               Analogue Input    Channel 28 input                                      See Figure 22
+  36     in<29>               Analogue Input    Channel 29 input                                      See Figure 22
+  37     in<30>               Analogue Input    Channel 30 input                                      See Figure 22
+  38     in<31>               Analogue Input    Channel 31 input                                      See Figure 22
+  39     ib_temp              Analogue Bias
+  40     out_temp            Analogue Output
+  41     vssi                     Power         Analogue part Bulk                                   to GND
+  42     Out_probe_dac_5V    Analogue output    Input DAC probe (5V pad)
+  43     vdda_pa                  Power         Analogue (PreAmplifier) Power Supply                 to 3.3V
+  44     vssa                     Power         Analogue part Bulk                                   to GND
+  45     v_bg                Analogue Output    BandGap output
+  46     vdd_dac                  Power         Analogue (10-bit DAC) Power Supply                   to 3.3V
+  47     gnd_dac                  Power         Analogue (10-bit DAC) Ground                         to GND
+                                                10-bit DAC output (Trigger Discriminator
+  48     vth                 Analogue Output
+                                                Threshold)
+  49     iref_dac             Analogue Bias     10-bit DAC bias current
+  50     vref_ssh_lg          Analogue Bias     Low Gain Slow Shapers bias voltage
+                                                10-bit DAC output (2nd Trigger Discriminator
+  51     vth_t               Analogue Output
+                                                Threshold)
+  52     vref_ssh_hg          Analogue Bias     High Gain Slow Shapers bias voltage
+  53     vref_fs              Analogue Bias     Fast Shapers bias voltage
+  54     vdd_fs                  Power          Analogue (Fast Shaper) Power Supply                  to 3.3V
+  55     vdd_sca                 Power          Analogue (Switched Capacitor Array) Power Supply     to 3.3V
+  56     gnd_fs                  Power          Analogue (Fast Shaper) Ground                        to GND
+  57     gnd_capa_sca_hg         Power          Analogue SCA capacitors Ground (High Gain)           to GND
+  58     gnd_capa_sca_lg         Power          Analogue SCA capacitors Ground (Low Gain)            to GND
+  59     gnd_sca                 Power          Analogue (Switched Capacitor Array) Ground           to GND
+  60     vssa                    Power          Analogue part Bulk                                   to GND
+
+
+
+
+Doc date: 29/05/2019                                       37 / 46
+                                                        Datasheet – Citiroc 1A                                           Version 2.5
+
+
+        vssm                           Power             Mixed part Bulk                                      to GND
+                                                         High Gain Slow Shaper Multiplexed Output (Hi Z
+  61    out_hg                    Analogue Output
+                                                         when not Ch. selected)
+                                                         Low Gain Slow Shaper Multiplexed Output (Hi Z
+ 62     out_lg                    Analogue Output
+                                                         when not Ch. selected)
+ 63     out_probe                 Analogue Output        Analogue Probe Output
+ 64     ib_otaq                    Analogue Bias         Analogue outputs OTA bias
+ 65     vssm                           Power             Mixed part Bulk                                      to GND
+ 66     vssd                           Power             Digital part Bulk                                    to GND
+ 67     gndd                           Power             Digital (LVDS receivers & digital parts) Ground      to GND
+                                                         Digital (LVDS receivers & digital parts) Power
+ 68     vddd                           Power                                                                  to 3.3V
+                                                         Supply
+ 69     ib_rec                     Analogue Bias         LVDS receiver bias current
+ 70     resetb_pa                    Digital Input       Charge PreAmp Reset Signal                           Active L
+ 71     rstb_PSC                     Digital Input       Peak Detector Cell reset                             Active L
+ 72     pwr_on                       Digital Input       Power Pulsing Control                                Active H
+ 73     Raz_Chn_p                Digital (LVDS) Input    Erase RS cell                                        Active H
+ 74     Raz_Chn_n
+ 75     Val_Evt_p                Digital (LVDS) Input    Acquisition window (valid events)                    Active H
+ 76     Val_Evt_n
+                                                         Digital (Triggers) Multiplexed Output (Hi Z when
+  77    digital_output/hit_mux     Digital Output
+                                                         not Ch. selected)
+ 78     OR32                       Digital Output        OR of the 32 triggers
+                                                         Select Slow Control Register (1) or Probe Register
+ 79     select                      Digital Input
+                                                         (0)
+ 80     NOR32_oc                  OC Digital Output      NOR of the 32 triggers (Open Collector Output)
+ 81     vssd                           Power             Digital part Bulk                                    to GND
+ 82     PS_global_trig              Digital Input
+                                                         NOR of the 2nd threshold 32 triggers (Open
+ 83     NOR32T_oc                 OC Digital Output
+                                                         Collector Output)
+  84    T<31>                      Digital Output        Channel 31 Trigger Output
+  85    T<30>                      Digital Output        Channel 30 Trigger Output
+  86    T<29>                      Digital Output        Channel 29 Trigger Output
+  87    T<28>                      Digital Output        Channel 28 Trigger Output
+  88    T<27>                      Digital Output        Channel 27 Trigger Output
+  89    T<26>                      Digital Output        Channel 26 Trigger Output
+  90    T<25>                      Digital Output        Channel 25 Trigger Output
+  91    T<24>                      Digital Output        Channel 24 Trigger Output
+  92    T<23>                      Digital Output        Channel 23 Trigger Output
+  93    T<22>                      Digital Output        Channel 22 Trigger Output
+  94    T<21>                      Digital Output        Channel 21 Trigger Output
+  95    T<20>                      Digital Output        Channel 20 Trigger Output
+  96    T<19>                      Digital Output        Channel 19 Trigger Output
+  97    T<18>                      Digital Output        Channel 18 Trigger Output
+  98    T<17>                      Digital Output        Channel 17 Trigger Output
+  99    T<16>                      Digital Output        Channel 16 Trigger Output
+ 100    vlo                            Power             Digital Output Buffer Minimum Power Supply           Positive
+ 101    vssd                           Power             Digital part Bulk                                    to GND
+ 102    vhi                            Power             Digital Output Buffer Maximum Power Supply
+ 103    T<15>                      Digital Output        Channel 15 Trigger Output
+ 104    T<14>                      Digital Output        Channel 14 Trigger Output
+ 105    T<13>                      Digital Output        Channel 13 Trigger Output
+ 106    T<12>                      Digital Output        Channel 12 Trigger Output
+ 107    T<11>                      Digital Output        Channel 11 Trigger Output
+ 108    T<10>                      Digital Output        Channel 10 Trigger Output
+ 109    T<9>                       Digital Output        Channel 9 Trigger Output
+ 110    T<8>                       Digital Output        Channel 8 Trigger Output
+  111   T<7>                       Digital Output        Channel 7 Trigger Output
+ 112    T<6>                       Digital Output        Channel 6 Trigger Output
+ 113    T<5>                       Digital Output        Channel 5 Trigger Output
+ 114    T<4>                       Digital Output        Channel 4 Trigger Output
+ 115    T<3>                       Digital Output        Channel 3 Trigger Output
+ 116    T<2>                       Digital Output        Channel 2 Trigger Output
+  117   T<1>                       Digital Output        Channel 1 Trigger Output
+ 118    T<0>                       Digital Output        Channel 0 Trigger Output
+ 119    digital_probe              Digital Output
+ 120    PS_modeb_ext                Digital Input
+ 121    vssd                           Power             Digital part Bulk                                    to GND
+ 122    gndd                           Power                                                                  to GND
+
+
+
+Doc date: 29/05/2019                                                38 / 46
+                                         Datasheet – Citiroc 1A                                             Version 2.5
+
+
+                                          Digital (LVDS receivers & digital parts) Power
+ 123    vddd               Power                                                           to 3.3V
+                                          Supply
+ 124    load_sc          Digital Input    Slow Control Register Load Signal                see Figure 25
+ 125    srout_sr        Digital Output    Selected Register Output                          see Figure 25
+ 126    srin_sr          Digital Input    Selected Register Input                           see Figure 25
+ 127    clk_sr           Digital Input    Selected Register Clock                          see Figure 25
+ 128    rstb_sr          Digital Input    Selected Register Reset                          see Figure 25
+ 129    vssd                Power         Digital part Bulk                                to GND
+ 130    vssm                Power         Mixed part Bulk                                  to GND
+ 131    hold_lg          Digital Input    Analogue Memory Hold Signal for Low Gain          see Figure 27
+ 132    resetb_read      Digital Input    Read Register Reset                              see Figure 25
+ 133    srout_read      Digital Output    Read Register Output                              see Figure 25
+ 134    srin_read        Digital Input    Read Register Input                               see Figure 25
+ 135    clk_read         Digital Input    Read Register Clock                               see Figure 25
+ 136    hold_hg          Digital Input    Analogue Memory Hold Signal for High Gain         see Figure 27
+ 137    vdd_discri          Power         Analogue (Discriminator) Power Supply            to 3.3V
+ 138    gnd_discri          Power         Analogue (Discriminator) Ground                  to GND
+        vssm                Power         Mixed part Bulk                                  to GND
+ 139    vssa                Power         Analogue part Bulk                               to GND
+ 140    gnd_ssh             Power         Analogue (Slow Shaper) Ground                    to GND
+ 141    vdd_ssh             Power         Analogue (Slow Shaper) Power Supply              to 3.3V
+ 142    vdd_sc              Power         Digital (Slow Control Register) Power Supply     to 3.3V
+ 143    gnd_sc              Power         Digital (Slow Control Register) Ground           to GND
+ 144    ib_sca         Analogue Bias      SCA bias current
+ 145    gnd_capa            Power         Analogue (Slow Shaper Capacitor) Ground          to GND
+ 146    ib_1nA_peak    Analogue Bias
+ 147    ibo_peak       Analogue Bias
+ 148    ibi_peak       Analogue Bias
+ 149    in_calib       Analogue Input     Calibration input
+ 150    gnd_pa              Power         Analogue (PreAmplifier) Ground                   to GND
+ 151    vssa                Power
+ 152    vdd_pa              Power         Analogue (PreAmplifier) Power Supply             to 3.3V
+ 153    vdda_pa             Power         Analogue (PreAmplifier) Power Supply             to 3.3V
+ 154    vssi                Power         Analogue part Bulk                               to GND
+ 155    NC_top
+                                          Analogue (8-bit Digital to Analogue Convertor)
+ 156    gnd_dac_5V         Power                                                           to GND
+                                          Ground
+ 157    vref_dac_5V    Analogue Bias      8-bit DAC reference bias voltage
+                                          Analogue (8-bit Digital to Analogue Convertor)
+ 158    vdd_dac_5V         Power                                                           to 5V
+                                          Power Supply
+ 159    ib_dac_5V      Analogue Bias      8-bit DAC bias voltage
+ 160    ibi_discri_t   Analogue Bias
+                                          Table 11 – LQFP 160 pinout
+
+
+
+
+Doc date: 29/05/2019                                 39 / 46
+                                                        Datasheet – Citiroc 1A                                                          Version 2.5
+
+
+
+11.3     TFBGA 353 package
+
+11.3.1    Package layout & mechanics
+
+             1          2           3          4           5          6          7          8           9          10          11           12
+
+
+          ib_1nA_d   ibo_ota_    ibi_ota_   ibi_pa_h    ibo_pa_    ibmin_p    ibo_pa_l   ib_suiv_r   ibi_ssh_l   ibo_ssh_   ib_suiv_r    ibo_ssh_
+   A
+             ac        dac         dac          g          hg         a          g         c_lg          g          lg        c_hg          hg
+
+
+                     ibo_discr   ib_dac_5   vref_dac               ibm_pa_    ibm_pa_                ib_1nA_p               ibi_ssh_     ibfol_dis
+   B        in0                                         NC_top                           ibi_pa_lg                ib_sca
+                        i_t          V         _5V                    hg         lg                     eak                    hg          cri_t
+
+                     vref_iGe
+   C        in1      n_dac_5
+                        V
+
+                     ib_dac_4
+   D        in2
+                         b
+
+
+   E        in4        in3                               VDDI       VDDI       VDDI        VDDI      in_calib    ibi_peak   ibo_peak      ibi_fs
+
+
+
+   F        in6        in5                               VDDI       VDDI       VDDI        VDDI       VDDA        VDDA       VDDA         VDDA
+
+
+
+   G        in8        in7                               VDDI       VDDI
+
+
+
+   H        in10       in9                               VDDI       VDDI                   VSS         VSS         VSS        VSS          VSS
+
+
+
+   J        in12       in11                              VDDI       VDDI                   VSS         VSS         VSS        VSS          VSS
+
+
+
+   K        in13       VDDI                              VDDI       VDDI                   VSS         VSS         VSS        VSS          VSS
+
+
+
+   L        in14       VDDI                              VDDI      VDD_5V                  VSS         VSS         VSS        VSS          VSS
+
+
+
+   M        in16       in15                              VDDI      VDD_5V                  VSS         VSS         VSS        VSS          VSS
+
+                                                   Figure 28 – North-west Citiroc 1A ball out
+
+
+
+
+Doc date: 29/05/2019                                               40 / 46
+                                                            Datasheet – Citiroc 1A                                                Version 2.5
+
+
+
+
+   12          13          14         15          16            17           18        19         20         21       22    23
+
+
+ibo_ssh_                            srout_re   ibo_discr                                        PS_mod    digital_p
+             ibo_fs     clk_read                             hold_lg       clk_sr    srin_sr                          T1    T3         A
+   hg                                  ad          i                                             eb_ext     robe
+
+ibfol_dis   ib_suiv_f   ibm_disc    ibm_disc   Ibmin_di      ibi_discri
+                                                                           rstb_sr   srout_sr   load_sc      T0       T2    T4         B
+  cri_t         s          ri_t        ri        scri            _t
+
+
+                                                                                                                      NC    T5         C
+
+
+
+                                                                                                                      NC    T6         D
+
+
+                                    rstb_rea
+ ibi_fs     hold_hg     srin_read              ibi_discri     VDDD         VDDD       VDDD                            NC    T7         E
+                                        d
+
+
+ VDDA        VDDA        VDDD        VDDD       VDDD          VDDD         VDDD       VDDD                            NC    T8         F
+
+
+
+                                                                           VDDD        NC                             NC    T9         G
+
+
+
+  VSS         VSS         VSS         VSS        VSS                       VDDD        NC                             NC    T10        H
+
+
+
+  VSS         VSS         VSS         VSS        VSS                       VDDD        NC                             NC    T11        J
+
+
+
+  VSS         VSS         VSS         VSS        VSS                       VDDD        NC                             NC    T12        K
+
+
+
+  VSS         VSS         VSS         VSS        VSS                        vhi        vhi                            T13   T14        L
+
+
+
+  VSS         VSS         VSS         VSS        VSS                       VDDD       VDDD                            T15   T16        M
+
+                                                       Figure 29 – North-east Citiroc 1A ball-out
+
+
+
+
+Doc date: 29/05/2019                                                      41 / 46
+                                                    Datasheet – Citiroc 1A                                             Version 2.5
+
+
+
+
+  M       in16       in15                            VDDI      VDD_5V                  VSS      VSS    VSS     VSS       VSS
+
+
+
+  N       in17      VDDI                             VDDI      VDD_5V                  VSS      VSS    VSS     VSS       VSS
+
+
+
+  P       in18      VDDI                             VDDI       VDDI                   VSS      VSS    VSS     VSS       VSS
+
+
+
+  R       in19      in20                             VDDI       VDDI                   VSS      VSS    VSS     VSS       VSS
+
+
+
+  T       in21      in22                             VDDI       VDDI                   VSS      VSS    VSS     VSS       VSS
+
+
+
+  U      in23       in24                             VDDI       VDDI
+
+
+
+  V      in25       in26                             VDDI       VDDI       VDDA       VDDA      VDDA   VDDA   VDDA      VDDA
+
+
+
+  W      in27       in28                             VDDI       VDDI       VDDA       VDDA      NC     NC     VDDA       NC
+
+
+
+  Y      in29      ib_temp
+
+
+                   out_tem
+ AA      in30
+                      p
+
+                   out_pro
+                              vg_pa_h                                     vref_ssh   vref_ssh
+ AB       in31     be_dac_              vref_dac    ibi_dac    iref_dac                         NC     NC      NC        NC
+                                 g                                           _lg       _hg
+                     5V
+
+        ib_ota_b
+ AC                vg_pa_lg    v_bg      va_pa        vth      ibo_dac     vth_t     vref_fs    NC     NC     out_hg    out_lg
+            g
+
+
+           1          2         3          4           5          6          7          8        9      10      11       12
+
+                                               Figure 30 – South-west Citiroc 1A ball-out
+
+
+
+
+Doc date: 29/05/2019                                           42 / 46
+                                                     Datasheet – Citiroc 1A                                          Version 2.5
+
+
+
+
+ VSS      VSS       VSS       VSS      VSS                     VDDD        VDDD                          T15   T16    M
+
+
+
+ VSS      VSS       VSS       VSS      VSS                       vlo        vlo                          T17   T18    N
+
+
+
+ VSS      VSS       VSS       VSS      VSS                     VDDD         NC                           NC    T19    P
+
+
+
+ VSS      VSS       VSS       VSS      VSS                     VDDD         NC                           NC    T20    R
+
+
+
+ VSS      VSS       VSS       VSS      VSS                     VDDD         NC                           NC    T21    T
+
+
+
+                                                               VDDD         NC                           NC    T22    U
+
+
+
+VDDA     VDDA      VDDA      VDDA     VDDD          VDDD       VDDD        VDDD                          NC    T23    V
+
+
+         Resetb_
+ NC                Pwr_on     NC        NC           NC        VDDD        VDDD                          NC    T24   W
+           pa
+
+
+                                                                                                         NC    T25    Y
+
+
+
+                                                                                                         NC    T26   AA
+
+
+                                      rstb_PS                 digital_o              NOR32_
+ NC      ib_otaq     NC      ib_rec                 OR32                   select                T31     T29   T27   AB
+                                         C                     utput                   oc
+
+
+                   out_pro            Raz_Ch        Raz_Ch    Val_Evt_    Val_Evt_   PS_glob    NOR32T
+out_lg     NC                 NC                                                                         T30   T28   AC
+                     be                n_p           n_n         p           n        al_trig     _oc
+
+
+  12       13        14       15        16            17         18         19         20         21     22    23
+
+                                                Figure 31 – South-east Citiroc1A ball-out
+
+
+
+
+Doc date: 29/05/2019                                            43 / 46
+                            Datasheet – Citiroc 1A                Version 2.5
+
+
+
+
+                       Figure 32 - Citiroc1A TFBGA353 mechanics
+
+
+
+
+Doc date: 29/05/2019                  44 / 46
+                            Datasheet – Citiroc 1A   Version 2.5
+
+
+
+12 Bug list & log
+Date          Description
+
+
+
+
+Doc date: 29/05/2019               45 / 46
+                                               Datasheet – Citiroc 1A                                         Version 2.5
+
+
+
+13 Document version
+That section log the document version within major release.
+
+Version   Date            # pages     Change log
+2.0       27/07/2017      30          Initial version of release 2
+2.1       24/08/2017      43          New format, new figures, text respin
+2.2       05/12/2017      44          Ctest Schematic added, bit order correction for charge shaper and preamplifier
+                                      slow control bits.
+2.3       31/01/2018      44          Slow control modification en/pp for high gain and low gain pa (bit inversion)
+2.4       15/02/2018      46          Section 10.5 added – TFBGA353 pinout modified
+2.4a      24/08/2018      46          Figure 4 and figure 14 updated
+2.4b      07/09/2018      46          Typo correction section 3.2
+2.5       29/05/2019      23          Figure 19 & 20 & 21 & 25 updated. Load_sc explained for Slow Control
+
+
+
+
+Doc date: 29/05/2019                                    46 / 46
+                                                     Data Sheet CITIROC 1A
+                               Scientific Instrumentation SiPM Read-out Chip
+
+
+
+
+weeroc
+High- end Microelectronics Design
+

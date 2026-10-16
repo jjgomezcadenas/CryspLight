@@ -1,0 +1,847 @@
+                                               MPPC® (Multi-Pixel Photon Counter)
+
+                                                                             S14160/S14161 series
+
+
+                                                Low breakdown voltage type MPPC for
+                                                scintillation detector
+
+  The S14160/S14161 series achieve higher PDE (photon detection efficiency) and lower operation voltage than other MPPC to
+  adapt for PET and radiation monitor application. They achieve small dead space in a photosensitive area with HWB (hole wire
+  bonding) technology (Patent pending). And the gap from the photosensitive area edge to the package edge is only 0.2 mm. This
+  package realizes the four-side buttable arrangement.
+
+
+   Features                                                                    Applications
+
+  Higher PDE (50% at λp, Vop=VBR + 2.7 V)                                     PET (positron emission tomography)
+  Lower voltage (VBR=38 V typ.) operation                                     Radiation monitor
+  Small dead space in photosensitive area
+  Low afterpulses and crosstalk
+  High gain: 106 order
+  Excellent time resolution
+  Immune to effects of magnetic fields
+
+
+
+
+   Structure
+                       Number of Effective photosensitive                                                              Window      Geometrical
+                                                            Pixel pitch     Number of                       Seal
+       Typ. no.         channels      area/channel                                             Package                refractive    fill factor
+                                                                          pixels/channel                   material
+                          (ch)           (mm2)                (μm)                                                      index           (%)
+S14160-3050HS                          3.0 × 3.0                             3531
+S14160-4050HS               1          4.0 × 4.0                             6331
+S14160-6050HS                          6.0 × 6.0                            14331
+                                                                                                           Silicone
+S14161-3050HS-04       16 (4 × 4)      3.0 × 3.0                50           3531            Glass epoxy                1.57           74
+                                                                                                            resin
+S14161-3050HS-08       64 (8 × 8)      3.0 × 3.0                             3531
+S14161-4050HS-06       36 (6 × 6)      4.0 × 4.0                             6331
+S14161-6050HS-04       16 (4 × 4)      6.0 × 6.0                            14331
+
+
+
+   Absolute maximum ratings
+             Parameter                     Symbol                                          Specification                              Unit
+Operating temperature*1                     Topr                                            -40 to +85                                 °C
+Storage temperature*1                       Tstg                                            -40 to +85                                 °C
+Soldering temperature*2                     Tsol                                           240 (3 times)                               °C
+*1: No dew condensation
+    When there is a temperature difference between a product and the surrounding area in high humidity environment, dew condensation
+    may occur on the product surface. Dew condensation may cause deterioration in characteristics and reliability.
+*2: Reflow soldering, JEDEC J-STD-020 MSL 5a, see P.10
+Note: Exceeding the absolute maximum ratings even momentarily may cause a drop in product quality. Always be sure to use the
+       product within the absolute maximum ratings.
+
+
+
+
+                                                    www.hamamatsu.com                                                                        1
+                                                           MPPC (Multi-Pixel Photon Counter)                                             S14160/S14161 series
+
+
+                                             Electrical and optical characteristics (Typ. Ta=25 °C, Vover=2.7 V, unless otherwise noted)
+                                                                                                  S14160/S14161               S14160/S14161   S14160/S14161
+                                                       Parameter                  Symbol                                                                       unit
+                                                                                                  -3050HS-04, -08               -4050HS-06      -6050HS-04
+              Spectral response range                         λ                                                                  270 to 900                    nm
+              Peak sensitivity wavelength                    λp                                                                      450                       nm
+              Photon detection efficiency at λp*3           PDE                                                                       50                       %
+              Breakdown voltage                             VBR                                                                       38                        V
+              Recommended operating voltage*4               Vop                                                                  VBR + 2.7                      V
+              Vop variation between            Typ.                                                                                  0.1
+                                                              -                                                                                                 V
+              channels in one product*5        Max.                                                                                  0.2
+                                               Typ.                                                        0.6                       1.1           2.5
+              Dark current                                   ID                                                                                                μA
+oton detection efficiency vs. wavelength (typical example)
+                                               Max.                                                        1.8                       3.3           7.5
+              Crosstalk probability                           -                                                                        7                       %
+              Terminal capacitance                           Ct                                            500                       900          2000         pF
+              Gain                                           M                                                                    2.5 × 106                     -
+              Temperature coefficient of
+                                                           ΔTVop                                                                   34                         mV/°C
+              recommended reverse voltage
+              *3: Photon detection efficiency does not include crosstalk and afterpulses.
+              *4: Refer to the data attached for each product.
+              *5: The parameter is for the S14161 series (multichannel type)
+
+
+
+                                             Photon detection efficiency vs. wavelength (typical example)
+
+                                                                                           (Ta=25 °C)
+                                                60
+
+
+                                                50
+
+
+
+
+            Photo detection efficiency (%)
+                                                40
+
+
+                                                30
+
+
+                                                20
+
+
+                                                10
+
+
+                                                 0
+                                                 200     300   400    500   600     700     800      900
+
+
+                                                                   Wavelength (nm)
+                                                                                                  KAPDB0429EA
+
+
+
+
+              Photon detection efficiency does not include crosstalk and afterpulses.
+
+
+
+
+                                                                                                                KAPDB0429EA
+
+
+
+
+                                                                                                                                                                      2
+tection efficiency vs. overvoltage MPPC (Multi-Pixel Photon Counter)                                                                                                                                   S14160/S14161 series
+
+
+                                              Overvoltage vs. gain, crosstalk probability, photon detection efficiency (typical example)
+
+
+
+
+                                                                                                                                         Crosstalk probability, photon detection efficiency (%)
+                                                                                                                      (Ta=25 °C)
+                                                6 × 106                                                                             60
+                                                                 Gain
+                                                                 Crosstalk
+                                                5 × 106          PDE (λ=450 nm)                                                     50
+
+
+                                                4 × 106                                                                             40
+
+
+
+                                   Gain         3 × 106                                                                             30
+
+
+
+                                                2 × 106                                                                             20
+
+
+
+                                                1 × 106                                                                             10
+
+
+                          0                                                                                                         0
+                            0
+ncidence resolution time (measurement  1
+                                      example)                                     2          3                   4             5
+
+
+                                                                                  Overvoltage (V)
+                                                                                                                                                                                              KAPDB0430EA
+
+
+
+
+             MPPC characteristics vary with the operating voltage. Although increasing the operating voltage improves   the photon detection effi-
+                                                                                                                KAPDB0430EA
+             ciency and time resolution, it also increases the dark count and crosstalk at the same time, so an optimum operating voltage must be
+             selected to match the application.
+
+
+
+                                              Coincidence resolution time vs. overvoltage (typical example)
+
+                                                      [Ta=25 °C, FWHM, using LFS (4.14 × 4.14 × 20t mm)]
+                                                280
+
+
+                                                260
+
+
+
+
+           Coincidence resolution time (ps)
+                                                                   S14160-3050HS
+                                                240
+
+
+                                                220
+                                                                           S14160-6050HS
+                                                200
+
+
+                                                180
+
+
+                                                160
+
+
+                                                140
+                                                      1      2        3       4        5      6             7
+
+
+                                                                      Overvoltage (V)
+                                                                                                    KAPDB0431EA
+
+
+
+
+                                                                                                                  KAPDB0431EA                                                                                                 3
+ Dimensional outline (unit: mm, tolerance: ±0.1 mm unless otherwise noted)
+              MPPC (Multi-Pixel Photon Counter)                                                                                S14160/S14161 series
+
+
+Dimensional outlines (unit: mm)
+                                                                                 S14160-3050HS
+
+                                               [Top view]                                   [Side view]             [Bottom view]
+
+                                                                                            1.35 ± 0.2
+                                                                                                                                        Cathode
+                                        0.2        3.0      0.2    Resin thickness: 0.15                                                (4 ×) ɸ0.7
+                                                             0.2   Photosensitive surface                  Pad no. C     B      A
+                                                                                                                 1
+
+                           3.4 ± 0.05
+                                                                   Silicone resin
+                                                             3.0                                                 2                       2.2
+                                                                                                                 3
+                                                                                                                                    Anode
+                                                             0.2                                                                    (1 ×) ɸ0.7
+                                               3.4 ± 0.05                         PWB               Index mark           2.2
+                           Effective photosensitive
+                           area (3 × 3 mm)
+                                                                            Pad no.        Connection
+ Dimensional outline (unit: mm, tolerance: ±0.1 mm unless otherwise noted)
+                                                                         A1, A3, C1, C3 Cathode common
+                            Tolerance unless otherwise noted: ±0.1
+                                                                               B2            Anode
+                                                                                                                                                        KAPDA0195EA
+
+
+
+
+                                                                                 S14160-4050HS
+
+                                              [Top view]                                    [Side view]              [Bottom view]
+                                                                                            1.35 ± 0.2                                                KAPDA0195EA
+                                                                                                                                         Cathode
+                            0.2                  4.0        0.2    Resin thickness: 0.15                                                 (4 ×) ɸ0.7
+                                                             0.2   Photosensitive surface                  Pad no. C       B        A
+
+                                                                   Silicone resin                               1
+
+
+              4.4 ± 0.05
+                                                             4.0                                                2                              2.7
+
+                                                                                                                3
+                                                                                                                                        Anode
+                                                             0.2
+                                              4.4 ± 0.05                          PWB               Index mark            2.7           (1 ×) ɸ0.7
+                           Effective photosensitive
+                           area (4 × 4 mm)
+                                                                                                             Pad no.        Connection
+                                                                                                          A1, A3, C1, C3 Cathode common
+                                        Tolerance unless otherwise noted: ±0.1
+                                                                                                                B2            Anode
+                                                                                                                                                        KAPDA0196EA
+
+
+
+
+                                                                                                                                                      KAPDA0196EA
+
+
+
+
+                                                                                                                                                             4
+                                              MPPC (Multi-Pixel Photon Counter)                                                                   S14160/S14161 series
+ Dimensional outline (unit: mm, tolerance: ±0.1 mm unless otherwise noted)
+
+
+
+                                                                                                   S14160-6050HS
+
+                                                    [Top view]                                                 [Side view]                   [Bottom view]
+                                                                                                               1.35 ± 0.2
+                                                                                                                                                                  Cathode
+                                        0.2             6.0             0.2          Resin thickness: 0.15                                                        (4 ×) ɸ0.7
+                                                                           0.2                                               Pad no. D        C          B   A
+                                                                                     Photosensitive surface
+                                                                                                                                      1
+                                                                                     Silicone resin
+                                                                                                                                      2
+
+
+                           6.4 ± 0.05
+                                                                           6.0                                                                                      2.5   5.0
+                                                                                                                                      3
+
+                                                                                                                                      4
+
+                                                                           0.2
+                                                    6.4 ± 0.05                                        PWB               Index mark                 2.5
+                                                                                                                                                                  Anode
+                                                Effective photosensitive                                                                           5.0            (4 ×) ɸ0.7
+                                                area (6 × 6 mm)
+
+
+                                              Tolerance unless otherwise noted: ±0.1                                               Pad no.       Connection
+                                                                                                                               A1, A4, D1, D4 Cathode common
+                                                                                                                               B2, B3, C2, C3 Anode common
+  Dimensional outline (unit: mm, tolerance: ±0.1 mm unless otherwise noted)                                                                                                                                        KAPDA0197EA
+
+
+
+
+                                                                                                S14161-3050HS-04
+                                                                                                                                                                                                              KAPDA0197EA
+                                                      [Top view]                                              [Side view]                         [Bottom view]
+                                                           13.0                                1.35 ± 0.2
+                                                                                                                                                                                Cathode
+                             0.2                    3 × 3.2 = 9.6                0.2 Resin thickness: 0.15                                                                      (16 ×) ɸ0.7
+
+                                                                                                                             Pad no. H G          F E     D C      B A
+                                                                                                                                  1
+                                              A-1    B-1          C-1   D-1
+
+
+
+
+                                                                                                                                                                                1.3 1.9 1.3 1.9 1.3 1.9 1.3
+                                                                                      Photosensitive surface                      2
+                                                                                      Silicone resin                              3
+
+
+
+           3 × 3.2 = 9.6
+                                              A-2    B-2          C-2   D-2
+                                                                                                                                  4
+    13.0
+                                                                                                                                  5
+                                              A-3    B-3          C-3   D-3
+                                                                                                                                  6
+
+                                                                                                                                  7
+                                              A-4    B-4          C-4   D-4
+                                                                                                                                  8
+
+                                                     (16 ×) Effective                                                                                                       Anode
+                                                     photosensitive area                                PWB          Index mark           1.3 1.9 1.3 1.9 1.3 1.9 1.3       (16 ×) ɸ0.7
+
+
+                                                                                                                                      Tolerance unless otherwise noted: ±0.1
+                                                                                                                                                                                                                   KAPDA0198EA
+
+
+
+
+Pad no. Connection Pad no. Connection Pad no. Connection Pad no. Connection Pad no. Connection Pad no. Connection Pad no. Connection Pad no. Connection
+  H1    A(D-1)        -        -        F1     A(C-1)       -        -         -        -        C1     K(B-1)       -        -        A1     K(A-1)
+   -        -        G2    K(D-1)        -        -        E2     K(C-1)      D2     A(B-1)       -        -        B2     A(A-1)       - KAPDA0198EA
+                                                                                                                                                 -
+  H3    A(D-2)        -        -        F3     A(C-2)       -        -         -        -        C3    K(B-2)        -        -        A3     K(A-2)
+   -        -        G4    K(D-2)        -        -        E4     K(C-2)      D4    A(B-2)        -        -        B4    A(A-2)        -        -
+  H5    A(D-3)        -        -        F5     A(C-3)       -        -         -        -        C5    K(B-3)        -        -        A5     K(A-3)
+   -        -        G6    K(D-3)        -        -        E6     K(C-3)      D6    A(B-3)        -        -        B6    A(A-3)        -        -
+  H7    A(D-4)        -        -        F7    A(C-4)        -        -         -        -        C7    K(B-4)        -        -        A7     K(A-4)
+   -        -        G8    K(D-4)        -        -        E8    K(C-4)       D8    A(B-4)        -        -        B8    A(A-4)        -        -
+Note: A=Anode, K=Cathode
+
+
+
+
+                                                                                                                                                                                                                        5
+                                          MPPC (Multi-Pixel Photon Counter)                                                                                     S14160/S14161 series
+Dimensional outline (unit: mm, tolerance: ±0.1 mm unless otherwise noted)
+
+
+
+                                                                                                        S14161-3050HS-08
+
+                                                        [Top view]                                                 [Side view]                          [Bottom view]
+
+
+                                                             25.8                                       1.35 ± 0.2                                                     Anode (64 ×) ɸ0.7
+                                    0.2               7 × 3.2 = 22.4                      0.2 Resin thickness: 0.15                                                  Cathode (64 ×) ɸ0.7
+                   0.2
+                                                                                                                                 Pad no. T R P N M L           K J HG F E D C B A
+
+                                          A-1   B-1   C-1   D-1   E-1   F-1   G-1   H-1        Photosensitive surface               1
+
+
+
+
+                                                                                                                                                                                                       1.3 1.9 1.3 1.9 1.3 1.9 1.3 1.9 1.3 1.9 1.3 1.9 1.3 1.9 1.3
+                                                                                                                                    2
+
+                                          A-2   B-2   C-2   D-2   E-2   F-2   G-2   H-2        Silicone resin                       3
+                                                                                                                                    4
+                                                                                                                                    5
+
+
+
+
+                   7 × 3.2 = 22.4
+                                          A-3   B-3   C-3   D-3   E-3   F-3   G-3   H-3                                             6
+
+                                          A-4   B-4   C-4   D-4   E-4   F-4   G-4   H-4                                             7
+
+            25.8
+                                                                                                                                    8
+                                                                                                                                    9
+                                          A-5   B-5   C-5   D-5   E-5   F-5   G-5   H-5
+                                                                                                                                   10
+                                                                                                                                   11
+                                          A-6   B-6   C-6   D-6   E-6   F-6   G-6   H-6
+                                                                                                                                   12
+                                                                                                                                   13
+                                          A-7   B-7   C-7   D-7   E-7   F-7   G-7   H-7
+                                                                                                                                   14
+                                                                                                                                   15
+                                          A-8   B-8   C-8   D-8   E-8   F-8   G-8   H-8
+                                                                                                                                   16
+
+                                                      (64 ×) Effective                                                      Index
+                   0.2
+                                                      photosensitive area                                      PWB          mark         1.3 1.9 1.3 1.9 1.3 1.9 1.3 1.9 1.3 1.9 1.3 1.9 1.3 1.9 1.3
+
+
+                                                                                                                                        Tolerance unless otherwise noted: ±0.1
+                                                                                                                                                                                                                                                                     KAPDA0199EA
+
+
+
+
+       Pad no. Connection Pad no. Connection Pad no. Connection Pad no. Connection Pad no. Connection Pad no. Connection Pad no. Connection Pad no. Connection
+         T1    A(H-1)        -        -        P1    A(G-1)        -        -         -        -         L1    K(F-1)       -        -         J1    K(E-1)
+          -        -        R2    K(H-1)        -        -        N2    K(G-1)       M2     A(F-1)        -       -        K2     A(E-1)
+                                                                                                                                     KAPDA0199EA-       -
+         T3    A(H-2)        -        -        P3    A(G-2)        -        -         -        -        L3     K(F-2)       -        -         J3    K(E-2)
+          -        -        R4    K(H-2)        -        -        N4    K(G-2)       M4     A(F-2)        -       -        K4     A(E-2)        -       -
+         T5    A(H-3)        -        -        P5    A(G-3)        -        -         -        -        L5     K(F-3)       -        -         J5    K(E-3)
+          -        -        R6    K(H-3)        -        -        N6    K(G-3)       M6     A(F-3)        -       -        K6     A(E-3)        -       -
+         T7    A(H-4)        -        -        P7    A(G-4)        -        -         -        -         L7   K(F-4)        -        -         J7   K(E-4)
+          -        -        R8    K(H-4)        -        -        N8    K(G-4)       M8    A(F-4)         -       -        K8    A(E-4)         -       -
+         T9    A(H-5)        -        -        P9    A(G-5)        -        -         -        -         L9   K(F-5)        -        -         J9   K(E-5)
+          -        -        R10 K(H-5)          -        -        N10 K(G-5) M10 A(F-5)                   -       -        K10   A(E-5)         -       -
+         T11 A(H-6)          -        -        P11   A(G-6)        -        -         -        -        L11   K(F-6)        -        -        J11   K(E-6)
+          -        -        R12 K(H-6)          -        -        N12 K(G-6) M12 A(F-6)                   -       -        K12   A(E-6)         -       -
+         T13 A(H-7)          -        -        P13   A(G-7)        -        -         -        -        L13    K(F-7)       -        -        J13    K(E-7)
+          -        -        R14   K(H-7)        -        -        N14   K(G-7) M14          A(F-7)        -       -        K14    A(E-7)        -       -
+         T15 A(H-8)          -        -        P15   A(G-8)        -        -         -        -        L15    K(F-8)       -        -        J15   K(E-8)
+          -        -        R16 K(H-8)          -        -        N16 K(G-8) M16 A(F-8)                   -       -        K16   A(E-8)         -       -
+
+
+       Pad no. Connection Pad no. Connection Pad no. Connection Pad no. Connection Pad no. Connection Pad no. Connection Pad no. Connection Pad no. Connection
+         H1    A(D-1)        -        -        F1     A(C-1)       -        -         -        -        C1     K(B-1)       -        -        A1     K(A-1)
+          -        -        G2    K(D-1)        -        -        E2     K(C-1)      D2     A(B-1)       -        -        B2     A(A-1)       -        -
+         H3    A(D-2)        -        -        F3     A(C-2)       -        -         -        -        C3    K(B-2)        -        -        A3     K(A-2)
+          -        -        G4    K(D-2)        -        -        E4     K(C-2)      D4    A(B-2)        -        -        B4    A(A-2)        -        -
+         H5    A(D-3)        -        -        F5     A(C-3)       -        -         -        -        C5    K(B-3)        -        -        A5    K(A-3)
+          -        -        G6    K(D-3)        -        -        E6     K(C-3)      D6    A(B-3)        -        -        B6    A(A-3)        -        -
+         H7    A(D-4)        -        -        F7    A(C-4)        -        -         -        -        C7    K(B-4)        -        -        A7    K(A-4)
+          -        -        G8    K(D-4)        -        -        E8    K(C-4)       D8    A(B-4)        -        -        B8    A(A-4)        -        -
+         H9    A(D-5)        -        -        F9    A(C-5)        -        -         -        -        C9    K(B-5)        -        -        A9    K(A-5)
+          -        -        G10 K(D-5)          -        -        E10   K(C-5)       D10 A(B-5)          -        -        B10   A(A-5)        -        -
+         H11 A(D-6)          -        -        F11   A(C-6)        -        -         -        -        C11   K(B-6)        -        -        A11   K(A-6)
+          -        -        G12 K(D-6)          -        -        E12   K(C-6) D12 A(B-6)                -        -        B12   A(A-6)        -        -
+         H13 A(D-7)          -        -        F13    A(C-7)       -        -         -        -        C13   K(B-7)        -        -        A13    K(A-7)
+          -        -        G14 K(D-7)          -        -        E14    K(C-7)      D14   A(B-7)        -        -        B14    A(A-7)       -        -
+         H15 A(D-8)          -        -        F15   A(C-8)        -        -         -        -        C15   K(B-8)        -        -        A15   K(A-8)
+          -        -        G16 K(D-8)          -        -        E16   K(C-8)       D16 A(B-8)          -        -        B16   A(A-8)        -        -
+      Note: A=Anode, K=Cathode
+
+
+                                                                                                                                                                                                                                                                          6
+                                            MPPC (Multi-Pixel Photon Counter)                                                                   S14160/S14161 series
+Dimensional outline (unit: mm, tolerance: ±0.1 mm unless otherwise noted)
+
+
+
+                                                                                          S14161-4050HS-06
+
+                                                     [Top view]                                      [Side view]                        [Bottom view]
+                                                        25.4                               1.35 ± 0.2
+                                     0.2           5 × 4.2 = 21.0           0.2 Resin thickness: 0.15                                                                         Index mark
+                   0.2
+                                                                                                                   Pad no. M    L   K   J   H    G   F   E   D    C   B   A
+                                                                                 Photosensitive surface                1
+                                            A-1 B-1 C-1 D-1 E-1 F-1
+                                                                                                                                                                              2.1 2.1
+                                                                                                                       2
+                                                                                 Silicone resin
+                                                                                                                       3
+                                            A-2 B-2 C-2 D-2 E-2 F-2
+
+
+
+
+                                                                                                                                                                                        11 × 2.1 = 23.1
+                                                                                                                       4
+
+
+
+
+                   5 × 4.2 = 21.0
+                                                                                                                       5
+                                            A-3 B-3 C-3 D-3 E-3 F-3
+                                                                                                                       6
+            25.4                                                                                                       7
+                                            A-4 B-4 C-4 D-4 E-4 F-4                                                    8
+                                                                                                                       9
+                                            A-5 B-5 C-5 D-5 E-5 F-5                                                   10
+                                                                                                                      11
+                                            A-6 B-6 C-6 D-6 E-6 F-6
+                                                                                                                      12
+
+
+                   0.2                            (36 ×) Effective
+                                                  photosensitive area                             PWB                      2.1 2.1
+                                                                                                                                        11 × 2.1 = 23.1
+                                           Tolerance unless otherwise noted: ±0.1
+                                                                                                                               Cathode (36 ×) ɸ1.0
+                                                                                                                                    Anode (36 ×) ɸ1.0
+                                                                                                                                                                                                             KAPDA0200EA
+
+
+
+
+        Pad no.                     Connection     Pad no.     Connection   Pad no.      Connection       Pad no.       Connection              Pad no.          Connection Pad no. Connection
+           -                            -             L1         A(F-1)        -             -               J1           A(E-1)                  H1               K(D-1)   KAPDA0200EA
+                                                                                                                                                                                -       -
+          M2                          K(F-1)           -           -          K2           K(E-1)             -             -                      -                 -         G2     A(D-1)
+           -                            -            L3          A(F-2)        -             -               J3           A(E-2)                  H3               K(D-2)       -       -
+          M4                          K(F-2)           -           -          K4           K(E-2)             -             -                      -                 -         G4     A(D-2)
+           -                            -             L5         A(F-3)        -             -               J5           A(E-3)                  H5               K(D-3)       -       -
+          M6                          K(F-3)           -           -          K6           K(E-3)             -             -                      -                 -        G6      A(D-3)
+           -                            -             L7         A(F-4)        -             -               J7           A(E-4)                  H7              K(D-4)        -       -
+          M8                          K(F-4)           -           -          K8           K(E-4)             -             -                      -                 -        G8      A(D-4)
+           -                            -             L9         A(F-5)        -             -               J9           A(E-5)                  H9              K(D-5)        -       -
+         M10                          K(F-5)           -           -          K10          K(E-5)             -             -                      -                 -        G10     A(D-5)
+           -                            -            L11         A(F-6)        -             -              J11           A(E-6)                  H11             K(D-6)        -       -
+         M12                          K(F-6)           -           -          K12          K(E-6)             -             -                      -                 -        G12     A(D-6)
+
+
+        Pad no.                     Connection     Pad no.     Connection   Pad no.      Connection       Pad no.       Connection              Pad no.          Connection         Pad no.               Connection
+            -                            -           E1          A(C-1)       D1           K(B-1)            -              -                     B1               K(A-1)              -                       -
+           F2                         K(C-1)          -             -          -             -              C2            A(B-1)                   -                  -               A2                    A(A-1)
+            -                            -           E3          A(C-2)       D3           K(B-2)            -              -                     B3               K(A-2)              -                       -
+           F4                         K(C-2)          -             -          -             -              C4            A(B-2)                   -                  -               A4                    A(A-2)
+            -                            -           E5          A(C-3)       D5           K(B-3)            -              -                     B5               K(A-3)              -                      -
+           F6                         K(C-3)          -             -          -             -              C6            A(B-3)                   -                  -               A6                    A(A-3)
+            -                            -           E7          A(C-4)       D7           K(B-4)            -              -                     B7               K(A-4)              -                      -
+           F8                         K(C-4)          -             -          -             -              C8            A(B-4)                   -                 -                A8                    A(A-4)
+            -                            -           E9          A(C-5)       D9           K(B-5)            -              -                     B9               K(A-5)              -                      -
+          F10                         K(C-5)          -             -          -             -              C10           A(B-5)                   -                 -                A10                   A(A-5)
+            -                            -           E11         A(C-6)      D11           K(B-6)            -              -                     B11              K(A-6)              -                      -
+          F12                         K(C-6)          -            -           -             -              C12          A(B-6)                    -                 -                A12                   A(A-6)
+      Note: A=Anode, K=Cathode
+
+
+
+
+                                                                                                                                                                                                                  7
+Dimensional outline (unit: mm, tolerance: ±0.1 mm unless otherwise noted)
+                                       MPPC (Multi-Pixel Photon Counter)                                                          S14160/S14161 series
+
+
+
+                                                                                       S14161-6050HS-04
+
+                                                 [Top view]                                        [side view]                [Bottom view]
+                                                      25.0                              1.35 ± 0.2
+                                 0.2           3 × 6.2 = 18.6            0.2 Resin thickness: 0.15                                                       Index mark
+                0.2                                                                                        Pad no.    H   G   F   E   D   C    B   A
+                                                                              Photosensitive surface             1
+                                       A-1      B-1      C-1       D-1
+                                                                                                                                                          3.1 3.1
+                                                                              Silicone resin                     2
+                                                                                                                 3
+
+
+
+                3 × 6.2 = 18.6                                                                                                                                      7 × 3.1 = 21.7
+                                       A-2      B-2      C-2       D-2
+                                                                                                                 4
+         25.0
+                                                                                                                 5
+                                       A-3      B-3      C-3       D-3
+                                                                                                                 6
+                                                                                                                 7
+                                       A-4      B-4      C-4       D-4
+                                                                                                                 8
+
+                0.2                          (16 ×) Effective
+                                             photosensitive area                              PWB                      3.1 3.1                          Anode (16 ×) ɸ1.0
+                                                                                                                              7 × 3.1 = 21.7           Cathode (16 ×) ɸ1.0
+
+
+                                                                                                                     Tolerance unless otherwise noted: ±0.1
+                                                                                                                                                                                     KAPDA0201EA
+
+
+
+
+                                                                                                                                                                    KAPDA0201EA
+    Pad no. Connection Pad no. Connection Pad no. Connection Pad no. Connection Pad no. Connection Pad no. Connection Pad no. Connection Pad no. Connection
+       -        -        G1    A(D-1)        -        -        E1     A(C-1)      D1     K(B-1)       -        -        B1     K(A-1)       -        -
+      H2    K(D-1)        -        -        F2     K(C-1)       -        -         -        -        C2     A(B-1)       -        -        A2     A(A-1)
+       -        -        G3    A(D-2)        -        -        E3     A(C-2)      D3    K(B-2)        -        -        B3     K(A-2)       -        -
+      H4    K(D-2)        -        -        F4     K(C-2)       -        -         -        -        C4    A(B-2)        -        -        A4     A(A-2)
+       -        -        G5    A(D-3)        -        -        E5     A(C-3)      D5    K(B-3)        -        -        B5    K(A-3)        -        -
+      H6    K(D-3)        -        -        F6     K(C-3)       -        -         -        -        C6    A(B-3)        -        -        A6    A(A-3)
+       -        -        G7    A(D-4)        -        -        E7    A(C-4)       D7    K(B-4)        -        -        B7    K(A-4)        -        -
+      H8    K(D-4)        -        -        F8    K(C-4)        -        -         -        -        C8    A(B-4)        -        -        A8    A(A-4)
+    Note: A=Anode, K=Cathode
+
+
+
+
+                                                                                                                                                                                          8
+                               MPPC (Multi-Pixel Photon Counter)                                                                                                                 S14160/S14161 series
+
+
+            Recommended land pattern (unit: mm)
+                                         S14160-3050HS                                                                                                                             S14160-4050HS
+
+
+
+                         (5 ×) ϕ0.7                                                                                                                                   (5 ×) ϕ0.7
+                                                                         2.2                                                                                                                         2.7
+pattern                                                          Recommended land pattern
+
+
+
+                                                     2.2                                                                                                                                 2.7
+                                                                                                                                         KAPDC0108EA                                                                                     KAPDC0109EA
+
+
+
+
+                                         S14160-6050HS                                                                                                                           S14161-3050HS-04
+
+                                                                                                                                                           (32 ×) ϕ0.7
+
+
+
+
+                                                                                                                                                                                                           1.3 1.9 1.3 1.9 1.3 1.9 1.3
+                         (8 ×) ϕ0.7
+                                                                                2.5     5.0
+
+                                                                                                                                                                           KAPDC0108EA
+
+
+
+
+                                                     2.5
+attern                                                              Recommended land pattern
+                                                     5.0
+                                                                                                                                                                           1.3 1.9 1.3 1.9 1.3 1.9 1.3
+                                                                                                                                         KAPDC0110EA
+
+                                                                                                                                                                                                                                         KAPDC0111EA
+
+
+
+
+                                      S14161-3050HS-08                                                                                                                           S14161-4050HS-06
+
+
+                                                                                                                                                                                                                                   2.1 2.1
+
+
+
+
+                                                                                          1.3 1.9 1.3 1.9 1.3 1.9 1.3 1.9 1.3 1.9 1.3 1.9 1.3 1.9 1.3
+          (128 ×) ϕ0.7                                                                                                                                  (72 ×) ϕ1.0
+
+                                                                                                                                                                             KAPDC0110EA
+
+
+
+
+                                                                                                                                                                                                                                             11 × 2.1 = 23.1
+
+
+
+
+                                                                                                                                                                       2.1 2.1
+                          1.3 1.9 1.3 1.9 1.3 1.9 1.3 1.9 1.3 1.9 1.3 1.9 1.3 1.9 1.3
+                                                                                                                                         KAPDC0112EA
+                                                                                                                                                                                   11 × 2.1 = 23.1
+                                                                                                                                                                                                                                         KAPDC0113EA
+
+
+
+
+                                                                                                                                                                          KAPDC0112EA
+
+
+
+
+                                                                                                                                                                                                                                                               9
+pattern
+
+                                      MPPC (Multi-Pixel Photon Counter)                                                 S14160/S14161 series
+
+
+
+                                          S14161-6050HS-04
+
+
+
+                                                                            3.1 3.1
+               (32 ×) ϕ1.0
+
+
+
+
+                                                                                       7 × 3.1 = 21.7
+
+
+
+          Measured example of temperature profile with our hot-air reflow oven for product testing
+
+
+
+
+                                      3.1 3.1
+                                                7 × 3.1 = 21.7
+                                                                                      KAPDC0114EA
+
+
+
+
+                 Recommended reflow soldering conditions
+                             300 °C
+
+                                                                                      240 °C max.
+                                                                                                                       KAPDC0114EA
+
+
+                             220 °C
+
+                             190 °C
+
+
+
+               Temperature
+                             170 °C
+
+
+
+
+                                                   Preheat              Soldering
+                                                  70 to 90 s            40 s max.
+
+
+
+
+                                                                 Time
+                                                                                                         KPICB0171EA
+
+
+
+
+            ∙ This surface mount type package product supports lead-free soldering. After unpacking, store it in an environment at a temperature of
+               25 °C or less and a humidity of 60% or less, and perform soldering within 24 hours.
+            ∙ The effect that the product receives during reflow soldering varies depending on the circuit board and reflow oven that are used. Before
+               actual reflow soldering, check for any problems by testing out the reflow soldering methods in advance.
+            ∙ When three or more months have passed or if the packing bag has not been stored in an environment described above, perform baking.
+              For the baking method, see the related information “Precautions / Surface mount type products”.
+
+
+
+                                                                                                        KPICB0171EA
+
+
+
+
+                                                                                                                                                   10
+                            MPPC (Multi-Pixel Photon Counter)                                                                                              S14160/S14161 series
+
+
+   Precautions
+∙ If necessary, incorporate appropriate protective circuits in power supplies, devices, and measuring instruments to prevent overvoltage
+  and overcurrent.
+
+
+
+   Related information
+www.hamamatsu.com/sp/ssd/doc_en.html
+
+  Precautions
+∙ Disclaimer
+∙ Precautions / Surface mount type products
+
+   Catalogs
+∙ Technical information / MPPC
+
+
+
+
+MPPC is a registered trademark of Hamamatsu Photonics K.K. (EU, Japan, Korea, Switzerland, UK, U.S.A.)
+Information described in this material is current as of November 2024.
+Product specifications are subject to change without prior notice due to improvements or other reasons. This document has been carefully prepared and the
+information contained is believed to be accurate. In rare cases, however, there may be inaccuracies such as text errors. Before using these products, always
+contact us for the delivery specification sheet to check the latest specifications.
+The product warranty is valid for one year after delivery and is limited to product repair or replacement for defects discovered and reported to us within that
+one year period. However, even if within the warranty period we accept absolutely no liability for any loss caused by natural disasters or improper product use.
+Copying or reprinting the contents described in this material in whole or in part is prohibited without our prior permission.
+
+
+
+                                                                                                                                                                               www.hamamatsu.com
+     HAMAMATSU PHOTONICS K.K., Solid State Division
+     1126-1 Ichino-cho, Chuo-ku, Hamamatsu City, 435-8558 Japan, Telephone: (81)53-434-3311, Fax: (81)53-434-5184
+     U.S.A.: HAMAMATSU CORPORATION: 360 Foothill Road, Bridgewater, NJ 08807, U.S.A., Telephone: (1)908-231-0960, Fax: (1)908-231-1218
+     Germany: HAMAMATSU PHOTONICS DEUTSCHLAND GMBH: Arzbergerstr. 10, 82211 Herrsching am Ammersee, Germany, Telephone: (49)8152-375-0, Fax: (49)8152-265-8 E-mail: info@hamamatsu.de
+     France: HAMAMATSU PHOTONICS FRANCE S.A.R.L.: 19 Rue du Saule Trapu, Parc du Moulin de Massy, 91882 Massy Cedex, France, Telephone: (33)1 69 53 71 00, Fax: (33)1 69 53 71 10 E-mail: infos@hamamatsu.fr
+     United Kingdom: HAMAMATSU PHOTONICS UK LIMITED: 2 Howard Court,10 Tewin Road, Welwyn Garden City, Hertfordshire, AL7 1BW, UK, Telephone: (44)1707-294888, Fax: (44)1707-325777 E-mail: info@hamamatsu.co.uk
+     North Europe: HAMAMATSU PHOTONICS NORDEN AB: Torshamnsgatan 35, 16440 Kista, Sweden, Telephone: (46)8-509-031-00, Fax: (46)8-509-031-01 E-mail: info@hamamatsu.se
+     Italy: HAMAMATSU PHOTONICS ITALIA S.R.L.: Strada della Moia, 1 int. 6 20044 Arese (Milano), Italy, Telephone: (39)02-93 58 17 33, Fax: (39)02-93 58 17 41 E-mail: info@hamamatsu.it
+     China: HAMAMATSU PHOTONICS (CHINA) CO., LTD.: 1201, Tower B, Jiaming Center, 27 Dongsanhuan Beilu, Chaoyang District, 100020 Beijing, P.R. China, Telephone: (86)10-6586-6006, Fax: (86)10-6586-2866 E-mail: hpc@hamamatsu.com.cn
+     Taiwan: HAMAMATSU PHOTONICS TAIWAN CO., LTD.: 13F-1, No.101, Section 2, Gongdao 5th Road, East Dist., Hsinchu City, 300046, Taiwan(R.O.C) Telephone: (886)3-659-0080, Fax: (886)3-659-0081 E-mail: info@hamamatsu.com.tw
+
+                                                                                                                                                                                                                                    11
+                                                                                                                                                                               Cat. No.KAPD1064E04 Nov. 2024 DN
+
