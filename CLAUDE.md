@@ -12,6 +12,21 @@ where markdown links, `inline code` (backticks), and file:line references all re
 use any of them in responses — no backticks, no code fences for listings, no clickable links. Emphasise
 with **bold** and write paths, filenames, config keys, and code identifiers as plain text.
 
+**Writing in the notes and design documents.** Connected prose with verbs, not comma lists of
+noun phrases: name what the items are and tie them to the physics ("The main parameters are the
+number of photoelectrons per MeV ---and from there the efficiency to turn photons into
+photoelectrons---, the energy resolution, the scintillation lifetime, ..."). Beware the reflex
+of replacing a vague sentence by a catalogue of concrete nouns: it is the same error. No slogans,
+metaphors or flourishes ("every ingredient is known", "sits on the bench", "everything between X
+and Y"); state the plain fact. Lists only to organise substance (numbered stages with bold names,
+each item a full sentence). Describe outputs concretely; no undefined shorthand ("truth",
+"pipeline", "words"). Write for an external reader: no git tags, repository layout or "existing
+code" in the physics text; the relation to the code goes in an Implementation section or the
+working plan. Introduce things before using them. Do not fix open implementation choices. After
+a rewrite check for repetition with the neighbouring paragraph. Correct JJ's typos and stray
+punctuation on the fly; never rephrase his content without asking. Detailed record in memory:
+feedback-writing-notes-style.
+
 **Figures: always from a tracked tool.** Every figure that goes into a doc (the LaTeX notes,
 `docs/`) must be produced by a checked-in script that reads the data and writes the image — never
 with a throwaway inline/ad-hoc command. The script and the generated image are both committed, so

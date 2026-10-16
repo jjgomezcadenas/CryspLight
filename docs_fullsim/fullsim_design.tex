@@ -17,7 +17,7 @@
 \newcommand{\csitl}{CsI(Tl)\xspace}
 
 \title{CryspLight full simulation: design\\[2mm]
-\large From the crystal to the ASIC words, for the comparison with the bench data}
+\large From the crystal to the recorded signal, for the comparison with the measurements}
 \author{J.\,J.~Gómez-Cadenas}
 \date{16 October 2026 \\[2mm] \small Version 0.1 --- written before the code}
 
@@ -25,518 +25,704 @@
 \maketitle
 
 \begin{abstract}
-The pedagogical simulation (git tag \code{pedsim}) transports scintillation
-light in an ideal detector: a uniform $8\times8$ array covering the whole
-readout face, one wavelength, one photon detection efficiency, photoelectrons
-counted exactly. This document specifies the full simulation that produces
-what the bench measures: the real SiPM layout with its gaps, the grease and the
-window, the emission spectra, the SiPM as a device with gain, crosstalk and
-dark counts, and the Citiroc (later the Radioroc2) chain down to the ADC
-words. Every addition is switched on by a configuration key and switched off
-by its absence, so the pedagogical results are reproduced bit for bit. The
-measured data and the emulated data are written in the same HDF5 layout, and
-one analysis reads both.
+We are measuring the performance of BGO and \csitl crystals read out by an
+array of 64 SiPMs and ASIC front ends, at ambient temperature and at 196~K.
+This document specifies the simulation that accompanies the measurements. It
+starts from an existing optical Monte Carlo of the light transport in the
+crystal and carries it through to the signal that the acquisition records:
+the actual geometry of the SiPM array and the optical coupling, the
+wavelength of the light, the SiPM as a device with its gain, crosstalk and
+dark counts, and the electronics chain of the Citiroc and, later, of the
+Radioroc2. It defines the files exchanged between the stages of the
+simulation and with the measured data, the quantities on which simulation
+and measurements are compared, the tests that validate the code and the
+origin of every parameter.
 \end{abstract}
 
 \tableofcontents
 
-\section{Purpose and the measurements to reproduce}
+\section{The problem and the simulation}
 \label{sec:purpose}
 
-Three configurations, all with the same crystal size per material, the same
-SiPM array, Teflon wrapping and grease coupling, read out by two Citiroc~1A
-chips (32 channels each) and later by one Radioroc2 (64 channels). The ASICs
-sit at ambient temperature in every case; in the cold configuration the
-crystal and the SiPMs are in the cryostat and the signals come out through
-cables and feedthroughs.
+We want to measure the performance of BGO and \csitl crystals as gamma-ray
+detectors at ambient temperature and at $-77\,^\circ$C (196~K). The main
+parameters are the number of photoelectrons per MeV ---and from there the
+overall efficiency of the system to transform photons into photoelectrons---,
+the energy resolution, the scintillation lifetime, the uniformity of the
+response over the crystal and, eventually, the position resolution. The
+crystals are $48 \times 48$~mm$^2$ in cross section and two
+radiation lengths thick, polished, wrapped in Teflon and coupled through
+optical grease to an array of 64 SiPMs of $6 \times 6$~mm$^2$. The SiPMs are
+read out by two Citiroc~1A chips of 32 channels each and, in a second phase,
+by one Radioroc2 of 64 channels. A \Na source on the axis of the crystal,
+30~mm from the face opposite the SiPMs, provides gammas of 511 and 1275~keV.
+Table~\ref{tab:configs} gives the three configurations. The ASICs stay at
+ambient temperature in all of them; in the cold configuration the crystal and
+the SiPMs are inside a cryostat and the signals come out through cables and
+feedthroughs.
 
 \begin{table}[htb]
 \centering
-\begin{tabular}{l c c c}
+\small
+\begin{tabular}{p{0.27\textwidth} p{0.2\textwidth} p{0.2\textwidth} p{0.2\textwidth}}
 \toprule
  & BGO ambient & \csitl ambient & BGO cold \\
 \midrule
-crystal ($x \times y \times z$, mm) & $48\times48\times22.4$ & $48\times48\times37.2$ & $48\times48\times22.4$ \\
-thickness in radiation lengths & 2 ($X_0 = 11.2$~mm) & 2 ($X_0 = 18.6$~mm) & 2 \\
-temperature & laboratory (about 295~K) & laboratory & 196~K \\
+crystal $x \times y \times z$ (mm) & $48\times48\times22.4$ & $48\times48\times37.2$ & $48\times48\times22.4$ \\
+thickness in $X_0$ & 2 ($X_0 = 11.2$~mm) & 2 ($X_0 = 18.6$~mm) & 2 \\
+temperature & laboratory, about 295~K & laboratory & 196~K \\
 light yield (ph/MeV) & 7000 to 8200$^{a}$ & 54\,000 & 14\,000 to 16\,000$^{a}$ \\
-decay time & 300~ns ($+$ 60~ns minor) & 730~ns (64\%), 3340~ns (36\%) & 2.7~\us$^{b}$ \\
+decay time & 300~ns, plus a minor 60~ns component & 730~ns (64\%) and 3340~ns (36\%) & 2.7~\us$^{b}$ \\
 emission peak & 480~nm & 550~nm & 480~nm \\
 refractive index & 2.15 & 1.79 & 2.15 \\
-intrinsic resolution at 511~keV (FWHM) & 3 to 4\%$^{c}$ & 6\% & 3 to 4\%$^{c}$ \\
-source & \multicolumn{3}{c}{\Na, on axis, 30~mm from the face opposite the SiPMs} \\
-readout & \multicolumn{3}{c}{Citiroc 1A $\times 2$, then Radioroc2} \\
+intrinsic resolution, FWHM at 511~keV & 3 to 4\%$^{c}$ & 6\% & 3 to 4\%$^{c}$ \\
+source & \multicolumn{3}{p{0.62\textwidth}}{\Na, on axis, 30~mm from the face opposite the SiPMs} \\
+readout & \multicolumn{3}{p{0.62\textwidth}}{Citiroc 1A $\times 2$, then Radioroc2} \\
 \bottomrule
 \end{tabular}
-\caption{The three configurations. $^{a}$ Parameter: the ambient yield from the
-Gironnet quenching curve relative to the Ding calibration at 195~K; the cold
-yield between the Ding chain (14k) and the value implied by the longer decay
-time measured on our crystal. The warm-to-cold ratio of the measured
-photoelectrons fixes it. $^{b}$ Measured on this crystal in the Antarctica runs
-($2.72 \pm 0.01$~\us at T3 = 196~K); replaces the 1768~ns of the Ding
-calibration for this crystal only. $^{c}$ Parameter; BGO is nearly
-proportional, the value is to be taken from the data once the statistical and
-noise terms are subtracted.}
+\caption{The three configurations. $^{a}$ Not known well enough to be fixed:
+the ambient yield follows from the temperature dependence of the BGO light
+yield (Gironnet et al.) applied to the value at 195~K; the cold yield lies
+between the 14\,000 ph/MeV of the calibration against the Ding et al.\ cube
+and the value implied by the longer decay time measured on our crystal. The
+ratio of photoelectrons between the warm and the cold runs will fix it.
+$^{b}$ Measured on this crystal ($2.72 \pm 0.01$~\us at 196~K). $^{c}$ Not
+known well enough to be fixed: BGO is nearly proportional; the value will be
+taken from the data once the statistical and noise terms are subtracted.}
 \label{tab:configs}
 \end{table}
 
-The simulation has three stages with a file between each pair, so that a
-change downstream never requires rerunning upstream:
+A realistic simulation is needed for two purposes. Before the data taking,
+it tells us how much light each channel will receive and therefore how to
+choose the operating parameters, such as the overvoltage of the SiPMs. After the data taking,
+the simulation provides a reference for the data. 
+The simulation must therefore, model accurately the details of the actual detector. 
+
+The optical part of this simulation already exists: CryspLight, an optical
+Monte Carlo code in Julia and designed to run on a GPU, is able to transports the scintillation photons in a
+wrapped crystal read by an array of SiPMs. The initial implementation assumed 
+an idealised readout, in which the SiPM array covers the whole face
+without gaps and the light is monochromatic and detected with a single
+efficiency. 
+
+The existing simulation stops at that idealised readout face. This document
+describes how it is carried through to the recorded signal. The ideal face is
+replaced by the actual array, so that a photon may fall between two SiPMs,
+and it reaches the active surface through the grease and the window of the
+device. Each photon is given a wavelength, because the efficiency with which
+a SiPM detects it depends on it. Each SiPM becomes a device that turns its
+photoelectrons into an electrical signal, with its gain, its crosstalk and
+its dark counts. And the electronics that measures that signal is simulated,
+so that the result is the value the acquisition would have recorded. How
+these extensions are added to the existing code is described in
+Section~\ref{sec:implementation}.
+
+\subsection{The measured data}
+
+For every event the acquisition records, for each of the 64 channels, two
+charges measured by the Citiroc peak detectors, one on the high-gain and one
+on the low-gain path, both in ADC counts, and whether the channel fired its
+discriminator. For every run it records the conditions: how the SiPMs were biased
+(the bias voltage and the breakdown voltages measured in situ), how the ASIC
+was configured (thresholds, hold delay, shaping time and gains) and the
+temperatures. The
+first step of the analysis converts these files to an HDF5 format described
+in Section~\ref{sec:formats}; the simulation writes its results in the same
+format, so that the same analysis can be run on both.
+
+\subsection{The three stages of the simulation}
+
+The simulation runs in three stages, each one feeding the next through a
+file.
 
 \begin{enumerate}
-\item \textbf{Optical stage} (Julia, the existing pipeline extended). Gammas
-  from the source, energy deposits, scintillation photons transported on the
-  GPU to the SiPMs. Output: the truth already written by \code{pedsim}, plus
-  one record per detected photoelectron (channel, time, wavelength).
-\item \textbf{Device and front-end stage} (Julia, new module). SiPM response
-  and the electronics chain applied to the photoelectron records. Output: the
-  words the DAQ would write, per event and channel, in the common HDF5 layout.
-\item \textbf{Comparison stage} (Python, \code{fullsim\_analysis/}). The same
-  code on the emulated and the measured files: gains, pedestals, spectra,
-  resolution, maps.
+\item {\bf Optical simulation.}
+\begin{itemize}
+\item It generates the gammas from the source, follows them to their energy
+  deposits in the crystal, emits the scintillation photons and transports
+  them on the GPU until they are absorbed or reach a SiPM.
+\item It writes one file per run with, for every event, the energy and
+  position of each interaction of the gamma in the crystal, the number of
+  scintillation photons emitted and the number detected, and one record for
+  every detected photoelectron: the channel that detected it, the time of
+  detection and the wavelength of the photon.
+\end{itemize}
+\item {\bf SiPM and electronics simulation.}
+\begin{itemize}
+\item It reads the photoelectron records and applies the response of the
+  SiPM, which turns every photoelectron into a current pulse of a given
+  shape, multiplied by the gain and accompanied by crosstalk and
+  afterpulsing, and adds the dark counts of the device.
+\item It then applies the chain of the ASIC: the pulses are amplified and
+  shaped, compared with the discriminator thresholds, their maximum is
+  stored by the peak detector until the hold, and the stored value is
+  converted to ADC counts.
+\item It writes one file per run with the same content as a measured run
+  (for every event and channel, the two charges in ADC counts and the
+  discriminator flag), in the format of Section~\ref{sec:formats}, together
+  with the energy deposits and the photoelectron counts of the first stage,
+  which the analysis needs to interpret the result.
+\end{itemize}
+\item {\bf Analysis.}
+\begin{itemize}
+\item It reads a file in that format, simulated or measured, and extracts
+  from it the quantities we compare: the gain of each channel from its
+  single-photoelectron spectrum, its pedestal and noise, the energy spectrum
+  of the sum of the channels and its resolution, and the maps of the response
+  over the array.
+\item It runs on simulated data for the time being and on the measured data
+  once they exist. Whether it is written in Python or in Julia is left open:
+  the loop over many events may require Julia.
+\end{itemize}
 \end{enumerate}
 
-\section{Principles}
-\label{sec:principles}
-
-\begin{itemize}
-\item \textbf{Additive.} No existing behaviour changes. Each new feature is a
-  configuration block; absent, the code follows the \code{pedsim} path with the
-  same random draws. A frozen-output test runs a small pedagogical
-  configuration and compares its output with stored checksums.
-\item \textbf{Kernel invariant kept.} Every physics addition is written in both
-  \code{src/transport.jl} (reference) and \code{src/kernel.jl} (GPU), and the
-  parity test proves them identical on the CPU backend.
-\item \textbf{Measured where measurable.} Noise, gains, breakdown voltages,
-  thresholds and hold timing are inputs read from the run, never datasheet
-  defaults, once the run exists. Until then the defaults are stated here with
-  their provenance.
-\item \textbf{One layout for data and emulation.} Section~\ref{sec:formats}.
-\end{itemize}
+Writing a file between the stages separates the slow part of the
+simulation from the fast one. The optical transport takes minutes on the GPU
+for a run of $10^5$ events; the second and third stages take seconds. A
+change in the parameters of the SiPMs or of the electronics, for instance
+when they are adjusted to reproduce the data, therefore requires rerunning
+only the last two stages, and the photoelectron records are reused.
 
 \section{Geometry}
 \label{sec:geometry}
 
 \subsection{Crystal and wrapping}
 
-A rectangular box, $48 \times 48$~mm$^2$ transverse, 22.4~mm (BGO) or
-37.2~mm (\csitl) thick, polished on all six faces. The polish is the measured
-one of the pedagogical calibration: a micro-facet Gaussian with
-$\sigma_\alpha = 1.3^\circ$. Five faces are hand-wrapped in several layers of
-PTFE tape: a thin air gap between crystal and tape (the UNIFIED
-``back-painted'' finish, the \code{pedsim} default) and a Lambertian
-reflector of $R = 0.99$ behind it (Janecek and Moses; saturated for three or
-more layers). Nothing here is new.
+The crystal is a rectangular box, $48 \times 48$~mm$^2$ in cross section and
+22.4~mm (BGO) or 37.2~mm (\csitl) thick, polished on its six faces. Five faces
+are wrapped by hand in several layers of PTFE tape. The tape does not touch
+the crystal everywhere, so the model places a thin layer of air between the
+two. A photon that reaches a wrapped face is first reflected or transmitted at
+the crystal-to-air interface according to Fresnel's equations; only the
+transmitted fraction reaches the Teflon, which returns it diffusely with a
+reflectivity of 0.99, the value measured by Janecek and Moses for three or
+more layers of tape. The polish is described with the UNIFIED model of
+Geant4: the normal to the surface seen by each photon deviates from the
+geometric normal by a Gaussian angle of $1.3^\circ$ rms, a value obtained for
+crystals of the same finish when the optical simulation was calibrated.
+
+The air gap has a consequence that dominates the light collection. A photon
+whose direction is beyond the critical angle ($27.7^\circ$ in BGO,
+$34^\circ$ in \csitl) on the face it meets is totally reflected, and since
+the faces of the box are parallel, a photon beyond the critical angle on all
+three pairs of faces stays trapped until the roughness of the surface,
+Rayleigh scattering in the bulk or absorption changes its direction or ends
+its life. The roughness is therefore not a detail: it sets how fast the
+trapped light leaks towards the readout face.
 
 \subsection{Coupling and window}
 
-The readout face is coupled through optical grease, $n = 1.42$, to the SiPM
+The sixth face is coupled through optical grease ($n = 1.42$) to the SiPM
 tiles, whose photosensitive surface is covered by 0.15~mm of silicone resin
-with $n = 1.57$ (datasheet). The photon crosses two interfaces, crystal to
-grease and grease to resin, each treated with Fresnel reflection and
-transmission; the first dominates (BGO 2.15 to 1.42; \csitl 1.79 to 1.42),
-the second reflects 0.3\% at normal incidence. The resin-to-silicon step is
-not simulated: the datasheet PDE is measured from air through the resin and
-already contains it. The PDE is applied once the photon is in the resin above
-an active area, as a function of wavelength and overvoltage
-(Section~\ref{sec:sipm}) and independent of angle; this angular assumption
-is the one unverified element of the coupling model and is listed in
-Section~\ref{sec:open}. Reflected photons return to the crystal and continue.
+($n = 1.57$, from the datasheet). A photon leaving the crystal through this
+face crosses two interfaces, crystal to grease and grease to resin, and at
+each one it is reflected or transmitted according to Fresnel's equations. The
+first interface dominates (from 2.15 or 1.79 down to 1.42); the second
+reflects 0.3\% at normal incidence. A reflected photon returns to the crystal
+and continues its life. The step from the resin into the silicon is not
+simulated, because the detection efficiency of the datasheet is measured from
+air through the resin and already contains it. The detection efficiency is
+applied once the photon is inside the resin above an active area, as a
+function of its wavelength and of the overvoltage
+(Section~\ref{sec:sipm}), and independently of its angle of incidence. This
+independence is an assumption: the datasheet measures the efficiency at
+normal incidence from air, whereas our photons arrive from the grease at all
+angles up to the critical one. It is listed in Section~\ref{sec:open}.
 
-\subsection{SiPM layout}
+\subsection{The SiPM array}
 \label{sec:layout}
 
-Four Hamamatsu S14161-6050HS-04 tiles of $4\times4$ channels, 6.0~mm active
-width on a 6.2~mm pitch inside a tile, 0.4~mm between the active areas of
-neighbouring tiles. The 64 centres, with the origin at the centre of the
-matrix, are at $\pm 3.2, \pm 9.4, \pm 15.6, \pm 21.8$~mm in each coordinate.
-Consequences for the model:
+The array is made of four Hamamatsu S14161-6050HS-04 tiles, each with
+$4\times4$ channels of 6.0~mm active width on a 6.2~mm pitch. The tiles are
+butted, and since the active area stops 0.2~mm short of the package edge, the
+active areas of two channels across a tile boundary are 0.4~mm apart. With
+the origin at the centre of the matrix, the 64 centres are at $\pm 3.2$,
+$\pm 9.4$, $\pm 15.6$ and $\pm 21.8$~mm in each coordinate.
 
-\begin{itemize}
-\item the matrix is 49.6~mm wide: the outer channels overhang the crystal by
-  0.8~mm and only 5.2~mm of their width sees the crystal;
-\item inside the $48 \times 48$~mm$^2$ footprint the active fraction is
-  $0.934$: 0.2~mm gaps between channels, the 0.4~mm seam through the centre
-  in both directions, and the overhang;
-\item a photon transmitted into the resin above a dead strip meets the
-  package surface between the channels. Its reflectivity is unknown; the
-  default is diffuse with $R_{\rm dead} = 0.5$, and
-  Section~\ref{sec:comparison} says how the data constrain it.
-\end{itemize}
+This geometry differs from an ideal array in three ways. The matrix is
+49.6~mm wide, so the outer channels overhang the crystal by 0.8~mm and only
+5.2~mm of their width faces it. Inside the $48 \times 48$~mm$^2$ footprint
+the active area is 93.4\% of the total, the rest being the 0.2~mm gaps
+between channels, the 0.4~mm seam that crosses the centre in both directions
+and the overhang. And a photon transmitted into the resin above one of these
+gaps meets the surface of the package between the channels, whose
+reflectivity we do not know; the model takes it diffuse with a reflectivity
+of 0.5 and Section~\ref{sec:comparison} says how the data will constrain
+it.
 
-The layout enters the configuration as a list of active rectangles with a
-channel number each. The \code{pedsim} path (pitch 6.0, no gaps) is the
-default when the block is absent. The channel numbering follows the DAQ
-cabling and is part of the run description (Section~\ref{sec:formats}).
+The array enters the simulation as a list of active rectangles, each with
+its channel number, so that the same code describes this array, an ideal one
+or any future layout. The channel numbering follows the cabling of the
+acquisition and is part of the description of each run
+(Section~\ref{sec:formats}).
 
-\section{Source and gamma stage}
+\section{Source and gamma transport}
 \label{sec:gamma}
 
-A \Na point source on the crystal axis, 30~mm from the centre of the face
-opposite the SiPMs. Per decay: a 1274.5~keV gamma (99.9\%), and with 90.3\%
-probability a positron whose annihilation gives two back-to-back 511~keV
-gammas. Directions are isotropic; only the gammas whose line meets the front
-face are transported (13\% of the sphere for the 511~keV pair, counted once
-since the two partners cannot both reach the crystal; 13\% for the 1275~keV
-gamma). The two lines of one decay are kept together so that true
-coincidence summing (the 1786~keV sum peak) and the 1275~keV Compton
-continuum under the 511~keV line appear with their real weights. Incidence
-angles reach $49^\circ$ at the corners.
+The \Na source is a point on the axis of the crystal, 30~mm from the centre
+of the face opposite the SiPMs. In each decay it emits a gamma of
+1274.5~keV and, in 90.3\% of the cases, a positron that annihilates into two
+back-to-back gammas of 511~keV. The directions are isotropic. The simulation
+generates whole decays, draws the directions of the 1275~keV gamma and of
+the 511~keV pair, and transports the gammas whose line meets the front face:
+13\% of the sphere for the 1275~keV gamma and the same for the 511~keV pair,
+counted once because the two partners fly in opposite directions and only one
+of them can reach the crystal. Keeping the gammas of one decay together
+matters for the spectrum: when the 1275~keV gamma and a 511~keV gamma both
+deposit energy in the same event, their energies add, which produces the sum
+peak at 1786~keV, and the Compton continuum of the 1275~keV line lies under
+the 511~keV photopeak with its real weight. The gammas arrive at angles of up
+to $49^\circ$ at the corners of the face, so the depth of the interactions
+differs from that of a beam at normal incidence.
 
-The gamma transport is the vendored PTCrysp core (see
-\code{src/gamma/VENDORED.md}): photoelectric absorption, Compton scattering,
-pair production above 1.022~MeV treated as local absorption (at 1275~keV it
-is below 1\% of the cross section), tables to 10~MeV. Not modelled, and
-listed in Section~\ref{sec:open}: K-shell fluorescence and its escape (the
-Bi K X-ray at 77~keV gives an escape peak at 434~keV for interactions within
-a fraction of a millimetre of a surface), Doppler broadening, scattering in
-the source holder and the cryostat walls.
-
-The \code{pedsim} source (511~keV, uniform over the front face, normal
-incidence) remains the default; the point source is a \code{[source]} block.
+Inside the crystal the gammas are followed by the transport code of
+PTCrysp, which simulates photoelectric absorption and Compton scattering with
+cross sections tabulated up to 10~MeV. Pair production, open above
+1.022~MeV, is treated as a local absorption; at 1275~keV it is below 1\% of
+the total cross section. Three effects are not simulated: the fluorescence
+that follows a photoelectric absorption on the K shell of bismuth, whose
+77~keV X-ray can escape when the interaction is within a fraction of a
+millimetre of a surface and produces an escape peak at 434~keV; the Doppler
+broadening of the Compton scattering; and the scattering of the gammas in the
+source holder and in the walls of the cryostat. They are listed in
+Section~\ref{sec:open}.
 
 \section{Scintillation}
 \label{sec:scintillation}
 
-Each deposit emits a Poisson number of photons with mean yield times energy
-(Table~\ref{tab:configs}); the intrinsic resolution of the crystal, which the
-optics cannot produce, is applied as a Gaussian smearing of the yield per
-event with the FWHM of the table, a parameter per material. Emission times
-follow the decay profile: a single exponential for BGO, two components for
-\csitl, sampled per photon, added to the deposit time. Wavelengths are drawn
-from the tabulated emission spectrum of each material; the refractive index,
-the Rayleigh length ($\propto \lambda^{-4}$ from the calibrated value at the
-peak) and the PDE then depend on the drawn wavelength. Bulk absorption keeps
-the calibrated scalar value. The scalar \code{pedsim} path (one wavelength,
-one decay time) is the default.
+Each energy deposit emits a number of photons drawn from a Poisson
+distribution whose mean is the light yield of the material times the energy
+deposited (Table~\ref{tab:configs}). The crystal itself broadens the
+photopeak beyond what the photon statistics predicts, because its light
+yield is not exactly proportional to the energy; this intrinsic resolution,
+which the optical simulation cannot produce, is applied as a Gaussian
+smearing of the yield of each event, with the width of
+Table~\ref{tab:configs}.
 
-The cold BGO yield and decay time are a new material file; the pedagogical
-\code{data/bgo.toml} (Ding calibration, 1768~ns) is untouched.
+Each photon is emitted at a time after the deposit drawn from the decay
+profile of the material: a single exponential for BGO, and for \csitl the
+sum of a 730~ns component carrying 64\% of the light and a 3340~ns component
+carrying the rest. The two components of \csitl matter for the electronics,
+whose shaper is much shorter than either, because the stored signal follows
+the rate of arrival of the photons at the beginning of the pulse, which the
+fast component sets. For BGO at 196~K the decay time is the 2.7~\us measured
+on this crystal, in a material description of its own, so that the value
+measured on the Ding cube stays with the calibration it belongs to.
+
+Each photon is also given a wavelength drawn from the tabulated emission
+spectrum of the material. The refractive index of the crystal, the Rayleigh
+scattering length (which scales as $\lambda^{-4}$ from the calibrated value
+at the emission peak) and the detection efficiency of the SiPM are then
+evaluated at that wavelength. The bulk absorption length keeps its
+calibrated scalar value.
 
 \section{Optical transport}
 \label{sec:transport}
 
-The transport is the \code{pedsim} kernel: Philox counter-based random
-numbers per photon, the box geometry, UNIFIED surfaces with the air gap and
-the specular lobe, Rayleigh scattering, bulk absorption, Fresnel at the
-readout face, exact photon conservation across the terminal statuses. Three
-additions, each gated:
+The photons are transported one by one on the GPU, each with its own stream
+of random numbers, so that a run is reproducible photon by photon whatever
+the number of threads. A photon moves in straight lines inside the box; at
+each step the code decides whether it is absorbed in the bulk or scattered by
+Rayleigh scattering before reaching a face, and at the face it applies the
+surface model described in Section~\ref{sec:geometry}: Fresnel reflection or
+transmission with the roughened normal, the air gap and the Teflon on the
+wrapped faces, the grease and the resin on the readout face. The photon ends
+its life when it is absorbed in the bulk, in the wrapping, in the package
+between the SiPMs or in a SiPM without producing a photoelectron, or when it
+is detected. The code checks that every photon ends in exactly one of these
+ways.
 
-\begin{enumerate}
-\item the active-rectangle layout and the dead-area reflection
-  (Section~\ref{sec:layout}),
-\item the second interface and the resin layer (the photon crosses it with no
-  lateral displacement worth tracking: 0.15~mm over a 6~mm pitch),
-\item per-photon wavelength with the tabulated $n(\lambda)$,
-  $\Lambda_{\rm Rayleigh}(\lambda)$ and PDE($\lambda$).
-\end{enumerate}
+Three extensions of the transport are needed for the actual detector, and
+all three have been described above: the array of active rectangles with the
+reflecting surface between them, the second interface and the resin layer
+(the lateral displacement of the photon inside 0.15~mm of resin is
+negligible against the 6~mm pitch and is not tracked), and the wavelength of
+each photon with the tabulated refractive index, Rayleigh length and
+detection efficiency.
 
-Metal constraints: tables travel packed in one Float32 buffer, flags and
-scalars in one isbits struct, no dynamic tuple indexing. New random draws
-occur only inside enabled branches.
+The optical simulation writes one file per run. For every event it records
+the energy and position of each interaction of the gammas in the crystal,
+with the number of interactions and the type of the first one, the number of
+scintillation photons emitted and the number detected, and the detected
+photoelectrons as a list of records of channel, detection time and
+wavelength, stored consecutively for all events with an index giving where
+each event starts. A record occupies 7 bytes, so a 511~keV event takes about
+70~kB in \csitl and 15~kB in BGO, and a run of $10^5$ events per
+configuration takes a few gigabytes of disk and a few minutes on the GPU.
 
-Output of the stage, per event: the \code{pedsim} truth (deposits, first and
-second interaction, energies, map, first-photoelectron times) unchanged, and
-a ragged list of detected photoelectrons: channel (UInt8), time (Float32,
-ns), wavelength (UInt16, nm). At 7 bytes per photoelectron a 511~keV event
-is about 70~kB in \csitl and 15~kB in BGO; $10^5$ events per configuration fit
-in a few gigabytes and take minutes on the GPU. The pedagogical
-\code{events.h5} is not changed; the records go to \code{pes.h5} in the same
-output directory.
-
-\section{SiPM response}
+\section{Response of the SiPM}
 \label{sec:sipm}
 
-The device is the S14160-6050HS element (datasheet KAPD1064E, November
-2024; the S14161 tiles carry the same element). The model, per channel:
+The SiPM is the S14160-6050HS element of Hamamatsu (datasheet KAPD1064E,
+November 2024); the S14161 tiles carry the same element. The model describes
+each channel separately.
 
-\begin{description}
-\item[Breakdown voltage.] $\Vbr(T) = 38.0~\mathrm{V} + 0.034~\mathrm{V/K}\,(T - 298~\mathrm{K})$,
-  typical; 34.5~V at 196~K, measured 34.3~V on the Antarctica channel~49.
-  Per-channel spread 0.1~V typical, 0.2~V maximum within a tile. The
-  simulation takes $\Vbr$ per channel from the run (measured as in
-  \code{overvoltage\_recipe.tex}) or draws it from the spread.
-\item[Overvoltage.] $\Vov = V_{\rm bias} - \Vbr$ per channel, after the
-  input-DAC trim if used.
-\item[Gain.] $G = 0.93 \times 10^6\,\Vov/\mathrm{V}$ (linear, zero at
-  breakdown); $2.5 \times 10^6$ at 2.7~V.
-\item[PDE.] $\mathrm{PDE}(\lambda, \Vov) = \mathrm{PDE}_{450}(\Vov) \times s(\lambda)$,
-  with $\mathrm{PDE}_{450}$ from the datasheet curve (37\% at 1.7~V, 50\% at
-  2.7~V, 54\% at 3.2~V, flat above) and $s(\lambda)$ the normalised spectral
-  curve (digitised from the datasheet figure).
-\item[Crosstalk.] Probability $p_{\rm xt} = 0.05\,\Vov/\mathrm{V} - 0.06$
-  (2.5\% at 1.6~V, 7\% at 2.7~V, 13\% at 3.7~V), applied as a geometric
-  number of extra, simultaneous avalanches per primary.
-\item[Afterpulsing.] Not quoted by Hamamatsu for this series beyond ``low'';
-  default 2\% with a 100~ns time constant, parameter.
-\item[Dark counts.] Rate per device $R(T, \Vov)$, from the typical dark
-  current at 25~$^\circ$C and 2.7~V ($2.5~\mu$A, i.e.\ $6 \times 10^6$
-  avalanches per second after crosstalk), scaled with $\Vov$ like the PDE and
-  with temperature by a factor 2 per 9~K; anchored cold by the measured 8 to
-  15~kHz per channel at 196~K and 6.5~V. Dark avalanches are added to the
-  photoelectron train over the whole acquisition window, with crosstalk.
-\item[Single-photoelectron pulse.] The current pulse of one avalanche into the
-  front-end input impedance; the shape measured in the Antarctica runs into
-  100~$\Omega$ (rise 16~ns, 24~ns FWHM, 50~ns decay) is the default template,
-  with the amplitude scaled by the gain. The Citiroc input (50~$\Omega$ and
-  100~nF in series, into a voltage preamplifier with 15~pF input capacitance)
-  sees a different shape; it is a parameter until measured.
-\item[Cell occupancy.] 14\,331 cells per device; the probability that a
-  photoelectron lands on a cell still recovering is tracked with a 50~ns
-  recovery. Only the brightest \csitl channel approaches a percent effect.
-\end{description}
+\paragraph{Breakdown voltage and overvoltage.} The breakdown voltage is
+38.0~V at 25~$^\circ$C and rises by 34~mV per kelvin, so it is near 34.5~V at
+196~K; a measurement on one of our channels at that temperature gave
+34.3~V. Within a tile the channels differ by 0.1~V typically and 0.2~V at
+most. The simulation takes the breakdown voltage of each channel from the run
+when it has been measured, as the operating recipe prescribes, and otherwise
+draws it from that spread. The overvoltage of a channel is its bias minus its
+breakdown voltage, after the per-channel trim of the ASIC input DAC if it is
+used.
 
-The stage output is, per channel, a train of avalanche times with their
-charge (one or more cells, after crosstalk), which is the input to the
-electronics.
+\paragraph{Gain.} The charge of one avalanche is proportional to the
+overvoltage: $0.93 \times 10^6$ electrons per volt, which gives
+$2.5 \times 10^6$ at 2.7~V.
+
+\paragraph{Detection efficiency.} The probability that a photon arriving on
+the active area produces an avalanche is the product of a spectral factor,
+read from the datasheet curve and normalised to one at its maximum of
+450~nm, and the efficiency at 450~nm as a function of the overvoltage: 37\%
+at 1.7~V, 50\% at 2.7~V, 54\% at 3.2~V and constant above, because the
+probability of triggering an avalanche saturates.
+
+\paragraph{Crosstalk and afterpulsing.} An avalanche emits a few photons
+that can fire a neighbouring cell at the same time. The probability grows
+linearly with the overvoltage, from 2.5\% at 1.6~V to 13\% at 3.7~V; the
+model applies it as a geometric number of extra simultaneous avalanches per
+primary one. Afterpulsing, the delayed release of a carrier trapped during
+the avalanche, is only qualified as low in the datasheet; the model uses 2\%
+with a time constant of 100~ns, as an adjustable parameter.
+
+\paragraph{Dark counts.} Thermal carriers start avalanches at a rate that
+grows with the overvoltage like the detection efficiency and with the
+temperature by a factor 2 every 9~K. The datasheet dark current at
+25~$^\circ$C and 2.7~V, $2.5~\mu$A, corresponds to $6 \times 10^6$
+avalanches per second per device once the crosstalk is taken out; at 196~K
+and 6.5~V we measured 8 to 15~kHz per channel. The model adds dark
+avalanches, with their crosstalk, over the whole acquisition window of every
+event.
+
+\paragraph{Pulse shape and cell occupancy.} One avalanche produces a current
+pulse whose shape depends on the input impedance of the electronics. The
+pulse measured on our channels into 100~$\Omega$ rises in 16~ns, is 24~ns
+wide at half maximum and decays in 50~ns; it is the default shape, scaled by
+the gain, and it is replaced by a measurement at the Citiroc input when one
+exists. A device has 14\,331 cells, and a cell that has just fired needs about
+50~ns to recover; the model keeps track of this, although only the brightest
+\csitl channel comes within a percent of being affected.
+
+The output of this stage, for every channel, is a train of avalanches with
+their times and charges, which is the input of the electronics.
 
 \section{Electronics}
 \label{sec:electronics}
 
-\subsection{Citiroc 1A}
+\subsection{The Citiroc 1A}
 
-Two chips read the 64 channels (32 each, channels assigned by the cabling in
-the run description). Per channel, the chain of the datasheet (DS7004 v2.5)
-as emulated:
+Two chips read the 64 channels, 32 each, with the channels assigned by the
+cabling of the run. The chain of each channel, as the datasheet (DS7004,
+version 2.5) describes it and as the simulation reproduces it, is the
+following.
 
 \begin{enumerate}
-\item \textbf{Input.} The avalanche train becomes a voltage at the preamplifier
-  input through the termination; the input DAC (8 bits, 2.5 or 4.5~V range)
-  only shifts the SiPM bias and enters through \Vov.
-\item \textbf{Preamplifiers.} High gain (15~pF input capacitance, gain 10 to
-  600 by feedback capacitor) and low gain (1.5~pF, gain 1 to 60) in parallel,
-  per-channel settings; a gain-spread parameter per channel.
-\item \textbf{Slow shapers.} CR-RC$^2$ with peaking time $t_p$ from 12.5 to
-  87.5~ns in 12.5~ns steps, one value per gain path common to the chip. The
-  shaped signal is the convolution of the input with the normalised impulse
-  response $(t/\theta)^2 e^{-t/\theta}$, $t_p = 2\theta$. The order of the
-  shaper is what the datasheet states; its exact transfer function is a
-  parameter to be checked against a single-photoelectron waveform if one can
-  be probed.
-\item \textbf{Noise.} Added after the shaper as a Gaussian series with the
-  spectrum measured on pedestal or control events of the run; default white
-  with rms 0.1 photoelectron on the high-gain path (the datasheet
-  signal-to-noise of 10 for one photoelectron).
-\item \textbf{Trigger.} Fast shaper (15~ns peaking) on the high-gain path,
-  two discriminators with chip-wide 10-bit thresholds and 4-bit per-channel
-  trims: the time discriminator gives the per-channel trigger output, the
-  charge discriminator feeds the hit register and the chip OR. The emulation
-  provides, per channel, the first threshold crossing of the fast-shaped
-  signal; the acquisition trigger is a configurable function of them (OR of
-  one chip, OR of both, majority $N$ within a coincidence window), built by
-  the FPGA in the real system.
-\item \textbf{Peak detector and hold.} Armed at the trigger, it stores the
-  maximum of each shaped signal (high and low gain separately, all 32
-  channels of a chip at once) until the hold, a fixed delay after the trigger
-  (parameter; up to 500~ns in our DAQ). Each of the 64 channels stores its
-  own maximum, including the maximum of its noise when it holds little
-  light: the positive bias this gives to dim channels is in the emulation by
-  construction. Track-and-hold mode is available as an alternative.
-\item \textbf{Readout and ADC.} The stored values are multiplexed at up to
-  5~MHz and digitised externally; the emulation applies the ADC gain,
-  offset, 12-bit quantisation (parameter) and the saturation of the chain,
-  400~pC of input charge or the ADC full scale, whichever comes first, per
-  path. Readout dead time is recorded but not simulated as an efficiency:
-  the source rates are low.
+\item {\bf Input.} The train of avalanches becomes a voltage across the
+  termination of the input, which the datasheet specifies as 50~$\Omega$ in
+  series with 100~nF. The input DAC of the channel does not touch the
+  signal; it shifts the bias of the SiPM and therefore enters the model
+  through the overvoltage.
+\item {\bf Preamplifiers.} Two voltage preamplifiers work in parallel on each
+  channel: a high-gain one, with 15~pF of input capacitance and a gain
+  adjustable between 10 and 600, and a low-gain one, with 1.5~pF and a gain
+  between 1 and 60. The simulation gives each channel its own gain, drawn
+  around the nominal value with an adjustable spread.
+\item {\bf Shapers.} Each preamplifier feeds a CR-RC$^2$ shaper with a
+  peaking time between 12.5 and 87.5~ns, set in steps of 12.5~ns for the
+  whole chip. The shaped signal is the convolution of the input with the
+  response $(t/\theta)^2 e^{-t/\theta}$, whose peak is at $t_p = 2\theta$.
+  The datasheet states the order of the shaper and nothing more; the exact
+  response is a parameter to be checked against a single-photoelectron
+  waveform if one can be probed on the test board.
+\item {\bf Noise.} A Gaussian noise series is added after the shaper, with the
+  spectrum measured on the pedestal or control events of the run. Until a
+  run exists, the noise is white with an rms of 0.1 photoelectron on the
+  high-gain path, which is the signal-to-noise ratio of 10 for one
+  photoelectron quoted by the datasheet.
+\item {\bf Trigger.} A fast shaper with 15~ns peaking time, on the high-gain
+  path, feeds two discriminators whose thresholds are common to the chip
+  (10~bits) with a 4-bit trim per channel. One of them provides the trigger
+  output of the channel; the other fills the hit register and the OR of the
+  32 channels. The simulation records, for each channel, the first time the
+  fast-shaped signal crosses the threshold; the trigger of the acquisition is
+  then a configurable function of these times (the OR of one chip, the OR of
+  both, or a majority of $N$ channels within a coincidence window), as the
+  FPGA builds it in the real system.
+\item {\bf Peak detector and hold.} When the chip triggers, each channel
+  starts storing the maximum of its shaped signal, on the high-gain and the
+  low-gain path separately, and keeps it until the hold arrives, a fixed
+  delay after the trigger (up to 500~ns in our acquisition). Each of the 64
+  channels stores its own maximum, and a channel that receives little light
+  stores the maximum of its noise within the hold window; this gives a
+  positive bias to the dim channels which the simulation reproduces because
+  it stores the maxima the same way. The alternative mode of the chip, in
+  which the signal is sampled at a fixed time instead of at its maximum, is
+  available in the simulation as well.
+\item {\bf Readout and conversion.} The stored values are read out through a
+  multiplexer at up to 5~MHz and digitised by an external ADC. The simulation
+  applies the gain and offset of the ADC, its quantisation (12~bits by
+  default) and the saturation of the chain, which is reached either at
+  400~pC of input charge or at the full scale of the ADC, whichever comes
+  first on each path. The dead time of the readout is recorded but does not
+  reduce the number of events, because the rates with our source are low.
 \end{enumerate}
 
-With $t_p = 87.5$~ns the shaper integrates about $e\,t_p = 240$~ns of light.
-The stored fraction of the photoelectrons is then about 0.4 for BGO at
-ambient, 0.24 for \csitl (the 730~ns component carries 64\%), 0.09 for BGO at
-2.7~\us, and the statistical floor of the resolution follows from the
-photoelectrons inside that fraction; the emulation computes it with the 64
-independent channels, the noise and the dark pulses.
+With a peaking time of 87.5~ns the shaper integrates the light that arrives
+in about $e\,t_p = 240$~ns. The stored value is therefore a fraction of the
+photoelectrons: about 0.4 of them for BGO at ambient temperature, 0.24 for
+\csitl, whose 730~ns component carries 64\% of the light, and 0.09 for BGO
+at 196~K with its 2.7~\us decay. The photon statistics of the energy
+measurement is that of this fraction and not that of all the
+photoelectrons; the simulation computes it with the 64 channels, their
+noise and their dark pulses.
 
-\subsection{Radioroc2}
+\subsection{The Radioroc2}
 
-One chip (datasheet v2.0, January 2025). Same structure, with the differences
-that matter: 64 channels; per-channel shaping time from 20 to 300~ns, or 120~ns
-to 1.8~\us in the slow mode (the natural choice for \csitl and cold BGO);
-charge preamplifiers with per-channel gains (high 5 to 80, low 0.5 to 8);
-two time discriminators (thresholds T1 and T2) and a charge discriminator on
-the low-gain shaper; the hold generated on chip by a delay cell (2~ns to
-2.6~\us) or externally; saturation at 2000 photoelectrons times $10^6$ gain
-(about 320~pC); the option of routing each channel's shaped waveform to its
-own output pin. The emulation is the same code with a different parameter
-block; the shaper order is assumed CR-RC$^2$ until measured.
+A single chip reads the 64 channels (datasheet version 2.0, January 2025).
+Its chain has the same structure, with differences that matter for our
+crystals. The shaping time is set per channel, between 20 and 300~ns or,
+in a slow mode, between 120~ns and 1.8~\us, which is the natural choice for
+\csitl and cold BGO. The preamplifiers measure charge, with gains per
+channel between 5 and 80 on the high-gain path and 0.5 and 8 on the low-gain
+one. Each channel has two time discriminators with their own thresholds and
+a charge discriminator on the low-gain shaper. The hold can be generated on
+the chip by a delay cell adjustable between 2~ns and 2.6~\us, or supplied
+from outside. The chain saturates at 2000 photoelectrons of $10^6$ gain,
+about 320~pC. And each channel can route its shaped signal to an output pin
+of its own, so that all 64 channels can be digitised in parallel instead of
+through the multiplexer. The simulation uses the same code with a different
+set of parameters, and assumes a CR-RC$^2$ shaper until one is measured.
 
-\subsection{Not planned}
-
-A waveform-digitiser variant (window integration with measured $1/f$ noise,
-majority trigger on dark pulses) was considered for the Antarctica runs and
-dropped: those runs are not to be simulated.
-
-\section{File formats}
+\section{Files}
 \label{sec:formats}
 
-\subsection{Photoelectron records (simulation only)}
+\subsection{The photoelectron file}
 
-\code{output/<tag>/pes.h5}: datasets \code{offset} (n\_events+1, Int64),
-\code{channel} (UInt8), \code{t\_ns} (Float32), \code{lambda\_nm} (UInt16),
-with the event index aligned with \code{events.h5}; attributes copy the
-configuration and the git revision.
+The optical simulation writes its photoelectron records in one HDF5 file per
+run. The records of all events are stored consecutively in three arrays,
+\code{channel} (one byte), \code{t\_ns} (a 32-bit float) and
+\code{lambda\_nm} (16 bits), and an array \code{offset} of length one more
+than the number of events gives the position of the first record of each
+event. The event index is the same as in the file of interactions and photon
+counts written by the same run. The attributes of the file record the
+configuration of the run and the version of the code.
 
-\subsection{Event words: one layout for measured and emulated data}
+\subsection{The event file, common to measurements and simulation}
 
-The measured Citiroc files are converted, as the first step of the analysis,
-to this layout; the front-end stage writes it directly. HDF5, one file per
-run:
+The measured runs are converted, as the first step of the analysis, into
+one HDF5 file per run with the structure of Table~\ref{tab:eventfile}; the
+electronics simulation writes the same structure directly, with the
+additional group of generated quantities. Arrays are stored event-major, so
+that a reader obtains an array of $n$ events by 64 channels without
+transposition.
 
-\begin{description}
-\item[\code{/run} attributes] date, crystal, material, temperature readings and
-  their placement, bias per chip, measured \Vbr per channel, overvoltage per
-  channel, thresholds, hold delay, shaping times, preamplifier gains, ADC
-  description, DAQ trigger definition, git revision of the converter or the
-  emulator; for emulated runs, the full simulation configuration and the
-  source of every parameter.
-\item[\code{/channels}] \code{x\_mm}, \code{y\_mm} (64), \code{tile} (64),
-  \code{chip}, \code{asic\_channel} (64), \code{status} (64: live, dead,
-  noisy), the mapping from DAQ channel to the geometry of
-  Section~\ref{sec:layout}.
-\item[\code{/calib}] \code{spe\_gain\_hg}, \code{spe\_gain\_lg} (64, ADC per
-  photoelectron, with errors), \code{pedestal\_mean}, \code{pedestal\_rms} (64,
-  per path), \code{dark\_rate} (64, Hz), measured on the run or on its
-  calibration runs; for emulated runs, the true values used.
-\item[\code{/events}] \code{hg} (n, 64, UInt16), \code{lg} (n, 64, UInt16),
-  \code{hit} (n, 64, Bool: the hit register), \code{t\_trig} (n), per-event
-  flags (saturation per path, pile-up); and, for emulated runs only, a
-  \code{/truth} group with the \code{events.h5} truth (interaction positions,
-  energies, total photoelectrons, the integrated map) so that any observable
-  can be resolved against the truth.
-\end{description}
+\begin{table}[htb]
+\centering
+\small
+\begin{tabular}{p{0.2\textwidth} p{0.72\textwidth}}
+\toprule
+group & content \\
+\midrule
+\code{/run} & Attributes describing the run: date, crystal and material,
+temperature readings and where they were taken, bias per chip, breakdown
+voltage measured per channel, overvoltage per channel, discriminator
+thresholds, hold delay, shaping times, preamplifier gains, ADC, trigger
+definition, and the version of the converter or of the simulation. For a
+simulated run, the full configuration of the simulation with the origin of
+every parameter. \\
+\code{/channels} & One entry per channel: the position of its centre in
+millimetres, its tile, its chip and channel number on the chip, and its
+status (live, dead or noisy). This group ties the acquisition channel to the
+geometry of Section~\ref{sec:layout}. \\
+\code{/calib} & The single-photoelectron gain of each channel on both paths,
+in ADC counts per photoelectron with its error; the mean and rms of its
+pedestal on both paths; its dark rate. Measured on the run or on its
+calibration runs; for a simulated run, the values used. \\
+\code{/events} & For every event: the high-gain and low-gain charges of the
+64 channels as 16-bit integers, the hit register of the 64 channels, the
+trigger time, and flags for saturation on either path and for pile-up. \\
+\code{/generated} & Simulated runs only: the quantities written by the optical
+simulation for the same events (positions and energies of the interactions,
+photons emitted and detected, the integrated photoelectron map), so that any
+observable can be examined against them. \\
+\bottomrule
+\end{tabular}
+\caption{Structure of the event file.}
+\label{tab:eventfile}
+\end{table}
 
-Arrays are event-major, so \code{h5py} reads $(n, 64)$ directly. The pedagogical
-\code{events.h5} layout is not modified.
-
-\section{Comparison observables}
+\section{Observables for the comparison}
 \label{sec:comparison}
 
-The same scripts on both kinds of file, in this order; each line names what
-the observable constrains.
+The analysis computes the following quantities on a simulated and on a
+measured file alike, and each of them tests a different part of the model.
 
 \begin{enumerate}
-\item \textbf{Single-photoelectron spectra} from dark pulses, per channel: the
-  gain table and its spread; against bias, the breakdown voltage per channel.
-  Constrains \Vov and the gain model; it is also the thermometer of the
-  SiPMs.
-\item \textbf{Pedestals and control charges}: the noise term per channel and
-  on the sum. Measured input to the emulation, not a prediction.
-\item \textbf{Dark rate per channel} against temperature and bias.
-\item \textbf{Total charge spectrum} (equalised sum of the 64 channels, high
-  and low gain): the 511 and 1275~keV lines, the sum peak, the Compton
-  continua, the backscatter region. The ratio of the two photopeaks (2.5 if
-  linear) tests the dynamic range and the trigger; the line widths and their
-  decomposition (noise from the pedestals, statistics from the stored
-  fraction, intrinsic from what remains) test the front-end model.
-\item \textbf{Light yield}: photoelectrons at 511~keV, converted through the
-  simulated collection efficiency and PDE to photons per MeV; the
-  warm-to-cold BGO ratio against the quenching curve.
-\item \textbf{Brightest-channel distribution}: its tail and the saturation kink
-  in \csitl; the ratio of brightest channel to total against the simulated
-  light maps tests the optics near the readout face.
-\item \textbf{Occupancy and mean-charge maps} per channel: the edge channels
-  (5.2~mm under the crystal), the central seam, the tile boundaries. The
-  dead-area reflectivity $R_{\rm dead}$ and the surface roughness are the
-  free parameters these maps constrain.
-\item \textbf{Seed-channel photopeak map}: the photopeak position of the events
-  grouped by their brightest channel, in units of the median. In a healthy
-  array this is a map of the collection non-uniformity (edges, seam), to be
-  reproduced by the simulation, not corrected away.
-\item \textbf{Overvoltage dependence}, when a bias scan exists: light,
-  crosstalk excess, resolution, saturated fraction against \Vov, against the
-  curves of Section~\ref{sec:sipm}.
+\item {\bf Single-photoelectron spectra.} Built from dark pulses, channel by
+  channel, they give the gain of each channel and its spread; repeated at
+  several bias values, they give the breakdown voltage of each channel, and
+  through it the temperature of the SiPMs. They test the gain model.
+\item {\bf Pedestals and control charges.} They measure the noise of each
+  channel and of the sum. They are an input of the simulation, not a
+  prediction of it.
+\item {\bf Dark rate per channel}, against temperature and bias.
+\item {\bf The energy spectrum} of the equalised sum of the 64 channels, on
+  both paths: the 511 and 1275~keV lines, the sum peak, the Compton
+  continua and the backscatter region. The ratio of the two photopeak
+  positions, 2.5 if the chain is linear, tests the dynamic range and the
+  trigger. The width of the 511~keV line, decomposed into the noise measured
+  from the pedestals, the statistics of the stored fraction and the
+  remainder, tests the electronics model and measures the intrinsic
+  resolution.
+\item {\bf The light yield.} The photoelectrons at 511~keV, converted into
+  photons per MeV through the simulated collection efficiency and detection
+  efficiency. The ratio between the warm and the cold BGO runs tests the
+  temperature dependence of the yield.
+\item {\bf The brightest channel.} The distribution of the largest charge in
+  an event, and its ratio to the total, test the light distribution near the
+  readout face; in \csitl its tail shows the saturation of the chain.
+\item {\bf Channel maps.} The fraction of events in which each channel is hit
+  and the mean charge it collects, compared with the simulated maps, test the
+  response of the outer channels (which see only 5.2~mm of crystal), of the
+  central seam and of the tile boundaries. The reflectivity of the surface
+  between the channels and the roughness of the crystal are the two
+  parameters these maps constrain.
+\item {\bf The seed-channel map.} The position of the 511~keV photopeak for
+  the events grouped by their brightest channel, in units of the median over
+  the channels. In a healthy array this is a map of the non-uniformity of
+  the light collection, which the simulation must reproduce.
+\item {\bf Dependence on the overvoltage}, when a bias scan exists: light,
+  crosstalk, resolution and saturated fraction against the overvoltage, to be
+  compared with the curves of Section~\ref{sec:sipm}.
 \end{enumerate}
 
 \section{Validation}
 \label{sec:validation}
 
+The code is tested at each of its extensions, with tests that have an
+analytic answer or reduce a new feature to an old one.
+
 \begin{itemize}
-\item Frozen-output test: a small \code{pedsim} configuration reproduces stored
-  checksums of its maps and truth after every change.
-\item Parity test (existing): reference and kernel identical on the CPU
-  backend, extended to every gated branch switched on.
-\item Layout test: the active-rectangle layout with the \code{pedsim} rectangles
-  gives the \code{pedsim} maps; with gaps, the dead fraction of detected
-  photons at $R_{\rm dead} = 0$ equals the geometric dead fraction for a
-  uniform illumination.
-\item Window test: with $n_{\rm grease} = n_{\rm resin}$ the second interface
-  reflects nothing; with the resin index equal to the crystal index and no
-  grease the result equals the contact case.
-\item Spectral test: a delta emission spectrum reproduces the scalar run.
-\item Photoelectron records test: the records re-binned in 100~ns give the
-  \code{pedsim} maps exactly.
-\item Source test: the 511~keV rate on the face equals the solid-angle fraction;
-  the incidence-angle distribution matches the analytic one.
-\item Front-end unit tests: a delta input gives the analytic CR-RC$^2$ peak at
-  $t_p$; a Poisson train with a long decay gives the stored fraction of
-  Section~\ref{sec:electronics} within statistics; the noise-only peak
-  detector gives the expected maximum-of-Gaussian bias; the saturation clips
-  at the configured charge.
-\item End-to-end analytic check: the energy resolution of a configuration from
-  the emulation against the quadrature of its stated terms.
+\item The array described as active rectangles reproduces, with the
+  rectangles of an ideal array, the result of the ideal array; with the
+  gaps and no reflection on the surface between the channels, the fraction
+  of photons lost under uniform illumination equals the geometric dead
+  fraction.
+\item When the grease and the resin have the same index the second
+  interface reflects nothing; when the resin has the index of the crystal
+  and there is no grease, the result is that of a crystal in optical contact
+  with the sensor.
+\item A spectrum reduced to a single wavelength reproduces the monochromatic
+  simulation.
+\item The photoelectron records, binned in time, reproduce the time-binned
+  maps written by the run.
+\item The rate of gammas on the front face equals the solid-angle fraction,
+  and the distribution of their incidence angles the analytic one.
+\item A single avalanche through the shaper gives the analytic CR-RC$^2$ peak
+  at $t_p$; a Poisson train with a long decay time gives the stored fraction
+  of Section~\ref{sec:electronics} within its statistics; a peak detector
+  fed with noise only gives the expected bias of the maximum of a Gaussian
+  series; the saturation clips at the configured charge.
+\item The energy resolution of a simulated configuration agrees with the
+  quadrature of its stated terms.
 \end{itemize}
 
-\section{Parameters and provenance}
+\section{Parameters and their provenance}
 \label{sec:parameters}
 
 \begin{table}[htb]
 \centering
 \small
-\begin{tabular}{l l l l}
+\begin{tabular}{p{0.2\textwidth} p{0.34\textwidth} p{0.22\textwidth} p{0.14\textwidth}}
 \toprule
 parameter & value & source & status \\
 \midrule
 crystal sizes & Table~\ref{tab:configs} & setup & fixed \\
-polish $\sigma_\alpha$ & $1.3^\circ$ & pedsim calibration & fixed \\
-Teflon & Lambertian, $R = 0.99$, air gap & Janecek \& Moses; pedsim & fixed \\
+polish $\sigma_\alpha$ & $1.3^\circ$ & calibration of the optical simulation & fixed \\
+Teflon & Lambertian, $R = 0.99$, air gap & Janecek \& Moses & fixed \\
 grease index & 1.42 & setup & fixed \\
 resin index, thickness & 1.57, 0.15~mm & datasheet & fixed \\
-SiPM layout & centres at $\pm3.2, \pm9.4, \pm15.6, \pm21.8$~mm & setup & fixed \\
-dead-area reflectivity & 0.5, diffuse & assumption & to fit on maps \\
+SiPM array & centres at $\pm3.2, \pm9.4, \pm15.6, \pm21.8$~mm & setup & fixed \\
+reflectivity between channels & 0.5, diffuse & assumption & to fit on maps \\
 BGO yield ambient & 7000 to 8200 ph/MeV & Gironnet curve, Moszynski & to fit on data \\
-BGO yield 196~K & 14\,000 to 16\,000 ph/MeV & Ding chain; Antarctica $\tau$ & to fit on data \\
-BGO decay 196~K & 2.7~\us & Antarctica runs & fixed \\
+BGO yield 196~K & 14\,000 to 16\,000 ph/MeV & Ding calibration; our decay time & to fit on data \\
+BGO decay 196~K & 2.7~\us & our measurement & fixed \\
 BGO decay ambient & 300~ns & literature & fixed \\
-\csitl yield, decay & 54\,000; 730/3340~ns, 64/36\% & pedsim calibration; literature & fixed \\
-intrinsic resolution & 6\% \csitl; 3 to 4\% BGO & CRYSP Citiroc data; assumption & BGO to fit \\
+\csitl yield, decay & 54\,000; 730/3340~ns, 64/36\% & calibration; literature & fixed \\
+intrinsic resolution & 6\% \csitl; 3 to 4\% BGO & our Citiroc data; assumption & BGO to fit \\
 emission spectra & tabulated & literature & to digitise \\
-\Vbr(T) & $38~\mathrm{V} + 34~\mathrm{mV/K}\,(T-298~\mathrm{K})$ & datasheet; Antarctica & measured per run \\
-gain, PDE, crosstalk vs \Vov & Section~\ref{sec:sipm} & datasheet curves & fixed \\
-dark rate & $6$~MHz at 25~$^\circ$C, 2.7~V; 10~kHz at 196~K, 6.5~V & datasheet; Antarctica & measured per run \\
+breakdown voltage & $38~\mathrm{V} + 34~\mathrm{mV/K}\,(T-298~\mathrm{K})$ & datasheet; our measurement & measured per run \\
+gain, PDE, crosstalk vs overvoltage & Section~\ref{sec:sipm} & datasheet curves & fixed \\
+dark rate & $6$~MHz at 25~$^\circ$C, 2.7~V; 10~kHz at 196~K, 6.5~V & datasheet; our measurement & measured per run \\
 afterpulsing & 2\%, 100~ns & assumption & parameter \\
-SPE pulse shape & 16/24/50~ns into 100~$\Omega$ & Antarctica & parameter for Citiroc input \\
+pulse shape & 16/24/50~ns into 100~$\Omega$ & our measurement & parameter at the Citiroc input \\
 Citiroc shaper & CR-RC$^2$, $t_p = 87.5$~ns & datasheet & setting of the run \\
-Citiroc noise & 0.1 pe rms on HG & datasheet SNR & measured per run \\
-hold delay & up to 500~ns & our DAQ & setting of the run \\
+Citiroc noise & 0.1 pe rms on the high-gain path & datasheet & measured per run \\
+hold delay & up to 500~ns & our acquisition & setting of the run \\
 ADC & 12 bit & assumption & setting of the run \\
 source distance & 30~mm, on axis, far face & setup & fixed \\
 \bottomrule
 \end{tabular}
-\caption{Every parameter of the full simulation with its value, where it comes
-from, and whether it is fixed, measured on the run, or to be fitted on the
-comparison.}
+\caption{Every parameter of the simulation, with its value, where it comes
+from, and whether it is fixed, measured on each run, or to be fitted in the
+comparison with the data.}
 \label{tab:params}
 \end{table}
+
+\section{Implementation}
+\label{sec:implementation}
+
+The optical simulation is CryspLight, a Julia package whose transport
+kernel runs on the GPU of Apple computers through Metal and, identically, on
+the CPU. Its reference version of the transport and its GPU version are kept
+equal draw by draw, and a test proves that they produce the same result bit
+for bit on the CPU; every extension described here is written in both.
+
+The state of the code before this work is kept under the git tag
+\code{pedsim}, and the extensions grow on the branch \code{fullsim}. Nothing
+in the existing behaviour is changed: each extension is switched on by a
+block in the configuration file of the run and switched off by its absence,
+in which case the code follows the old path with the same random numbers. A
+test runs a small configuration of the old kind after every change and
+compares its output with stored checksums. The existing configurations,
+output files and analysis scripts are left as they are; the new simulation
+has its own configurations under \code{fullsim\_runs/}, grouped by
+measurement campaign, its own analysis under \code{fullsim\_analysis/} and
+its documents under \code{docs\_fullsim/}. The SiPM and electronics
+simulation is a new module, \code{src/frontend/}. Simulation outputs go to
+the directory \code{output/}, which is not under version control, and the
+measured files stay outside the repository and are referred to by path from
+the configuration of each campaign.
+
+The GPU imposes a few constraints on the extensions: the tables of the
+spectra and of the wavelength-dependent quantities travel in one buffer of
+32-bit floats, the switches and scalars in one structure, and no new random
+number is drawn unless the corresponding extension is on.
 
 \section{Open items}
 \label{sec:open}
 
 \begin{itemize}
-\item Angular dependence of the PDE through the resin when illuminated from
-  grease rather than air (assumed none).
-\item Reflectivity and specularity of the package surface between channels.
-\item BGO light yield at ambient and at 196~K for this crystal; whether the
-  2.7~\us decay implies an effective temperature below T3.
-\item BGO intrinsic resolution.
-\item Citiroc: shaper transfer function beyond ``CR-RC$^2$'', noise spectrum,
-  peak-detector droop over the readout, pulse shape at the preamplifier
-  input with a 2~nF device.
-\item Radioroc2: shaper order, noise, 100~$\Omega$ input mode with 2~nF, DAQ
-  board and ADC.
-\item Gamma stage: K-shell fluorescence and escape, Doppler broadening,
-  scattering in the source holder and cryostat.
-\item Temperature of the SiPMs in the cold run relative to the crystal
-  (resolved operationally by the measured \Vbr).
+\item Whether the detection efficiency depends on the angle of incidence
+  when the photons arrive from the grease rather than from air.
+\item The reflectivity and the specularity of the surface of the package
+  between the channels.
+\item The light yield of this BGO crystal at ambient temperature and at
+  196~K, and whether its 2.7~\us decay time means that it was colder than
+  the thermometer indicated.
+\item The intrinsic resolution of BGO.
+\item For the Citiroc: the exact response of the shaper, the noise
+  spectrum, the droop of the peak detector during the readout, and the
+  pulse shape at the input of the preamplifier with a device of 2~nF.
+\item For the Radioroc2: the order of the shaper, the noise, the behaviour
+  of the 100~$\Omega$ input mode with 2~nF, and the acquisition board and
+  ADC to be used.
+\item In the gamma transport: fluorescence and escape of the K-shell X-rays,
+  Doppler broadening, and scattering in the source holder and in the
+  cryostat.
+\item The temperature of the SiPMs relative to the crystal in the cold run,
+  which the breakdown voltage measured in situ resolves in practice.
 \end{itemize}
 
 \end{document}
