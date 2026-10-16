@@ -53,8 +53,12 @@ response over the crystal and, eventually, the position resolution. The
 crystals are $48 \times 48$~mm$^2$ in cross section and two
 radiation lengths thick, polished, wrapped in Teflon and coupled through
 optical grease to an array of 64 SiPMs of $6 \times 6$~mm$^2$. The SiPMs are
-read out by two Citiroc~1A chips of 32 channels each and, in a second phase,
-by one Radioroc2 of 64 channels. A \Na source on the axis of the crystal,
+read out in two ways, one after the other on the same array: by two
+Citiroc~1A chips of 32 channels each, which store one charge per channel,
+and by a CAEN DT2745 digitizer of 64 channels, which records the waveform
+of every channel. In a second phase a Radioroc2 of 64 channels replaces the
+Citiroc. The cold measurements use the digitizer only, for a reason given in
+Section~\ref{sec:electronics}. A \Na source on the axis of the crystal,
 30~mm from the face opposite the SiPMs, provides gammas of 511 and 1275~keV.
 Table~\ref{tab:configs} gives the three configurations. The ASICs stay at
 ambient temperature in all of them; in the cold configuration the crystal and
@@ -75,9 +79,9 @@ light yield (ph/MeV) & 7000 to 8200$^{a}$ & 54\,000 & 14\,000 to 16\,000$^{a}$ \
 decay time & 300~ns, plus a minor 60~ns component & 730~ns (64\%) and 3340~ns (36\%) & 2.7~\us$^{b}$ \\
 emission peak & 480~nm & 550~nm & 480~nm \\
 refractive index & 2.15 & 1.79 & 2.15 \\
-intrinsic resolution, FWHM at 511~keV & 3 to 4\%$^{c}$ & 6\% & 3 to 4\%$^{c}$ \\
+intrinsic resolution, FWHM at 511~keV & 5\%$^{c}$ & 5\% & 5\%$^{c}$ \\
 source & \multicolumn{3}{p{0.62\textwidth}}{\Na, on axis, 30~mm from the face opposite the SiPMs} \\
-readout & \multicolumn{3}{p{0.62\textwidth}}{Citiroc 1A $\times 2$, then Radioroc2} \\
+readout & Citiroc 1A $\times 2$ and DT2745, in sequence & Citiroc 1A $\times 2$ and DT2745, in sequence & DT2745 \\
 \bottomrule
 \end{tabular}
 \caption{The three configurations. $^{a}$ Not known well enough to be fixed:
@@ -86,9 +90,9 @@ yield (Gironnet et al.) applied to the value at 195~K; the cold yield lies
 between the 14\,000 ph/MeV of the calibration against the Ding et al.\ cube
 and the value implied by the longer decay time measured on our crystal. The
 ratio of photoelectrons between the warm and the cold runs will fix it.
-$^{b}$ Measured on this crystal ($2.72 \pm 0.01$~\us at 196~K). $^{c}$ Not
-known well enough to be fixed: BGO is nearly proportional; the value will be
-taken from the data once the statistical and noise terms are subtracted.}
+$^{b}$ Measured on this crystal ($2.72 \pm 0.01$~\us at 196~K). $^{c}$ Less well known
+than for \csitl; taken equal to it, and to be compared with the data once the
+statistical and noise terms are subtracted.}
 \label{tab:configs}
 \end{table}
 
@@ -119,17 +123,27 @@ Section~\ref{sec:implementation}.
 
 \subsection{The measured data}
 
-For every event the acquisition records one charge per channel, in ADC
-counts: the value stored by the peak detector of the Citiroc on its
-high-gain path (the chip holds a low-gain value as well, but our acquisition
-does not read it). The hit register of the chip, which says which channels
-fired their discriminator, is recorded as well. For every run it records the conditions: how the SiPMs were biased
-(the bias voltage and the breakdown voltages measured in situ), how the ASIC
-was configured (thresholds, hold delay, shaping time and gains) and the
-temperatures. The
-first step of the analysis converts these files to an HDF5 format described
-in Section~\ref{sec:formats}; the simulation writes its results in the same
-format, so that the same analysis can be run on both.
+With the Citiroc, the acquisition records for every event one charge per
+channel, in ADC counts: the value stored by the peak detector of the chip
+on its high-gain path (the chip holds a low-gain value as well, but our
+acquisition does not read it). The hit register of the chip, which says
+which channels fired their discriminator, is recorded as well. With the
+digitizer, the acquisition records for every event the waveform of each of
+the 64 channels: a fixed number of samples taken every 8~ns, a fixed part
+of them before the trigger, each sample a 16-bit count. The first step of
+the analysis of a digitizer run reduces each waveform to a baseline,
+estimated on the samples before the trigger, and a charge, the sum of the
+samples in a gate that starts at the trigger, with the baseline subtracted;
+it also notes which channels crossed the trigger threshold. For every run,
+with either readout, the acquisition records the conditions: how the SiPMs
+were biased (the bias voltage and the breakdown voltages measured in situ),
+how the electronics was configured (for the Citiroc its thresholds, hold
+delay, shaping time and gains; for the digitizer its gain, thresholds,
+record length and pre-trigger) and the temperatures. The first step of the
+analysis converts these files, charges or waveforms, to an HDF5 format
+described in Section~\ref{sec:formats}, in which every event is one charge
+per channel whatever the readout; the simulation writes its results in the
+same format, so that the same analysis can be run on both.
 
 \subsection{The three stages of the simulation}
 
@@ -154,10 +168,14 @@ file.
   SiPM, which turns every photoelectron into a current pulse of a given
   shape, multiplied by the gain and accompanied by crosstalk and
   afterpulsing, and adds the dark counts of the device.
-\item It then applies the chain of the ASIC: the pulses are amplified and
-  shaped, compared with the discriminator thresholds, their maximum is
-  stored by the peak detector until the hold, and the stored value is
-  converted to ADC counts.
+\item It then applies the chain of the readout. For the Citiroc the pulses
+  are amplified and shaped, compared with the discriminator thresholds,
+  their maximum is stored by the peak detector until the hold, and the
+  stored value is converted to ADC counts. For the digitizer the pulses are
+  compared with the trigger threshold and integrated in the gate and the
+  baseline window of the run, with the noise of the sampled signal, which
+  gives directly the charge that the analysis of a measured waveform
+  produces (Section~\ref{sec:digitizer}).
 \item It writes one file per run with the same content as a measured run
   (for every event and channel, the charge in ADC counts, and the second
   path and the discriminator flag when the acquisition records them), in the
@@ -222,8 +240,7 @@ each one it is reflected or transmitted according to Fresnel's equations. The
 first interface dominates (from 2.15 or 1.79 down to 1.42); the second
 reflects 0.3\% at normal incidence. A reflected photon returns to the crystal
 and continues its life. The step from the resin into the silicon is not
-simulated, because the detection efficiency of the datasheet is measured from
-air through the resin and already contains it. The detection efficiency is
+needed, since the detection efficiency quoted by Hamamatsu includes it. The detection efficiency is
 applied once the photon is inside the resin above an active area, as a
 function of its wavelength and of the overvoltage
 (Section~\ref{sec:sipm}), and independently of its angle of incidence. This
@@ -295,11 +312,30 @@ Section~\ref{sec:open}.
 Each energy deposit emits a number of photons drawn from a Poisson
 distribution whose mean is the light yield of the material times the energy
 deposited (Table~\ref{tab:configs}). The crystal itself broadens the
-photopeak beyond what the photon statistics predicts, because its light
-yield is not exactly proportional to the energy; this intrinsic resolution,
-which the optical simulation cannot produce, is applied as a Gaussian
-smearing of the yield of each event, with the width of
-Table~\ref{tab:configs}.
+photopeak beyond the photon statistics. The light yield per unit energy of a
+scintillator depends on the energy of the electron that deposits it, and a
+gamma of a given energy is converted into electrons of different energies
+depending on how it interacts (one photoelectron, or a chain of Compton
+electrons followed by a photoelectron), so the total light fluctuates from
+event to event even for the same deposited energy. This intrinsic resolution
+is known for \csitl, close to 5\% FWHM at 511~keV, and less well for BGO. The
+non-proportionality curve of BGO has been measured (Gentile et al., 2015,
+and the references therein): relative to 662~keV, the light per keV is 73\%
+at 23~keV, 89\% at 60~keV, about 92\% between 80 and 120~keV, 93\% at
+186~keV and 98.6\% at 356~keV. A 511~keV deposit that proceeds through
+Compton electrons of 100 to 300~keV therefore yields a few percent less light
+than a single photoelectron, which is the origin of an intrinsic term of the
+same order as in \csitl. The simulation takes 5\% FWHM for both crystals,
+as a parameter, and applies it as a Gaussian smearing of the light of each
+event; the direct measurements that separate this term from the photon
+statistics (Moszynski et al.) remain to be checked. A more faithful
+treatment is possible, because the gamma transport records every deposit
+with its energy: weighting the light of each deposit by the curve at the
+energy of its electron produces the Compton-chain part of the intrinsic
+resolution for every line and for the continuum, leaving only the
+fluctuations within a single electron track to a smaller smearing. It is
+planned as a refinement once the first comparison with the measured widths
+of the 511 and 1275~keV lines says whether it is needed.
 
 Each photon is emitted at a time after the deposit drawn from the decay
 profile of the material: a single exponential for BGO, and for \csitl the
@@ -385,8 +421,16 @@ that can fire a neighbouring cell at the same time. The probability grows
 linearly with the overvoltage, from 2.5\% at 1.6~V to 13\% at 3.7~V; the
 model applies it as a geometric number of extra simultaneous avalanches per
 primary one. Afterpulsing, the delayed release of a carrier trapped during
-the avalanche, is only qualified as low in the datasheet; the model uses 2\%
-with a time constant of 100~ns, as an adjustable parameter.
+the avalanche, is only qualified as low in the datasheet; measurements on
+devices of the same technology give about 1\% at 3~V, growing with the
+square of the overvoltage, with delays of tens to hundreds of nanoseconds.
+The model uses 1\% at 3~V with a time constant of 100~ns, as an adjustable
+parameter, and reduces the charge of the afterpulse by the fraction of the
+recharge of the cell completed at its delay, with the recovery time given
+with the pulse shape below. The parameter cannot be measured with
+a charge-only readout and its effect, a correlated per-cent addition to
+every channel absorbed by the single-photoelectron calibration, is below
+what the comparison can resolve.
 
 \paragraph{Dark counts.} Thermal carriers start avalanches at a rate that
 grows with the overvoltage like the detection efficiency and with the
@@ -413,6 +457,7 @@ their times and charges, which is the input of the electronics.
 \label{sec:electronics}
 
 \subsection{The Citiroc 1A}
+\label{sec:citiroc}
 
 Two chips read the 64 channels, 32 each, with the channels assigned by the
 cabling of the run. The chain of each channel, as the datasheet (DS7004,
@@ -432,8 +477,11 @@ following.
   around the nominal value with an adjustable spread.
 \item {\bf Shapers.} Each preamplifier feeds a CR-RC$^2$ shaper with a
   peaking time between 12.5 and 87.5~ns, set in steps of 12.5~ns for the
-  whole chip. The shaped signal is the convolution of the input with the
-  response $(t/\theta)^2 e^{-t/\theta}$, whose peak is at $t_p = 2\theta$.
+  whole chip. A CR-RC$^2$ shaper is one differentiating stage followed by
+  two integrating ones, all with the same time constant $\theta$; the shaped
+  signal is the convolution of the input with the response
+  $(t/\theta)^2 e^{-t/\theta}$, whose peak is at $t_p = 2\theta$, so that
+  $\theta$ runs from 6.25 to 43.75~ns over the available settings.
   The datasheet states the order of the shaper and nothing more; the exact
   response is a parameter to be checked against a single-photoelectron
   waveform if one can be probed on the test board.
@@ -470,14 +518,118 @@ following.
   reduce the number of events, because the rates with our source are low.
 \end{enumerate}
 
-With a peaking time of 87.5~ns the shaper integrates the light that arrives
-in about $e\,t_p = 240$~ns. The stored value is therefore a fraction of the
-photoelectrons: about 0.4 of them for BGO at ambient temperature, 0.24 for
-\csitl, whose 730~ns component carries 64\% of the light, and 0.09 for BGO
-at 196~K with its 2.7~\us decay. The photon statistics of the energy
+The stored value of a channel is the peak of the shaped signal, calibrated
+in photoelectrons by the peak that one avalanche produces. For a
+scintillation pulse much longer than the peaking time the shaped signal
+does not reach the amplitude that all the photoelectrons would give if they
+arrived together: it is the convolution of the arrival rate with the pulse
+of one avalanche and with the shaper response, and its maximum, divided by
+the maximum of the same convolution for a single avalanche, is the fraction
+of the photoelectrons that the measurement keeps. With the peaking time at
+87.5~ns and the avalanche pulse of Section~\ref{sec:sipm} (16~ns rise,
+50~ns fall), the fraction is 0.39 for BGO at ambient temperature, 0.15 for
+\csitl, whose 730~ns component carries 64\% of the light, and 0.07 for BGO
+at 196~K with its 2.7~\us decay. For a decay time $\tau$ much longer than
+the peaking time the fraction is the ratio of an effective window to
+$\tau$; the window is $1.85\,t_p = 160$~ns for an infinitely short
+avalanche pulse and grows with the width of that pulse, because a wider
+pulse lowers the peak of the single avalanche that serves as the unit while
+the slow signal, which the shaper sees as a rate, keeps its amplitude: it is
+185~ns for the 50~ns fall and 230~ns for a 100~ns fall. The pulse at the
+Citiroc input is therefore the parameter that fixes these fractions, which
+is why it has to be measured. The rise of the scintillation itself, below a
+nanosecond in BGO and some tens of nanoseconds in \csitl, is short compared
+with the window and changes nothing. The photon statistics of the energy
 measurement is that of this fraction and not that of all the
 photoelectrons; the simulation computes it with the 64 channels, their
 noise and their dark pulses.
+
+\subsection{The DT2745 digitizer}
+\label{sec:digitizer}
+
+The CAEN DT2745 samples its 64 channels every 8~ns with 16 bits over a
+full scale of 4~V, so one count is 61~\textmu V, through an analog
+bandwidth of 20~MHz and a gain programmable between 1 and 100 for each
+group of 16 channels. Each SiPM is connected directly to the 100~$\Omega$
+input of one channel; there is no preamplifier and no shaper. The pulse of
+one avalanche, measured on our channels, rises in 16~ns, is 24~ns wide at
+half maximum and decays in 50~ns, and the bandwidth of the digitizer is
+what sets that shape. Its peak is 3.2~counts per volt of overvoltage at
+gain~1, and its area, the quantity the analysis measures, is 4.4~times its
+peak in count-samples. Each channel fires when its sampled signal rises
+above its baseline by a threshold in counts, and the acquisition takes an
+event when $N$ channels fire within a coincidence window; it then stores,
+for each of the 64~channels, a record of fixed length with a fixed number
+of samples before the trigger. The analysis of a record estimates the
+baseline of the channel as the mean of its pre-trigger samples and defines
+its charge as the sum of the samples in a gate that starts at the trigger
+and lasts long enough to contain the scintillation decay, minus the
+baseline times the number of samples in the gate. The single-photoelectron
+area, measured on dark pulses, converts that charge into photoelectrons.
+
+The simulation of this readout does not build the waveforms. It computes,
+from the train of avalanches of each channel, the charge that the analysis
+would have extracted from the waveform, and writes it in the same event
+file as the Citiroc charges. This is possible because every operation
+between the avalanches and the charge is linear except the trigger. The
+sampled waveform of a channel is the sum of the pulses of its avalanches,
+each pulse scaled by the charge of its avalanche, plus the noise of the
+digitizer. The charge is a weighted sum of samples: weight one in the gate,
+weight minus the ratio of the gate length to the baseline length in the
+baseline window, zero elsewhere. Applying that weighted sum to the pulse of
+one avalanche gives a number that depends only on where the avalanche falls:
+its full area if it falls inside the gate, a fraction of it if it straddles
+an edge, minus the scaled area if it falls in the baseline window. The
+charge of the event is therefore the sum over the avalanches of the channel,
+scintillation and dark alike, of their charge times this number, plus the
+weighted sum of the noise samples. For white noise with an rms $\sigma_s$
+per sample the latter is a Gaussian with rms
+$\sigma_s \sqrt{N_g + N_g^2/N_b}$, with $N_g$ and $N_b$ the numbers of
+samples in the gate and in the baseline window, and one draw per channel
+and event is all the noise the charge needs. In units of photoelectrons
+this noise is 0.6 for a gate of 1~\us and 2 for a gate of 10~\us at 5~V of
+overvoltage and gain~1; the low-frequency noise and the correlation
+between the channels of one group seen in our earlier runs are not in this
+model, and they are added, as a second Gaussian common to the 16 channels
+of a group, when the new runs have measured them.
+
+The trigger is the one non-linear step and the only one that needs the
+shape of the pulse. The simulation evaluates the sampled amplitude of each
+channel, the sum of the pulses of its avalanches on the 8~ns grid, around
+the times where avalanches occur, and records the first sample at which it
+exceeds the threshold. The trigger time of the event is then the time at
+which $N$ of these crossings fall within the coincidence window, as in the
+acquisition, and it is the origin from which the gate and the baseline
+window are placed. The threshold decides which events are taken and, at
+ambient temperature, how often the dark pulses take one instead: a single
+dark photoelectron is 16~counts at 5~V of overvoltage, so the threshold
+must stay above two or three photoelectrons, while the brightest channel of
+a 511~keV event reaches a peak of about eight photoelectrons in both
+crystals. The simulation gives the efficiency for the photopeak and the
+rate of dark triggers as a function of the threshold and of the majority.
+
+What goes into the event file is then the same as for the Citiroc: one
+charge per channel, as a 32-bit integer in count-samples, the set of
+channels that crossed the threshold in place of the hit register, and the
+trigger time. The single-photoelectron area and the noise per channel go
+into the calibration group. The saturation of the input, at a peak
+amplitude of 4~V divided by the gain, is checked on the brightest channel
+and flagged; it is not reached in our configurations. A subsample of
+events, a thousand per run, is also written as full waveforms, built with
+the same pulses and noise, for figures and for a visual comparison with the
+measured records; they are not used by the analysis.
+
+The length of the gate is a choice of the analysis that the simulation
+informs. The gate must contain the scintillation decay, but at ambient
+temperature every channel collects dark photoelectrons at 6 to 8~MHz, and
+in a gate of 10~\us the 64~channels gather about 5000 of them against 1650
+of signal in BGO: their fluctuation alone is 4\% rms. A gate of 1~\us for
+ambient BGO, whose decay is 300~ns, and of 4 to 5~\us for \csitl brings
+that term below 1\%. In the cold the dark rate is a thousand times lower
+and the gate can take the whole 2.7~\us decay with no penalty, which is
+why the digitizer, and not the Citiroc, reads the cold runs: the Citiroc
+stores 0.07 of the photoelectrons of cold BGO (Section~\ref{sec:citiroc});
+the digitizer, with a gate of 10~\us, stores them all.
 
 \subsection{The Radioroc2}
 
@@ -515,7 +667,7 @@ configuration of the run and the version of the code.
 The measured runs are converted, as the first step of the analysis, into
 one HDF5 file per run with the structure of Table~\ref{tab:eventfile}; the
 electronics simulation writes the same structure directly, with the
-additional group of generated quantities. Arrays are stored event-major, so
+additional group \code{/mc} of the simulated quantities. Arrays are stored event-major, so
 that a reader obtains an array of $n$ events by 64 channels without
 transposition.
 
@@ -530,7 +682,9 @@ group & content \\
 temperature readings and where they were taken, bias per chip, breakdown
 voltage measured per channel, overvoltage per channel, discriminator
 thresholds, hold delay, shaping times, preamplifier gains, ADC, trigger
-definition, and the version of the converter or of the simulation. For a
+definition; for a digitizer run its gain, record length, pre-trigger,
+threshold and majority, and the gate and baseline window used to define the
+charge; and the version of the converter or of the simulation. For a
 simulated run, the full configuration of the simulation with the origin of
 every parameter. \\
 \code{/channels} & One entry per channel: the position of its centre in
@@ -541,12 +695,14 @@ geometry of Section~\ref{sec:layout}. \\
 per photoelectron with its error, and the mean and rms of its pedestal, on
 each path that is recorded; its dark rate. Measured on the run or on its
 calibration runs; for a simulated run, the values used. \\
-\code{/events} & For every event: the high-gain charge of the 64 channels as
-16-bit integers; the hit register of the 64 channels; the trigger time; and
-flags for saturation and for pile-up. A
+\code{/events} & For every event: the charge of the 64 channels, as 16-bit
+integers of ADC counts for the Citiroc and 32-bit integers of count-samples
+for the digitizer; the hit register of the 64 channels, which for the
+digitizer is the set of channels that crossed the threshold; the trigger
+time; and flags for saturation and for pile-up. A
 simulated run may also carry the low-gain charge, which the Citiroc holds but
 our acquisition does not read, and which the Radioroc2 acquisition will. \\
-\code{/generated} & Simulated runs only: the quantities written by the optical
+\code{/mc} & Simulated runs only: the quantities written by the optical
 simulation for the same events (positions and energies of the interactions,
 photons emitted and detected, the integrated photoelectron map), so that any
 observable can be examined against them. \\
@@ -598,6 +754,17 @@ measured file alike, and each of them tests a different part of the model.
 \item {\bf Dependence on the overvoltage}, when a bias scan exists: light,
   crosstalk, resolution and saturated fraction against the overvoltage, to be
   compared with the curves of Section~\ref{sec:sipm}.
+\item {\bf The two readouts on the same crystal.} The photoelectrons at
+  511~keV measured with the digitizer, which integrates the whole decay, and
+  with the Citiroc, which stores a fraction of them, must be in the ratio
+  computed in Section~\ref{sec:citiroc} from the pulse shape and the
+  shaping time: 0.39 for BGO and 0.15 for \csitl at ambient temperature.
+  This is a direct test of the model of the Citiroc chain with no free
+  parameter.
+\item {\bf Trigger efficiency and gate length}, for the digitizer: the
+  photopeak content and the trigger rate against the threshold, and the
+  resolution against the length of the gate, compared with the simulated
+  curves that fixed the settings.
 \end{enumerate}
 
 \section{Validation}
@@ -637,7 +804,7 @@ analytic answer or reduce a new feature to an old one.
 \begin{table}[htb]
 \centering
 \small
-\begin{tabular}{p{0.2\textwidth} p{0.34\textwidth} p{0.22\textwidth} p{0.14\textwidth}}
+\begin{tabular}{p{0.19\textwidth} p{0.33\textwidth} p{0.22\textwidth} p{0.14\textwidth}}
 \toprule
 parameter & value & source & status \\
 \midrule
@@ -653,13 +820,17 @@ BGO yield 196~K & 14\,000 to 16\,000 ph/MeV & Ding calibration; our decay time &
 BGO decay 196~K & 2.7~\us & our measurement & fixed \\
 BGO decay ambient & 300~ns & literature & fixed \\
 \csitl yield, decay & 54\,000; 730/3340~ns, 64/36\% & calibration; literature & fixed \\
-intrinsic resolution & 6\% \csitl; 3 to 4\% BGO & our Citiroc data; assumption & BGO to fit \\
+intrinsic resolution & 5\% FWHM at 511~keV, both crystals & our \csitl data; BGO curve from Gentile et al.; Moszynski et al.\ to check & BGO to compare with data \\
 emission spectra & tabulated & literature & to digitise \\
 breakdown voltage & $38~\mathrm{V} + 34~\mathrm{mV/K}\,(T-298~\mathrm{K})$ & datasheet; our measurement & measured per run \\
 gain, PDE, crosstalk vs overvoltage & Section~\ref{sec:sipm} & datasheet curves & fixed \\
 dark rate & $6$~MHz at 25~$^\circ$C, 2.7~V; 10~kHz at 196~K, 6.5~V & datasheet; our measurement & measured per run \\
-afterpulsing & 2\%, 100~ns & assumption & parameter \\
-pulse shape & 16/24/50~ns into 100~$\Omega$ & our measurement & parameter at the Citiroc input \\
+afterpulsing & 1\% at 3~V, $\propto V_{\rm ov}^2$, 100~ns & literature on the same technology & parameter, not resolvable with the Citiroc \\
+pulse shape & 16/24/50~ns into 100~$\Omega$ & our measurement with the digitizer & fixed for the digitizer; parameter at the Citiroc input \\
+digitizer scale & 3.2 counts per photoelectron per volt of overvoltage at gain 1; area 4.4 times the peak & our measurement & measured per run \\
+digitizer noise & 4 counts rms per sample, white & datasheet; our measurement & measured per run; low-frequency and group terms to add \\
+digitizer settings & gain, record, pre-trigger, threshold, majority & our acquisition & setting of the run \\
+gate and baseline window & 1~\us (BGO ambient), 4 to 5~\us (\csitl), 10~\us (cold); 1~\us before the trigger & this document & setting of the analysis \\
 Citiroc shaper & CR-RC$^2$, $t_p = 87.5$~ns & datasheet & setting of the run \\
 Citiroc noise & 0.1 pe rms on the high-gain path & datasheet & measured per run \\
 hold delay & up to 500~ns & our acquisition & setting of the run \\
@@ -720,7 +891,12 @@ number is drawn unless the corresponding extension is on.
   pulse shape at the input of the preamplifier with a device of 2~nF.
 \item For the Radioroc2: the order of the shaper, the noise, the behaviour
   of the 100~$\Omega$ input mode with 2~nF, and the acquisition board and
-  ADC to be used.
+  ADC to be used; and whether its longest shaping, which stores 0.55 of the
+  photoelectrons of cold BGO, is enough for the cold runs.
+\item For the digitizer: the noise below 1~MHz and its correlation within
+  a group of 16 channels, and whether the gain stage lowers the noise per
+  photoelectron, which decides whether the cold runs can be taken at 3~V of
+  overvoltage with gain 4 rather than at 5~V with gain 1.
 \item In the gamma transport: fluorescence and escape of the K-shell X-rays,
   Doppler broadening, and scattering in the source holder and in the
   cryostat.

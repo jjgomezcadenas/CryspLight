@@ -1,0 +1,2472 @@
+CAEN
+Tools for Discovery
+                      n                     Electronic Instrumentation
+
+
+                                                         Rev. 14 - September 23rd, 2025
+
+
+
+
+                2740/2745 Digitizer User Manual
+                          64 Channel 16 bit 125 MS/s Digitizer
+
+
+
+
+                                                                 User Manual
+                                                                 UM8717
+                          Register your device
+           Register your device to your MyCAEN+ account and get access to our customer services, such as
+           notification for new firmware or software upgrade, tracking service procedures or open a ticket for
+           assistance. MyCAEN+ accounts have a dedicated support service for their registered products. A
+           set of basic information can be shared with the operator, speeding up the troubleshooting process
+           and improving the efficiency of the support interactions.
+
+
+           MyCAEN+ dashboard is designed to offer you a direct access to all our after sales services.
+           Registration is totally free, to create an account go to https://www.caen.it/become-
+           mycaenplus-user and fill the registration form with your data.
+
+
+
+
+https://www.caen.it/become-mycaenplus-user/
+Purpose of the Document
+
+                               This User Manual contains all the instructions for the hardware installation of the 2740 and
+                               2745 digitizers, the description of the Web Interface service utility (v1.3.2 or higher), and a
+                               getting started section to get waveforms from the device in a few steps by using the Scope
+                               firmware and the WaveDump2 DAQ software.
+
+
+
+
+Change Document Record
+                   Date                   Revision                                          Changes
+        March 30th, 2021                     00            Initial release.
+
+        May 6th, 2021                        01            Updated Chap. 9 and Chap. 10.
+                                                           Introduced DT2740 support. Removed “Preliminary” and updated the cover
+        October 18th, 2021                   02            page. Removed “coming soon” for the WaveDump2 User Manual in the
+                                                           references. Updated Tab. 3.1. Updated Chap. 5 and Chap. 9
+                                                           Added new sections: Manufacturer Contacts, Limitation of Responsibility.
+                                                           Added new chapters: Chap. 2, Chap. 6, Chap. 7, Chap. 13, Chap. 14, Chap.
+        December 6th, 2021                   03
+                                                           15. Updated Chap. 1, Chap. 3, Chap. 10. Support extended to the 2745
+                                                           Digitizers.
+        January 3rd, 2022                    04            Updated Sec. 10.1
+
+        February 24th, 2022                  05            Updated Chap. 7. Updated Sec. 10.4 and Sec. 10.4.1. Added Sec. 10.4.2.
+                                                           Revised the index structure. Updated back cover and Chap 1, Chap. 2, Sec.
+        May 27th, 2022                       06
+                                                           5.1, Chap. 7, Chap. 8, Chap. 10, Chap. 16
+        May 11th, 2023                       07            Added Chap.11.
+        May 15th, 2023                       08            Updated Chap. 2. Updated Chap 10. Removed old “PUC Removal” section.
+                                                           Updated Sec. Reference Documents. Updated Tab.3.2. Updated Chap. 7.
+        March 07th, 2024                     09            Added a note in Secc. 9.2, 10.2. Updated Chap. 10. Added Secc. 10.5.2,
+                                                           10.9, 10.10
+        May 21st, 2024                       10            Updated Chap. 2, Tab. 10.5, Sec. 10.10, Fig. 10.12
+                        th                                 Updated Chap. 2. Added references to the new CAEN Toolbox software
+        September 19 , 2024                  11
+                                                           utility in Sec. 10.11 and Sec. 10.11.1
+                                                           Revised document title. Updated Chap 2. Added 10-kΩ input impedance
+        January 20th, 2024                   12            personalization for single-ended models and ICMR specifications for
+                                                           differential models. Updated Tab. 10.2
+                                                           Updated Environmental specifications in Chap. 2. Updated USB and
+        April 10th, 2025                     13            Ethernet part descriptions in Tab. 3.1. Fixed wrong descriptions of A372x
+                                                           adapters in Sec. 12.1
+        September 23rd, 2025                 14            Updated technical specifications in Chap. 2. Added Sec. 10.12.1
+
+
+Symbols, Abbreviated Terms, and Notations
+        BIOS                     Basic Input-Output System
+        DAQ                      Data Acquisition
+        DPP                      Digital Pulse Processing
+        NDIS                     Network Driver Interface Specification
+        PID                      Product Identifier
+        PUC                      Product Unlock Code
+
+Reference Documents
+     [RD1]     DS7783 – 2740/2745 Digitizer Data Sheet
+     [RD2]     DS7923 – A372x Adapters Data Sheet
+     [RD3]     UM7934 – Wavedump2 User Manual
+     [RD4]     GD9764 – CAEN FELib Library User Guide
+     [RD5]     UM11111 – CAEN Toolbox User Manual
+     https://www.caen.it/support-services/documentation-area/
+Manufacturer Contacts
+                                CAEN S.p.A.
+                                Via Vetraia, 11 55049 Viareggio (LU) - ITALY
+                                Tel. +39.0584.388.398 Fax +39.0584.388.959
+                                www.caen.it | info@caen.it
+                                © CAEN SpA – 2025
+
+
+
+Limitation of Responsibility
+      If the warnings contained in this manual are not followed, CAEN will not be responsible for damage caused by improper
+      use of the device. The manufacturer declines all responsibility for damage resulting from failure to comply with the
+      instructions for use of the product. The equipment must be used as described in the user manual, with particular regard
+      to the intended use, using only accessories as specified by the manufacturer. No modification or repair can be performed.
+
+Disclaimer
+      No part of this manual may be reproduced in any form or by any means, electronic, mechanical, recording, or otherwise,
+      without the prior written permission of CAEN spa.
+      The information contained herein has been carefully checked and is believed to be accurate; however, no responsibility
+      is assumed for inaccuracies. CAEN spa reserves the right to modify its products specifications without giving any notice;
+      for up-to-date information please visit www.caen.it.
+
+Made in Italy
+      We remark that all our boards have been designed and assembled in Italy. In a challenging environment where a
+      competitive edge is often obtained at the cost of lower wages and declining working conditions, we proudly acknowledge
+      that all those who participated in the production and distribution process of our devices were reasonably paid and
+      worked in a safe environment (this is true for the boards marked "MADE IN ITALY", while we cannot guarantee for third-
+      party manufactures).
+CAEN                     Electronic Instrumentation
+
+Index
+         Purpose of the Document ...................................................................................................................... 2
+         Change Document Record ..................................................................................................................... 2
+         Symbols, Abbreviated Terms, and Notations......................................................................................... 2
+         Reference Documents ............................................................................................................................ 2
+         Manufacturer Contacts .......................................................................................................................... 3
+         Limitation of Responsibility .................................................................................................................... 3
+         Disclaimer ............................................................................................................................................... 3
+         Made in Italy........................................................................................................................................... 3
+Index.......................................................................................................................................... 4
+List of Figures ............................................................................................................................. 5
+List of Tables .............................................................................................................................. 6
+1     Safety Notices .................................................................................................................... 7
+2     Technical Specifications .................................................................................................... 11
+3     Packaging and Compliancy................................................................................................ 14
+4     PID (Product Identifier) ..................................................................................................... 17
+5     Power Requirements ........................................................................................................ 18
+         5.1         VME Models............................................................................................................................. 18
+         5.2         Desktop Models ....................................................................................................................... 18
+6      Cooling Management ....................................................................................................... 19
+         6.1         Cleaning Air Vents.................................................................................................................... 19
+7      Temperature Protection ................................................................................................... 20
+8      Hardware Installation ....................................................................................................... 21
+         8.1         VME Models............................................................................................................................. 21
+         8.2         Desktop Models ....................................................................................................................... 21
+           Rack Mounting .................................................................................................................................................. 22
+         8.3         Power-on Status ...................................................................................................................... 23
+9      Hardware Detection ......................................................................................................... 24
+         9.1         Ethernet Configuration ............................................................................................................ 24
+           9.1.1        Windows OS ....................................................................................................................................... 24
+           9.1.2        Linux OS .............................................................................................................................................. 26
+         9.2         USB Configuration ................................................................................................................... 27
+           9.2.1        Windows OS ....................................................................................................................................... 27
+           9.2.2        Linux OS .............................................................................................................................................. 27
+10     Web Interface .................................................................................................................. 28
+         10.1        First Access by USB .................................................................................................................. 28
+         10.2        First Access by Ethernet........................................................................................................... 29
+         10.3        Login ........................................................................................................................................ 29
+         10.4        Home Page............................................................................................................................... 30
+           10.4.1           Account Menu ............................................................................................................................... 30
+           10.4.2           Alert Indicator ................................................................................................................................ 31
+         10.5        Dashboard Page ....................................................................................................................... 31
+           10.5.1           Board Information ......................................................................................................................... 32
+           10.5.2           Connectivity ................................................................................................................................... 32
+           10.5.3           Error Flags ...................................................................................................................................... 33
+           10.5.4           Hardware Monitor ......................................................................................................................... 34
+         10.6        Board ID Card (BIC) Page ......................................................................................................... 35
+           10.6.1           BIC Information .............................................................................................................................. 36
+         10.7        Network Settings Page ............................................................................................................ 37
+         10.8        User Management Page .......................................................................................................... 38
+         10.9        Time/Date Settings Page ......................................................................................................... 38
+
+
+UM8717 – 2740/2745 Digitizer User Manual rev. 14                                                                                                                            4
+                                                                                            CAEN                            Electronic Instrumentation
+            10.10              Parameters Page (Beta) ....................................................................................................... 39
+                10.10.1             Device Tree .................................................................................................................................... 40
+                10.10.2             Manual Controller .......................................................................................................................... 40
+            10.11              Firmware Page ..................................................................................................................... 41
+                10.11.1             Upgrade Procedure ........................................................................................................................ 43
+            10.12              Clock Settings....................................................................................................................... 44
+                10.12.1             PLL Settings .................................................................................................................................... 45
+            10.13              License ................................................................................................................................. 46
+                10.13.1             PUC Activation ............................................................................................................................... 47
+11        On-board Zynq® UltraScale+™ MPSoC............................................................................... 48
+            11.1           How to Access the Embedded OS............................................................................................ 48
+            11.2           Library Installation ................................................................................................................... 48
+            11.3           Run the FELib Demo ................................................................................................................ 49
+12        First Acquisition with WaveDump2 ................................................................................... 50
+            12.1           Setup ........................................................................................................................................ 50
+            12.2           Connection and Configuration ................................................................................................ 51
+13        Instructions for Cleaning ................................................................................................... 62
+            13.1           Cleaning the Touchscreen ....................................................................................................... 62
+            13.2           Cleaning the air vents .............................................................................................................. 62
+            13.3           General cleaning safety precautions ....................................................................................... 62
+14        Device decommissioning .................................................................................................. 63
+15        Disposal ........................................................................................................................... 64
+16        Technical Support ............................................................................................................. 65
+
+List of Figures
+Fig. 4.1:PID location on V/VX2740 / V/VX2745 (the number in the picture is purely indicative) ..........................................................17
+Fig. 4.2:PID location on DT2740 / DT2745 (the number in the picture is purely indicative) .................................................................17
+Fig. 7.1: Example of error flags status in the Web Interface for the overtemperature condition .........................................................20
+Fig. 8.1: Rack mount kit .........................................................................................................................................................................22
+Fig. 8.2: Rack version .............................................................................................................................................................................22
+Fig. 8.3: LED status after power-on .......................................................................................................................................................23
+Fig. 10.1: Flow Diagram of the Web Interface .......................................................................................................................................28
+Fig. 10.2: Login dialog ............................................................................................................................................................................29
+Fig. 10.3: Home page .............................................................................................................................................................................30
+Fig. 10.4: Admin account functions .......................................................................................................................................................30
+Fig. 10.5: Change Password dialog ........................................................................................................................................................30
+Fig. 10.6: Alert indicator on top of the Web Interface ...........................................................................................................................31
+Fig. 10.7: Dashboard page .....................................................................................................................................................................31
+Fig. 10.8: Board ID Card page ................................................................................................................................................................35
+Fig. 10.9: Network Settings page ...........................................................................................................................................................37
+Fig. 10.10: User Management page .......................................................................................................................................................38
+Fig. 10.11: Time/Date Settings page ......................................................................................................................................................38
+Fig. 10.12: Parameters page ..................................................................................................................................................................39
+Fig. 10.13: Parameters view from the Web Interface ............................................................................................................................39
+Fig. 10.14: Device Tree subsection ........................................................................................................................................................40
+Fig. 10.15: Manual Controller subsection ..............................................................................................................................................40
+Fig. 10.16: Firmware page .....................................................................................................................................................................41
+Fig. 10.17: The CUP file changelog .........................................................................................................................................................42
+Fig. 10.18: Firmware upgrade window ..................................................................................................................................................43
+Fig. 10.19: Clock Settings page ..............................................................................................................................................................44
+Fig. 10.20: PLL Settings Menu ................................................................................................................................................................45
+Fig. 10.21: PLL Upload Dialog ................................................................................................................................................................46
+Fig. 10.20: License page .........................................................................................................................................................................46
+Fig. 12.1: The 2740 Digitizer matched with the A372M adapter. ..........................................................................................................50
+Fig. 12.2: Typical input Gaussian signal .................................................................................................................................................50
+Fig. 12.3: WaveDump2 mainframe ........................................................................................................................................................51
+Fig. 12.4: Connection panel ...................................................................................................................................................................51
+Fig. 12.5: Logs panel ..............................................................................................................................................................................52
+
+
+5                                                                                                                      UM8717 – 2740/2745 Digitizer User Manual rev. 14
+CAEN                            Electronic Instrumentation
+Fig. 12.6: Graph settings ........................................................................................................................................................................52
+Fig. 12.7: Trigger settings.......................................................................................................................................................................53
+Fig. 12.8: Start Acquisition .....................................................................................................................................................................53
+Fig. 12.9: Oscilloscope Tools panel ........................................................................................................................................................54
+Fig. 12.10: Stop Acquisition ...................................................................................................................................................................54
+Fig. 12.11: Self-Trigger settings .............................................................................................................................................................55
+Fig. 12.12: Trigger Mask dialog ..............................................................................................................................................................55
+Fig. 12.13: Trigger Threshold .................................................................................................................................................................56
+Fig. 12.14: Acquisition in Normal mode.................................................................................................................................................56
+Fig. 12.15: Setup Configuration .............................................................................................................................................................57
+Fig. 12.16: System Settings ....................................................................................................................................................................57
+Fig. 12.17: Pre-trigger setting ................................................................................................................................................................58
+Fig. 12.18: DC Offset setting ..................................................................................................................................................................58
+Fig. 12.19: Statistics ...............................................................................................................................................................................59
+Fig. 12.20: Output Configuration ...........................................................................................................................................................59
+Fig. 12.21: Output Settings ....................................................................................................................................................................60
+Fig. 12.22: Outputs Enable.....................................................................................................................................................................60
+Fig. 12.23: Exit .......................................................................................................................................................................................61
+
+
+List of Tables
+Tab. 3.1: Delivered kit content ..............................................................................................................................................................14
+Tab. 3.2: Table of web available official documentation .......................................................................................................................16
+Tab. 5.1: VME64 and VME64X Digitizers power requirements .............................................................................................................18
+Tab. 5.2: Desktop digitizers mains power specifications .......................................................................................................................18
+Tab. 10.1: Default account credentials ..................................................................................................................................................29
+Tab. 10.2: Board Information table .......................................................................................................................................................32
+Tab. 10.3: Connectivity table .................................................................................................................................................................32
+Tab. 10.4: Error Flags table ....................................................................................................................................................................33
+Tab. 10.5: Hardware Monitor table .......................................................................................................................................................34
+Tab. 10.6: Board ID Card table ...............................................................................................................................................................36
+
+
+
+
+UM8717 – 2740/2745 Digitizer User Manual rev. 14                                                                                                                                                    6
+                                                    CAEN                   Electronic Instrumentation
+
+1 Safety Notices
+    N.B. Read carefully the “Precautions for Handling, Storage and Installation” document provided with the product
+    before starting any operation.
+
+
+
+    The following HAZARD SYMBOLS may be reported on the unit:
+
+
+
+                                               Caution, refer to the product manual
+
+
+
+
+                                               Caution, risk of electrical shock
+
+
+
+
+                                               Protective conductor terminal
+
+
+
+
+                                               Earth (Ground) Terminal
+
+
+
+
+                                               Alternating Current
+
+
+
+
+                                               Three-Phase Alternating Current
+
+
+
+
+    The following symbol may be reported in the present manual:
+
+
+
+                                              General warning statement
+
+
+
+
+     The symbol could be followed by the following terms:
+
+       •             DANGER: Indicates a hazardous situation that, if not avoided, will result in serious injury or death.
+       •             WARNING: Indicates a hazardous situation that, if not avoided, could result in death or serious injury.
+       •             CAUTION: Indicates a situation or condition that, if not avoided, could cause physical injury, or damage
+                     the product and/or its environment.
+
+
+
+
+7                                               UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN               Electronic Instrumentation
+
+                                                      GENERAL:
+
+
+           CAUTION: Avoid potential hazards.
+
+                            USE THE PRODUCT ONLY AS SPECIFIED.
+                            ONLY QUALIFIED              PERSONNEL        SHOULD   PERFORM   SERVICE
+                            PROCEDURES
+
+
+
+           CAUTION: Avoid Electric Overload.
+
+                            TO AVOID ELECTRIC SHOCK OR FIRE HAZARD, DO NOT POWER A LOAD
+                            OUTSIDE OF ITS SPECIFIED RANGE
+
+
+
+           CAUTION: Avoid Electric Shock.
+
+                            TO AVOID INJURY OR LOSS OF LIFE, DO NOT CONNECT OR DISCONNECT
+                            CABLES WHILE THEY ARE CONNECTED TO A VOLTAGE SOURCE
+
+
+
+           CAUTION: Do Not Operate in Wet/Damp Conditions.
+
+                            TO AVOID ELECTRIC SHOCK, DO NOT OPERATE THIS PRODUCT IN WET
+                            OR DAMP CONDITIONS
+
+
+
+           CAUTION: Do Not Operate in an Explosive Atmosphere.
+
+                            TO AVOID INJURY OR FIRE HAZARD, DO NOT OPERATE THIS
+                            PRODUCT IN AN EXPLOSIVE ATMOSPHERE
+
+
+
+
+                            THIS DEVICE SHOULD BE INSTALLED AND USED BY A SKILLED
+                            TECHNICIAN ONLY OR UNDER HIS SUPERVISION
+
+
+
+
+                            DO NOT OPERATE WITH SUSPECTED FAILURES.
+                            IF YOU SUSPECT THIS PRODUCT TO BE DAMAGED, PLEASE CONTACT
+                            THE TECHNICAL SUPPORT
+
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                8
+                                                  CAEN             Electronic Instrumentation
+
+                                        VME MODELS:
+
+
+
+
+    CAUTION: This product needs proper cooling.
+
+                  USE ONLY CRATES WITH FORCED COOLING AIR FLOW SINCE
+                  OVERHEATING MAY DEGRADE THE MODULE PERFORMANCES!
+
+
+
+
+                  THE V2740 CANNOT BE OPERATED WITH VME8001 CAEN CRATES
+
+
+
+
+    CAUTION: This product needs proper handling.
+
+                    THE VME DIGITIZER DOES NOT SUPPORT LIVE INSERTION (HOT-SWAP)!
+                    REMOVE OR INSERT THE BOARD WHEN THE CRATE IS POWERED OFF!
+
+
+
+
+                    ALL CABLES MUST BE REMOVED FROM THE FRONT PANEL BEFORE
+                    EXTRACTING THE BOARD FROM THE CRATE!
+
+
+
+
+9                                          UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN               Electronic Instrumentation
+
+                                                DESKTOP MODELS:
+
+
+
+
+           DANGER: This product has high voltage inside. Opening the device exposes parts under high voltage.
+
+
+                             TO AVOID ELECTRIC SHOCK OR FIRE HAZARD, DO NOT OPERATE THIS
+                             PRODUCT WITH COVERS OR PANELS REMOVED!
+
+
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                          10
+                                                                                CAEN                     Electronic Instrumentation
+
+2 Technical Specifications
+                                            Number of Channels                        Impedance                               Connector
+                                            ▪ 64                                      ▪ 274xB:                                ▪ Four 2mm 40-pin header male
+                                            ▪ Differential on 274x version              - 50 Ω default                        ▪ Input adapters available
+                                            ▪ Single-ended on 274xB version             - 10kΩ personalization available
+                                                                                          by ordering code
+                                            Full-Scale Range                          ▪ 274x: 100 Ω                           Bandwidth
+                                            ▪ 2740: 2 Vpp                                                                     ▪ 2740: 50 MHz
+                                            ▪ 2745: 4 Vpp                             DC Offset                               ▪ 2745: 20 MHz guaranteed for
+   ANALOG INPUTS
+                                                                                      Adjustable in the±1.25V (2740) or         all Gain settings
+                                            Gain                                      ±2.5V (2745) range independently
+                                            ▪ 2740: Fixed x1                          on each channel
+                                            ▪ 2745: Sw programmable x1 ÷ x100
+                                              in steps of 0.5dB independently on      ICMR (Input Common-Mode Range)
+                                              each 16-channel group                   Differential models only
+                                                                                      2740: ± 8 Vdc referred to GND
+                                                                                      2745: ± 12 Vdc referred to GND
+                                            Resolution                                                   Sampling Rate
+                                            16 bits                                                      ▪ 125 MS/s (simultaneously on each input)
+   DIGITAL CONVERSION
+                                                                                                         ▪ Scalable by 2n decimation factor, n = 1 to 10 (Scope
+                                                                                                           firmware only)
+                                            ENOB (Typ.)                                                  RMS (Typ.)
+   SYSTEM PERFORMANCE                       ▪ 2740: 11.7                                                 ▪ 2740: 3.9 LSB (~ 120 μV)
+                                            ▪ 2745: 12.0 (@5 MHz, -3dB, Gain x1)                         ▪ 2745: 3.6 LSB RMS (@Gain x1)
+                                            CLK-IN/CLK-OUT                                               TRG-IN/TRG-OUT/GPIO/S-IN
+                                            ▪ Two differential pairs:                                    ▪ General-purpose digital I/Os
+                                              - CLK, reference clock signal                              ▪ Sigle-ended TTL/NIM
+                                              - SYNC, synchronization signal (start/stop, T0, etc.)      ▪ LEMO 00 male connector
+                                            ▪ 2.54mm 4-pin AMPMODU Mod II male connector                 ▪ Sw programmable function (trigger, veto, busy, etc.)
+                                            ▪ CLK-IN: AC-coupled LVDS, ECL, PECL, LVPECL, CML              - TRG-IN/S-IN: internally terminated with 50 Ω
+                                               (Zdiff = 100 Ω)                                              (Zin = 50 Ω)
+                                            ▪ CLK-OUT: LVDS                                                - TRG-OUT requires Rt = 50 Ω
+                                            ▪ Daisy chainable for multiboard synchronization with          - GPIO as Input must be terminated with 50 Ω
+   DIGITAL I/O                                 sw programmable CLK-OUT delay shift                         - GPIO as TTL Output requires Rt = 50 Ω
+                                                                                                           - GPIO as NIM Output requires Rt = 50 Ω or 25 Ω
+                                            LVDS I/O
+                                            ▪ 16 differential pairs
+                                            ▪ Sw programmable I/O function (individual self-
+                                              trigger outputs, trigger validations, Veto, Busy, Start,
+                                              Stop, Pattern Input, etc.)
+                                            ▪ LVDS
+                                            ▪ Zdiff = 100 Ω (when set as inputs)
+                                            ▪ 2.54mm 34-pin AMPMODU Mod II male connector
+                                            ▪ Sw programmable DAC output for signal inspection, pulse generation, majority level
+                                            ▪ 14-bit Digital-to-Analog Converter (DAC)
+                                            ▪ 125 MS/s Update Rate
+   ANALOG OUTPUT
+                                            ▪ LEMO 00 connector
+                                            ▪ ±1 V @ 50Ω load
+                                            ▪ ±2 V @ hi-Z load Output Range
+                                            ▪ 2.5 GB total DDR4 memory size (20.971 MS/ch) divisible in multiple buffers
+   ACQUISITION MEMORY
+                                            ▪ Maximum record length: ~ 84 ms @ 125 MS/s (total memory size divided by 2)1
+                                            1 GbE                                                           10 GbE2
+                                            ▪ Copper RJ45 or optical LC connector on SFP+ transceiver       ▪ Copper RJ45 or LC optical connector on SFP+
+                                            ▪ Protocol: TCP                                                   transceiver
+                                            ▪ Transfer rate: 110 MB/s                                       ▪ Protocol: UDP
+   COMMUNICATION                                                                                            ▪ Transfer rate: 850 MB/s
+   INTERFACES
+                                                                                                            USB 3.0
+                                                                                                            ▪ USB-C type connector
+                                                                                                            ▪ Protocol: USB 3.1 GEN1
+                                                                                                            ▪ Transfer rate: 280 MB/s
+
+
+
+
+1 Value referred to the Scope firmware (minimum of two buffers admitted)
+2 Contact CAEN Support for information
+
+
+
+
+11                                                                         UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN                Electronic Instrumentation
+                            Triggered Mode                          Trigger Sources                      Trigger Time Stamp – Scope FW
+                            All the channels fire simultaneously    ▪ Software by register writing       ▪ Resolution: 8 ns coarse
+                            upon a global trigger generated by      ▪ External upon the leading edge     ▪ Counter range: 48 bits
+                            the Central Logic Unit receiving the      of TRG-IN signal (TTL/NIM)         ▪ Full-scale range: ~625 h
+                            trigger source signals; zero            ▪ Local (self-trigger) upon the
+                            suppression function is available         channel discriminator with         Trigger Time Stamp – DPP FW
+                                                                      programmable threshold             ▪ Resolution: 8ns coarse, 8ps fine
+  ACQUISITION MODES AND
+                            Streaming Readout Mode                                                       ▪ Counter range: 48 bits
+  TRIGGER
+                            Each channel autonomously                                                    ▪ Full-scale range: ~78 h
+                            identifies the ROI and uses the local
+                            trigger to get events independently
+                            on the other channels; validation
+                            logics can be configured for
+                            correlated acquisition
+                            (coincidence/anticoincidence)
+                            Clock Propagation                                             Data Sync
+                            Typical 62.5MHz frequency distributed by:                     Busy/Veto logic on LVDS I/Os or NIM/TTL I/Os for
+                            ▪ Fan-out to CLK-IN                                           event building synchronization
+                            ▪ CLK-IN/CLK-OUT daisy chain with sw programmable CLK-
+                              OUT delay shift                                             Trigger Distribution
+  SYNCHRONIZATION           Custom frequencies can be supported upon request              TRG-IN/TRG-OUT NIM/TTL LEMO I/Os (common
+                                                                                          trigger) or LVDS I/Os (common or individual
+                            Acquisition Start/Stop                                        trigger)
+                            Daisy chain or fan-out propagation through CLK-IN/CLK-
+                            OUT or NIM/TTL, LVDS I/Os                                     Trigger Time Stamp Reset
+                                                                                          Software from START run command or Hardware
+                                                                                          from S-IN/GPIO input (Scope Firmware only)
+                            ▪ Xilinx Zynq UltraScale+ Multiprocessor System-on-Chip mod. XCZU19EG
+  FPGA                      ▪ Processing System based on Quad-core Arm with 2GB DDR4 memory @2400 MT/s (Linux OS onboard)
+                            ▪ Programmable logic with more than 1100K system logic cells and 80Mbit memory
+                            Developed by CAEN, stored in the onboard Flash Memory and live rebootable by Web Interface
+                            DPP Firmware (Shareware)                       Scope Firmware (Freeware)       Upgrades (Free)
+                            Pay firmware working in streaming readout      Working in triggered mode       Web available CUP files for
+                            mode and implementing digital pulse            and designed for waveform       Scope and DPP firmware
+                            processing algorithm:                          recording                       upgrade via Web Interface or
+  CAEN FIRMWARE             ▪ DPP-PHA: Pulse Height Analysis                                               CAEN Toolbox software
+                            ▪ DPP-PSD: Charge Integration, Pulse Shape
+                               Discrimination, CFD for fine timestamp
+                            ▪ DPP-ZLEplus: Data compression based on
+                               Zero Length Encoding
+                            License purchase needed to unlock full-time
+                            working
+                            SCI-Compiler (Shareware)
+                            Pay graphical tool for User Firmware generation and compiling with CAEN Programmable Boards
+                            Scope Personalization                                        DPP Personalization
+  USER FIRMWARE             Customizable features of the Scope firmware:                 Customizable features of the DPP firmware:
+  (OPEN FPGA)               ▪ Common trigger                                             ▪ Individual trigger and channel acquisition
+                            ▪ Simultaneous waveform recording on management on             management
+                              64 channels                                                ▪ DPP algorithm
+                            ▪ Trigger logic                                              ▪ Trigger logic
+                            ▪ Wave processing                                            ▪ Event data information
+                            Readout SW for CAEN Firmware (Freeware)                       SCI-Compiler for Open FPGA (Shareware)
+                            ▪ CoMPASS spectroscopy software                               Automatic generation of drivers (USB, ethernet),
+                              (DPP firmware only)                                         libraries, and demo software for Windows®,
+                            ▪ WaveDump2                                                   Linux®
+  SOFTWARE                    (Scope firmware only)
+                                                                                          Web Interface
+                            SDK and Tools (Freeware)                                      Firmware management (e,g. upgrades and on-the-
+                            General-purpose libraries (C/Phyton) with demo samples        fly selection of the firmware to run), board
+                            for host Windows® and Linux® PC, and embedded Arm             information, PLL and Ethernet configuration,
+                            processor                                                     board status monitoring
+                                                            Form Factor                   Weight                  Dimension
+                            V2740/V2740B
+                                                            1-uni wide VME64              642 g                   6U x 160 mm
+                            V2745 / V2745
+
+  MECHANICAL                VX2740/VX2740B
+                                                            1-unit wide VME64X            642 g                   6U x 160 mm
+                            VX2745/VX2745BB
+                                                                                                                  337 W x 96 H x 295 L mm³
+                            DT2740/DT2740B                  Desktop                       3120 g
+                                                                                                                  (including connectors)
+                            DT2745/DT2745B                  Desktop-rack                  3170 g
+                                                                                                                  19” rack mount
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                                    12
+                                                       CAEN                   Electronic Instrumentation
+                      Environment                 Indoor use
+                      Operating Temperature       0°C to +40°C
+                      Storage Temperature        -10°C to +60 °C
+                      Operating Humidity          10% to 90% RH non condensing
+ ENVIRONMENTAL        Storage Humidity            5% to 90% RH non condensing
+                      Pollution Degree            2
+                      Overvoltage Category        II
+                      EMC Environment             Commercial and light industrial
+                      IP Degree                   Enclosure (desktop models), not for wet location
+ REGULATORY           EMC                                                        Safety
+ COMPLIANCE           CE 2014/30/EU Electromagnetic Compatibility Directive      CE 2014/35/EU Low Voltage Directive
+                                                          +12V                         +5V                    +3.3V
+                      V2740/V2740B                     1.1 A (Typ.)                6.2 A (Typ.)                  -
+                      VX2740/VX2740B                   1.1 A (Typ.)                2.7 A (Typ.)            4.9 A (Typ.)-
+ POWER REQUIREMENTS
+                      V2745/V2745B                     1.4 A (Typ.)                9.0 A (Typ.)                  -
+                      VX2745/VX2745B                   1.4 A (Typ.)                5.3 A (Typ.)            4.9 A (Typ.)
+                      DT2740x/DT2745x     Mains Powered (Max. 130 Watt @ 110/220V)
+
+
+
+
+13                                                UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN                Electronic Instrumentation
+
+3 Packaging and Compliancy
+           The DT2740/DT2745 digitizer is available as a Desktop module housed in a metal case and two external rubber frames,
+           one on the front and one on the rear panel, providing standings legs (module dimensions: 337 W x 96 H x 278 L mm³
+           excluding the connectors).
+           The V/VX2740-45 digitizer is available in 1-unit wide VME 6U x 160mm form factor.
+           The device is inspected by CAEN before the shipment, and it is guaranteed to leave the factory free of mechanical or
+           electrical defects.
+           The content of the delivered package standardly consists of the part list shown in the table below (Tab. 3.1).
+                                                           Part                                 Description                         Qt
+
+
+
+
+                                               x2740/x2745                 64 Channel 16 bit 125 MS/s Digitizer                     x1
+
+
+
+
+                                               Power supply cable
+                                                                           Standard C13 Power Supply cord, L=2MT                    X1
+                                               (Desktop modules only)
+
+
+
+
+                                                                           USB-C to USB-A 3.1 GEN 1 cable, L=1.8MT
+                                               USB cable                                                                            x1
+                                                                           (Mod. UTC-C-A-3.1-Gen 1-6FT-GRY by Amazon basics)
+
+
+
+                                                                           Cat6 SSTP patch cable, L=2MT, RJ45 connector
+                                               Ethernet cable                                                                       x1
+                                                                           (Mod. A-MCSSP6200-R by ASSMANN)
+
+
+
+                                               1Gb Ethernet transceiver    GLC-T compatible, 1000Base-T copper SFP Transceiver,
+                                                                                                                                    x1
+                                               (mounted)                   1Gbps data rate (RJ45 connector)
+
+
+
+                                               10GbE Optical transceiver
+                                                                           10Gb/1Gb Ethernet, 850nm, SFP+ Transceiver               x1
+                                               (Included as spare)
+
+
+
+
+                                                                           2 metal brackets for rack mount (19” rack compatible)
+                                               Rack kit
+                                                                           with 4 screws (type TPS 4X10 CROSS INOX DIN 965) and     -
+                                               (Desktop modules only)
+                                                                           4 safety black hole plugs included
+
+
+
+
+                                                                           UM7897 – 2740/2745 Digitizers User Manual
+                                               Documentation                                                                        -
+                                                                           DS7783 – 2740/2745 Digitizers Data Sheet
+
+
+
+
+            Tab. 3.1: Delivered kit content
+
+
+
+           CAUTION: to manage the product, consult the operating instructions provided.
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                             14
+                                                      CAEN                  Electronic Instrumentation
+     When receiving the unit, the user is strictly recommended to:
+          •    Inspect containers for damage during shipment. Report any damage to the freight carrier for possible
+               insurance claims.
+          •    Check that all the components received match those listed on the enclosed packing list as in Tab. 3.1. (CAEN
+               cannot accept responsibility for missing items unless we are notified promptly of any discrepancies.)
+          •    Open shipping containers; be careful not to damage contents.
+          •    Inspect contents and report any damage. The inspection should confirm that there is no exterior damage to
+               the unit such as broken knobs or connectors and that the front panel and display face are not scratched or
+               cracked. Keep all packing material until the inspection has been completed.
+          •    If damage is detected, file a claim with the carrier immediately and notify CAEN service.
+          •    If equipment must be returned for any reason, carefully repack equipment in the original shipping container
+               with original packing materials if possible. Please, contact CAEN service.
+          •    If equipment is to be installed later, place equipment in the original shipping container and store it in a safe
+               place until ready to install.
+
+
+
+
+                       DO NOT SUBJECT THE ITEM TO UNDUE SHOCK OF VIBRATIONS
+
+
+
+
+                       DO NOT BUMP, DROP OR SLIDE SHIPPING CONTAINERS
+
+
+
+
+                       DO NOT LEAVE ITEMS OR SHIPPING CONTAINERS UNSUPERVISED IN
+                       AREAS WHERE UNTRAINED PERSONNEL MAY MISHANDLE THE ITEMS
+
+
+
+
+                       USE ONLY ACCESSORIES WHICH MEET THE MANUFACTURER'S
+                       SPECIFICATIONS
+
+
+
+
+15                                               UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN                Electronic Instrumentation
+           Official documentation, firmware updates, software tools, and accessories are available on the CAEN website
+           www.caen.it is on the Digitizer web page. The download is free after login.
+                                Document                                          Content                                   Location
+                                                                                                                      Digitizer Webpage
+                                                                                                                               ↓
+                                                                                                                      Downloads button
+                                                                 General information and full technical
+             DS7783 – 2740/2745 Digitizer Data Sheet                                                                           ↓
+                                                                 specifications
+                                                                                                                      Documentation tab
+                                                                                                                               ↓
+                                                                                                                     Data Sheets category
+
+                                                                                                                      Digitizer Webpage
+                                                                                                                               ↓
+                                                                 Hardware installation, Getting Started with          Downloads button
+             UM7897 – 2740/2745 Digitizer User Manual            WaveDump2 software, and Web Interface                         ↓
+                                                                 description                                          Documentation tab
+                                                                                                                               ↓
+                                                                                                                      Manuals category
+
+                                                                                                                 Digitizer and FELib Webpages
+                                                                                                                               ↓
+                                                                                                                       Downloads button
+                                                                 Full description of the new CAEN FELib SDK
+             GD9764 – FELib Library User Guide                                                                                 ↓
+                                                                 for CAEN Digitizers
+                                                                                                                       Documentation tab
+                                                                                                                               ↓
+                                                                                                                        Guides category
+             x2740-45 Scope (doc-develop)
+             x2740-45 DPP-PSD (doc-develop)
+                                                                 Description of the FELib library parameters         Digitizer Web Interface
+             x2740-45 DPP-PHA (doc-develop)
+                                                                 for all the supported firmware (including                      ↓
+             x2740-45 DPP-ZLE (doc-develop)
+                                                                 Open FPGA)                                              Parameters tab
+             x2740-45 Open Scope (doc develop)
+             x2740-45 Open DPP (doc develop)
+                                                                                                                    WaveDump2 Webpage
+                                                                                                                           ↓
+                                                                                                                     Downloads button
+                                                                 Description of CAEN DAQ software
+             UM7934 – WaveDump2 User Manual                                                                                ↓
+                                                                 supporting the Scope firmware
+                                                                                                                     Documentation tab
+                                                                                                                           ↓
+                                                                                                                     Manuals category
+
+                                                                                                                      CoMPASS Webpage
+                                                                                                                             ↓
+                                                                                                                       Downloads button
+                                                                 Description of CAEN DAQ software
+             UM5960 – CoMPASS User Manual                                                                                    ↓
+                                                                 supporting the DPP firmware
+                                                                                                                      Documentation tab
+                                                                                                                             ↓
+                                                                                                                       Manuals category
+
+
+
+
+             Documentation on 10 Gb Ethernet                     How to manage CAEN 10 GbE interface           Available on request on CAEN cloud
+
+
+
+
+            Tab. 3.2: Table of web available official documentation
+
+
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                                         16
+                                                            CAEN                    Electronic Instrumentation
+
+4 PID (Product Identifier)
+     PID is the CAEN product identifier, an incremental number greater than 10000 that is unique for each product. The PID
+     is on a label affixed to the product (Fig. 4.1 and Fig. 4.2) and it is even stored in an on-board non-volatile memory readable
+     by the Web Interface (Chap. 10).
+
+
+
+
+      Fig. 4.1:PID location on V/VX2740 / V/VX2745 (the number in the picture is purely indicative)
+
+
+
+
+      Fig. 4.2:PID location on DT2740 / DT2745 (the number in the picture is purely indicative)
+
+
+
+
+17                                                     UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN                Electronic Instrumentation
+
+5 Power Requirements
+5.1 VME Models
+           The V/VX2740 / V/VX2745 Digitizers power requirements are described in Tab. 5.1.
+
+
+
+                  MODULE                                    SUPPLY VOLTAGE
+
+                                          +12 V                       +5 V           +3.3 V
+
+                   VX2740               1.1 A (Typ.)            2.7 A (Typ.)    4.9 A (Typ.)
+
+
+                   V2740                1.1 A (Typ.)            6.2 A (Typ.)           -
+
+
+                   VX2745               1.4 A (Typ.)            5.3 A (Typ.)    4.9 A (Typ.)
+
+
+                   V2745                1.4 A (Typ.)            9.0 A (Typ.)           -
+
+            Tab. 5.1: VME64 and VME64X Digitizers power requirements
+
+
+5.2 Desktop Models
+           The DT2740/DT2745 Digitizers are powered by an internal 100/240V ~ 50 / 60Hz AC/AC stabilized power supply (130W
+           max.) The power supply cord is included in the delivered kit (see Tab. 3.1) and it is connected to equipment using an IEC
+           C14 connector on the rear panel. The power cord is a standard wall IEC C13.
+
+
+
+                  MODULE                                     POWER SUPPLY
+
+
+              DT2740 / DT2745                     100/240V ~ 50 / 60Hz (130W max.)
+
+            Tab. 5.2: Desktop digitizers mains power specifications
+
+
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                          18
+                                                      CAEN                 Electronic Instrumentation
+
+6 Cooling Management
+     The 2740 / 2745 Digitizer can operate in environment with temperature range of 0° ÷ +40°C [RD1].
+
+     Desktop models (DT2740 / DT2745) are equipped with airflow fans installed onboard. The VME models (V2740 / VX2740
+     and V2745 / VX2745) must be operated in ventilated crates as recommended in Chap. 1.
+
+
+
+                       EXTERNAL FANS MUST BE USED WHEN THE BOARD IS INSTALLED IN
+                       A SETUP WITH POOR AIRFLOW
+
+     The User must take care to provide proper cooling to the board with an external fan if the board is used in an enclosure
+     or if the board is installed in a setup with poor airflow.
+     Excessive temperature will, in the first instance, reduce the performance and the quality of the measurements and can
+     also damage the board.
+
+     If the board is stored in a cold environment, please check for water condensation before powering on.
+
+
+
+6.1 Cleaning Air Vents
+     CAEN recommends to occasionally cleaning the air vents on all vented sides of the board. Lint, dust, and other foreign
+     matter can block the vents and limit the airflow. Be sure to power off the board and disconnect it from the power by
+     physically detaching the power cord before cleaning the air vents and following the general cleaning safety precautions.
+
+
+
+                       IT IS UNDER THE RESPONSIBILITY OF THE CUSTOMER A NON‐
+                       COMPLIANT USE OF THE PRODUCT
+
+
+
+
+19                                               UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN                Electronic Instrumentation
+
+7 Temperature Protection
+           To preserve hardware damages, the Digitizer implements automatic protection from over-temperature events. The
+           temperatures of the critical components can be constantly monitored by the Web Interface (see Sec. 10.5.4) or in the
+           software [RD3].
+
+           In case of excessive overheating (temperature thresholds are fixed in the firmware), the following protocol is
+           automatically executed by the firmware:
+
+                   •     The FAIL red LED on the device front panel is turned on [RD1];
+                   •     All the critical hardware components, including the ADCs, are shut down;
+                   •     If an acquisition was in progress, the run is stopped (any data stored up to that point can still be retrieved).
+
+           During the over-temperature condition, the communication with the Digitizer is still possible just for diagnostics:
+
+
+
+
+            Fig. 7.1: Example of error flags status in the Web Interface for the overtemperature condition
+
+           The event is also signaled if using CAEN software [RD3].
+
+
+                             IN THE EVENT OF OVERTEMPERATURE, TRY TO REMOVE ANY POSSIBLE
+                             EXTERNAL CAUSE OF OVERHEATING.
+                             CONTACT CAEN IF THE CONDITION PERSISTS.
+
+
+
+            BEFORE STARTING A NEW RUN FOLLOWING AN OVERTEMPERATURE EVENT, THE DIGITIZER RESET OR POWER CYCLE
+            IS STRICTLY REQUIRED!
+
+
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                               20
+                                                         CAEN                Electronic Instrumentation
+
+8 Hardware Installation
+     Before installing the hardware, please pay attention to the here listed warnings.
+
+
+                       ONLY QUALIFIED PERSONNEL SHOULD PERFORM INSTALLATION
+                       OPERATIONS
+
+
+
+
+                       DO NOT INSTALL THE EQUIPMENT SO THAT IT IS DIFFICULT TO ACCESS
+                       THE BACK PANEL FOR DISCONNECTING THE DEVICE
+
+
+
+
+                        IT IS RECOMMENDED THAT THE SWITCH OR CIRCUIT-BREAKER IS NEAR
+                        THE EQUIPMENT
+
+
+
+
+                        THE SAFETY OF ANY SYSTEM THAT INCORPORATES THE DEVICE IS UNDER
+                        THE RESPONSIBILITY OF THE ASSEMBLER OF THE SYSTEM
+
+
+8.1 VME Models
+         •    Insert the Digitizer into the crate:
+                   −    V2740 and V2745 fit into 6U VME crates.
+                   −    VX2740 and VX2745 require VME64X compliant crates.
+         •    Power up the crate.
+
+8.2 Desktop Models
+         •    Connect the power cord to the mains input on the rear of the Digitizer [RD1].
+         •    Push on “I” the rear button to enable the mains input.
+         •    Press the front power ON/OFF button [RD1].
+
+
+
+
+21                                                   UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN                Electronic Instrumentation
+
+          Rack Mounting
+           In few simple steps, the DT2740 and DT2745 can be used in 19” racks by applying the provided metal brackets (Tab. 3.1).
+
+
+
+
+            Fig. 8.1: Rack mount kit
+
+          Procedure:
+                •     By a Phillips screwdriver, remove the eight fixing screws (type: TPC 4X10 INOX CROSS BURNISHED), four from
+                      the front and four from the rear rubber frame of the module. Then, remove the two frames.
+                •     Apply the two couples of safety black hole plugs (Tab. 3.1) in the centre of the front and rear panel.
+                •     Apply the two metal brackets, one on each side of the module, and fix them with screws type TPS 4X10 CROSS
+                      INOX DIN 965 (Tab. 3.1).
+                •     Insert the module in a 19” rack and fix it.
+                •     Turn on the module as described in Sec. 8.2.
+
+
+
+
+            Fig. 8.2: Rack version
+
+
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                         22
+                                                        CAEN               Electronic Instrumentation
+
+8.3 Power-on Status
+     Power-on takes a few seconds during which the front panel LEDs may flash and the fans are activated, in the case of
+     Desktop modules.
+
+
+     After power-on, the module is in the following status:
+          •    The Output Buffer is cleared.
+          •    Registers are set to their default configuration.
+          •    Only NIM and PLL LOCK LEDs must stay on (see Fig. 8.3).
+
+
+
+
+      Fig. 8.3: LED status after power-on
+
+
+
+
+23                                                 UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN                Electronic Instrumentation
+
+9 Hardware Detection
+           It is required to install the driver provided by CAEN only in the case of a USB connection in Linux OS (see Sec. 9.2).
+           The Digitizer is factory provided with the default IP address 192.168.0.254 and a hostname that is caendgtz-ETH-PID
+           (where PID is the unique product identifying number described in Chap. 4) and can be changed by the User in the Web
+           Interface (Chap. 10). For the USB connection, the hostname is fixed, and it is caendgtz-USB-PID.
+
+9.1 Ethernet Configuration
+           It is possible to connect the Ethernet interface of the Digitizer through a server or a point‐to‐point connection with a PC.
+           In the latter case, the connection can be done using either a crossed cable, a switch or a computer with a Gigabit Ethernet
+           port.
+
+
+          9.1.1 Windows OS
+           Point-to-point configuration instructions are here described for Windows® 10.
+
+             1.
+
+
+
+
+              • Power on the Digitizer and the PC.
+              • Connect the Ethernet cable between the Digitizer and the host PC.
+              • Open the Windows path:
+                                          Control Panel ‐> Network and Internet -> Network and Sharing Center
+
+              • Click on “Change adapter settings”.
+
+
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                              24
+                                                        CAEN                Electronic Instrumentation
+
+     2.
+     • Right‐click on the Ethernet icon and
+      select ”Properties”.
+
+
+
+
+     3.
+      • Click on ”Internet Protocol Version
+          (TPC/IPv4)” and select ”Properties”.
+
+
+
+
+     4.
+      • Type in the IP address, where the
+          network part is fixed and specifies the
+          unique number assigned to your
+          network, while the host part must be
+          customized to identify the machine in
+          your network. The next figure shows
+          an IP address example.
+      • Type    in the       subnet   mask    as
+          255.255.255.0.
+
+
+
+
+25                                                  UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN                Electronic Instrumentation
+
+          9.1.2 Linux OS
+           A similar procedure is foreseen with point-to-point configuration on Linux®, as following described for Ubuntu Linux
+           18.04.
+
+
+             1.
+
+
+
+
+              • Power on the Digitizer and the PC.
+              • Connect the Ethernet cable between the Digitizer and the host PC.
+              • Click on the top‐right Network icon or access the Network activity, then open the path:
+                                                          Wired Connection ‐> Wired Settings
+
+
+
+
+             2.
+
+
+
+
+              • Click on the settings icon, select the IPv4 tab, select Manual method, configure IP Address and Netmask, and apply. The figure
+                above shows a typical setting example.
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                                     26
+                                                        CAEN                  Electronic Instrumentation
+
+9.2 USB Configuration
+     The USB-3.0 interface of the Digitizer is based on the IPv6 protocol. Make sure to enable the protocol required to
+     communicate with the device.
+
+
+     9.2.1 Windows OS
+       1.
+            • Power on the digitizer and the PC.
+
+            • Connect the USB cable between the Digitizer
+              and the host PC.
+            • The new hardware will be automatically
+              detected as “Remote NDIS Compatible
+              Device #n” in Windows Device Manager
+              under Network Adapters.
+
+
+
+
+     9.2.2 Linux OS
+       1.
+            • Download the driver for Linux from the Digitizer web page and unpack it.
+            • Execute: sudo ./install.sh (as reported in the README file). The script file will properly configure the system to
+              manage the USB connection by the hostname (see Sec. 10.1).
+            • Connect the USB cable between the Digitizer and the host PC.
+
+            • Power on the digitizer and the PC.
+
+            • The new hardware will be automatically detected.
+
+            • Issue the lsusb command to list the connected USB peripherals and look for the “CAEN SpA VX2740” voice in
+              the results.
+
+
+
+
+27                                                 UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN                Electronic Instrumentation
+
+10 Web Interface
+           The Digitizer is provided with a web interface that manages a set of service operations both via USB and Ethernet
+           interface. The following descriptions refer to the release 1.1.8 of the Web Interface.
+           The Web Interface is organized into different pages accessible by a simple menu always in the foreground (Fig. 10.1).
+
+
+
+                                                                   Login
+
+
+
+
+                                              Logout               Home
+
+
+
+
+                                                                   Menu
+
+
+
+
+                           Board ID      Network        User      Data/Time                Firmware      Clock
+             Dashboard                                                        Parameters                             License
+                             Card        Settings    Management    Settings                Upgrade      Settings
+
+
+
+
+            Fig. 10.1: Flow Diagram of the Web Interface
+
+
+10.1 First Access by USB
+           To perform the first access by USB, open your browser and digit:
+                                                            http://caendgtz-usb-{PID}
+           where the {PID} is the number reported on your Digitizer (see Chap. 4).
+            Note: There might be Linux distributions that are not able to automatically retrieve the Digitizer USB name (caendgtz-
+            USB-{PID}). In this case, the web browser returns an error when trying to access the digitizer using its USB name. This
+
+           issue can be resolved by connecting the Digitizer to a PC USB port (there must be only one CAEN device at a time
+            connected!) and then executing the “regPID” script file (./regPID.sh) that is included in the Linux driver packet of the
+            Digitizer (see Chap. 9). The connected digitizer will be so registered on the PC. In presence of multiple digitizers, the
+            same procedure must be repeated for each device.
+
+
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                          28
+                                                          CAEN                   Electronic Instrumentation
+
+10.2 First Access by Ethernet
+         To perform the first access by Ethernet, open your browser and digit:
+                                                          http://192.168.0.254
+         where 192.168.0.254 is the factory IP address of the board (see Chap. 9).
+
+         Note: since the IP address of the Digitizer can be changed by the user (see Sec. 10.7), it is strongly suggested to check
+          the IP address of the Digitizer in the web interface by connecting via USB link, first of all.
+
+
+          Note: Instead of the IP address, the connection is even possible by using the hostname (CAEN-ETH-PID, where PID is
+
+         defined in Chap. 4). This option cannot be used in a point-to-point connection. To be able to use this option, the network
+          in which the digitizer is connected must provide a DHCP and DNS service. In case of any doubts, it must be checked with
+          your IT department that an 'A record' is present in your DNS server.
+
+10.3 Login
+         To log in to the Web Interface, two account levels are defined: Administrator and User. The default credentials are
+         reported in the table below.
+
+                ACCOUNT                                CREDENTIALS
+
+                                                   Username = admin
+              Administrator
+                                                   Password = admin
+
+                                                   Username = user
+                   User
+                                                   Password = user
+          Tab. 10.1: Default account credentials
+
+
+
+
+          Fig. 10.2: Login dialog
+
+         It is possible to reset the password of the Administrator account by contacting CAEN Technical Support (see Chap. 16)
+         after clicking on the “Forgot Password?” link.
+
+         Note: To reset the password of a User account, please contact your administrator.
+
+
+
+
+29                                                    UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN                   Electronic Instrumentation
+
+10.4 Home Page
+           The home page includes the Menu with the entries to access the different pages of the web interface, some general
+           information like date and hour, the Web Interface release version and copyright, the target digitizer model, and
+           identification number (PID). The Menu is always in the foreground unless the User decides to hide it by the Toggle Menu
+           button.
+           It is possible to go back to the home page from any other page of the web interface just by clicking on Home.
+
+
+                   MENU               HIDE/SHOW                                                                    BACK TO
+                                                         Board INFO
+                  ENTRIES                MENU                                                                     HOME PAGE
+
+
+
+
+                                                                                                                    ACCOUNT MENU
+
+
+
+
+             Date and Hour
+
+
+
+                 WEB
+              INTERFACE
+                 INFO
+
+
+
+
+            Fig. 10.3: Home page
+
+
+            10.4.1            Account Menu
+           On the top right of the home page, the slide menu makes available a set of functions for the current account (see Fig.
+           10.4).
+
+
+
+
+            Fig. 10.4: Admin account functions
+
+              •      “Change Password” allows modifying the password of the account. To protect the privacy, it is recommended to
+                     change the password after the first access (see Fig. 10.5).
+
+
+
+
+            Fig. 10.5: Change Password dialog
+
+              •      Reboot device” triggers the embedded operating system reboot. It is useful after a firmware upgrade (see Sec.
+                     10.8), particularly when the device is not physically accessible.
+              •      “Logout” permits to quickly log out of the web interface.
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                             30
+                                                               CAEN             Electronic Instrumentation
+
+      10.4.2           Alert Indicator
+     In case of failure, the alert indicator      appears on top of the Web Interface frame (see Fig. 10.6), which stays always in
+     the foreground.
+     The indicator blinks for a few seconds and stops. It disappears if the failure is removed.
+     From any other page of the Web Interface, just clicking on the indicator forwards to the Dashboard to have a quick sight
+     at the diagnostics (see Sec. 10.5.3).
+
+
+
+
+      Fig. 10.6: Alert indicator on top of the Web Interface
+
+
+10.5 Dashboard Page
+     The Dashboard page shows three categories of information: Error Flags, Board Information, and Hardware Monitor.
+     The “Error Flags” is a list of light indicators of the hardware status (see Sec. 10.5.3). The “Board Information” provides
+     the main information retrieved from the board, like model, firmware versions, PID, active link, etc. (see Sec. 10.5.1). The
+     “Hardware Monitor” displays the actual values of a set of critical hardware parameters (see Sec. 10.5.4).
+
+
+
+
+      Fig. 10.7: Dashboard page
+
+
+
+
+31                                                     UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN                   Electronic Instrumentation
+
+            10.5.1             Board Information
+
+             Board Information                         Description                                                Options
+
+                                                                                        V2740, V2740B, VX2740, VX2740B, DT2740, DT5724B,
+             Model name           The name of the digitizer model
+                                                                                        V2745, V2745B, VX2745, VX2745B, DT2745, DT2745B
+             Firmware version     The firmware version of the current CUP               See Sec. 10.8
+                                                                                        DPP_PHA (CAEN firmware for Pulse Height Analysis)
+                                                                                        DPP_PSD (CAEN firmware for Pulse Shape Discrimination)
+                                                                                        DPP_ZLE (CAEN firmware for Zero Length Encoding)
+             Firmware type        The category of the current CUP
+                                                                                        Scope (CAEN firmware for waveform recording)
+                                                                                        DPP_OPEN (User DPP firmware)
+                                                                                        Scope_OPEN (User Scope firmware)
+                                                                                        X.Y.ZZZ
+             Bitstream version    The version of the FPGA firmware
+                                                                                        X = major, Y = minor, ZZZ = build
+             PID                  The product identification number of the Digitizer    Incremental decimal number > 10000
+                                                                                        Not Licensed = DPP firmware and SCI-Compiler firmware
+                                  The license status referred to the FPGA firmware      (Open FPGA) trial version.
+             License
+                                  (see Sec. 10.13)                                      Licensed = Scope firmware, DPP firmware, and SCI-
+                                                                                        Compiler firmware unlocked version.
+                                                                                        30-minute reverse counter. Appears only if a DPP
+             Trial Time Left      Timebomb for firmware trial versions                  firmware or SCI-Compiler firmware is running in trial
+                                                                                        version (see Sec. 10.13).
+             BIOS                 The firmware version of the BIOS                      See Sec. 10.8.
+
+             System               The firmware version of the operating system
+                                                                                        Green = active
+             LAN/USB Link up      Light indicators of the active link
+                                                                                        Red = not active
+            Tab. 10.2: Board Information table
+
+
+            10.5.2             Connectivity
+                Connectivity
+                                                    Description                                   Value                           Notes
+                   info
+                                                                                    Green = active
+             USB link up          Indicates if the USB link is active
+                                                                                    White = not active
+                                                                                    Green = plugged
+             SFP Presence         Indicates if a SFP transceiver is plugged
+                                                                                    White = not plugged
+                                                                                    Green = active
+             SFP Link up          Indicates if the SFP link is active
+                                                                                    White = not active
+                                                                                    Eth1G (1 Gigabit Ethernet)          It is not correlated to the
+                                                                                    Eth10G (10 Gigabit Ethernet)        SFP Presence, but related
+             SFP Protocol         Indicates the protocol of the SFP link
+                                                                                    CONET (CAEN proprietary optical     to the CUP type (See Sec.
+                                                                                    link)                               10.9)
+                                  Host identification number used for proper
+             IP Address
+                                  communication between devices
+                                  Mask used to distinguish the subnet part of
+             Netmask              the IP address, as well as the part that is the
+                                  host address of that subnet
+                                                                                                                        Network interface
+                                  Network device that acts as an entry point                                            parameters echoed from
+             Default Gateway
+                                  from one network to others                                                            the Network Settings
+                                                                                                                        page (Sec. 10.7)
+                                   DNS (Domain Name System) service used to
+             DNS                   change public (external) IP addresses from
+                                   numeric to a domain format
+                                   Domain name assigned to the device on the
+             Hostname                                                               Default: caendgtz-eth-{PID}
+                                   network
+            Tab. 10.3: Connectivity table
+
+
+
+
+                                 LIVE INSERTION (HOT SWAP) OF THE SFP TRANSCEIVER IS NOT
+                                 SUPPORTED!
+
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                                        32
+                                                            CAEN                      Electronic Instrumentation
+
+     10.5.3             Error Flags
+
+                 Flag                   Description                          Value                            Notes
+                              Status flag of the power supply   GREEN = Normal
+      Power Status
+                              of the board                      RED = Power Supply fail
+                              Status flag of the board          GREEN = Normal
+      Board Init
+                              initialization procedure          RED = Initialization fail
+                              Status flag of the SI5341 PLL     GREEN = Normal               When in fail status, there could be a
+      SI5341 PLL Lock
+                              component                         RED = PLL unlocked           hardware problem or something
+                              Status flag of the SI5341 PLL     GREEN = Normal               wrong in the user settings
+      SI5395 PLL Lock
+                              component                         RED = PLL unlocked
+                              Status flag of the LMK04832 PLL   GREEN = Normal
+      LMK04832 PLL Lock
+                              component                         RED = PLL unlocked
+                                                                GREEN = Normal               When in fail status, the acquired data
+      JESD204B Lock           Status flag of the ADC output bus
+                                                                RED = Bus unlocked           are corrupted
+      DDR4 PL Bank0           Status flag of the first FPGA GREEN = Normal                   When in fail status, there is a problem
+      Calibration             memory bank calibration           RED = Calibration fail       with the memory
+      DDR4 PL Bank1           Status flag of the second FPGA    GREEN = Normal
+      Calibration             memory bank calibration           RED = Calibration fail
+                              Status flag of the processor GREEN = Normal
+      DDR4 PS Calibration
+                              memory calibration                RED = Calibration fail
+                                                                                             In case of failure, the processor could
+                              Status flag     of   the    FPGA GREEN = Normal                not load the firmware on the FPGA. The
+      FPGA Configuration
+                              configuration                    RED = Configuration fail      board enters the factory mode for a
+                                                                                             new configuration attempt
+                                                                                             When in fail status, there could be a
+                              Status flag of the Board ID Card GREEN = Normal
+      BIC Check                                                                              problem with the FLASH memory
+                              information check                RED = Check fail
+                                                                                             storing the Board ID Card information
+                                                                                             This flag is correlated to the Temp Sens
+                                                              GREEN = Normal
+                              Status flag of the Analog-to-                                  First ADC and Temp Sens Last ADC
+      ADC Temp                                                RED = Temperature out of
+                              Digital converters' temperature                                parameters in the Hardware Monitor
+                                                              range
+                                                                                             section (Tab. 10.5)
+                                                                                             This flag is correlated to the Temp Sens
+                                                                 GREEN = Normal              Air In and Temp Sens Air Out in
+      Air Outlet Temp         Status flag of the board cooling
+                                                                 RED = Cooling fail          parameters in the Hardware Monitor
+                                                                                             section (Tab. 10.5)
+                                                                 GREEN = Normal              This flag is correlated to the Temp Sens
+                              Status flag     of   the    FPGA
+      FPGA Temp                                                  RED = Temperature out of    Core parameter in the Hardware
+                              temperature
+                                                                 range                       Monitor section (Tab. 10.5)
+                                                                                             This flag is correlated to the Temp Sens
+                                                                                             DC/DC parameter in the Hardware
+                                                                GREEN = Normal               Monitor section (Tab. 10.5). In case of
+                              Status flag of the temperature of
+      DC/DC Temp                                                RED = Temperature out of     failure, check the value of the Temp
+                              the FPGA main power supply
+                                                                range                        Sens DC/DC, V In Sens DC/DC, V Out
+                                                                                             Sens DC/DC, and I Out Sens DC/DC
+                                                                                             parameters
+                                                                                             In case of a failure with the reference
+                                                                                             clock set on External (Sec. 10.12), a
+                                                                                             clock signal could be missing on the
+                              Status flag of the internal GREEN = Normal
+      Clock In                                                                               CLK-IN connector. In case of a failure
+                              reference clock             RED = Clock fail
+                                                                                             while the reference clock is set on
+                                                                                             Internal, there could be a hardware
+                                                                                             problem
+                                                                                             This flag signals that the ADCs were
+                                                                 GREEN = No shutdown
+      ADC Shutdown            Status flag of the ADC shutdown                                shut down for overheating to prevent
+                                                                 RED = Shutdown occurred
+                                                                                             damage
+     Tab. 10.4: Error Flags table
+
+
+
+
+33                                                    UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN               Electronic Instrumentation
+
+            10.5.4            Hardware Monitor
+                 Hardware
+                                                       Description                                               Notes
+                 Parameter
+             Temp Sens Air In                                                            These parameters are correlated to the Temp Outlet
+                                   Temperature monitoring of the inlet/outlet air flow   Air indicator in the Dashboard section (Tab. 10.4)
+             Temp Sens Air Out
+                                                                                         This parameter is correlated to the FPGA Temp
+             Temp Sens Core        Temperature monitoring of the FPGA
+                                                                                         indicator in the Dashboard section (Tab. 10.5)
+             Temp Sens First ADC                                                         These parameters are correlated to the ADC Temp
+                                   Temperature monitoring of the Analog-to-Digital
+                                                                                         indicator in the Dashboard section (Tab. 10.4)
+             Temp Sens Last ADC    converters
+                                   Temperature monitoring of the FPGA main power         This parameter is correlated to the DC/DC Temp
+             Temp Sens DC/DC
+                                   supply                                                indicator in the Dashboard section (Tab. 10.4)
+                                   Input voltage monitoring of the FPGA main power       The value of these parameters should be checked in
+             V In Sens DC/DC
+                                   supply                                                case the Temp DC/DC error flag is on fail
+                                   Output voltage monitoring of the FPGA main power
+             V Out Sens DC/DC
+                                   supply
+                                   Output current monitoring of the FPGA main power
+             I Out Sens DC/DC
+                                   supply
+             Speed Sens Fan #1                                                           Available only in the case of Desktop digitizer or VME
+                                  Monitoring of the onboard fan speed
+             and #2                                                                      digitizer plugged into CAEN µCrate
+            Tab. 10.5: Hardware Monitor table
+
+
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                                     34
+                                                      CAEN                 Electronic Instrumentation
+
+10.6 Board ID Card (BIC) Page
+     The Board ID Card page contains a set of information identifying the Digitizer. The User can save the page content to a
+     PDF file by the “Download” button.
+
+
+
+
+      Fig. 10.8: Board ID Card page
+
+
+
+
+35                                               UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN                Electronic Instrumentation
+
+            10.6.1           BIC Information
+
+             Board ID Card Information                              Description                                             Notes
+
+             Model code                      CAEN product code
+
+
+             PB code                         CAEN code of the digitizer PiggyBack
+
+                                                                                                      Same information as on the Dashboard
+             Model name                      The name of the digitizer model
+                                                                                                      page (Tab. 10.2)
+
+                                                                                                      0 = VME
+             Form factor                     The code identifying the digitizer form factor           1 = VME64X
+                                                                                                      2 = Desktop
+                                                                                                      It is 2740 or V2745
+             Family code                     The code identifying the digitizer family                (common to all the digitizer versions: VME,
+                                                                                                      VME64X, Desktop, SE/DIFF inputs, etc.)
+
+                                                                                                      Same information as on the Dashboard
+             PID                             The product identification number of the digitizer
+                                                                                                      page (Tab. 10.2)
+
+
+             PCBrev MB                       The PCB revision number of the digitizer MotherBoard
+
+
+             PCBrev PB                       The PCB revision number of the digitizer PiggyBack
+
+                                             Additional revision number related to the patch on the
+             PCB PB Patch                                                                             0 = no patch present
+                                             PCB PiggyBack (CAEN use only)
+
+             ADC Resolution (bit)            The ADC resolution in bits                               Must be 16 (16-bit) for 2740-45 series
+
+
+                                                                                                      Must be 125 (125 MS/s) foer 2740-45
+             ADC Sampling Rate (MS/s)        The sampling frequency of the ADCs in MS/s
+                                                                                                      series
+
+                                             The maximum number of supported analog input
+             Number of Channels                                                                       Must be 64 for 2740-45 series
+                                             channels
+
+             FPGA Type                       The model of the on-board FPGA                           Must be 1 (XCZU19)
+
+                                             The full-scale range of the analog input channels in     Must be 2 (Vpp) for 2740 and 4 (Vpp) for
+             Input Range (Vpp)
+                                             peak-to-peak Volts                                       2745
+
+                                                                                                      DIFF = Differential
+             Input Type                      The type of the input channels
+                                                                                                      SE = Single-ended
+
+                                             The input impedance value of the analog channels in      Must be 100 for differential input type
+             Input Impedance (Ohm)
+                                             Ohm                                                      Must be 50 for single-ended input type
+
+             OUI                             The 3‐byte IEEE Organizationally Unique Identifier       Must be 0040E6
+
+
+             MAC                             The factory MAC address of the Digitizer
+
+            Tab. 10.6: Board ID Card table
+
+
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                                         36
+                                                         CAEN                  Electronic Instrumentation
+
+10.7 Network Settings Page
+         On this page, the User can manage the network settings of the Digitizer. The MAC Address is fixed and given by the
+         manufacturer. The default IP Address, the address Method (Manual/DHCP), and the other settings can be configured in
+         this section according to the characteristics of the end user’s network. Press Apply to confirm the changes.
+         If necessary, the hostname for the ethernet connection, caendgtz-ETH-{PID}, can be changed in this section.
+
+
+
+
+          Fig. 10.9: Network Settings page
+
+
+
+
+         Note: The values of the network parameters here configured are echoed in the Dashboard page (Sec. 10.5.2).
+
+
+
+
+37                                                   UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN                Electronic Instrumentation
+
+10.8 User Management Page
+           Two different access roles are defined: admin and user. The administrator (admin) can control all the functions of the
+           Web interface. The user access is limited to the Dashboard and Board ID Card pages.
+           The user is also allowed to reboot the board and change the password.
+
+
+
+
+            Fig. 10.10: User Management page
+
+
+10.9 Time/Date Settings Page
+           In this section, the User can change the time and date settings. Disabling the NTP synchronization option, the hour, date,
+           and time zone can be manually inputted. It is also possible to synchronize the digitizer hour and date with computer
+           clock. When connected by the ethernet link, hour and date can even be synchronized to an external NTP server after
+           enabling the NTP synchronization option (the Debian servers are set by default).
+
+
+
+
+            Fig. 10.11: Time/Date Settings page
+
+
+
+
+           Note: Please, refer to systemd-timesyncd documentation for the description of the Advanced NTP settings.
+
+
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                           38
+                                                               CAEN             Electronic Instrumentation
+
+10.10           Parameters Page
+         In this section, the User can manage the library parameters related to the active firmware CUP revision. It is possible to
+         browse for the description of each available parameter, command, and endpoint, and save the entire documentation to
+         disk as PDF file. The section also provides a Manual Controller to make basic settings and monitoring for test purposes.
+
+
+
+
+          Fig. 10.12: Parameters page
+
+
+
+         Note: Make sure that the pop-up messages are enabled in the internet browser to access the parameter view.
+
+
+
+
+          Fig. 10.13: Parameters view from the Web Interface
+
+
+
+
+39                                                      UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN                Electronic Instrumentation
+
+            10.10.1 Device Tree
+
+
+
+
+            Fig. 10.14: Device Tree subsection
+
+
+            10.10.2 Manual Controller
+
+
+
+
+            Fig. 10.15: Manual Controller subsection
+
+           Clicking on a key in the Device Tree (Sec. 10.10.1), the path is put directly in the Path field of the Manual Controller.
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                                 40
+                                                            CAEN                  Electronic Instrumentation
+
+10.11           Firmware Page
+        Four components characterize the programming status of the digitizer, whose versions are reported in the Web Interface
+        (see Sec. 0):
+
+            BIOS                                   Is the BIOS firmware of the digitizer
+
+            System                                 Is the operating system of the digitizer
+
+            Bitstream                              Is the FPGA firmware of the digitizer
+
+            Firmware                               Is the current CUP file
+
+        Firmware updates are provided by CAEN as a CUP file, which is an archive of files capable to upgrade more than a
+        programmable component.
+
+
+
+
+         A CUP FILE COULD BE ISSUED TO UPGRADE SPECIFIC COMPONENTS SO LOADING A CUP FILE ON THE DIGITIZER NOT
+         ALWAYS IMPLIES THAT ALL THE FIRMWARE COMPONENTS WILL BE UPDATED!
+
+
+
+
+        The CUP file name is standardly:
+                                            <model>-<category>-<revision>-<eth_type>.CUP
+        where
+
+            model         is the digitizer model                  e.g. “V2740” is common to V2740 and V2740B versions.
+
+            category      identifies the firmware category        e.g. “scope” means firmware for the waveform recording.
+
+            revision      is the CUP release number               e.g. “2022051400” means release 00 and build May 14th, 2022.
+
+                          is the kind of ethernet interface       e.g. “1G” means 1 Gigabit Ethernet.
+            eth_type
+                          supported
+
+        The Digitizer can store multiple CUP files at once on board. Each file generates a raw in the “Firmware” page characterized
+        by version and category (scope, DPP-PHA, etc.) as in Fig. 10.16.
+
+
+
+
+         Fig. 10.16: Firmware page
+
+        In the Firmware page, it is possible to load a new CUP file (see Sec. 10.11.1) and manage the stored ones.
+        The factory firmware (red label in Fig. 10.16) is loaded by the manufacturer and cannot be removed.
+        By the blue slide-menu on the right of the raw, specific settings can be applied (Fig. 10.16):
+
+
+
+
+41                                                     UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN                  Electronic Instrumentation
+
+              Apply                                This function sets the CUP version as current (green label). The digitizer is
+                                                   programmed on the fly without needing to reboot the digitizer.
+
+              Set as default                       This function sets the CUP version as default (light blue label). The digitizer is
+                                                   programmed after a reboot.
+
+              Delete                               This function removes the CUP version from the digitizer memory.
+
+              See details                          Shows what is new in the CUP file version (Fig. 10.17).
+
+              Delete                               Removes the CUP version from the Digitizer memory
+
+
+
+
+           Note: The Apply, Default, and Delete functions are also supported by the CAEN Toolbox software utility [RD5].
+
+
+
+
+            Fig. 10.17: The CUP file changelog
+
+
+
+
+                                                 THE FACTORY FIRMWARE CANNOT BE DELETED!
+
+
+
+
+            DOWNGRADING THE CURRENT CUP VERSION DOES NOT AUTOMATICALLY MEAN THAT ALL THE FIRMWARE
+            COMPONENTS ARE DOWNGRADED!
+
+
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                            42
+                                                           CAEN                Electronic Instrumentation
+
+          10.11.1 Upgrade Procedure
+         The following step shows how to load a CUP file on the Digitizer:
+            •   Press the “Upload new firmware” button.
+            •   Use the “Browse” button in the upgrade window to point to the CUP file.
+            •   Press the “Upload” button to start the upgrade.
+            •   Wait until the process is completed.
+            •   The new CUP version will be automatically set as current at the end of the process (see Sec 10.8).
+
+
+
+
+          Fig. 10.18: Firmware upgrade window
+
+            •   A reboot may be requested to make the upgrade effective: power cycle the Digitizer or use the “Reboot device”
+                option for a remote reboot (see Sec. 10.4.1). After reboot, the CUP version set as “default” will be the current
+                (see Sec 10.8).
+
+         Note: The CUP upgrade function is also supported by the CAEN Toolbox software utility [RD5].
+
+
+
+
+43                                                     UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN                Electronic Instrumentation
+
+10.12             Clock Settings
+           This is the section where the clock settings of the Digitizer are managed:
+
+               Reference                      Internal: The Digitizer is set to work upon the internal oscillator as the reference clock
+               clock                          (default).
+                                              External: The Digitizer is set to work upon an external clock reference; the front panel CLK-
+                                              IN LED is on. By applying the proper clock signal to the front panel CLK-IN connector, the PLL-
+                                              LOCK LED lights on to indicate that the PLL of the Digitizer is locked.
+                                              In case of a PLL failure, or if no signal is sent to CLK-IN, the PLL-LOCK LED is off and the FAIL
+                                              LED is on (the failure should be signaled also by the error flags in the Dashboard page, Sec.
+                                              10.5).
+                                              The External setting is typically used in the daisy chain propagation of the clock (by CLK-IN /
+                                              CLK-OUT) for multi-board synchronization.
+
+               Output                         Enable: The reference clock signal is sent to the front panel CLK-OUT connector. Enabling
+               clock                          the output clock, the CLK-OUT LED of the Digitizer is on.
+                                              Disable: No clock signal is sent out to CLK-OUT.
+                                              The output clock enable is typically used in the daisy chain propagation of the clock (by CLK-
+                                              IN / CLK-OUT) for multi-board synchronization.
+
+               Clock out                      The clock reference signal is sent to CLK-OUT with a programmable delay: select the desired
+               delay                          delay value and then press Apply to confirm.
+                                              This setting is generally used for compensating the phase skew of the clocks when
+                                              synchronizing a multi-board system.
+
+
+
+
+            Fig. 10.19: Clock Settings page
+
+
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                                  44
+                                                        CAEN                  Electronic Instrumentation
+
+      10.12.1 PLL Settings
+     When the Clock Source is set to External, in this subsection it is possible to synchronize the Digitizer to a programmed
+     reference clock frequency provided on CLK-IN connector.
+     Users can select the frequency from a set of stored configurations and add new ones by uploading special PLL
+     programming files provided by CAEN on request (Chap. 16).
+     The PLL configuration file has the following features:
+         •    It is a text file
+         •    It configures the PLL only for one specific frequency value provided on CLK-IN (reported in the filename)
+         •    The default frequency of 62.5 MHz is always provided on CLK-OUT (typically to Daisy chain the clock in multi-
+              board synchronization)
+         •    The same file can be used indifferently on Desktop and VME boards, also on Digitizer 2.0 modules of different
+              series.
+
+
+
+
+      Fig. 10.20: PLL Settings Menu
+
+     To know more about a stored PLL configuration file:
+         •    Click on More to see the file details (file version, input and output programmed clocks, clock signal accuracy, file
+              date, checksum and notes)
+
+
+
+
+     To apply a stored PLL configuration:
+         •    Press the Apply button close to the wanted PLL programming file in the list -> Reboot the digitizer
+     To download a stored PLL configuration file on the host computer:
+         •    Press the           button
+
+
+45                                                 UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN                Electronic Instrumentation
+           To store a new PLL configuration:
+               •    Press the Upgrade New PLL button -> Browse your PC pointing to the new programming text file -> Press the
+                    Upload button
+
+
+
+
+            Fig. 10.21: PLL Upload Dialog
+
+           Once the desired PLL configuration has been applied, check that the Clock Source is set to External (Sec. 10.12). The
+           green LED close to the CLK-IN connector must be on. The PLL-LOCK green LED must be on as soon as the proper external
+           clock is fed into CLK-IN.
+
+           Note: Users who need new PLL configurations can open a ticket to contact CAEN Support (see Chap. 16). CAEN will
+            evaluate the feasibility of the configuration and possibly provide the relevant programming txt file.
+
+
+
+           Note: The PLL configuration files factory stored in the digitizer memory cannot be removed. Users can anyway delete
+            those files that have been uploaded afterwards.
+
+10.13              License
+           This page manages the runtime license needed by the pay firmware, basically the DPP firmware (provided by CAEN)
+           and the SCI-Compiler firmware (made from users for the Open FPGA).
+
+
+
+
+              Fig. 10.22: License page
+
+           Once loaded on the digitizer, if not licensed, the firmware runs in Trial mode, that is 30 minutes per power cycle with
+           all the functions working.
+           To users who purchased a runtime license, the Apply function allows writing the received PUC (Product Unlock Code)
+           on the digitizer memory to remove the time limitation and activate the license.
+           The stored PUC, if present, is always displayed in the relevant textbox for backup.
+
+           Note: After Apply and Remove functions, the device reboot is always required to make the operation effective
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                          46
+                                                  CAEN                  Electronic Instrumentation
+
+     10.13.1 PUC Activation
+       •   Type the received 24-digit PUC in the text box according to kind of Runtime license;
+       •   Press the Apply key;
+       •   Wait for a few seconds until a message informs you that the process is completed;
+       •   Reboot the Digitizer. The PUC should be displayed in the related textbox.
+       •   Set a compliant CUP as current (Sec. 10.11) and the License parameter in the Dashboard must show the
+           “Licensed” value (Sec. 10.5.1)
+
+
+
+
+47                                           UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN                Electronic Instrumentation
+
+11 On-board Zynq® UltraScale+™ MPSoC
+           The Digitizer is equipped with a Zynq UltraScale+ MPSoC module including an ARM-based processor running Debian 11
+           GNU/Linux OS. The User can access via SSH protocol the SoC module via both the USB and the Ethernet protocol and
+           develop his/her own software on the OS installed, as if almost were a PC with a Linux OS installed.
+            Note: ARM-based processors have much lower computational power than normal PCs. Running softwares requiring high
+           computational capability on the embedded SoC could drastically reduce the overall performance of the entire x2740-
+            2745 module.
+
+11.1 How to Access the Embedded OS
+           It is possible to access the Linux OS installed on the SoC by performing the USB or Ethernet connection using the SSH
+           protocol:
+                •    Open the terminal.
+                •    Digit ssh admin@caendgtz-usb-{PID} in case of USB connection or ssh admin@{ip address} in case of Ethernet
+                     connection.
+                •    Insert the Password when required (admin)
+                •    Once the connection is established, the window opened is similar to the one in the figure above. The User
+                     can visualize information regarding the OS installed on the ARM processor.
+
+
+
+
+11.2 Library Installation
+           Once the SSH connection with the Debian GNU/Linux OS installed on the SoC available on the Digitizer is established
+           the User can install the libraries required to work with the digitizer: the Dig2 and the FELib library available on our site
+           [RD4].
+                •    Download the binary files for aarch64 distribution.
+                •    Copy the tar.gz files on the Debian GNU/Linux OS installed on the SoC with the terminal command:
+                     scp {file path}/{file name}.tar.gz admin@{digitizer path}:/home/admin
+                     Note that this command must be launched from the host PC, not from the SoC.
+                •    Connect via ssh to the SoC as showed in Sec. 11.1.
+                •    Untar the packages with the following command: sudo tar -zxvf {file name} -C / --no-overwrite-dir
+                •    Reboot the device.
+                •    Once the installation of both libraries is completed, the User can check the content of the /usr/local/lib
+                     folder.
+           Now the User is able to develop his own DAQ and run it on the SoC.
+
+
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                              48
+                                                     CAEN                 Electronic Instrumentation
+
+11.3 Run the FELib Demo
+     For example, the User can run the FELib Demo scope as example of a basic DAQ of the digitizer. The following steps
+     require the digitizer to be online (for example the digitizer can be connected in DHCP to the Network), USB and
+     Ethernet Point-to-Point aren’t supported.
+         •    Copy the caen-felib-demo-scope folder, for example, in the Debian GNU/Linux OS installed on the SoC.
+         •    Connect via ssh and open the terminal inside the caen-felib-demo-scope folder.
+         •    Update the system and download the build-essential package from the apt repository by digiting on the
+              terminal:
+              sudo apt update
+              sudo apt install build-essential
+         •    Now digit make on the terminal to compile the demo.
+         •    Launch the demo.
+
+
+
+
+49                                               UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN                Electronic Instrumentation
+
+12 First Acquisition with WaveDump2
+           This chapter suggests how to perform a simple waveform acquisition using the Digitizer and CAEN WaveDump2 readout
+           software [RD3].
+           The described example is based on a Windows 10 PC and a USB connection.
+
+12.1 Setup
+           It is possible to input the analog signals into the Digitizer using one of the adapters provided by CAEN (accessories not
+           included in the device delivery kit): A372M and A372F.
+           The A372F adapts all the 64 channels from the 40-pin 2mm header connectors of 2740 to 34-pin 2.54mm header ones,
+           not applying any electrical modification to the original single-ended or differential analog channels of the Digitizer.
+           The A372M adapts all the 64 channels from the 40-pin 2mm header connectors of the 2740 to 64 MCX coaxial ones. This
+           adapter must be used only with single-ended versions of the Digitizer (2740B).
+           Details, pinout, and assembly information can be found in the adapters’ datasheet [RD2].
+
+
+
+
+            Fig. 12.1: The 2740 Digitizer matched with the A372M adapter.
+
+
+
+           In this document, a Gaussian signal of fixed amplitude, fixed-rate and negative polarity is generated as input pulse and
+           fed into CH0 of the 2740 Digitizer.
+
+
+
+
+            Fig. 12.2: Typical input Gaussian signal
+
+
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                          50
+                                                        CAEN                 Electronic Instrumentation
+
+12.2 Connection and Configuration
+      1.    Download the WaveDump2 packet from the digitizer page on the CAEN website.
+      2.    Unpack, then double-click on the installer file.
+      3.    Complete the installation wizard.
+      4.    By default, the software will be installed at the following destination path:
+                                              C:\Program Files\CAEN\WaveDump2
+      5.    Run Wavedump2 optionally by:
+                                         •    the executable file in the bin subfolder;
+                                         •    the desktop shortcut;
+                                         •    the Start menu.
+      6.    Click on the Connect icon in the top menu bar.
+
+
+
+
+      Fig. 12.3: WaveDump2 mainframe
+
+      7.    Select the USB connection type option and digit the PID number of the target device, then click on the Connect
+            button. In the Logs panel, at the bottom of the main window, the software reports connection success. The User
+            can optionally define a device name (Name) that will be used by the software to identify the active device.
+
+
+
+
+      Fig. 12.4: Connection panel
+
+
+
+
+51                                                 UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN                Electronic Instrumentation
+
+
+
+
+            Fig. 12.5: Logs panel
+
+            8.    In the Plot toolbar, click on the Palette icon to show the Graph settings panel.
+            9.    Enable only Trace 0 and select CH0 as the associated channel.
+
+
+
+
+            Fig. 12.6: Graph settings
+
+
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                               52
+                                                       CAEN                  Electronic Instrumentation
+     10.   In the Control panel, set Trigger Mode Auto and Trigger Source Software for the connected active device (if not
+           entered by the User, the software assigns a default device name: Dig2:usb:12741 in the example). Auto mode
+           causes the oscilloscope to sweep, even without a trigger; the software tries waiting for a new event from the
+           device and, if no event is detected after a fixed timeout, a software trigger is sent. Software Trigger source setting
+           makes a trigger to be sent by the software to force event acquisition.
+
+
+
+
+     Fig. 12.7: Trigger settings
+
+     11.   Start the acquisition by pressing the related button in the Control panel; current events for the active trace are
+           plotted upon the Auto trigger mode. On the device, the front panel RUN LED must be on while the TRG LED lights
+           on each time a trigger arrives.
+
+
+
+
+     Fig. 12.8: Start Acquisition
+
+
+
+
+53                                                UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN                Electronic Instrumentation
+            12.   Click on the Graph Tools icon to show the Oscilloscope Tools panel. In the Amplitude settings, the default DC
+                  Offset value is 50% of the device input dynamic range, which means the baseline position of the active trace is
+                  around the ADC midscale.
+
+
+
+
+            Fig. 12.9: Oscilloscope Tools panel
+
+            13.   To get events upon the channel self-trigger mode, stop the acquisition by the related button in the Control panel
+                  (the RUN LED on the device front panel must be off) and inspect the plotted signal (Trace 0) to estimate the trigger
+                  threshold value to set for CH0. The trigger threshold must be placed out of the baseline noise band (the value
+                  must be set as positive or negative according to the input pulse polarity).
+
+
+
+
+            Fig. 12.10: Stop Acquisition
+
+
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                            54
+                                                       CAEN                  Electronic Instrumentation
+     14.   In the Control panel, select Trigger Mode Normal and Trigger Source Self. Click on the Self Trigger Mask to open
+           the Trigger Mask dialog.
+
+
+
+
+     Fig. 12.11: Self-Trigger settings
+
+     15.   The Trigger Mask dialog allows selecting the channel that must participate in the global trigger. Click on 0 to select
+           CH0 and press OK to confirm.
+
+
+
+
+     Fig. 12.12: Trigger Mask dialog
+
+
+
+
+55                                                UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN                Electronic Instrumentation
+            16.   In the Oscilloscope Tools, digit the trigger threshold signed integer value for the active trace (Trace 0) in the
+                  Threshold textbox of the Amplitude settings. Check the Show checkbox to make the trigger threshold level visible
+                  on the plot (yellow trace). The threshold value is related to the baseline level.
+
+
+
+
+            Fig. 12.13: Trigger Threshold
+
+            17.   Start the acquisition: the device is now getting events upon CH0 self-triggering.
+
+
+
+
+            Fig. 12.14: Acquisition in Normal mode
+
+
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                         56
+                                                      CAEN                  Electronic Instrumentation
+     18.   At this point, it could be useful to tune some additional settings: stop the acquisition, select Configuration in the
+           top main menu, and then click on the Setup Configuration option.
+
+
+
+
+     Fig. 12.15: Setup Configuration
+
+     19.   In the System Settings panel, apply a higher value of pre-trigger in the Main Settings area, click the CH0 button,
+           and set Trigger Polarity on FALL in the Channel Settings area (typically, use FALL with negative pulses and RISE
+           with positive ones).
+
+
+
+
+     Fig. 12.16: System Settings
+
+
+
+
+57                                               UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN                 Electronic Instrumentation
+            20.   Turn back to the mainframe and start the acquisition. The thin red arrow on top of the graph indicates the current
+                  pre-trigger value.
+
+
+
+
+            Fig. 12.17: Pre-trigger setting
+
+            21.   In the Amplitude settings of the Oscilloscope Tools, apply a higher Offset in the percentage of the input range.
+
+
+
+
+            Fig. 12.18: DC Offset setting
+
+
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                          58
+                                                      CAEN                  Electronic Instrumentation
+     22.    By clicking on the Statistics icon in the top menu bar, a set of information related to the current acquisition is
+            displayed and updated runtime.
+
+
+
+
+     Fig. 12.19: Statistics
+
+     23.    If you want to record data, stop the acquisition and click Output on the top main menu, then select Configure.
+
+
+
+
+     Fig. 12.20: Output Configuration
+
+
+
+
+59                                               UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN                Electronic Instrumentation
+            24.   In the Output Settings panel, customize the output file configuration and press Ok to confirm. By default, the
+                  destination path is: C:/Users/<USER>
+
+
+
+
+            Fig. 12.21: Output Settings
+
+            25.   Check Save to enable data saving. After the recording session (Start/Stop acquisition), the output files will be
+                  available at the configured path. For the output file formats, refer to [RD3].
+
+
+
+
+            Fig. 12.22: Outputs Enable
+
+
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                        60
+                                                      CAEN                 Electronic Instrumentation
+     26.    Stop the acquisition, select File in the top main menu, then click on Exit to quit WaveDump2.
+
+
+
+
+     Fig. 12.23: Exit
+
+
+
+
+61                                               UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN               Electronic Instrumentation
+
+13 Instructions for Cleaning
+          The equipment may be cleaned with isopropyl alcohol or deionized water and air-dried. Clean the exterior of
+          the product only.
+          Do not apply cleaner directly to the items or allow liquids to enter or spill on the product.
+
+13.1 Cleaning the Touchscreen
+          To clean the touchscreen (if present), wipe the screen with a towelette designed for cleaning monitors or with a clean
+          cloth moistened with water.
+          Do not use sprays or aerosols directly on the screen; the liquid may seep into the housing and damage a component.
+          Never use solvents or flammable liquids on the screen.
+
+13.2 Cleaning the air vents
+          It is recommended to occasionally clean the air vents (if present) on all vented sides of the board. Lint, dust, and other
+          foreign matter can block the vents and limit the airflow. Be sure to unplug the board before cleaning the air vents and
+          follow the general cleaning safety precautions.
+
+13.3 General cleaning safety precautions
+          CAEN recommends cleaning the device using the following precautions:
+              1) Never use solvents or flammable solutions to clean the board.
+              2) Never immerse any parts in water or cleaning solutions; apply any liquids to a clean cloth and then use the cloth
+                   on the component.
+              3) Always unplug the board when cleaning with liquids or damp cloths.
+              4) Always unplug the board before cleaning the air vents.
+              5) Wear safety glasses equipped with side shields when cleaning the board
+
+
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                          62
+                                                       CAEN                 Electronic Instrumentation
+
+14 Device decommissioning
+     After its intended service, it is recommended to perform the following actions:
+                 − Detach all the signal/input/output cable
+                 − Wrap the device in its protective packaging
+                 − Insert the device in its packaging (if present)
+
+
+                        THE DEVICE SHALL BE STORED ONLY AT THE ENVIRONMENT CONDITION
+                        SPECIFIED IN THE MANUAL, OTHERWISE, IT WILL NOT BE GUARANTEED
+                        PERFORMANCE AND SAFETY
+
+
+
+
+63                                                UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+CAEN               Electronic Instrumentation
+
+15 Disposal
+          The disposal of the equipment must be managed in accordance with Directive 2012/19 / EU on waste electrical and
+          electronic equipment (WEEE).
+
+
+
+                         The crossed bin symbol indicates that the device shall not be disposed with regular residual waste.
+
+
+
+
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                         64
+                                                      CAEN                    Electronic Instrumentation
+
+16 Technical Support
+     To contact CAEN specialists for requests on the software, hardware, and board return and repair, it is necessary a
+     MyCAEN+ account on www.caen.it:
+                           https://www.caen.it/support-services/getting-started-with-mycaen-portal/
+
+
+     All the instructions for use the Support platform are in the document:
+
+
+
+
+     A paper copy of the document is delivered with CAEN boards.
+     The document is downloadable for free in PDF digital format at:
+                https://www.caen.it/wp-content/uploads/2022/11/Safety_information_Product_support_W.pdf
+
+
+
+
+65                                               UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14
+                                                                                                                     2740/2745 Digitizers User Manual
+                                                                                                                    First Installation and Web Interface
+CAEN
+Tools for Discovery
+                                  n                                                                Electronic Instrumentation
+
+
+
+
+                                                                                                       CAEN GmbH
+                                                                                                       Brunnenweg 9
+                                                                                                       64331 Weiterstadt
+                                                                                                       Phone +49 (0)212 254 4077
+                                                                                                       Mobile +49 (0)151 16 548 484
+                                                                                                       info@caen-de.com
+                                                                                                       www.caen-de.com
+
+
+                                                                                                       CAEN Technologies, Inc.
+                                                                                                       1 Edgewater Street - Suite 101
+                                                                                                       Staten Island, NY 10305
+                                                                                                       USA
+                                                                                                       Phone: +1 (718) 981-0401
+                                                                                                       Fax: +1 (718) 556-9185
+                                                                                                       info@caentechnologies.com
+                                                                                                       www.caentechnologies.com
+
+
+ CAEN S.p.A.                                                                                           CAENspa INDIA Private Limited
+ Via Vetraia 11                                                                                        B205, BLDG42, B Wing,
+ 55049 - Viareggio                                                                                     Azad Nagar Sangam CHS,
+ Italy                                                                                                 Mhada Layout, Azad Nagar, Andheri (W)
+ Phone +39 0584 388 398                                                                                Mumbai, Mumbai City,
+ Fax +39 0584 388 959                                                                                  Maharashtra, India, 400053
+ info@caen.it                                                                                          info@caen-india.in
+ www.caen.it                                                                                           www.caen-india.in
+
+
+
+
+  UM8717 - 2740/2745 Digitizer User Manual rev. 14 - September 23rd, 2025 00107/17:2740.MUTX/14
+  Copyright © CAEN SpA. All rights reserved. Information in this publication supersedes all earlier versions. Specifications subject to change without notice.
+
+
+
+
+                                                                                                          Electronic Instrumentation
+UM8717 – 2740/2745 Digitizer User Manual Digitizer User Manual rev. 14                                                                                           66
+

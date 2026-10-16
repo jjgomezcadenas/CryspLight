@@ -1,0 +1,482 @@
+                                                   Nonproportionality in the scintillation light yield of bismuth germanate
+
+                                                  T. R. Gentilea , M. J. Balesb,∗, H. Breuerc , T.E. Chuppb , K. J. Coakleyd , R. L. Coopere , J. S. Nicoa , B.
+                                                                                                     O’Neillf
+                                                                     a National Institute of Standards and Technology, Gaithersburg, MD 20899 USA
+                                                                                 b University of Michigan, Ann Arbor, MI 48109 USA
+                                                                                c University of Maryland, College Park, MD 20742 USA
+                                                                       d National Institute of Standards and Technology, Boulder, CO 80305 USA
+                                                                                   e Indiana University, Bloomington, IN 47408 USA
+                                                                                   f Arizona State University, Tempe, AZ 85287 USA
+
+
+
+
+arXiv:1505.00165v1 [physics.ins-det] 1 May 2015
+                                                  Abstract
+                                                     We present measurements of nonproportionality in the scintillation light yield of bismuth germanate
+                                                  (BGO) for gamma-rays with energies between 6 keV and 662 keV. The scintillation light was read out
+                                                  by avalanche photodiodes (APDs) with both the BGO crystals and APDs operated at a temperature
+                                                  of ≈ 90 K. Data were obtained using radioisotope sources to illuminate both a single BGO crystal in a
+                                                  small test cryostat and a 12-element detector in a neutron radiative beta-decay experiment. In addition
+                                                  one datum was obtained in a 4.6 T magnetic field based on the bismuth K x-ray escape peak produced
+                                                  by a continuum of background gamma rays in this apparatus. These measurements and comparison to
+                                                  prior results were motivated by an experiment to study the radiative decay mode of the free neutron.
+                                                  The combination of data taken under different conditions yields a reasonably consistent picture for BGO
+                                                  nonproportionality that should be useful for researchers employing BGO detectors at low gamma ray
+                                                  energies.
+                                                  Keywords: avalanche photodiode, bismuth germanate, nonproportionality, photon detection, radiative
+                                                  neutron decay
+
+
+                                                  1. Introduction                                            reported the first observation of this process in a
+                                                                                                             pilot experiment in which gamma-rays were de-
+                                                     For an ideal scintillator, the number of optical        tected by a single BGO crystal [6, 7]. To accu-
+                                                  photons produced by a gamma ray is linearly pro-           rately test theoretical predictions for the photon
+                                                  portional to the energy deposited in the scintilla-        energy spectrum, a higher precision experiment
+                                                  tor by the gamma ray. However, many scintillators          has been performed with a 12-element BGO de-
+                                                  exhibit nonproportionality in their response, espe-        tector [8]. Analysis of this experiment requires
+                                                  cially for gamma-ray energies below 100 keV [1].           both Monte Carlo modeling of the energy deposit
+                                                  Nonproportionality is typically defined by the ra-         spectrum in the BGO crystals and understanding
+                                                  tio of the scintillation yield for a particular energy     of the light yield from BGO. For our minimum
+                                                  deposit to the scintillation yield due to complete         detectable gamma ray energy deposit of ≈5 keV,
+                                                  energy deposit for a 661.7 keV gamma ray from a            the nonproportionality for BGO is an important
+                                                  137
+                                                      Cs source. Measurements of nonproportional-            source of uncertainty. Hence we performed mea-
+                                                  ity in the response of bismuth germanate (BGO)             surements to determine the nonproportionality ob-
+                                                  in the following energy ranges have been reported:         served for our crystals, temperature, electronics,
+                                                  4.5 keV to 662 keV [2], 6 keV to 1332 keV [3], 14          and other operating conditions. Our results were
+                                                  keV to 1330 keV [4], 60 keV to 662 keV [5], and 11         determined by both tests on a single BGO crys-
+                                                  keV to 100 keV [1]. We report new measurements             tal with radioactive sources in a small test cryo-
+                                                  in the energy range from 6 keV to 662 keV.                 stat and with radioactive sources illuminating a
+                                                     Our measurements and comparison to prior re-            12-element detector in our apparatus for neutron
+                                                  sults were motivated by an experiment to study             beta-decay. In addition, the multi-element de-
+                                                  the radiative decay mode of the free neutron. We           tector allowed for an additional measurement ap-
+                                                                                                             proach in which for any given crystal, a continuum
+                                                                                                             of background gamma rays incident on the other
+                                                     ∗ Corresponding author: mjbales@umich.edu (Matthew
+                                                                                                             11 crystals produced escaping bismuth K x-rays
+                                                  J. Bales)
+
+                                                  Preprint submitted to Nuclear Instruments and Methods A                                           July 14, 2017
+that are detected by that given crystal. This par-          (see right side of Fig. 1). The light collection ef-
+ticular determination of nonproportionality at the          ficiency for gamma rays incident at different loca-
+Bi K x-ray energy (mean of 78.7 keV) was per-               tions along this crystal can vary by ≈ 8 % from the
+formed in a magnetic field of 4.6 T. As in prior            center, with greater light collection efficiency ob-
+published studies, we determined the nonpropor-             tained at either end of the crystal. This geometric
+tionality by comparing the center of the peak in            effect is independent of the incident energy [8]. For
+the pulse height spectrum for a given gamma-ray             these nonproportionality tests, the tubing for the
+energy deposit E, CE , to that expected based on            vacuum port and the cryostat itself provided suf-
+linear scaling from the center for the 661.7 keV            ficient collimation to ensure that only the central
+gamma rays from a 137 Cs source, C661.7 . This def-         region of the crystal was illuminated. For the high-
+inition applies for sufficiently high photoelectron         est energy (thus most penetrating) source, this was
+yields so that a symmetric peak is obtained, which          confirmed by a check with additional collimation
+applies to all of our results except the 55 Fe source       that consisted of 1.2 cm thick, 2.8 cm tall copper
+results presented at the end of the paper. For this         pieces clamped in place above and below the hor-
+definition, the measured nonproportionality NE at           izontal 3.5 cm tube.
+energy E expressed in percent is given by                      An oil-free turbomolecular pumping station was
+                                                            used to reduce the pressure in the chamber to a
+                           CE                               typical base pressure of on the order of 10−6 mbar.
+          NE = 100                    %          (1)
+                     (E/661.7) C661.7                       Upon filling the cryostat with liquid nitrogen, the
+   Hence for a ideal scintillator, NE is unity for          typical pressure was on the order of 10−7 mbar.
+all energies. In Sec. 2, we describe the apparatus          The APD signal was sent to a charge-sensitive
+we employed for our measurements of nonpropor-              preamplifier[12], followed by an amplifier set for a
+tionality. In addition to presenting our results in         gain of 100 and a 6 µs shaping time constant. The
+Sec. 3, we compare to previous reports. The com-            output of the shaping amplifier was registered by a
+bination of data taken under different conditions           multichannel analyzer (MCA)[13]. The lower level
+yields a consistent picture for BGO nonproportion-          discriminator of the MCA was typically set slightly
+ality that should be useful for researchers employ-         below the detector noise level at ≈ 10 channels, for
+ing BGO at low gamma ray energies. In Sec. 4 we             a 1000-channel full range of ≈1000 keV. The APD
+present results for data obtained in the test cryo-         was operated at a typical bias of 1380 V (≈40 V
+stat with 6 keV x-rays from an 55 Fe source and in          below breakdown). Using studies with a precision
+Sec. 5 we summarize the paper.                              pulser, we found that our electronics for the test
+                                                            cryostat apparatus exhibited a slight nonlinearity
+                                                            that was consistent with an offset of one channel
+2. Apparatus and measurements                               out of 1000 in the MCA. To determine the BGO
+                                                            nonproportionality, we corrected for this nonlin-
+2.1. Test cryostat measurements                             earity, which yielded a shift of 4.3 % for our lowest
+   The test cryostat apparatus has been previously          energy datum at 23.3 keV, decreasing to 1 % at 60
+described in its use for studies of APD response [9].       keV.
+For these nonproportionality studies, a 12 mm                  A thin polyimide window in the side port al-
+by 12 mm by 200 mm BGO crystal [10] coupled                 lowed the sources to be outside the cryostat vac-
+to an APD with an active area of 13.5 mm by                 uum space so they could be easily manipulated.
+13.5 mm [11] was thermally sunk to the bottom               The gamma-ray energies and sources employed in
+of the inner reservoir of a cryostat (see Fig. 1).          the test cryostat apparatus are listed in Table 1. A
+                                                            137
+As discussed in Ref. [8], the opposite end of the               Cs source was used to provide the 662 keV ref-
+BGO crystal was painted with reflective paint to            erence. The mean energy deposit listed was deter-
+improve the light collection efficiency. The long           mined for multiple-line emissions from the follow-
+sides of the BGO crystal were covered by two lay-           ing components in keV, using the weighting per-
+ers of aluminized Mylar (total of 12.4 µm Mylar             centages [14] in parentheses: 109 Cd - 22.1, 25.1
+and 0.065 µm aluminum). The long-side regions               (83.7*0.026, 17.7*0.078); 133 Ba - 30.6, 31.0, 35.1,
+near the end faces (≈12 mm) had additional layers           35.9 (54, 100, 29, 7); 153 Gd - 97.4, 103.2 (29, 21);
+of polytetrafluoroethlyene (PTFE) tape and alu-             and 57 Co - 122.1, 136.5 (85.5, 10.7). For the low
+minized Mylar for mechanical protection. (≈300              energy lines of the 109 Cd source, the weighting in-
+µm PTFE and 6 µm Mylar with 0.033 µm alu-                   cluded the factors shown to account for energy-
+minum). The cryostat’s vacuum jacket included               dependent transmission through a 0.25 mm thick
+a 3.5 cm diameter tube with a 7 cm diameter                 stainless steel cover on this particular source. To
+metal-sealed flange through which we illuminated            evaluate the nonproportionality, the pulse height
+the crystal about midway along its 200 mm length            spectrum for a given emission was fit with a sin-
+                                                        2
+              BGO	  crystal	  
+
+
+
+
+    APD	  
+
+
+Figure 1: Photographs of test cryostat apparatus. The left photograph shows the crystal and APD
+with the cryostat vacuum jacket and radiation shield removed. At the top of the photograph the inner
+reservoir of the dewar is visible. In the right photo (taken with cryostat rotated by 90 degrees) the
+cryostat is closed up and the vacuum port for illumination of the center of the crystal with sources
+located outside the cryostat vacuum is shown. (Color online only.)
+
+
+
+
+                                                 3
+          E [keV]     source     NE [%]                                                          1
+                      109                                                                       0.8
+           23.3           Cd    73.4 (3.0)                                                      0.6
+                                                                                                                                                Cd-109
+                      133
+           31.7            Ba   81.2 (2.5)
+
+
+
+
+                                                             counting rates [arbitrary units]
+                                                                                                0.4
+                      241                                                                       0.2
+           59.5           Am    88.8 (1.0)
+                                                                                                 0
+                      133
+           81.0            Ba   91.6 (1.5)                                                       1
+                                                                                                   0                   50                 100                  150
+                      109                                                                       0.8
+           88.0           Cd    90.7 (1.0)                                                                                                      Ba-133
+                                                                                                0.6
+                      153
+           99.8           Gd    86.5 (1.5)                                                      0.4
+                       57
+           123.7          Co    89.2 (1.5)                                                      0.2
+                                                                                                 0
+                       235
+           185.7           U    93.3 (2.0)                                                       1
+                                                                                                   0        20         40       60        80          100      120
+                       137
+           661.7           Cs     100.0                                                         0.8                              Cs-137
+                                                                                                0.6
+                                                                                                0.4
+                                                                                                0.2
+Table 1: Mean gamma-ray energy deposits and                                                      0
+                                                                                                      0   100    200    300     400   500       600      700   800
+nonproportionality NE for the sources employed                                                                              MCA channel
+with the test cryostat apparatus. For sources with
+multiple, unresolved emission lines, the first col-         Figure 2: Pulse height distributions obtained in
+umn shows the mean energy E deposit (see text).             the test cryostat apparatus for three of the seven
+The numbers in parentheses show the one-sigma               sources employed (109 Cd, 133 Ba, and 137 Cs). The
+uncertainty in the last digits, which were estimated        resolution is primarily determined by photoelec-
+based primarily on reproduceability and uncer-              tron statistics.
+tainty in the determination of peak locations. The
+nonproportionality is defined to be 100 % for the
+photopeak produced by the 661.7 keV gamma ray
+from 137 Cs.                                                two 8-channel GaGe cards [15], which were set to
+                                                            digitize the signals with 40 ns per channel resolu-
+                                                            tion in 80 µs long traces. The decay time constant
+gle Gaussian, except for the multiple-line emis-            of the preamplifiers is 50 µs. The amplitude of
+sions noted above for which multiple-line Gaus-             the digitized signals (see Ref. [8] for an example)
+sians were employed. In the case of multiple-line           were determined by fitting the signals to a tem-
+emission, a single nonproportionality value was             plate waveform. The template was a model wave-
+used for all the Gaussians and is listed for the mean       form constructed from the average of preamplifier
+energy deposit.                                             signals for gamma rays with a range of energies.
+   Fig. 2 shows the background-subtracted pulse                To test the detector response with radioactive
+height distributions for three of the seven sources.        sources, we employed a reentrant tube that allowed
+The background was determined by counting with-             the sources to be outside the magnet’s vacuum
+out the source. However, we found that the ap-              chamber while illuminating the liquid nitrogen-
+parent threshold was higher with a source than              cooled detector in a similar way as the photons
+without a source and it varied between sources.             from neutron decay. These tests were performed
+The response observed near the 10 keV threshold             with the apparatus off the neutron beam line and
+is due primarily to this source-related response,           with the magnetic field off. Pulse height spec-
+with a smaller contribution from imperfect back-            tra with 137 Cs, 133 Ba, 57 Co, and 241 Am sources
+ground subtraction.                                         are shown in Ref. [8], along with the results of
+                                                            modelling the detector response based, in part,
+2.2. Measurements in neutron beta-decay appara-             on MCNP5 [18] predictions for the energy deposit
+     tus                                                    spectrum in each BGO crystal. Nonproportion-
+  The apparatus for neutron beta-decay has been             ality was not included in the modeling. For this
+described elsewhere [6, 7, 8]. In brief, a neutron          paper, we determined nonproportionality by com-
+beam passes through the cylindrical bore of a su-           paring the location of emission lines from sources
+perconducting magnet and gamma rays emitted                 to those determined from Geant4 [16] and MCNP5
+during neutron beta decay are detected by an an-            modelling with the assumption that the nonpro-
+nular array of twelve 12 mm by 12 mm by 200 mm              portionality was 100 % for all energy deposits. A
+                                                            137
+BGO crystals. As in the test dewar, each crys-                  Cs source was used to provide the 662 keV ref-
+tal is coupled to an APD with an active area of             erence line for lines from a 133 Ba (nominally 31
+13.5 mm by 13.5 mm. However, the electronic pro-            keV, 81 keV, and 356 keV) and a 57 Co source (122
+cessing and spectrum analysis were different than           keV and an X-ray escape peak at 43 keV).
+that performed for the test dewar studies. The                 An additional datum was obtained using x-ray
+preamplifier output signals were directly fed into          escape from continuum background gamma-rays
+                                                        4
+      E [keV]        source        NE [%]                  ID     source      T [K]     opdet    crystal [mm]
+                     133
+       32.3               Ba      81.0 ( 2.0)                     [2], R       295      PMT       not stated
+                 57
+       42.7         Co (escape)   87.0 (2.0)                      [3], R       295      PMT       10-20, 1-5
+       78.7         Bi escape     94.0 (2.0)                1     [4], R       295      PMT        9, 4 or 9
+                     133
+       79.7               Ba      93.0 (1.0)                2     [4], R       100      APD           9, 4
+                      57
+       121.9             Co       92.0 (1.0)                3    [4], ER       100      APD           9, 4
+                     133
+       356.0              Ba      98.6 (0.2)                      [5], R    3, 10, 30   PMT        20x10x5
+                      137
+       661.7              Cs        100.0                   4      [1], S      295      PMT         5-10, 1
+                                                            5    test, R        90      APD       12x12x200
+                                                            6    RDK, R         90      APD       12x12x200
+Table 2: Mean gamma-ray energy deposits and                 7    RDK, E        90       APD       12x12x200
+nonproportionality NE for the sources employed
+with the neutron beta-decay apparatus. The first
+column shows the mean energy E deposit as de-             Table 3: Identification (ID) for numerical refer-
+termined from our Monte Carlo modeling of the             ences in Fig. 3 and information on experimental
+apparatus, without including nonproportionality.          conditions from the literature. The information
+(Note that these values are not necessarily exactly       for our data obtained using the test cryostat (test)
+the same as those in Table 1 because of a different       and the neutron beta-decay apparatus (RDK) are
+experimental configuration and different methods          reported. We list the source of the gamma rays,
+for their determinations.) The nonproportionality         the approximate temperature T of the BGO crys-
+is defined to be 100 % for the 661.7 keV gamma            tal, the method for readout of the optical photons
+ray from 137 Cs. The numbers in parentheses show          (heading “opdet”), and the crystal dimensions in
+the one-sigma uncertainty in the last digits, which       millimeters (heading “crystal”) . The source are
+were determined from uncertainty in the determi-          synchrotron radiation (S), radioisotopes (R), es-
+nation of peak locations and the variance in the          cape peaks from radioisotopes (ER), and Bi escape
+expected peak location from the Monte Carlo for           X-rays produced from a continuum of background
+the 11 BGO crystals.                                      gamma rays in our neutron beta-decay apparatus
+                                                          (E). For cylindrical crystals the dimensions listed
+                                                          are in the form: diameter, length.
+detected during operation on the neutron beam
+line. Although nonproportionality may depend
+weakly on the energy deposition process[17], in
+Ref. [4] the values obtained with escape peaks were       tiplier tube (PMT) was used for measurements at
+the same within uncertainties as those obtained           room temperature and an APD [19] was used for
+from direct sources. For a given BGO crystal, es-         measurements near liquid nitrogen temperature,
+cape of Bi K x-rays from all the other crystals           with similar results being obtained for the non-
+yields a peak at a mean energy of 78.7 keV. If            proportionality. In addition to direct gamma ray
+the pulse height spectra from all the crystals are        lines, nonproportionality was determined using es-
+summed, this peak disappears because detection            cape peaks, again with similar results.
+of the x-ray only occurs when the x-ray escaped
+                                                             Fig. 3 shows data for nonproportionality in the
+from a different crystal. To improve the extrac-
+                                                          response of bismuth germanate (BGO). Our re-
+tion of the peak location, we combined all the data
+                                                          sults from the test cryostat and neutron beta-
+from the 12 crystals but also subtracted off the
+                                                          decay apparatus are listed in Tables 1 and 2,
+summed spectrum. In this case, the magnetic field
+                                                          respectively. The combination of our data and
+was 4.6 T. The gamma-ray energies and sources
+                                                          prior published results include a variety of crystal
+employed in the neutron radiative decay (RDK)
+                                                          sizes and sources, optical readout methods, tem-
+apparatus are listed in Table 2.
+                                                          peratures, radiation sources, and analysis meth-
+                                                          ods. Nevertheless, all of the results generally agree
+3. Results                                                within a few percent. The results from our test
+                                                          cryostat data are closest to the results of Ref. [1],
+   Information on our results and those from past         whereas the results from Ref. [4] and our RDK
+literature are summarized in Table 3. Whereas             apparatus are typically a few percent higher, in
+most results were obtained with a variety of              particular just below the Bi K-edge at ≈90 keV.
+radioisotopes, the work in Ref. [1] employed              The single datum obtained at the bismuth K x-
+monochromatic gamma-ray beams from a syn-                 ray energy at a 4.6 T magnetic field is consistent
+chrotron with resolutions varying from 2 eV at 9          within uncertainties with the nonproportionality
+keV to 20 eV at 100 keV. In Ref. [4] a photomul-          values obtained at near zero magnetic field.
+                                                      5
+                                             105
+
+                                             100
+
+
+
+
+                   nonproportionality [%]
+                                             95
+
+                                             90
+
+                                             85
+                                                                               1 (Moszynski - 295 K)
+                                             80                                2 (Moszynski - 100 K)
+                                                                               3 (Moszynski - escape)
+                                             75                                4 (Khodyuk)
+                                                                               5 (test cryostat)
+                                             70                                6 (RDK, sources)
+                                                                               7 (RDK, Bi escape)
+                                             65
+                                                   0   100    200    300       400    500   600   700    800
+                                                                  energy deposit [keV]
+                                             100
+
+
+                                              95
+
+
+
+
+                    nonproportionality [%]
+                                              90
+
+
+                                              85
+
+
+                                              80                                1 (Moszynski - 295 K)
+                                                                                2 (Moszynski - 100 K)
+                                              75                                3 (Moszynski - escape)
+                                                                                4 (Khodyuk)
+                                                                                5 (test cryostat)
+                                              70
+                                                                                6 (RDK, sources)
+                                                                                7 (RDK, Bi escape)
+                                              65
+                                                   0         20       40             60      80         100
+                                                                  energy deposit [keV]
+
+Figure 3: Data for nonproportionality in the response of BGO in the gamma-ray energy range from (a)
+0 keV to 800 keV and (b) 0 keV to 110 keV. See Table 3 for identification and information on each data
+set. For clarity, the nearly continuous and precise (0.5 % uncertainties) synchrotron data from Ref. [1]
+are shown as a line with small points. The error bars for our test dewar and RDK apparatus data
+correspond to the uncertainties listed in Table 1 and Table 2, respectively.
+
+
+                                                                           6
+                   30000                                    of 2.6. However, an estimate of the photoelectron
+                                                            yield is not consistent with such a low value. For
+                   25000                                    our large crystals we had estimated the photoelec-
+
+
+
+ counts in 100 s
+                   20000                                    tron yield to be ≈1000 for 662 keV gamma rays[8].
+                                                            For 6 keV and N6.0 = 100 % this estimate corre-
+                   15000                                    sponds to 9 photoelectrons, but the observed non-
+                   10000                                    proportionality reduces the estimated yield to 6
+                                                            photoelectrons. In addition, the small crystal em-
+                    5000
+                                                            ployed for the 55 Fe studies provided a higher yield.
+                       0                                    Hence the substantial asymmetry observed might
+                           0   50         100    150        indicate a pulse height distribution with a vari-
+                                MCA channel
+                                                            ance greater than its mean, due to APD noise.
+                                                            The impact of the value of the yield is on the
+Figure 4: Pulse height distribution obtained in the
+                                                            probability of zero photoelectrons, which yields a
+test cryostat apparatus for 1 cm3 BGO crystal il-
+                                                            small correction to the observed nonproportional-
+luminated by an 55 Fe source. The solid line is a fit
+                                                            ity. Based on our expected yield the correction is
+to a gamma distribution.
+                                                            negligible. However, we cannot discount the possi-
+                                                            bility that the yield is ≈2.6 photoelectrons, which
+                                                            would result in a probability of zero photoelectrons
+4. Nonproportionality at 6 keV                              of exp(−2.6)=0.074. From these considerations we
+                                                            assign an asymmetric one-sigma uncertainty inter-
+   Ref. [2] reported a monotonic increase in NE             val, hence our final value for the nonproportional-
+with decreasing energy deposits in the range be-            ity at 6.0 keV is N6.0 = (69+3−8 ) %. Our result falls
+low the Bi L edge at ≈13 keV. Whereas the ex-               midway between the values reported in Refs. [1]
+pected increase in the vicinity of the L-edge was           and [3]. In Ref. [3] it was suggested that the dif-
+reported in Refs. [1] and [3], NE was found to              ference between their results and those of Ref. [2]
+continue decreasing further below the edge region.          could be related to the surface state of the inves-
+This discrepancy motivated us to extend our non-            tigated crystals.
+proportionality measurements as low as possible in
+photon energy, hence we illuminated a 1 cm3 BGO
+crystal with 6 keV x-rays from an 55 Fe source with         5. Conclusions
+an activity of ≈9 mCi. We obtained the best sig-
+nal to noise ratio for observing these low amplitude           Motivated by an experiment to study neutron
+pulses by operating the APD at between 5 V and              radiative beta-decay, we performed new measure-
+15 V below breakdown. For these data, the ampli-            ments of the nonproportionality in the light yield
+fier gain was 116, the shaping time constant was            of BGO. For the energy range from 23 keV to 662
+6 µs, and the lower level discriminator of the MCA          keV, these measurements were obtained in two dif-
+was 13 channels, for a 1000-channel full range of           ferent apparatus by illuminating long crystals at
+≈100 keV. Under these conditions, we obtained               a temperature of ≈ 90 K with gamma rays from
+the background-subtracted pulse-height spectrum             radioisotope sources and reading out the scintilla-
+shown in Fig. 4. To avoid extremely low channels            tion light with APDs. In addition one datum was
+on the MCA, the nonproportionality was deter-               obtained in a 4.6 T magnetic field based on the bis-
+mined with respect to the 59.5 keV peak from the            muth K x-ray escape peak produced by a contin-
+241
+    Am source and a correction was applied based            uum of background gamma rays. The combination
+on our nonproportionality value for this line. Be-          of data taken under different conditions yields a
+cause of the peak asymmetry, we fit the data to a           reasonably consistent picture for BGO nonpropor-
+gamma distribution[20] (see Fig. 4). Evaluation of          tionality. An additional measurement using 6 keV
+the mean value yielded N6.0 = (69 ± 3) %, which             X-rays from an 55 Fe source was obtained with a
+corresponds to 1.4 times greater than that would            small crystal. An asymmetric peak was observed,
+be obtained based on the observed peak location.            hence a value for the nonproportionality was ob-
+   An asymmetric spectrum would be expected                 tained by extracting the mean value for a fit to a
+from Poisson statistics for a yield of only a few           gamma distribution.
+photoelectrons or less. In this case APD noise
+might mask the appearance of resolved peaks for             Acknowledgements
+specific photoelectron numbers. We modelled the               We thank I.V. Khodyuk and M. Moszynski for
+pulse height spectrum using Poisson statistics and          providing their numerical data for incorporation
+obtained the best results for a photoelectron yield         in the figures, and for their comments. We also
+                                                        7
+thank Larry Lucas and Janna Shupe for loan of
+the 109 Cd, 153 Gd, and 235 U sources. We acknowl-
+edge support from the Department of Energy, Of-
+fice of Nuclear Physics, and the National Science
+Foundation.
+
+References
+ [1] I.V. Khodyuk and P. Dorenbos, IEEE Trans. Nucl.
+     Science 59, 3320 (2012).
+ [2] V.V. Averkiev, V.K. Lyapidevskii and G. Kh.
+     Salakhutdinov, Pribory i Tekhnika Eksperienta 4, 80
+     (1990).
+ [3] E.P. Sysoeva, O.V. Zelenskaya and E.V. Sysoeva,
+     IEEE Trans. Nucl. Science 43, 1282 (1996).
+ [4] M. Moszynski et al., IEEE Trans. Nucl. Science 51,
+     1074 (2004).
+ [5] M.-A. Verdier, et al., Phys. Rev. B 84, 214306 (2011)
+ [6] J.S. Nico et al., Nature 444, 1059-1062 (2006).
+ [7] R.L. Cooper et al., Phys. Rev C 81, 035503 (2010).
+ [8] R.L. Cooper et al., Nucl, Instrum. Meth. A 691, 64
+     (2012).
+ [9] T.R. Gentile, M. Bales, U. Arp, B. Dong, and R.
+     Farrell, Rev. Sci. Instrum. 83, 053105 (2012).
+[10] Rexon Components, Inc., 24500 Highpoint Rd.,
+     Beachwood, OH 44122. Certain trade names and
+     company products are mentioned in the text or iden-
+     tified in an illustration in order to adequately spec-
+     ify the experimental procedure and equipment used.
+     In no case does such identification imply recommen-
+     dation or endorsement by the National Institute of
+     Standards and Technology, nor does it imply that
+     the products are necessarily the best available for the
+     purpose.
+[11] Radiation Monitoring Devices, Inc., Watertown, MA
+     02472.
+[12] Model 2006, Canberra Industries, 800 Research Park-
+     way, Meriden, Connecticut, 06450.
+[13] Quantum MCA8000, Princeton Gamma-Tech, Inc.,
+     C/N 863, Princeton, NJ 08542-0863.
+[14] http://www.nucleide.org/DDEP WG/Nuclides/Cd-
+     109 tables.pdf, and similarly for other sources.
+[15] Gage CompuScope 8289 (Octopus 12-bit CompuS-
+     cope A/D card: 125 MS/s per channel, 8 channels,
+     128 MS memory), DynamicSignals LLC, 900 N. State
+     St., Lockport, IL 60441.
+[16] S. Agostinelli et al., Nucl., Instrum. Meth. A 506 250
+     (2003).
+[17] I.V. Khodyuk, J.T.M. de Hass, and P. Dorenbos,
+     IEEE Trans. Nucl. Science 57, 1175 (2010).
+[18] F. B. Brown, et al., A General Monte Carlo N-
+     Particle Transport Code, Version 5 LA-UR-03-1987
+     (2003).
+[19] 16 mm diameter APD, Advanced Photonix, 1240
+     Avenida Acaso, Camarillo, CA 93012.
+[20] H.J. Gale and J.A.B. Gibson, J. Sci. Instrum. 43, 224
+     (1966).
+
+
+
+
+                                                               8
+

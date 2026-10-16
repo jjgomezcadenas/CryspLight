@@ -11,6 +11,7 @@
 \newcommand{\code}[1]{\texttt{#1}}
 \newcommand{\us}{\textmu s\xspace}
 \newcommand{\csitl}{CsI(Tl)\xspace}
+\newcommand{\Na}{\ensuremath{{}^{22}\mathrm{Na}}\xspace}
 \newcommand{\planned}{planned}
 \newcommand{\doing}{in progress}
 \newcommand{\done}{done}
@@ -25,9 +26,10 @@
 \section{Scope}
 
 Build the full simulation specified in \code{fullsim\_design.tex} and compare
-it with the bench measurements: BGO and \csitl at ambient temperature with the
-Citiroc~1A (data taking the week of 20 October 2026), BGO at 196~K
-afterwards, Radioroc2 when the board arrives. This document tracks what is
+it with the bench measurements: BGO and \csitl at ambient temperature with
+the Citiroc~1A and with the DT2745 digitizer (data taking the week of
+20 October 2026), BGO at 196~K with the digitizer afterwards, Radioroc2 when
+the board arrives. This document tracks what is
 planned, in progress and done, the decisions taken and the questions open. It
 is edited at every step; the physics stays in the design document.
 
@@ -70,9 +72,10 @@ id & task & status & date \\
 0.8 & \Na point source with both lines and coincidence summing; source test & \planned & \\
 0.9 & Photoelectron records \code{pes.h5}; re-binning test & \planned & \\
 0.10 & SiPM device model (gain, PDE, crosstalk, afterpulsing, dark counts, pulse) as a module with unit tests & \planned & \\
-0.11 & Citiroc chain: shapers, noise, trigger, 64 peak detectors, hold, ADC, saturation; unit tests & \planned & \\
+0.11 & Citiroc chain: shapers, noise, trigger, 64 peak detectors, hold, ADC, saturation; unit tests (the stored fractions 0.39/0.15/0.07 are the first test) & \planned & \\
+0.11b & Digitizer chain on the avalanche train: gate and baseline weights, integrated noise, sampled-amplitude trigger with majority, waveform subsample; unit tests against the analytic noise and a brute-force waveform on a few events & \planned & \\
 0.12 & Common event layout writer (emulation) and the converter skeleton for measured files & \planned & \\
-0.13 & First emulated campaign: BGO ambient and \csitl ambient at 2, 2.7, 3, 4~V overvoltage; tables of photoelectrons per channel, brightest-channel tail, stored fraction, resolution floor, trigger margin & \planned & \\
+0.13 & First emulated campaign: BGO ambient and \csitl ambient at 2, 2.7, 3, 4 and 5~V overvoltage, with both readouts; tables of photoelectrons per channel, brightest-channel tail, stored fraction, resolution floor, trigger margin; for the digitizer the trigger efficiency and dark-trigger rate against threshold and the resolution against gate length & \planned & \\
 0.14 & Overvoltage scan figure and numbers delivered to the bench & \planned & \\
 \bottomrule
 \end{longtable}
@@ -84,7 +87,7 @@ id & task & status & date \\
 id & task & status & date \\
 \midrule
 \endhead
-1.1 & Converter from the bench files to the common layout, with the run log (bias, measured breakdown, thresholds, hold, shaping, temperatures) & \planned & \\
+1.1 & Converters from the bench files to the common layout, with the run log: Citiroc charges; digitizer waveforms reduced to baseline, gated charge and threshold crossings (from the Antarctica analysis code) & \planned & \\
 1.2 & Single-photoelectron gains and breakdown per channel; pedestals and noise term; dark rates & \planned & \\
 1.3 & Spectra: 511, 1275, sum peak; resolution and its decomposition; 1275 to 511 ratio & \planned & \\
 1.4 & Light yield in photoelectrons and in photons per MeV through the simulated collection & \planned & \\
@@ -117,8 +120,8 @@ id & task & status & date \\
 \toprule
 campaign & configuration & readout & dates \\
 \midrule
-\code{2026-10\_citiroc\_ambient} & BGO ambient, \csitl ambient & Citiroc 1A $\times 2$ & week of 20 Oct 2026 \\
-\code{2026-xx\_citiroc\_cold} & BGO 196~K & Citiroc 1A $\times 2$ & to be scheduled \\
+\code{2026-10\_ambient} & BGO ambient, \csitl ambient & Citiroc 1A $\times 2$ and DT2745, in sequence on the same tiles & week of 20 Oct 2026 \\
+\code{2026-xx\_digitizer\_cold} & BGO 196~K & DT2745 & to be scheduled \\
 \code{2026-xx\_radioroc} & all three & Radioroc2 & on delivery \\
 \bottomrule
 \end{tabular}
@@ -143,7 +146,27 @@ campaign & configuration & readout & dates \\
   and 2.7~V for \csitl; recipe in \code{BGOTSCAN/docs/overvoltage\_recipe.tex}.
 \item[16 Oct 2026] Measured and emulated events share one HDF5 layout; the
   bench files are converted to it as the first analysis step.
-\item[16 Oct 2026] No waveform-digitiser emulation.
+\item[16 Oct 2026] No waveform-digitiser emulation. \emph{Reversed the
+  same day}, see below.
+\item[16 Oct 2026] The DT2745 digitizer is a third front end of the
+  simulation, emulated on the avalanche train (gated charge with baseline
+  subtraction, integrated noise, sampled-amplitude trigger) rather than
+  through waveforms. Reason: the Citiroc at 87.5~ns stores 0.07 of the
+  photoelectrons of cold BGO, so the cold runs are taken with the digitizer,
+  and the ambient runs with both readouts give a parameter-free test of the
+  stored fraction. The waveform processing of the measured data (baseline,
+  single-photoelectron search) stays on the data side.
+\item[16 Oct 2026] Digitizer noise: nominal (4 counts rms, white,
+  independent channels) until the new runs; the low-frequency and
+  group-correlated terms are added then as a measured input.
+\item[16 Oct 2026] Afterpulsing 1\% at 3~V, scaling with the square of the
+  overvoltage, 100~ns; not resolvable with the Citiroc.
+\item[16 Oct 2026] Intrinsic resolution 5\% FWHM at 511~keV for both
+  crystals; the non-proportionality curve of BGO (Gentile et al.) as a
+  later refinement; Moszynski et al.\ to be checked.
+\item[16 Oct 2026] Ambient digitizer runs at gain 1 and 43~V (5~V of
+  overvoltage), the simplest setting for the bench; threshold 60~counts,
+  majority 2, record 10~\us with 1~\us pre-trigger.
 \end{description}
 
 \section{Open questions}
@@ -161,6 +184,13 @@ campaign & configuration & readout & dates \\
   single-photoelectron waveform can be probed on the test board.
 \item Temperature of the SiPMs in the cold run (resolved by the measured
   breakdown; a thermometer on the SiPM board would still help).
+\item Whether the digitizer gain stage lowers the noise per photoelectron
+  (baseline runs at gains 1, 2, 4, 8 with the SiPMs unbiased); decides the
+  overvoltage of the cold runs.
+\item Whether the Radioroc2 at 1.8~\us shaping (0.55 of the photoelectrons
+  of cold BGO) is usable in the cold, or a less cold point is preferable.
+\item The format of the WaveDump2 output files and the event-building of the
+  64 channels, for the converter.
 \end{itemize}
 
 \section{Log}
@@ -169,6 +199,12 @@ campaign & configuration & readout & dates \\
 \item[16 Oct 2026] Project assessed; datasheets read (Citiroc 1A, Radioroc2,
   S14160/S14161); Antarctica draft read; tag and branch; design document
   v0.1 and this plan; overvoltage recipe written.
+\item[16 Oct 2026] Design document reviewed with JJ: measured data (one
+  high-gain charge and the hit register), afterpulsing, the stored fraction
+  recomputed with the avalanche pulse (0.39/0.15/0.07), digitizer manual
+  (UM8717) read and the DT2745 added as a third front end; digitizer section
+  added to the overvoltage recipe; trigger thresholds for the Citiroc and
+  the digitizer estimated for the ambient runs.
 \end{description}
 
 \end{document}
