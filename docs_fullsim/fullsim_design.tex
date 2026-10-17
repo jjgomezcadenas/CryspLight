@@ -921,7 +921,12 @@ compares its output with stored checksums. The existing configurations,
 output files and analysis scripts are left as they are; the new simulation
 has its own configurations under \code{fullsim\_runs/}, grouped by
 measurement campaign, its own analysis under \code{fullsim\_analysis/} and
-its documents under \code{docs\_fullsim/}. The SiPM and electronics
+its documents under \code{docs\_fullsim/}. The analysis is written in Julia,
+a library of readers, fits, spectra and maps and one script per study; the
+scripts compute and write files, HDF5 for arrays and CSV for tables, under
+\code{fullsim\_analysis/results/}, and Python scripts draw the figures from
+those files, so that a figure is remade without recomputing and every
+number cited in a document is in a file produced by a tracked script. The SiPM and electronics
 simulation is a new module, \code{src/frontend/}. Simulation outputs go to
 the directory \code{output/}, which is not under version control, and the
 measured files stay outside the repository and are referred to by path from

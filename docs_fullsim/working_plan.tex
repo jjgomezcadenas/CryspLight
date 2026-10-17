@@ -36,6 +36,9 @@ is edited at every step; the physics stays in the design document.
 \section{Principles}
 
 \begin{itemize}
+\item Analysis in Julia (\code{fullsim\_analysis/lib}, \code{scripts}),
+  outputs as HDF5 and CSV under \code{fullsim\_analysis/results/}, figures
+  by Python scripts under \code{fullsim\_analysis/plots/} from those files.
 \item The pedagogical simulation is the git tag \code{pedsim} and the branch
   \code{main}; the full simulation grows on the branch \code{fullsim}.
   Nothing is replaced: every feature is gated by a configuration key and the
@@ -251,6 +254,16 @@ campaign & configuration & readout & dates \\
   (UM8717) read and the DT2745 added as a third front end; digitizer section
   added to the overvoltage recipe; trigger thresholds for the Citiroc and
   the digitizer estimated for the ambient runs.
+\item[17 Oct 2026] Analysis layer: everything in Julia, under
+  \code{fullsim\_analysis/lib/} (reading the event files, peak fits,
+  spectra, maps, result writers, emulation on decay lists) and one script
+  per study under \code{fullsim\_analysis/scripts/}. The scripts write
+  files only: \code{results/<campaign>/<study>/<study>.h5} for arrays,
+  histograms and maps, CSV files for tables, no figures. Python scripts
+  under \code{fullsim\_analysis/plots/} read them and draw the figures
+  beside them (JJ's caveat: plotting decoupled from analysis). Every
+  number reported comes from a tracked script with its output under
+  \code{results/}; the scratch directory is for debugging only.
 \item[17 Oct 2026] JJ: the Radioroc2 emulation comes before the overvoltage
   scan, on a branch \code{radioroc} opened from \code{fullsim}. Defaults
   taken after reading the datasheet: evaluation board with a 12-bit ADC
