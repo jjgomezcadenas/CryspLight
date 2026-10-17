@@ -5,3 +5,29 @@ pitch_mm = 6.0
 nx = 8
 ny = 8
 pde = 0.5
+
+# Device model of the full simulation (docs_fullsim/fullsim_design.tex, Section "Response
+# of the SiPM" and Table "Parameters"). Datasheet KAPD1064E (November 2024) unless noted.
+[device]
+vbr_25c_v = 38.0                 # breakdown at 25 C
+dvbr_dt_v_per_k = 0.034          # temperature coefficient of the breakdown
+gain_per_volt = 0.93e6           # 2.5e6 at 2.7 V
+pde_vov_v = [1.7, 2.7, 3.2, 6.0]     # PDE at 450 nm against the overvoltage; flat above 3.2 V
+pde_at_peak = [0.37, 0.50, 0.54, 0.54]
+# Spectral factor, 1 at 450 nm: read approximately from the datasheet figure "Photon
+# detection efficiency vs. wavelength" (to be digitised properly, working plan task 2.1).
+pde_lambda_nm = [350.0, 400.0, 450.0, 480.0, 500.0, 550.0, 600.0, 700.0]
+pde_spectral  = [0.62, 0.88, 1.00, 0.93, 0.88, 0.76, 0.64, 0.42]
+crosstalk_vov_v = [1.6, 2.7, 3.7, 6.0]   # linear, about 5% per volt
+crosstalk       = [0.025, 0.07, 0.13, 0.245]
+dark_hz = 6.0e6                  # per device: 2.5 uA typical dark current at 25 C, 2.7 V,
+dark_t_k = 298.15                #   gain 2.5e6, crosstalk taken out
+dark_vov_v = 2.7
+dark_doubling_k = 9.0            # factor 2 every 9 K
+afterpulse_prob = 0.01           # 1% at 3 V (literature on the same technology), ~ Vov^2
+afterpulse_vov_v = 3.0
+afterpulse_tau_ns = 100.0
+recovery_ns = 50.0               # cell recharge time constant
+n_cells = 14331
+pulse_rise_ns = 16.0             # avalanche pulse into 100 ohm, our measurement (DT2745)
+pulse_fall_ns = 50.0

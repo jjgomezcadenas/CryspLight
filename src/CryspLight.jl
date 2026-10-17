@@ -24,6 +24,7 @@ include("source.jl")
 include("decays.jl")
 include("pes_file.jl")
 include("fullsim_config.jl")
+include("frontend/sipm.jl")
 include("config.jl")
 include("output.jl")
 
@@ -40,5 +41,7 @@ export Gamma, gamma_crystal, gamma_deposits, run_events!, rand_poisson
 export GammaRay, na22_decay, isotropic_dir64, entry_point, face_acceptance, run_decays!
 export open_pes, append_pes!, close_pes, read_pes, event_pes, code_version
 export FullsimSetup, load_fullsim, run_fullsim_optical
+export SipmDevice, SipmOperation, Avalanche, breakdown_voltage, gain, pde, crosstalk, dark_rate,
+       afterpulse_prob, pulse_shape, respond, total_charge, interp_clamped
 
 end # module

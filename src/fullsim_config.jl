@@ -111,6 +111,7 @@ function run_fullsim_optical(cfg_path::AbstractString; ArrayT = Array, verbose::
             w = append_pes!(w, r)
             verbose && @printf("%-20s decays %7d / %d, %9d photoelectron records so far\n",
                                st.tag, w.n_decays, st.n_decays, length(w.file["pes"]["channel"]))
+            verbose && flush(stdout)
             first += n
         end
     end

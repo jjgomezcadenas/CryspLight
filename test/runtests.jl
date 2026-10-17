@@ -662,6 +662,83 @@ end
     @test g.attributes["seed"] == st.seed
 end
 
+@testset "SiPM device model (fullsim 0.10)" begin
+    dev = SipmDevice()
+    @test dev.name == "S14160-6050HS" && dev.n_cells == 14331
+    @test breakdown_voltage(dev, 298.15) == 38.0
+    @test isapprox(breakdown_voltage(dev, 196.0), 34.5; atol = 0.05)
+    @test isapprox(gain(dev, 2.7), 2.5e6; rtol = 0.01)
+    @test pde(dev, 2.7, 450) == 0.50 && pde(dev, 3.2, 450) == 0.54 && pde(dev, 5.0, 450) == 0.54
+    @test isapprox(pde(dev, 1.7, 450), 0.37) && isapprox(pde(dev, 2.2, 450), 0.435)
+    @test pde(dev, 3.0, 480) < pde(dev, 3.0, 450) && pde(dev, 3.0, 550) < pde(dev, 3.0, 480)
+    @test isapprox(crosstalk(dev, 2.7), 0.07) && isapprox(crosstalk(dev, 3.7), 0.13)
+    @test isapprox(crosstalk(dev, 3.0), 0.07 + 0.3 * 0.06; atol = 1e-6)
+    @test dark_rate(dev, 298.15, 2.7) == 6.0e6
+    @test isapprox(dark_rate(dev, 298.15 - 9, 2.7), 3.0e6)
+    @test isapprox(dark_rate(dev, 298.15, 3.2), 6.0e6 * 0.54 / 0.50)
+    @test dark_rate(dev, 196.0, 6.5) < 2e4            # kHz in the cold, as measured
+    @test isapprox(afterpulse_prob(dev, 3.0), 0.01) && isapprox(afterpulse_prob(dev, 6.0), 0.04)
+    # pulse: peak 1 reached 16 ns after the avalanche, then a 50 ns fall
+    ts = 0:0.1:400
+    v = [pulse_shape(dev, t) for t in ts]
+    @test isapprox(maximum(v), 1.0; atol = 1e-6)
+    tp = ts[argmax(v)]
+    @test isapprox(tp, 16; atol = 0.2)
+    @test pulse_shape(dev, 0) == 0 && pulse_shape(dev, -5) == 0
+    @test isapprox(pulse_shape(dev, tp + 100) / pulse_shape(dev, tp + 50), exp(-1); rtol = 0.1)
+
+    # operating point and response statistics
+    op = SipmOperation(dev; t_k = 293.15, vov = 3.0, n_channels = 64,
+                       window_ns = (-1000.0, 1000.0))
+    @test isapprox(op.vbr, 38.0 - 0.034 * 5; atol = 1e-9) && isapprox(op.pde_peak, 0.524)
+    @test op.gain_factor == ones(64)
+    ops = SipmOperation(dev; t_k = 293.15, vov = 3.0, n_channels = 64, gain_spread = 0.05,
+                        seed = 3)
+    @test isapprox(mean(ops.gain_factor), 1; atol = 0.03) && std(ops.gain_factor) > 0.02
+    # thinning: with crosstalk, afterpulsing and dark counts switched off through a
+    # device copy, the kept fraction is the PDE at 480 nm
+    nodark = SipmOperation(SipmDevice(merge(load_material("sipm_s14160"),
+        Dict("device" => merge(load_material("sipm_s14160")["device"],
+             Dict("dark_hz" => 0.0, "afterpulse_prob" => 0.0,
+                  "crosstalk" => [0.0, 0.0, 0.0, 0.0])))));
+        t_k = 293.15, vov = 3.0, n_channels = 1)
+    rng = Xoshiro(101)
+    n = 200_000
+    tr = respond(nodark, zeros(Float32, n), fill(480f0, n), rng)
+    p480 = pde(dev, 3.0, 480)
+    @test isapprox(length(tr) / n, p480; atol = 4 * sqrt(p480 / n))
+    @test all(a -> a.kind == 0 && a.q == 1, tr)
+    # crosstalk alone: mean total charge per kept photon is 1 / (1 - p)
+    noct = SipmOperation(SipmDevice(merge(load_material("sipm_s14160"),
+        Dict("device" => merge(load_material("sipm_s14160")["device"],
+             Dict("dark_hz" => 0.0, "afterpulse_prob" => 0.0)))));
+        t_k = 293.15, vov = 3.0, n_channels = 1)
+    tr = respond(noct, zeros(Float32, n), fill(450f0, n), rng)
+    nph = count(a -> a.kind == 0, tr)
+    pct = crosstalk(dev, 3.0)
+    @test isapprox(total_charge(tr) / nph, 1 / (1 - pct); rtol = 0.02)
+    # dark counts alone over the default window of 11 us: Poisson, mean rate x length
+    opd = SipmOperation(dev; t_k = 293.15, vov = 3.0, n_channels = 1)
+    only_dark = respond(opd, Float32[], Float32[], rng)
+    @test !isempty(only_dark) && all(a -> a.kind in (1, 2, 3), only_dark)
+    nd = [count(a -> a.kind == 3, respond(opd, Float32[], Float32[], rng)) for _ in 1:400]
+    mu = dark_rate(dev, 293.15, 3.0) * 11_000e-9
+    @test isapprox(mean(nd), mu; atol = 4 * sqrt(mu / 400))
+    @test all(a -> -1000 <= a.t_ns <= 10_000, only_dark)
+    # afterpulses: delayed, reduced, about 1% of the avalanches at 3 V
+    tr = respond(op, zeros(Float32, n), fill(450f0, n), rng)
+    ap = filter(a -> a.kind == 2, tr)
+    nav = count(a -> a.kind != 2 && a.kind != 3, tr)
+    @test isapprox(length(ap) / nav, 0.01; rtol = 0.15)
+    @test all(a -> 0 < a.q < 1 && a.t_ns > 0, ap)
+    @test isapprox(mean(a.t_ns for a in ap), 100; rtol = 0.1)
+    @test issorted(a.t_ns for a in tr)
+    # reproducible by seed
+    t1 = respond(op, Float32[1, 2, 3], Float32[480, 480, 480], Xoshiro(5))
+    t2 = respond(op, Float32[1, 2, 3], Float32[480, 480, 480], Xoshiro(5))
+    @test t1 == t2
+end
+
 include("frozen.jl")
 
 @testset "Frozen output of the pedagogical path" begin
