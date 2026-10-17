@@ -19,8 +19,8 @@ function shaping_scan(campaign::AbstractString, cfg_path::AbstractString, nmax::
     tps = [300.0, 600.0, 1200.0, 1800.0]
     tmp = mktempdir()
     rows = Dict{String,Vector{Float64}}(k => Float64[] for k in
-        ("tp_ns", "peak511", "fwhm511", "ratio_1275_511", "pedestal_empty", "pedestal_rms_empty",
-         "triggered_photopeak", "triggered_empty", "stored_fraction"))
+        ("tp_ns", "peak511", "fwhm511", "ratio_1275_511", "ratio_1275_511_mc", "pedestal_empty",
+         "pedestal_rms_empty", "triggered_photopeak", "triggered_empty", "stored_fraction"))
     for tp in tps
         c = deepcopy(base)
         c["run"]["tag"] = "$(tag)_tp$(Int(tp))"
@@ -44,29 +44,38 @@ function shaping_scan(campaign::AbstractString, cfg_path::AbstractString, nmax::
             hi = quantile(tg, 0.995)
             p511 = peak_fit(tg, 0.25hi, hi)
             p1275 = isfinite(p511.mean) ? peak_fit(tg, 2.2p511.mean, 2.8p511.mean) : (mean = NaN,)
-            # pedestal: what the peak detectors store without light, measured on the
-            # channels of triggered photopeak events that received no photon, times 64
-            maps = read(f["mc"]["photon_maps"])
-            sel = findall(pk .& trig)
-            dark = Float64[]
-            for k in sel, c in 1:64
-                maps[(c - 1) % 8 + 1, (c - 1) ÷ 8 + 1, k] == 0 && push!(dark, q[c, k])
-            end
-            ped = 64 .* dark
+            # 1275 to 511 ratio from the decays tagged by the simulation, no fit
+            pk1275 = (e1275 .> 1273) .& (e511 .== 0) .& trig
+            ratio_mc = median(tot[pk1275]) / median(tot[pk .& trig])
+            # pedestal: what the 64 peak detectors store without light, from a second pass
+            # over empty decays with an external trigger at the decay time (a pulser run)
+            ped = Float64[]
             push!(rows["tp_ns"], tp)
             push!(rows["peak511"], p511.mean); push!(rows["fwhm511"], 2.355p511.sigma / p511.mean)
             push!(rows["ratio_1275_511"], p1275.mean / p511.mean)
-            push!(rows["pedestal_empty"], isempty(ped) ? NaN : median(ped))
-            push!(rows["pedestal_rms_empty"], length(ped) > 2 ? std(ped) : NaN)
+            push!(rows["ratio_1275_511_mc"], ratio_mc)
             push!(rows["triggered_photopeak"], mean(trig[pk])); push!(rows["triggered_empty"], mean(trig[empty]))
             nph = read(f["mc"]["n_photons_at_sipm"])
             push!(rows["stored_fraction"], median(tot[pk .& trig] ./ nph[pk .& trig]))
-            @printf("%-28s tp %5.0f ns: 511 keV at %6.0f, FWHM %.1f%%, 1275/511 %.2f, pedestal %5.0f ± %4.0f, triggered photopeak %.3f empty %.3f\n",
-                    tag, tp, p511.mean, 100 * 2.355p511.sigma / p511.mean, p1275.mean / p511.mean,
-                    rows["pedestal_empty"][end], rows["pedestal_rms_empty"][end],
-                    rows["triggered_photopeak"][end], rows["triggered_empty"][end])
-            flush(stdout)
         end
+        # pedestal pass: empty decays, external trigger, 3000 of them
+        c2 = deepcopy(c)
+        c2["run"]["tag"] = "$(tag)_tp$(Int(tp))_ped"
+        c2["frontend"]["trigger"] = "external"
+        c2["run"]["n_events"] = min(nmax, 20_000)
+        p2 = joinpath(tmp, "cfg_$(Int(tp))_ped.toml")
+        open(p2, "w") do io; TOML.print(io, c2); end
+        out2 = run_fullsim_frontend(p2; verbose = false)
+        ped = h5open(out2, "r") do f
+            q = Float64.(read(f["events"]["charge_pe"])); edep = read(f["mc"]["edep_kev"])
+            vec(sum(q; dims = 1))[edep .== 0]
+        end
+        push!(rows["pedestal_empty"], median(ped)); push!(rows["pedestal_rms_empty"], std(ped))
+        @printf("%-28s tp %5.0f ns: 511 keV at %6.0f, FWHM %.1f%%, 1275/511 %.2f (fit) %.2f (mc), pedestal %5.0f ± %4.0f, triggered photopeak %.3f empty %.3f\n",
+                tag, tp, rows["peak511"][end], 100rows["fwhm511"][end], rows["ratio_1275_511"][end],
+                rows["ratio_1275_511_mc"][end], rows["pedestal_empty"][end], rows["pedestal_rms_empty"][end],
+                rows["triggered_photopeak"][end], rows["triggered_empty"][end])
+        flush(stdout)
     end
     outdir = joinpath(repo, "fullsim_analysis", "results", campaign)
     mkpath(outdir)

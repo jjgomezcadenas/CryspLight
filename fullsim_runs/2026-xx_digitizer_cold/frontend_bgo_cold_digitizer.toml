@@ -1,0 +1,34 @@
+# Front-end stage, BGO at 196 K read by the DT2745 digitizer (campaign 2026-xx_digitizer_cold).
+# Recipe setting: breakdown measured in situ, 3.0 V of overvoltage with the digitizer gain
+# at 4 (one photoelectron 38 counts), threshold 7.5 photoelectrons = 290 counts with
+# majority 2, 10 us gate for the 2.7 us decay, baseline window of 900 ns; dark pulses at
+# the kHz level, so the gate costs nothing.
+[run]
+pes = "output/optical_bgo_cold/pes.h5"
+seed = 21
+n_events = 0
+
+[sipm]
+device = "sipm_s14160"
+temperature_k = 196.0
+overvoltage_v = 3.0
+gain_spread = 0.05
+window_ns = [-2500.0, 12000.0]
+
+[frontend]
+type = "digitizer"
+gain = 4.0
+threshold_counts = 290.0
+majority = 2
+coincidence_ns = 100.0
+pretrigger_ns = 1000.0
+gate_start_ns = -50.0
+gate_ns = 10000.0
+baseline_ns = 900.0
+noise_counts = 4.0
+sample_ns = 8.0
+t_start_ns = -2000.0
+t_end_ns = 12000.0
+
+[channels]
+chip_channels = 64

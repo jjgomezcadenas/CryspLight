@@ -20,7 +20,8 @@ Base.@kwdef struct RadiorocSettings
     order::Int = 2
     hold_ns::Float64 = 500.0                   # delay cell: trigger to hold
     peak_detector::Bool = true
-    trigger::String = "tq"                     # "tq", "t1", "t2", "majority" (of T1)
+    trigger::String = "tq"                     # "tq", "t1", "t2", "majority" (of T1), "external"
+    external_trigger_ns::Float64 = 0.0         # trigger time of the "external" mode (a pulser run)
     t1_threshold_pe::Float64 = 0.5             # on the time preamplifier, in avalanches
     t2_threshold_pe::Float64 = 3.0
     tq_threshold_pe::Float64 = 50.0            # on the low-gain shaped signal, in avalanches
@@ -129,7 +130,8 @@ function radioroc_event(ch::RadiorocChain, trains::Vector{Vector{Avalanche}})
             s.trigger == "t1" ? trigger_time(t1, 1, s.coincidence_ns) :
             s.trigger == "t2" ? trigger_time(t2, 1, s.coincidence_ns) :
             s.trigger == "majority" ? trigger_time(t1, s.majority, s.coincidence_ns) :
-            error("trigger $(s.trigger) not supported (tq, t1, t2, majority)")
+            s.trigger == "external" ? s.external_trigger_ns :
+            error("trigger $(s.trigger) not supported (tq, t1, t2, majority, external)")
     hg = zeros(UInt16, nch); lg = zeros(UInt16, nch)
     hits = falses(nch); sat = falses(nch); stored = zeros(Float32, nch)
     fullscale = 2^s.adc_bits - 1
