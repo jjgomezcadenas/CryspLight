@@ -69,3 +69,40 @@ _cell(v::AbstractFloat) = isfinite(v) ? string(v) : ""
 _cell(v::Integer) = string(v)
 _cell(v::Bool) = v ? "1" : "0"
 _cell(v) = "\"" * replace(string(v), "\"" => "\"\"") * "\""
+
+"""
+    update_table(campaign, study, name, columns; key = "tag")
+
+Write the rows of `columns` into <name>.csv, replacing the rows of the existing file whose
+`key` equals one of the new keys and keeping the others; columns are matched by name, and
+a column missing on one side is left empty there. Lets several scripts runs (one per tag)
+build one campaign table.
+"""
+function update_table(campaign::AbstractString, study::AbstractString, name::AbstractString,
+                      columns::Vector; key::AbstractString = "tag")
+    path = joinpath(results_dir(campaign, study), name * ".csv")
+    newnames = [c.first for c in columns]
+    newkeys = Set(string.(columns[findfirst(==(key), newnames)].second))
+    old_header = String[]; old_rows = Vector{Vector{String}}()
+    if isfile(path)
+        lines = filter(!isempty, readlines(path))
+        old_header = split(lines[1], ",") .|> String
+        for l in lines[2:end]
+            f = split(l, ","; keepempty = true) .|> String
+            k = strip(f[findfirst(==(key), old_header)], '"')
+            k in newkeys || push!(old_rows, f)
+        end
+    end
+    header = vcat(newnames, [h for h in old_header if !(h in newnames)])
+    n = length(columns[1].second)
+    open(path, "w") do io
+        println(io, join(header, ","))
+        for i in 1:n
+            println(io, join((j <= length(columns) ? _cell(columns[j].second[i]) : "" for j in eachindex(header)), ","))
+        end
+        for f in old_rows
+            println(io, join((begin k = findfirst(==(h), old_header); k === nothing ? "" : f[k] end for h in header), ","))
+        end
+    end
+    return path
+end

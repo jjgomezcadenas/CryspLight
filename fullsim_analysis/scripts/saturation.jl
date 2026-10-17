@@ -60,8 +60,8 @@ open_results(campaign, "saturation"; mode = isfile(joinpath(results_dir(campaign
         push!(cols["case"], name); push!(cols["ceiling_hg"], hgc); push!(cols["ceiling_lg"], lgc)
         push!(cols["brightest511_median"], median(b511)); push!(cols["brightest511_p99"], quantile(b511, 0.99))
         push!(cols["brightest1275_median"], median(b1275)); push!(cols["brightest1275_p99"], quantile(b1275, 0.99))
-        push!(cols["above_hg_511"], mean(b511 .> hgc)); push!(cols["above_hg_1275"], mean(b1275 .> hgc))
-        push!(cols["above_lg_511"], mean(b511 .> lgc)); push!(cols["above_lg_1275"], mean(b1275 .> lgc))
+        push!(cols["above_hg_511"], mean(b511 .>= hgc * (1 - 1e-6))); push!(cols["above_hg_1275"], mean(b1275 .>= hgc * (1 - 1e-6)))
+        push!(cols["above_lg_511"], mean(b511 .>= lgc * (1 - 1e-6))); push!(cols["above_lg_1275"], mean(b1275 .>= lgc * (1 - 1e-6)))
         push!(cols["dimmest511_median"], median(d511)); push!(cols["dimmest511_p10"], quantile(d511, 0.1))
         push!(cols["pedestal_channel"], mean(ped)); push!(cols["pedestal_channel_rms"], std(ped))
         push!(cols["noise_hg_pe"], nhg); push!(cols["noise_lg_pe"], nlg)
@@ -74,7 +74,7 @@ open_results(campaign, "saturation"; mode = isfile(joinpath(results_dir(campaign
         attrs(g)["ceiling_hg"] = hgc; attrs(g)["ceiling_lg"] = lgc
         @printf("%-28s %-8s brightest 511 keV median %6.1f p99 %6.1f, 1275 keV median %6.1f p99 %6.1f; above HG ceiling %.0f: %.1f%% / %.1f%%; dimmest 511 keV median %.1f; pedestal per channel %.1f ± %.1f\n",
                 tag, name, median(b511), quantile(b511, 0.99), median(b1275), quantile(b1275, 0.99), hgc,
-                100mean(b511 .> hgc), 100mean(b1275 .> hgc), median(d511), mean(ped), std(ped))
+                100mean(b511 .>= hgc * (1 - 1e-6)), 100mean(b1275 .>= hgc * (1 - 1e-6)), median(d511), mean(ped), std(ped))
         flush(stdout)
     end
 end
@@ -82,8 +82,6 @@ order = ["case", "ceiling_hg", "ceiling_lg", "brightest511_median", "brightest51
          "brightest1275_p99", "above_hg_511", "above_hg_1275", "above_lg_511", "above_lg_1275",
          "dimmest511_median", "dimmest511_p10", "pedestal_channel", "pedestal_channel_rms", "noise_hg_pe", "noise_lg_pe"]
 path = joinpath(results_dir(campaign, "saturation"), "saturation.csv")
-old = isfile(path) ? filter(l -> !startswith(l, "\"" * tag * "\"") && !isempty(l), readlines(path)[2:end]) : String[]
-write_table(campaign, "saturation", "saturation",
+update_table(campaign, "saturation", "saturation",
             vcat(["tag" => fill(tag, length(cols["case"]))], [k => cols[k] for k in order]))
-isempty(old) || open(path, "a") do io; foreach(l -> println(io, l), old); end
 println("written ", path)

@@ -203,6 +203,10 @@ function run_fullsim_frontend(cfg_path::AbstractString; verbose::Bool = true)
         cb["pde_peak"] = fill(Float32(st.op.pde_peak), nch)
         cb["crosstalk"] = fill(Float32(st.op.crosstalk), nch)
         cb["gain_electrons"] = Float32.(st.op.gain .* st.op.gain_factor)
+        if has_lg
+            cb["gain_per_pe_lg"] = Float32.(st.settings.adc_per_pe * st.settings.lg_ratio .* st.op.gain_factor)
+            cb["pedestal_lg"] = fill(Float32(st.settings.pedestal), nch)
+        end
         # /events
         ev = create_group(f, "events")
         write_chunked(ev, "charge", charge)

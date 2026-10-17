@@ -39,7 +39,10 @@ open_results(campaign, "gate_scan"; mode = isfile(joinpath(results_dir(campaign,
         s = with(st.settings; gate_start_ns = g0, gate_ns = gl,
                  t_start_ns = min(st.settings.t_start_ns, g0 - 1000.0),
                  t_end_ns = max(st.settings.t_end_ns, gl + 2000.0))
-        res = emulate(pes, op, "digitizer", s, all_list)
+        # dark avalanches must cover the baseline window and the whole gate
+        opg = with_window(op, (min(op.window_ns[1], g0 - s.baseline_ns - 1000.0),
+                               max(op.window_ns[2], g0 + gl + 1000.0)))
+        res = emulate(pes, opg, "digitizer", s, all_list)
         tot = vec(sum(Float64.(res.stored); dims = 1))
         trig = res.triggered
         tg = tot[trig]
@@ -47,7 +50,7 @@ open_results(campaign, "gate_scan"; mode = isfile(joinpath(results_dir(campaign,
         t511 = tot[sel511 .& trig]; t1275 = tot[sel1275 .& trig]
         # empty decays with an external trigger at the decay time: the charge of the
         # gate without light, noise plus dark pulses after the baseline subtraction
-        emp = vec(sum(Float64.(emulate(pes, op, "digitizer", with(s; threshold_counts = 0.0), empty).stored); dims = 1))
+        emp = vec(sum(Float64.(emulate(pes, opg, "digitizer", with(s; threshold_counts = 0.0), empty).stored); dims = 1))
         push!(cols["gate_start_ns"], g0); push!(cols["gate_ns"], gl)
         push!(cols["peak511"], p511.mean); push!(cols["fwhm511"], 2.355p511.sigma / p511.mean)
         push!(cols["fwhm511_mc"], 2.355std(t511) / mean(t511))
@@ -69,8 +72,6 @@ end
 order = ["gate_start_ns", "gate_ns", "peak511", "fwhm511", "fwhm511_mc", "ratio_1275_511_mc", "stored_fraction",
          "empty_charge_mean", "empty_charge_rms", "triggered_photopeak", "triggered_empty"]
 path = joinpath(results_dir(campaign, "gate_scan"), "gate_scan.csv")
-old = isfile(path) ? filter(l -> !startswith(l, "\"" * tag * "\"") && !isempty(l), readlines(path)[2:end]) : String[]
-write_table(campaign, "gate_scan", "gate_scan",
+update_table(campaign, "gate_scan", "gate_scan",
             vcat(["tag" => fill(tag, length(points))], [k => cols[k] for k in order]))
-isempty(old) || open(path, "a") do io; foreach(l -> println(io, l), old); end
 println("written ", path)

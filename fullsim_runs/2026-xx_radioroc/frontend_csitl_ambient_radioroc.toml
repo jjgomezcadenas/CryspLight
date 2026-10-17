@@ -1,6 +1,8 @@
 # Front-end stage, csitl_ambient read by the Radioroc2 (campaign 2026-xx_radioroc). Charge trigger
 # TQ on the low-gain shaper (the time triggers T1 and T2 are emulated as the comparison),
-# slow-mode shaping of 1800 ns on both paths, hold 3000 ns after the trigger, 12-bit ADC.
+# slow-mode shaping of 1800 ns on both paths (the longest, agreed 18 Oct), hold 3560 ns after
+# the trigger (1.7 tp + 500 ns), charge threshold 40 avalanches, 12-bit ADC; default gains
+# (high 5.3, low 0.53), energy from the low-gain path.
 # The shaping time is the subject of the scan (fullsim_analysis/shaping_scan.jl).
 [run]
 pes = "output/optical_csitl_ambient/pes.h5"
@@ -17,10 +19,10 @@ window_ns = [-1500.0, 10000.0]
 [frontend]
 type = "radioroc"
 tp_ns = 1800.0
-hold_ns = 3000.0
+hold_ns = 3560.0
 peak_detector = true
 trigger = "tq"
-tq_threshold_pe = 20.0
+tq_threshold_pe = 40.0
 t1_threshold_pe = 0.5
 t2_threshold_pe = 3.0
 majority = 2

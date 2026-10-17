@@ -22,7 +22,7 @@ export read_events, select_photopeak511, select_photopeak1275, select_empty, sel
 export fit_gauss_linear, peak_fit
 export equalised_sum, histogram, find_peak511, find_peak1275, peak_window, brightest, dimmest
 export occupancy_map, mean_map, seed_peak_map, channel_grid
-export results_dir, write_table, write_hist!, write_vector!, write_matrix!, open_results, stamp!
-export open_pes_run, emulate, chain_maker, event_lists, with
+export results_dir, write_table, update_table, write_hist!, write_vector!, write_matrix!, open_results, stamp!
+export open_pes_run, emulate, chain_maker, event_lists, with, with_window
 
 end

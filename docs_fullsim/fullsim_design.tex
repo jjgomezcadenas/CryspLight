@@ -632,11 +632,16 @@ the same pulses and noise, for figures and for a visual comparison with the
 measured records; they are not used by the analysis.
 
 The gate is a choice of the analysis that the simulation informs, in its
-position as in its length. It must open before the trigger, because the
-trigger time moves by tens of nanoseconds from event to event with the
-pile-up of the first photons, and a gate opening at the trigger loses a
-variable part of the first light; the emulation scans the opening time and
-the instructions for the bench take 300~ns before the trigger. The bench
+position as in its length. The emulation scanned both: opening the gate
+earlier than 50~ns before the trigger brings nothing, because the trigger
+fires within a few tens of nanoseconds of the first light, and every
+additional nanosecond of gate collects dark pulses; at 5~V of overvoltage
+the best gate is 1~\us for ambient BGO (9.3\% FWHM, 10.2\% at 2~\us) and
+3~\us for \csitl (5.9\%, 6.2\% at 4.5~\us). At that overvoltage the dark
+pulses in the gate, 34 avalanches rms over the 64 channels for BGO, and the
+excess noise of 19\% crosstalk make the digitizer the least precise of the
+three front ends on ambient BGO; at 3~V both terms shrink, which is why the
+operating point with the digitizer gain at 4 and 3~V is the preferred one. The bench
 has two operating points: gain~4 of the digitizer with 3~V of overvoltage,
 if the noise of the digitizer does not grow with its gain, which gives one
 photoelectron of 38~counts and the crosstalk and dark rate of 3~V; or gain~1

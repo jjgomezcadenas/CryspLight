@@ -62,3 +62,8 @@ end
 
 "A copy of a keyword-constructed settings struct with some fields replaced."
 with(s::T; kw...) where {T} = T(; (f => getfield(s, f) for f in fieldnames(T))..., kw...)
+
+"The operating point with another window for the dark avalanches."
+with_window(op::SipmOperation, w) =
+    SipmOperation(op.dev, op.t_k, op.vov, op.vbr, op.gain, op.pde_peak, op.crosstalk, op.dark_hz,
+                  op.afterpulse, op.gain_factor, (Float64(w[1]), Float64(w[2])))

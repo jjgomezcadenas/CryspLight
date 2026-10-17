@@ -78,8 +78,6 @@ order = ["tp_ns", "tq_threshold_pe", "peak511", "fwhm511", "fwhm511_mc", "ratio_
          "pedestal", "pedestal_rms", "stored_fraction", "hg_saturated_511", "hg_saturated_1275",
          "triggered_photopeak", "triggered_empty"]
 path = joinpath(results_dir(campaign, "shaping_scan"), "shaping_scan.csv")
-old = isfile(path) ? filter(l -> !startswith(l, "\"" * tag * "\"") && !isempty(l), readlines(path)[2:end]) : String[]
-write_table(campaign, "shaping_scan", "shaping_scan",
+update_table(campaign, "shaping_scan", "shaping_scan",
             vcat(["tag" => fill(tag, length(tps))], [k => cols[k] for k in order]))
-isempty(old) || open(path, "a") do io; foreach(l -> println(io, l), old); end
 println("written ", path)

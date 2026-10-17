@@ -82,6 +82,7 @@ id & task & status & date \\
 0.13 & First emulated campaign at the bench settings (table below), the summaries of the seven event files, the trigger scans (ambient BGO with the three front ends, cold BGO with digitizer and Radioroc2), the shaping scans of the Radioroc2, the gate scans of the digitizer and the dynamic-range studies, all as tracked scripts with outputs under \code{fullsim\_analysis/results/}. Still to do: the overvoltage scan (2 to 5~V) and the trigger scan for \csitl & \doing & 18 Oct \\
 0.14 & Settings and procedure delivered to the bench: \code{BGOTSCAN/docs/digitiser\_run\_instructions\_and\_procedure.tex} (version 1, 18 Oct; the gate start and the option-A numbers to be filled from the scans) & \doing & 18 Oct \\
 0.16 & Analysis layer: Julia library \code{fullsim\_analysis/lib}, one script per study under \code{scripts/} writing HDF5 and CSV, Python plotters under \code{plots/} & \done & 17 Oct \\
+0.18 & Comparison of the three front ends in their optimal conditions on ambient BGO and \csitl (running plan below): \code{fullsim\_analysis/scripts/compare.jl} and \code{plots/compare.py} written and tested on the existing Citiroc file; runs awaiting JJ's go & \doing & 18 Oct \\
 0.17 & Position resolution on the emulated maps of the ambient BGO study, photopeak and single interaction, with the Anger and CNN reconstructions of the pedagogical simulation reading the emulated charge maps; one number per front end (moved from 2.5) & \planned & \\
 0.15 & Radioroc2 chain \code{src/frontend/radioroc.jl} (per-channel shaping, noise falling with the peaking time, T1/T2 on the time preamplifier and TQ on the low-gain shaper, hold, both paths with their ceilings) on the branch \code{radioroc}; configurations of the three crystals; shaping-time scan \code{fullsim\_analysis/shaping\_scan.jl}; the cold comparison Radioroc2 against digitizer & \doing & 17 Oct \\
 \bottomrule
@@ -154,6 +155,56 @@ calibration with dark pulses and for the dim channels, the low gain for the
 energy of every channel, cross-calibrated against the high gain on the
 channels both see between 10 and 70 avalanches; the longest shaping,
 1.8~\us; the charge trigger TQ as the acquisition trigger.
+
+\subsection*{Running plan for the front-end comparison (18 October 2026)}
+
+Agreed with JJ: every run is proposed and approved before it is launched;
+the cold runs are stopped until the cold campaign is scheduled. The three
+front ends are compared on the same decays of the two ambient optical runs,
+each in its optimal conditions:
+
+\begin{center}
+\small
+\begin{tabular}{p{0.16\textwidth} p{0.38\textwidth} p{0.38\textwidth}}
+\toprule
+front end & BGO & \csitl \\
+\midrule
+DT2745, option A & gain 4, 3.0~V; gate 1~\us from 50~ns before the trigger; baseline 900~ns; threshold from the option-A trigger scan, majority 2 & gain 4, 3.0~V; gate 3~\us from 50~ns before the trigger; otherwise as BGO \\
+DT2745, option B & gain 1, 5.0~V; gate 1~\us; 120~counts, majority 2 (production exists) & gain 1, 5.0~V; gate 3~\us (production to redo: it used 4.5~\us) \\
+Citiroc 1A & 3.0~V; 87.5~ns; peak detector; hold 300~ns; 8 photoelectron-equivalents, single channel (production exists) & 2.7~V; 87.5~ns; hold 500~ns; threshold from the \csitl trigger scan \\
+Radioroc2 & 3.0~V; 1.8~\us both paths; hold 3.56~\us; default gains; charge trigger at 40 avalanches; energy from the low gain & 2.7~V; otherwise as BGO; low-gain saturation checked \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The runs, in three blocks to approve separately, all restricted to what the
+question needs (trigger scans on the tagged decays: 1500 photopeak, 1500
+Compton between 200 and 300~keV, 1500 empty decays):
+
+\begin{enumerate}
+\item {\bf Digitizer.} Option-A trigger scans for BGO and \csitl (thresholds
+  of 3 to 25 photoelectrons, majority 2 and single channel; about 1~min
+  each); option-A productions with the chosen threshold on 100\,000 decays
+  of each crystal (about 2~min each); option-B \csitl production with the
+  3~\us gate (about 1.5~min).
+\item {\bf \csitl trigger scan of the Citiroc} (3 to 25
+  photoelectron-equivalents; about 2~min), and a production of 5~min only
+  if the threshold changes.
+\item {\bf Radioroc2.} Saturation study of \csitl at the agreed point (about
+  1~min); productions on 100\,000 decays of BGO (about 10~min) and of
+  \csitl (about 15~min).
+\end{enumerate}
+
+Then \code{compare.jl} on the event files of each crystal and
+\code{plots/compare.py}: one table and one figure per crystal answering the
+questions of the first study except the position resolution (task 0.17).
+Total machine time about 45~minutes. Code changes made for it: the gate
+scan widens the window of dark avalanches with the gate (gates longer than
+2.5~\us for BGO and the 10~\us gate for \csitl in the first scan were
+artefacts of a window that ended inside the gate); the event file carries
+the low-gain calibration, and the reader the low-gain charge in avalanches;
+the digitizer trigger scan is set in photoelectrons, so that it means the
+same at both gains; the scan tables merge rows by tag and columns by name.
 
 \subsection*{First emulated campaign (17 October 2026)}
 
@@ -283,8 +334,9 @@ campaign & configuration & readout & dates \\
 \item The acquisition board and ADC of the Radioroc2 (assumed: the
   evaluation board, 12~bits, multiplexed readout) and whether its FPGA
   offers a majority; the charge trigger TQ needs neither.
-\item Digitizer gate start before the trigger: the gate scan running on
-  18 Oct decides between 200 and 300~ns; the instructions say 300~ns.
+\item Digitizer gate: resolved on 18 Oct by the gate scan, 50~ns before
+  the trigger, 1~\us for BGO and 3~\us for \csitl at option~B; option~A to
+  be confirmed by its production.
 \item The format of the WaveDump2 output files and the event-building of the
   64 channels, for the converter.
 \end{itemize}
@@ -295,6 +347,19 @@ campaign & configuration & readout & dates \\
 \item[16 Oct 2026] Project assessed; datasheets read (Citiroc 1A, Radioroc2,
   S14160/S14161); Antarctica draft read; tag and branch; design document
   v0.1 and this plan; overvoltage recipe written.
+\item[18 Oct 2026] Gate scans of the digitizer (BGO and \csitl ambient,
+  BGO cold), run on all decays before the rule of approving each run was
+  agreed: opening the gate before $-50$~ns brings nothing (my hypothesis of a
+  trigger jitter was wrong); best lengths 1~\us for BGO (9.3\% FWHM) and
+  3~\us for \csitl (5.9\%). At 5~V the digitizer is the least precise front
+  end on ambient BGO (Citiroc 8.8\%, Radioroc2 6.4\%): the dark pulses in the
+  gate and the 19\% crosstalk; option~A at 3~V becomes the setting that
+  matters. Instructions for the bench updated to version 2 (gate from 50~ns
+  before the trigger, 1~\us BGO, 3~\us \csitl, expectations at option~B).
+  Cold trigger scans of the digitizer and the Radioroc2 completed; the cold
+  gate scan suffers from the 4.6\% trigger efficiency and is set aside with
+  the cold runs. The Radioroc2 shaping scan of ambient BGO completed; those
+  of \csitl and cold BGO cancelled (the longest shaping is decided).
 \item[18 Oct 2026] Decisions on the Radioroc2 operation (default gains,
   both paths, energy from the low gain, calibration from the high gain,
   longest shaping, charge trigger) after the dynamic-range study showed the

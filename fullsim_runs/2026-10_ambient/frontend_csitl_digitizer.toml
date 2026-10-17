@@ -1,6 +1,7 @@
 # Front-end stage, CsI(Tl) ambient read by the DT2745 digitizer (campaign 2026-10_ambient).
 # Gain 1 and 43 V (5 V of overvoltage); threshold 120 counts, majority 2 within 100 ns;
-# gate of 4.5 us for the 730 and 3340 ns components, baseline window of 900 ns.
+# gate of 3 us from 50 ns before the trigger (gate scan of 18 Oct: 5.9% FWHM against 6.2%
+# at 4.5 us), baseline window of 900 ns.
 [run]
 pes = "output/optical_csitl_ambient/pes.h5"
 seed = 14
@@ -21,7 +22,7 @@ majority = 2
 coincidence_ns = 100.0
 pretrigger_ns = 1000.0
 gate_start_ns = -50.0
-gate_ns = 4500.0
+gate_ns = 3000.0
 baseline_ns = 900.0
 noise_counts = 4.0
 sample_ns = 8.0

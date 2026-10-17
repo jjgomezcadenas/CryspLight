@@ -5,8 +5,10 @@
     read_events(path) -> NamedTuple
 
 Fields: path, tag, frontend, kind ("simulation" or "measurement"), run (the attributes of
-/run as a Dict), nch, n, q (charge in avalanches, nch x n, Float64), charge (raw, as
-stored), lg (low-gain counts or nothing), hits (nch x n, Bool), trig (n, Bool), ttrig (n),
+/run as a Dict), nch, n, q (charge in avalanches, nch x n, Float64; the dual-gain value
+for the ASICs), charge (raw, as stored), lg (low-gain counts or nothing), qlg (low-gain
+charge in avalanches from its own calibration, or nothing), calib (the /calib group as a
+Dict), hits (nch x n, Bool), trig (n, Bool), ttrig (n),
 flags (n, UInt8), x and y (channel centres, mm), chip, and mc (nothing for a measurement,
 else edep, e511, e1275, nph (photons at the active areas), maps (8 x 8 x n photons),
 ngam).
@@ -23,12 +25,21 @@ function read_events(path::AbstractString)
             m = f["mc"]
             mc = (edep = read(m["edep_kev"]), e511 = read(m["edep_511_kev"]),
                   e1275 = read(m["edep_1275_kev"]), nph = read(m["n_photons_at_sipm"]),
+                  nemit = read(m["n_photons_emitted"]),
                   maps = read(m["photon_maps"]), ngam = read(m["n_gammas"]))
         end
+        # low-gain charge in avalanches, from its own calibration (Radioroc2, Citiroc)
+        qlg = nothing
+        if haskey(ev, "charge_lg") && haskey(f["calib"], "gain_per_pe_lg")
+            g = Float64.(read(f["calib"]["gain_per_pe_lg"])); p = Float64.(read(f["calib"]["pedestal_lg"]))
+            qlg = (Float64.(read(ev["charge_lg"])) .- p) ./ g
+        end
+        cal = f["calib"]
+        calib = Dict{String,Any}(k => read(cal[k]) for k in keys(cal))
         (path = String(path), tag = String(run["tag"]), frontend = String(run["frontend"]),
          kind = String(get(run, "kind", "simulation")), run = run, nch = nch, n = n, q = q,
          charge = read(ev["charge"]),
-         lg = haskey(ev, "charge_lg") ? read(ev["charge_lg"]) : nothing,
+         lg = haskey(ev, "charge_lg") ? read(ev["charge_lg"]) : nothing, qlg = qlg, calib = calib,
          hits = Bool.(read(ev["hits"])), trig = Bool.(read(ev["triggered"])),
          ttrig = read(ev["t_trigger_ns"]), flags = read(ev["flags"]),
          x = Float64.(read(f["channels"]["x_mm"])), y = Float64.(read(f["channels"]["y_mm"])),

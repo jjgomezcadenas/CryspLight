@@ -26,7 +26,10 @@ scans = if st.frontend == "citiroc"
      ("majority2", [2.0, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0, 15.0],
       t -> with(base; threshold_pe = t, majority = 2))]
 elseif st.frontend == "digitizer"
-    thr = [60.0, 80.0, 100.0, 120.0, 140.0, 160.0, 200.0, 250.0, 300.0, 400.0]
+    # thresholds in photoelectrons, converted to counts with the amplitude of one
+    # photoelectron at this gain and overvoltage, so the scan means the same at any setting
+    pe_counts = base.counts_per_pe_per_volt * op.vov * base.gain
+    thr = round.([3.0, 4.0, 5.0, 6.0, 7.5, 9.0, 11.0, 13.0, 16.0, 20.0, 25.0] .* pe_counts)
     [("majority2", thr, t -> with(base; threshold_counts = t, majority = 2)),
      ("single", thr, t -> with(base; threshold_counts = t, majority = 1))]
 else
@@ -38,7 +41,7 @@ else
       t -> with(base; trigger = "majority", t1_threshold_pe = t, majority = 2))]
 end
 
-rows = (tag = String[], frontend = String[], mode = String[], threshold = Float64[],
+rows = (tag = String[], frontend = String[], mode = String[], threshold = Float64[], threshold_pe = Float64[],
         efficiency_511 = Float64[], efficiency_200_300 = Float64[], dark_per_window = Float64[],
         window_ns = Float64[], dark_khz = Float64[])
 for (mode, thresholds, make) in scans, t in thresholds
@@ -46,7 +49,9 @@ for (mode, thresholds, make) in scans, t in thresholds
     f(list) = mean(emulate(pes, op, st.frontend, s, list).triggered)
     e511, ec, ed = f(lists.photopeak511), f(lists.compton), f(lists.empty)
     push!(rows.tag, tag); push!(rows.frontend, st.frontend); push!(rows.mode, mode)
-    push!(rows.threshold, t); push!(rows.efficiency_511, e511); push!(rows.efficiency_200_300, ec)
+    push!(rows.threshold, t)
+    push!(rows.threshold_pe, st.frontend == "digitizer" ? t / (base.counts_per_pe_per_volt * op.vov * base.gain) : t)
+    push!(rows.efficiency_511, e511); push!(rows.efficiency_200_300, ec)
     push!(rows.dark_per_window, ed); push!(rows.window_ns, window_ns)
     push!(rows.dark_khz, ed / window_ns * 1e6)
     @printf("%-28s %-12s threshold %6.1f: 511 keV %.3f, 200-300 keV %.3f, dark per window %.3f (%.1f kHz)\n",
@@ -55,11 +60,5 @@ for (mode, thresholds, make) in scans, t in thresholds
 end
 # append to the campaign table, replacing the rows of this tag
 path = joinpath(results_dir(campaign, "trigger_scan"), "trigger_scan.csv")
-old = isfile(path) ? filter(l -> !startswith(l, "\"" * tag * "\"") && !isempty(l), readlines(path)[2:end]) : String[]
-write_table(campaign, "trigger_scan", "trigger_scan", [String(k) => getfield(rows, k) for k in keys(rows)])
-if !isempty(old)
-    open(path, "a") do io
-        foreach(l -> println(io, l), old)
-    end
-end
+update_table(campaign, "trigger_scan", "trigger_scan", [String(k) => getfield(rows, k) for k in keys(rows)])
 println("written ", path)
