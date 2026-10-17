@@ -355,3 +355,17 @@ end
                            9f0, 39f0, 0f0, 0f0, 0f0, 1f0, 1f6)
     @test acc.counts[2, 7, end] == 1
 end
+
+include("frozen.jl")
+
+@testset "Frozen output of the pedagogical path" begin
+    stored = read_frozen()
+    @test stored !== nothing      # run `julia --project=. test/frozen.jl --freeze` once
+    if stored !== nothing
+        current = frozen_cases()
+        for (case, fields) in stored, (field, hex) in fields
+            @test haskey(current, case) && current[case][field] == hex
+        end
+        @test Set(keys(current)) == Set(keys(stored))
+    end
+end

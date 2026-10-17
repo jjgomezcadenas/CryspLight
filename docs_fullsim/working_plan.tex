@@ -18,7 +18,7 @@
 
 \title{CryspLight full simulation: working plan}
 \author{J.\,J.~Gómez-Cadenas}
-\date{Live document --- last edited 16 October 2026}
+\date{Live document --- last edited 17 October 2026}
 
 \begin{document}
 \maketitle
@@ -65,7 +65,7 @@ id & task & status & date \\
 0.1 & Tag \code{pedsim}, branch \code{fullsim}, datasheets committed & \done & 16 Oct \\
 0.2 & Design document and this plan & \done & 16 Oct \\
 0.3 & Overvoltage recipe for the bench (\code{BGOTSCAN/docs/overvoltage\_recipe.tex}) & \done & 16 Oct \\
-0.4 & Frozen-output test of the pedagogical path & \planned & \\
+0.4 & Frozen-output test of the pedagogical path: SHA-256 digests of three CPU runs (point source through the reference transport and through the kernel, gamma pipeline) in \code{test/frozen\_checksums.toml}, compared by \code{Pkg.test}; regenerated only by \code{test/frozen.jl --freeze} & \done & 17 Oct \\
 0.5 & Readout layout: active rectangles, dead-area reflection, overhang; parity and layout tests & \planned & \\
 0.6 & Grease and resin window: second Fresnel interface; window test & \planned & \\
 0.7 & Materials: cold BGO file (2.7~\us), ambient BGO file; two-component \csitl timing & \planned & \\
@@ -205,6 +205,9 @@ campaign & configuration & readout & dates \\
   (UM8717) read and the DT2745 added as a third front end; digitizer section
   added to the overvoltage recipe; trigger thresholds for the Citiroc and
   the digitizer estimated for the ambient runs.
+\item[17 Oct 2026] Task 0.4: frozen-output test added and passing; the
+  digests do not depend on the thread count and change with the seed or
+  with any parameter.
 \end{description}
 
 \end{document}
