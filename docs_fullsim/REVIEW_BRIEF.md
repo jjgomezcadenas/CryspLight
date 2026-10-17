@@ -34,7 +34,18 @@ These are the places the authors themselves consider weakest, in order of conseq
 - Run the tests: julia --project=. --threads=8 -e 'using Pkg; Pkg.test()'. They take about ten minutes.
 - Do your own calculations in a scratch directory, outside the repository. Do not modify tracked files, do not commit, do not push.
 - Large outputs exist under output/ (pes.h5 and events.h5 per run); read them with h5py or HDF5.jl rather than rerunning the GPU stage.
-- Background scans may still be writing into fullsim_analysis/results/; files modified in the last hour may be incomplete.
+- Some scans may still be running when you start: the cold-BGO trigger scans (digitiser and Radioroc2), the digitiser gate scans (ambient BGO, ambient CsI(Tl), cold BGO) and the Radioroc2 shaping scans (the three crystals). Their outputs go to fullsim_analysis/results/<campaign>/trigger_scan, gate_scan and shaping_scan; treat those directories as incomplete if their files changed in the last hour.
+
+## What not to report
+
+Stay at the level of the decisions the work supports: bench settings, the physics model, the numbers in the documents, the tests. Leave out:
+
+- Detail that cannot change a setting, a number in the documents or a conclusion: numerical precision far below the statistical errors, alternative but equivalent formulations, style of code that works.
+- Points outside the scope: the pedagogical simulation before tag pedsim, the vendored gamma code, general software-engineering advice, features nobody asked for.
+- Remarks without context: an objection to a parameter whose provenance is already stated as an assumption in the documents is a finding only if you show that a plausible alternative value changes a conclusion, and by how much.
+- Lists of minor items. If you have more than about fifteen findings, keep the fifteen that matter most and drop the rest.
+
+A good finding is one the author would act on before the bench runs.
 
 ## Report
 
