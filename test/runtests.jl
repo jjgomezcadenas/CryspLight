@@ -976,6 +976,76 @@ end
 end
 
 
+@testset "Radioroc2 chain (fullsim 0.15)" begin
+    dev = SipmDevice()
+    op = SipmOperation(dev; t_k = 293.15, vov = 3.0, n_channels = 64)
+    tdev = with_pulse(dev, 5.0, 20.0)
+    @test tdev.pulse_rise_ns == 5 && tdev.pulse_fall_ns == 20 && tdev.n_cells == dev.n_cells
+    # no noise and no ceiling, except where the ceiling is the subject
+    quiet(; lg_ceiling_pe = 1e9, kw...) =
+        RadiorocChain(RadiorocSettings(; noise_pe_100ns = 0.0, time_noise_pe = 0.0,
+                                       lg_ceiling_pe = lg_ceiling_pe, kw...), op, Xoshiro(151))
+    # stored fractions of the design document table for the slow shaping times
+    ch = quiet(tp_ns = fill(1800.0, 64))
+    @test isapprox(stored_fraction(ch, 300), 0.97; atol = 0.02)
+    @test isapprox(stored_fraction(ch, 2720), 0.55; atol = 0.03)
+    @test isapprox(stored_fraction(ch, 1000), 0.81; atol = 0.03)
+    ch3 = quiet(tp_ns = fill(300.0, 64))
+    @test isapprox(stored_fraction(ch3, 300), 0.67; atol = 0.03)
+    ch12 = quiet(tp_ns = fill(1200.0, 64))
+    @test isapprox(stored_fraction(ch12, 300), 0.94; atol = 0.02)
+    # per-channel peaking times: one calibrated shaper per distinct value
+    tps = vcat(fill(300.0, 32), fill(1800.0, 32))
+    chm = quiet(tp_ns = tps)
+    @test length(chm.shapers) == 2
+    @test stored_fraction(chm, 2720; channel = 1) < stored_fraction(chm, 2720; channel = 40)
+    # noise scaling
+    s0 = RadiorocSettings()
+    @test noise_at(s0, 100) == 0.1 && isapprox(noise_at(s0, 1800), 0.1 * sqrt(100 / 1800))
+    # ceilings for this gain (2.79e6): 2000 x 1e6 / gain = 717 avalanches on the low gain
+    # and a tenth, 72, on the high gain at the default gain ratio
+    chc = quiet(lg_ceiling_pe = 2000.0)
+    @test isapprox(chc.lg_ceiling, 2000e6 / op.gain) && isapprox(chc.hg_ceiling, 200e6 / op.gain)
+
+    # one avalanche: T1 fires, T2 (3 pe) and TQ (50 pe) do not; the trigger on T1 stores
+    # one avalanche on the high gain, pedestal + 10 counts
+    trains = [Avalanche[] for _ in 1:64]
+    trains[5] = [Avalanche(0f0, 1f0, Int8(0))]
+    e1 = radioroc_event(quiet(trigger = "t1"), trains)
+    @test e1.triggered && e1.hits[5] && count(e1.hits) == 1
+    @test isapprox(e1.stored_pe[5], 1.0; atol = 1e-3) && e1.hg[5] == 210 && e1.lg[5] == 201
+    @test !radioroc_event(quiet(trigger = "t2"), trains).triggered
+    @test !radioroc_event(quiet(trigger = "tq"), trains).triggered
+    # a 1000-avalanche exponential train (tau 300 ns) in one channel: the charge trigger
+    # fires, the stored value is about 0.67 of it at 300 ns shaping and 0.97 at 1.8 us;
+    # a time threshold T2 at 3 pe fires on the pile-up as well
+    rngt = Xoshiro(152)
+    tr = [Avalanche(Float32(-300 * log(rand(rngt))), 1f0, Int8(0)) for _ in 1:1000]
+    big = [Avalanche[] for _ in 1:64]; big[1] = tr
+    eq3 = radioroc_event(quiet(trigger = "tq", tp_ns = fill(300.0, 64)), big)
+    @test eq3.triggered && isapprox(eq3.stored_pe[1], 670; rtol = 0.1)
+    eq18 = radioroc_event(quiet(trigger = "tq", tp_ns = fill(1800.0, 64), hold_ns = 3000.0), big)
+    @test eq18.triggered && isapprox(eq18.stored_pe[1], 970; rtol = 0.05)
+    @test eq18.t_trigger > eq3.t_trigger        # the slower shaper crosses TQ later
+    @test radioroc_event(quiet(trigger = "t2"), big).triggered
+    # majority of T1 within 50 ns: two channels needed
+    @test !radioroc_event(quiet(trigger = "majority"), trains).triggered
+    t2 = deepcopy(trains); t2[9] = [Avalanche(20f0, 1f0, Int8(0))]
+    @test radioroc_event(quiet(trigger = "majority"), t2).triggered
+    # saturation of the high-gain path flags the channel and clamps the stored value;
+    # the low-gain path still measures it
+    huge = [Avalanche[] for _ in 1:64]
+    huge[2] = [Avalanche(0f0, Float32(chc.hg_ceiling * 1.5), Int8(0))]
+    eh = radioroc_event(quiet(trigger = "t1", lg_ceiling_pe = 2000.0), huge)
+    @test eh.saturated[2] && eh.stored_pe[2] <= chc.hg_ceiling + 1e-3
+    @test isapprox(eh.lg[2], 200 + 10 * 0.1 * chc.hg_ceiling * 1.5; atol = 1.5)
+    # the settings reader accepts a scalar peaking time and a vector
+    rs = settings_from(RadiorocSettings, Dict("tp_ns" => 600.0, "trigger" => "tq", "hold_ns" => 800))
+    @test rs.tp_ns == fill(600.0, 64) && rs.hold_ns == 800.0 && rs.trigger == "tq"
+    rv = settings_from(RadiorocSettings, Dict("tp_ns" => collect(1.0:64.0)))
+    @test rv.tp_ns == collect(1.0:64.0)
+end
+
 include("frozen.jl")
 
 @testset "Frozen output of the pedagogical path" begin

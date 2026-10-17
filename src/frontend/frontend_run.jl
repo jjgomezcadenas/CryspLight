@@ -38,7 +38,9 @@ function settings_from(T::Type, tbl::AbstractDict)
         sym = Symbol(k)
         sym in fieldnames(T) || continue
         ft = fieldtype(T, sym)
-        kw[sym] = ft <: Integer ? Int(v) : (ft <: AbstractFloat ? Float64(v) : v)
+        kw[sym] = ft <: Integer ? Int(v) :
+                  ft <: AbstractFloat ? Float64(v) :
+                  ft <: Vector{Float64} ? (v isa Number ? fill(Float64(v), 64) : Float64.(v)) : v
     end
     return T(; kw...)
 end
@@ -60,7 +62,8 @@ function load_frontend(cfg_path::AbstractString; nx::Integer = 8, ny::Integer = 
     kind = fe["type"]
     settings = kind == "citiroc" ? settings_from(CitirocSettings, fe) :
                kind == "digitizer" ? settings_from(DigitizerSettings, fe) :
-               error("frontend type $(kind) not supported (citiroc, digitizer)")
+               kind == "radioroc" ? settings_from(RadiorocSettings, fe) :
+               error("frontend type $(kind) not supported (citiroc, digitizer, radioroc)")
     chip = Int(get(get(cfg, "channels", Dict()), "chip_channels", kind == "citiroc" ? 32 : 64))
     outdir = joinpath(repo, get(run, "output_dir", "output"), tag)
     return FrontendSetup(tag, cfg, cfg_text, abspath(cfg_path), pes_path,
@@ -106,18 +109,21 @@ function run_fullsim_frontend(cfg_path::AbstractString; verbose::Bool = true)
     ntot = length(pes.events.edep_kev)
     nev = st.n_events > 0 ? min(st.n_events, ntot) : ntot
     nt = Threads.maxthreadid()          # thread ids may exceed nthreads() (interactive pool)
-    chains = [st.frontend == "citiroc" ? CitirocChain(st.settings, st.op, Xoshiro(t)) :
-                                          DigitizerChain(st.settings, st.op, Xoshiro(t))
-              for t in 1:nt]
+    make_chain(t) = st.frontend == "citiroc" ? CitirocChain(st.settings, st.op, Xoshiro(t)) :
+                    st.frontend == "digitizer" ? DigitizerChain(st.settings, st.op, Xoshiro(t)) :
+                    RadiorocChain(st.settings, st.op, Xoshiro(t))
+    chains = [make_chain(t) for t in 1:nt]
     chain = chains[1]
-    apply = st.frontend == "citiroc" ? citiroc_event : digitizer_event
+    apply = st.frontend == "citiroc" ? citiroc_event :
+            st.frontend == "digitizer" ? digitizer_event : radioroc_event
+    has_lg = st.frontend != "digitizer"
 
     mkpath(st.outdir)
     cp(st.cfg_path, joinpath(st.outdir, basename(st.cfg_path)); force = true)
     path = joinpath(st.outdir, "events.h5")
     # per-event outputs
-    charge = st.frontend == "citiroc" ? zeros(UInt16, nch, nev) : zeros(Int32, nch, nev)
-    lg = st.frontend == "citiroc" ? zeros(UInt16, nch, nev) : nothing
+    charge = has_lg ? zeros(UInt16, nch, nev) : zeros(Int32, nch, nev)
+    lg = has_lg ? zeros(UInt16, nch, nev) : nothing
     qpe = zeros(Float32, nch, nev)
     hits = zeros(UInt8, nch, nev)
     ttrig = fill(NaN32, nev)
@@ -130,7 +136,7 @@ function run_fullsim_frontend(cfg_path::AbstractString; verbose::Bool = true)
         seed!(ch.rng, hash((st.seed, k, :noise)))
         trains = event_trains(st.op, event_pes(pes, k), nch, rng)
         ev = apply(ch, trains)
-        if st.frontend == "citiroc"
+        if has_lg
             charge[:, k] = ev.hg; lg[:, k] = ev.lg; qpe[:, k] = ev.stored_pe
         else
             charge[:, k] = ev.charge; qpe[:, k] = ev.charge_pe
@@ -165,7 +171,8 @@ function run_fullsim_frontend(cfg_path::AbstractString; verbose::Bool = true)
         a["n_events"] = nev; a["seed"] = st.seed; a["elapsed_s"] = t_all
         a["flags_key"] = "bit 1: a channel saturated; bit 2: no trigger"
         for fld in fieldnames(typeof(st.settings))
-            a["fe_" * String(fld)] = getfield(st.settings, fld)
+            v = getfield(st.settings, fld)
+            a["fe_" * String(fld)] = v isa Vector ? (isempty(v) ? Float64[] : v) : v
         end
         # /channels: geometry of the optical run's readout
         ro = load_fullsim_readout(opt_cfg)
@@ -183,13 +190,15 @@ function run_fullsim_frontend(cfg_path::AbstractString; verbose::Bool = true)
         ch["status"] = fill(Int8(1), nch)      # 1 live, 0 dead, 2 noisy
         # /calib: the values used
         cb = create_group(f, "calib")
-        unit = st.frontend == "citiroc" ? st.settings.adc_per_pe : chain.area_per_pe
+        unit = has_lg ? st.settings.adc_per_pe : chain.area_per_pe
         cb["gain_per_pe"] = Float32.(unit .* st.op.gain_factor)
-        cb["gain_per_pe_unit"] = st.frontend == "citiroc" ? "ADC counts per avalanche, high gain" :
-                                                            "count-samples per avalanche"
-        cb["pedestal"] = fill(Float32(st.frontend == "citiroc" ? st.settings.pedestal : 0), nch)
-        cb["pedestal_rms"] = fill(Float32(st.frontend == "citiroc" ?
-            st.settings.noise_pe * st.settings.adc_per_pe : chain.noise_charge), nch)
+        cb["gain_per_pe_unit"] = has_lg ? "ADC counts per avalanche, high gain" :
+                                          "count-samples per avalanche"
+        cb["pedestal"] = fill(Float32(has_lg ? st.settings.pedestal : 0), nch)
+        ped_rms = st.frontend == "citiroc" ? st.settings.noise_pe * st.settings.adc_per_pe :
+                  st.frontend == "radioroc" ? noise_at(st.settings, st.settings.tp_ns[1]) * st.settings.adc_per_pe :
+                  chain.noise_charge
+        cb["pedestal_rms"] = fill(Float32(ped_rms), nch)
         cb["dark_hz"] = fill(Float32(st.op.dark_hz), nch)
         cb["pde_peak"] = fill(Float32(st.op.pde_peak), nch)
         cb["crosstalk"] = fill(Float32(st.op.crosstalk), nch)

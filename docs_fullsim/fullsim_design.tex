@@ -644,21 +644,67 @@ stores 0.07 of the photoelectrons of cold BGO (Section~\ref{sec:citiroc});
 the digitizer, with a gate of 10~\us, stores them all.
 
 \subsection{The Radioroc2}
+\label{sec:radioroc}
 
 A single chip reads the 64 channels (datasheet version 2.0, January 2025).
-Its chain has the same structure, with differences that matter for our
-crystals. The shaping time is set per channel, between 20 and 300~ns or,
-in a slow mode, between 120~ns and 1.8~\us, which is the natural choice for
-\csitl and cold BGO. The preamplifiers measure charge, with gains per
-channel between 5 and 80 on the high-gain path and 0.5 and 8 on the low-gain
-one. Each channel has two time discriminators with their own thresholds and
-a charge discriminator on the low-gain shaper. The hold can be generated on
-the chip by a delay cell adjustable between 2~ns and 2.6~\us, or supplied
-from outside. The chain saturates at 2000 photoelectrons of $10^6$ gain,
-about 320~pC. And each channel can route its shaped signal to an output pin
-of its own, so that all 64 channels can be digitised in parallel instead of
-through the multiplexer. The simulation uses the same code with a different
-set of parameters, and assumes a CR-RC$^2$ shaper until one is measured.
+Its chain has the structure of the Citiroc one, with the differences
+listed below, and the simulation applies the same code with these
+differences as settings.
+
+\begin{enumerate}
+\item {\bf Preamplifiers and shapers.} Two charge preamplifiers per channel,
+  with gains between 5 and 80 on the high-gain path and 0.5 and 8 on the
+  low-gain one, each followed by a shaper whose peaking time is set channel
+  by channel: 20 to 300~ns in steps of 20~ns, or, in the slow mode, 120~ns
+  to 1.8~\us in steps of 120~ns. The order of the shaper is not stated; the
+  simulation takes CR-RC$^2$, as for the Citiroc, until a single-avalanche
+  waveform is measured. The slow mode is the natural choice for \csitl and
+  for cold BGO, whose 2.7~\us decay through 1.8~\us of shaping stores 0.55
+  of the photoelectrons (Section~\ref{sec:citiroc}); at ambient temperature
+  a long shaping also collects more dark pulses, about 14 photoelectrons
+  per channel in the effective window of the longest setting, so that the
+  shaping time has an optimum per crystal which the emulation gives.
+\item {\bf Noise.} The datasheet gives a signal-to-noise ratio above 10 for
+  one photoelectron on the high gain, with no shaping time attached. With
+  2~nF of device capacitance at the input the series noise dominates, and it
+  falls as the inverse square root of the peaking time, while the dark
+  pulses, which the model generates explicitly, grow with it. The simulation
+  takes 0.1 photoelectron rms at 100~ns scaling as $(100~\mathrm{ns}/t_p)^{1/2}$,
+  a parameter to be replaced by the pedestals of the runs.
+\item {\bf Triggers.} Each channel has a time preamplifier of 200~MHz
+  bandwidth with two discriminators, T1 and T2, of independent thresholds
+  common to the chip with a per-channel trim, and a charge discriminator TQ
+  on the output of the low-gain shaper. The time preamplifier sees the
+  avalanche almost unshaped, so T1 and T2 respond to the instantaneous
+  amplitude within a few tens of nanoseconds: for ambient BGO the brightest
+  channel of a 511~keV event reaches only 4 to 5 photoelectrons there,
+  while the dark pulses with crosstalk reach the same once per microsecond
+  over the array, and a single time threshold cannot separate them. The
+  charge trigger sees the integrated light of the event, hundreds of
+  photoelectron-equivalents for the photopeak against a handful for a dark
+  pulse, and is the trigger the simulation takes by default for the slow
+  scintillators; T1 and T2, single channel or in a majority built by the
+  FPGA of the board, are emulated as the comparison. The pulse at the time
+  preamplifier is not the one measured through the 20~MHz digitizer; the
+  simulation takes a 5~ns rise and a 20~ns fall as parameters, which only
+  enter the T1 and T2 numbers.
+\item {\bf Acquisition trigger, hold and peak detectors.} The peak detectors
+  of all channels are opened by one acquisition trigger, selectable among the
+  chip-wide OR of T1, of T2 or of TQ, the local trigger of each channel, or
+  an external signal; the hold follows it after a delay set on the chip
+  between 2~ns and 2.6~\us, or comes from outside. Each path stores the
+  maximum of its shaped signal from the trigger to the hold, as in the
+  Citiroc, with the same positive bias of the dim channels.
+\item {\bf Readout and conversion.} The stored values of the two paths
+  leave through two analog multiplexers at 200~ns per channel, 12.8~\us
+  for the 64 channels, to the ADC of the acquisition board, which the
+  simulation takes as the 12-bit converter of the evaluation board. The
+  low-gain path covers 2000 photoelectrons at a gain of $10^6$, about
+  320~pC; the high-gain path saturates lower by the ratio of the gains,
+  ten at the default settings. Each channel can instead route its shaped
+  signal to a pin of its own, for a parallel digitisation that the present
+  set-up does not use.
+\end{enumerate}
 
 \section{Files}
 \label{sec:formats}

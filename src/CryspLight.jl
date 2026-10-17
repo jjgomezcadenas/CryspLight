@@ -28,6 +28,7 @@ include("frontend/sipm.jl")
 include("frontend/shaping.jl")
 include("frontend/citiroc.jl")
 include("frontend/digitizer.jl")
+include("frontend/radioroc.jl")
 include("frontend/frontend_run.jl")
 include("config.jl")
 include("output.jl")
@@ -50,6 +51,7 @@ export SipmDevice, SipmOperation, Avalanche, breakdown_voltage, gain, pde, cross
 export TimeGrid, Shaper, bin_train!, shape!, device_pulse!, noise_generator, sample_index, sample_time
 export CitirocSettings, CitirocChain, CitirocEvent, citiroc_event, stored_fraction, trigger_time
 export DigitizerSettings, DigitizerChain, DigitizerEvent, digitizer_event, pulse_cdf, window_fraction
+export RadiorocSettings, RadiorocChain, radioroc_event, with_pulse, noise_at
 export FrontendSetup, load_frontend, run_fullsim_frontend, event_trains, settings_from
 
 end # module

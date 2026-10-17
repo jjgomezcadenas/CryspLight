@@ -157,7 +157,9 @@ function summarise(path::AbstractString, campaign::AbstractString)
     return numbers
 end
 
-length(ARGS) >= 2 || error("usage: summary.jl <campaign> <events.h5> [more...]")
-for p in ARGS[2:end]
-    summarise(p, ARGS[1])
+if abspath(PROGRAM_FILE) == (@__FILE__)
+    length(ARGS) >= 2 || error("usage: summary.jl <campaign> <events.h5> [more...]")
+    for p in ARGS[2:end]
+        summarise(p, ARGS[1])
+    end
 end

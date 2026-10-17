@@ -77,6 +77,7 @@ id & task & status & date \\
 0.12 & Front-end stage \code{src/frontend/frontend\_run.jl} and \code{scripts/fullsim\_frontend.jl}: SiPM response per channel and one front end per decay, multithreaded and reproducible per event, writing \code{events.h5} (/run, /channels, /calib, /events, /mc); four front-end configurations of the ambient campaign; first-look \code{fullsim\_analysis/summary.jl} and \code{trigger\_scan.jl}. The converter of the bench files is JJ's & \done & 17 Oct \\
 0.13 & First emulated campaign at the bench settings (table below; figures and numbers under \code{fullsim\_analysis/results/2026-10\_ambient/}); the trigger scan done for BGO. Still to do: the overvoltage scan (2 to 5~V), the gate-length scan of the digitizer, the trigger scan for \csitl & \doing & 17 Oct \\
 0.14 & Overvoltage scan figure and numbers delivered to the bench & \planned & \\
+0.15 & Radioroc2 chain \code{src/frontend/radioroc.jl} (per-channel shaping, noise falling with the peaking time, T1/T2 on the time preamplifier and TQ on the low-gain shaper, hold, both paths with their ceilings) on the branch \code{radioroc}; configurations of the three crystals; shaping-time scan \code{fullsim\_analysis/shaping\_scan.jl}; the cold comparison Radioroc2 against digitizer & \doing & 17 Oct \\
 \bottomrule
 \end{longtable}
 
@@ -107,7 +108,7 @@ id & task & status & date \\
 \endhead
 2.1 & Spectral sampling: emission spectra, $n(\lambda)$, PDE($\lambda$); spectral test & \planned & \\
 2.2 & Cold BGO campaign at 196~K: breakdown measured in situ, emulation, comparison; warm-to-cold yield ratio against the quenching curve & \planned & \\
-2.3 & Radioroc2 chain and its campaign & \planned & \\
+2.3 & Radioroc2 campaign on the bench (the chain is task 0.15) & \planned & \\
 2.4 & Gamma stage: K-shell fluorescence and escape & \planned & \\
 2.5 & Position reconstruction on emulated maps: how much of the \code{pedsim} CNN resolution survives each front end & \planned & \\
 2.6 & Design document version 1.0 with the measured parameters & \planned & \\
@@ -250,6 +251,16 @@ campaign & configuration & readout & dates \\
   (UM8717) read and the DT2745 added as a third front end; digitizer section
   added to the overvoltage recipe; trigger thresholds for the Citiroc and
   the digitizer estimated for the ambient runs.
+\item[17 Oct 2026] JJ: the Radioroc2 emulation comes before the overvoltage
+  scan, on a branch \code{radioroc} opened from \code{fullsim}. Defaults
+  taken after reading the datasheet: evaluation board with a 12-bit ADC
+  and the multiplexed readout; charge trigger TQ as the acquisition
+  trigger for the slow scintillators, T1/T2 and an external majority as
+  comparison; time-preamplifier pulse 5/20~ns as a parameter; noise 0.1
+  photoelectron at 100~ns falling as the inverse square root of the
+  peaking time. The high-gain path saturates at a tenth of the low-gain
+  one, 72 avalanches at 2.8~V, so the low-gain path is the energy
+  measurement of the bright channels and both are written.
 \item[17 Oct 2026] Tasks 0.4 to 0.12 coded and tested in one day (frozen
   test, tiled layout, window, materials, source and decay pipeline,
   photoelectron file and optical driver, SiPM model, shaping, Citiroc,
