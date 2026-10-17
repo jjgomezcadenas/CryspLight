@@ -1,7 +1,9 @@
 # Front-end stage, BGO ambient read by the two Citiroc 1A (campaign 2026-10_ambient).
 # SiPMs at the laboratory temperature, 3.0 V above the breakdown (overvoltage recipe);
-# Citiroc at its longest shaping with the peak detector; single-channel trigger at six
-# photoelectron-equivalents on the fast path (dark triggers at the kHz level at ambient).
+# Citiroc at its longest shaping with the peak detector; single-channel trigger at eight
+# photoelectron-equivalents on the fast path: from the threshold scan of
+# fullsim_analysis/trigger_scan.jl, 511 keV efficiency 1.00, 200 to 300 keV 0.98, dark
+# triggers 0.6 kHz (at 6 the dark pulses with crosstalk give 15 kHz).
 [run]
 pes = "output/optical_bgo_ambient/pes.h5"
 seed = 11
@@ -19,7 +21,7 @@ type = "citiroc"
 tp_ns = 87.5
 hold_ns = 300.0
 peak_detector = true
-threshold_pe = 6.0
+threshold_pe = 8.0
 majority = 1
 coincidence_ns = 50.0
 noise_pe = 0.1

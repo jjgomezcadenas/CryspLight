@@ -1,6 +1,7 @@
 # Front-end stage, BGO ambient read by the DT2745 digitizer (campaign 2026-10_ambient).
 # Bench setting: gain 1 and 43 V, that is 5 V above the breakdown at the laboratory
-# temperature; threshold 60 counts (about four photoelectrons), majority 2 within 100 ns,
+# temperature; threshold 120 counts (7.5 photoelectrons), majority 2 within 100 ns: from
+# the scan, 511 keV efficiency 1.00, 200 to 300 keV 0.99, dark triggers 0.1 kHz,
 # 10 us records with 1 us before the trigger; gate of 1 us for the 300 ns decay.
 [run]
 pes = "output/optical_bgo_ambient/pes.h5"
@@ -17,7 +18,7 @@ window_ns = [-2500.0, 3000.0]
 [frontend]
 type = "digitizer"
 gain = 1.0
-threshold_counts = 60.0
+threshold_counts = 120.0
 majority = 2
 coincidence_ns = 100.0
 pretrigger_ns = 1000.0

@@ -3,24 +3,68 @@
 # 511 ratio, the trigger fraction, the brightest channel and the channel maps. Writes the
 # figures and a TOML of numbers under fullsim_analysis/results/<campaign>/<tag>/.
 #   julia --project=. fullsim_analysis/summary.jl <campaign> output/<tag>/events.h5 [more...]
-using HDF5, Statistics, Printf, TOML
+using HDF5, Statistics, Printf, TOML, LinearAlgebra
 using CairoMakie
 
-"Mean and sigma of a peak by truncated moments: iterate the window ±2 sigma around the mean."
-function peak_fit(x::AbstractVector, lo::Real, hi::Real; iterations::Int = 8)
-    sel = x[(x .>= lo) .& (x .<= hi)]
-    isempty(sel) && return (mean = NaN, sigma = NaN, n = 0)
-    # start from the mode of a coarse histogram
-    edges = range(lo, hi; length = 61)
-    h = [count(v -> edges[i] <= v < edges[i + 1], sel) for i in 1:60]
-    m = 0.5 * (edges[argmax(h)] + edges[argmax(h) + 1])
-    s = (hi - lo) / 8
-    for _ in 1:iterations
-        w = sel[abs.(sel .- m) .<= 2s]
-        length(w) < 10 && break
-        m, s = mean(w), std(w)
+"""
+Gaussian plus linear background fitted to a histogram (bin centres xc, counts c) by
+Gauss-Newton with Poisson weights: returns (A, mu, sigma, b0, b1) or nothing.
+"""
+function fit_gauss_linear(xc::AbstractVector, c::AbstractVector, mu0::Real, sigma0::Real)
+    x0 = mu0
+    model(p) = p[1] .* exp.(-0.5 .* ((xc .- p[2]) ./ p[3]) .^ 2) .+ p[4] .+ p[5] .* (xc .- x0)
+    bkg = 0.5 * (mean(c[1:max(1, length(c) ÷ 10)]) + mean(c[end - max(0, length(c) ÷ 10 - 1):end]))
+    p = [max(maximum(c) - bkg, 1.0), mu0, sigma0, bkg, 0.0]
+    w = 1 ./ max.(c, 1.0)
+    lambda = 1e-3
+    chi2(p) = sum(w .* (c .- model(p)) .^ 2)
+    best = chi2(p)
+    for _ in 1:60
+        J = zeros(length(xc), 5)
+        for j in 1:5
+            dp = zeros(5); dp[j] = max(1e-6, 1e-4 * abs(p[j]))
+            J[:, j] = (model(p .+ dp) .- model(p .- dp)) ./ (2dp[j])
+        end
+        r = c .- model(p)
+        H = J' * (w .* J)
+        g = J' * (w .* r)
+        step = (H + lambda * Diagonal(diag(H) .+ 1e-12)) \ g
+        pn = p .+ step
+        pn[3] = abs(pn[3])
+        cn = chi2(pn)
+        if cn < best
+            p, best, lambda = pn, cn, lambda / 3
+        else
+            lambda *= 10
+        end
+        lambda > 1e8 && break
     end
-    return (mean = m, sigma = s, n = count(abs.(sel .- m) .<= 2s))
+    (isfinite(p[2]) && p[3] > 0 && p[1] > 0) || return nothing
+    return (A = p[1], mu = p[2], sigma = p[3], b0 = p[4], b1 = p[5])
+end
+
+"""
+Mean and sigma of the most populated peak of x within [lo, hi]: the mode of a histogram
+starts a Gaussian plus linear fit in a window of ±4 initial sigmas (5% of the mode),
+repeated once with the fitted width.
+"""
+function peak_fit(x::AbstractVector, lo::Real, hi::Real; nbins::Int = 100)
+    sel = x[(x .>= lo) .& (x .<= hi)]
+    length(sel) < 100 && return (mean = NaN, sigma = NaN, n = 0)
+    edges = range(lo, hi; length = nbins + 1)
+    c = [count(v -> edges[i] <= v < edges[i + 1], sel) for i in 1:nbins]
+    xc = 0.5 .* (edges[1:end-1] .+ edges[2:end])
+    mu, sg = xc[argmax(c)], 0.05 * xc[argmax(c)]
+    for _ in 1:2
+        w0, w1 = mu - 4sg, mu + 4sg
+        e2 = range(w0, w1; length = 41)
+        c2 = [count(v -> e2[i] <= v < e2[i + 1], sel) for i in 1:40]
+        x2 = 0.5 .* (e2[1:end-1] .+ e2[2:end])
+        f = fit_gauss_linear(x2, c2, mu, sg)
+        f === nothing && return (mean = NaN, sigma = NaN, n = 0)
+        mu, sg = f.mu, f.sigma
+    end
+    return (mean = mu, sigma = sg, n = count(abs.(sel .- mu) .<= 2sg))
 end
 
 function summarise(path::AbstractString, campaign::AbstractString)
@@ -44,12 +88,13 @@ function summarise(path::AbstractString, campaign::AbstractString)
     tot = vec(sum(q; dims = 1))
     tg = tot[good]
     # 511 keV peak: the highest populated region of the upper spectrum
-    hi = quantile(tg, 0.999)
-    p511 = peak_fit(tg, 0.3hi, hi)
-    # look for the 1275 keV peak above the 511 one
-    p1275 = peak_fit(tg, 2.0 * p511.mean, 3.2 * p511.mean)
+    hi = quantile(tg, 0.995)
+    p511 = peak_fit(tg, 0.25hi, hi)
+    # the 1275 keV peak: the most populated region between 2.2 and 2.8 times the 511 one
+    p1275 = isfinite(p511.mean) ? peak_fit(tg, 2.2 * p511.mean, 2.8 * p511.mean) :
+                                  (mean = NaN, sigma = NaN, n = 0)
     res = 2.355 * p511.sigma / p511.mean
-    win = abs.(tg .- p511.mean) .<= 2 * p511.sigma
+    win = isfinite(p511.mean) ? abs.(tg .- p511.mean) .<= 2 * p511.sigma : trues(length(tg))
     qg = q[:, good]
     brightest = vec(maximum(qg; dims = 1))
     bwin = brightest[win]
@@ -61,10 +106,10 @@ function summarise(path::AbstractString, campaign::AbstractString)
     seedpk = fill(NaN, nch)
     for c in 1:nch
         sel = tg[seed .== c]
-        length(sel) > 200 || continue
+        length(sel) > 100 || continue
         seedpk[c] = peak_fit(sel, 0.3hi, hi).mean
     end
-    seedpk ./= median(filter(isfinite, seedpk))
+    any(isfinite, seedpk) && (seedpk ./= median(filter(isfinite, seedpk)))
 
     numbers = Dict(
         "tag" => tag, "frontend" => fe, "kind" => kind, "events" => n,
@@ -77,7 +122,7 @@ function summarise(path::AbstractString, campaign::AbstractString)
         "brightest_fraction_median" => median(bwin ./ tg[win]),
         "hits_per_event_median" => median(vec(sum(hits[:, good]; dims = 1))),
         "occupancy_min" => minimum(occ), "occupancy_max" => maximum(occ),
-        "seed_peak_rms" => std(filter(isfinite, seedpk)))
+        "seed_peak_rms" => count(isfinite, seedpk) > 1 ? std(filter(isfinite, seedpk)) : NaN)
     if hasmc
         numbers["photopeak_mc_fraction_triggered"] = mean(trig[edep .> 510])
         numbers["no_deposit_fraction_triggered"] = mean(trig[edep .== 0])
@@ -94,7 +139,6 @@ function summarise(path::AbstractString, campaign::AbstractString)
               title = "$(tag): equalised sum, $(fe)")
     hist!(ax, tg; bins = 300)
     vlines!(ax, [p511.mean]; color = :red, linestyle = :dash)
-    text!(ax, p511.mean, 0.9 * maximum(hist(tg; bins = 300).plots[1][1][]...); text = "")
     ax2 = Axis(fig[1, 2]; xlabel = "brightest channel (avalanches)", ylabel = "events",
                title = @sprintf("511 keV window: median %.0f, p99 %.0f", median(bwin), quantile(bwin, 0.99)))
     hist!(ax2, bwin; bins = 150)

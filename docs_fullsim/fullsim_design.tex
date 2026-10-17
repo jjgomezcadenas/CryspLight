@@ -605,12 +605,20 @@ exceeds the threshold. The trigger time of the event is then the time at
 which $N$ of these crossings fall within the coincidence window, as in the
 acquisition, and it is the origin from which the gate and the baseline
 window are placed. The threshold decides which events are taken and, at
-ambient temperature, how often the dark pulses take one instead: a single
-dark photoelectron is 16~counts at 5~V of overvoltage, so the threshold
-must stay above two or three photoelectrons, while the brightest channel of
-a 511~keV event reaches a peak of about eight photoelectrons in both
-crystals. The simulation gives the efficiency for the photopeak and the
-rate of dark triggers as a function of the threshold and of the majority.
+ambient temperature, how often the dark pulses take one instead. The
+single dark photoelectron is not the problem: a dark avalanche fires
+neighbouring cells with the crosstalk probability, 19\% at 5~V, so one dark
+pulse in 700 carries four photoelectrons or more, and over the 64 channels
+such pulses come about once per microsecond; a threshold of two or three
+photoelectrons triggers on them in every window. The emulation gives the
+efficiency for the photopeak and for the Compton events and the rate of
+dark triggers as a function of the threshold and of the majority. For
+ambient BGO at 43~V and gain~1 the brightest channel of a 511~keV event
+peaks at 12 to 15 photoelectrons on the sampled waveform, and a threshold
+of 7.5~photoelectrons (120~counts) with a majority of two keeps every
+photopeak event and 99\% of the events between 200 and 300~keV with dark
+triggers below 1~kHz; the same holds for the Citiroc at 3~V with a
+single-channel threshold of 8~photoelectron-equivalents on its fast path.
 
 What goes into the event file is then the same as for the Citiroc: one
 charge per channel, as a 32-bit integer in count-samples, the set of

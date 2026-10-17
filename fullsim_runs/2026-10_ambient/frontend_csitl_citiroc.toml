@@ -1,7 +1,7 @@
 # Front-end stage, CsI(Tl) ambient read by the two Citiroc 1A (campaign 2026-10_ambient).
 # 2.7 V above the breakdown (dynamic range of the brightest channel); longest shaping,
-# peak detector, hold 500 ns for the 730 ns component; single-channel trigger at six
-# photoelectron-equivalents.
+# peak detector, hold 500 ns for the 730 ns component; single-channel trigger at eight
+# photoelectron-equivalents (BGO scan; to be scanned for CsI(Tl)).
 [run]
 pes = "output/optical_csitl_ambient/pes.h5"
 seed = 13
@@ -19,7 +19,7 @@ type = "citiroc"
 tp_ns = 87.5
 hold_ns = 500.0
 peak_detector = true
-threshold_pe = 6.0
+threshold_pe = 8.0
 majority = 1
 coincidence_ns = 50.0
 noise_pe = 0.1
