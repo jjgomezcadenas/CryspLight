@@ -11,3 +11,14 @@ end
 "Scintillation emission delay: Exp(tau), or 0 for the delta (transport-only) profile."
 @inline emission_time(s::PhiloxStream, tau_ns::Float32) =
     tau_ns > 0f0 ? -tau_ns * log(randu(s)) : 0f0
+
+"""
+Two-component scintillation delay: with probability frac1 Exp(tau1), otherwise Exp(tau2).
+tau2 = 0 means a single component and draws exactly as emission_time(s, tau1).
+"""
+@inline function emission_time(s::PhiloxStream, tau1_ns::Float32, tau2_ns::Float32,
+                               frac1::Float32)
+    tau2_ns > 0f0 || return emission_time(s, tau1_ns)
+    tau = randu(s) <= frac1 ? tau1_ns : tau2_ns
+    return -tau * log(randu(s))
+end

@@ -472,6 +472,50 @@ end
     end
 end
 
+@testset "Two-component scintillation and the fullsim materials (fullsim 0.7)" begin
+    s = PhiloxStream(71, 1)
+    dt = [emission_time(s, 730f0, 3340f0, 0.64f0) for _ in 1:400_000]
+    @test isapprox(mean(dt), 0.64 * 730 + 0.36 * 3340; rtol = 0.01)
+    # tau2 = 0 draws exactly as the single component
+    s1 = PhiloxStream(72, 1); s2 = PhiloxStream(72, 1)
+    @test [emission_time(s1, 300f0) for _ in 1:1000] ==
+          [emission_time(s2, 300f0, 0f0, 1f0) for _ in 1:1000]
+    # the material files of the full simulation
+    amb = load_material("bgo_ambient"); cold = load_material("bgo_cold")
+    csi = load_material("csitl_ambient")
+    @test scintillation_times(amb) == (tau_ns = 300f0, tau2_ns = 60f0, frac1 = 0.9f0)
+    @test scintillation_times(cold) == (tau_ns = 2720f0, tau2_ns = 0f0, frac1 = 1f0)
+    @test scintillation_times(csi) == (tau_ns = 730f0, tau2_ns = 3340f0, frac1 = 0.64f0)
+    @test amb["n"] == cold["n"] == load_material("bgo")["n"]
+    @test csi["abs_length_mm"] == load_material("csitl")["abs_length_mm"]
+    @test_throws ErrorException scintillation_times(Dict("name" => "x", "tau_ns" => 1.0,
+                                                         "tau2_ns" => 2.0))
+    # transport with two components: the time distribution of the detected photons has
+    # the two-component mean (plus the ns of flight), and both versions agree bit for bit
+    box = Box((48f0, 48f0, 37.2f0))
+    op = OpticalParams(1.79f0, 1.42f0, 3115f0, 346f0, 0.99f0, false, true, 0.0227f0, 1f0,
+                       1.57f0)
+    ro = Readout(SipmGrid(6.2f0, Int32(8), Int32(8)); tiles = true, face_mm = (48, 48),
+                 sur_R = 0.5)
+    tbl = TimeBinning(100f0, Int32(400))
+    kw = (n_photons = 100_000, seed = 73, pos = (24f0, 24f0, 18.6f0),
+          scintillation_times(csi)...)
+    a = run_photons!(box, op, ro, tbl; kw...)
+    b = run_photons_ka!(box, op, ro, tbl; kw..., ArrayT = Array)
+    @test a.counts == b.counts && a.first_ns == b.first_ns
+    tcent = [(k - 0.5) * 100 for k in 1:400]
+    hist = [sum(a.counts[:, :, k]) for k in 1:400]
+    tmean = sum(hist .* tcent) / sum(hist)
+    @test isapprox(tmean, 0.64 * 730 + 0.36 * 3340; rtol = 0.03)   # binned, ~1% of overflow
+    # the event pipeline accepts the two components
+    data = joinpath(dirname(@__DIR__), "data")
+    gmat = Gamma.make_material("CsI", 4.51, joinpath(data, "xcom_CSI.csv"))
+    r = run_events!(box, op, ro, tbl, gamma_crystal(box.L, gmat), csi["yield_per_mev"];
+                    n_events = 5, seed = 74, scintillation_times(csi)...,
+                    batch_photons = 200_000)
+    @test length(r.npe) == 5 && all(r.npe .>= 0)
+end
+
 include("frozen.jl")
 
 @testset "Frozen output of the pedagogical path" begin

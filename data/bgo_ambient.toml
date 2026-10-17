@@ -1,0 +1,17 @@
+# BGO at laboratory temperature (about 295 K), 480 nm emission. Full-simulation file
+# (docs_fullsim/fullsim_design.tex, Table 1); the pedagogical runs keep bgo.toml.
+# Yield: 7000 to 8200 ph/MeV from the temperature dependence of the BGO light yield
+# (Gironnet et al.) applied to the value at 195 K; 7600 is the midpoint, to be fitted on
+# the ambient data (ratio of photoelectrons between the warm and the cold runs).
+# Decay: 300 ns main component plus a minor 60 ns one, 10% of the light (literature).
+# Bulk and index: as bgo.toml (no temperature dependence expected for defect scattering).
+name = "BGO"
+n = 2.15
+abs_length_mm = 20000.0
+rayleigh_mm = 2222.0
+yield_per_mev = 7600
+tau_ns = 300.0
+tau2_ns = 60.0
+frac1 = 0.9
+lambda_nm = 480.0
+x0_mm = 11.2

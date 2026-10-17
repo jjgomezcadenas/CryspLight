@@ -39,6 +39,7 @@ Events with no deposit have edep = 0, npe = 0, er = e0.
 function run_events!(box::Box, op::OpticalParams, ro::Readout, tb::TimeBinning,
                      pv, yield_per_mev::Real;
                      n_events::Int, seed::Integer, tau_ns::Float32,
+                     tau2_ns::Float32 = 0f0, frac1::Float32 = 1f0,
                      e0_mev::Float64 = 0.511, max_bounces::Int = 100_000,
                      batch_photons::Int = 2_000_000, ArrayT = Array)
     L = box.L
@@ -68,6 +69,7 @@ function run_events!(box::Box, op::OpticalParams, ro::Readout, tb::TimeBinning,
         _, recs = run_photons_ka!(box, op, ro, tb; n_photons = n, seed = seed,
                                   positions = positions, t0s = t0s,
                                   pid_offset = pid0, tau_ns = tau_ns,
+                                  tau2_ns = tau2_ns, frac1 = frac1,
                                   max_bounces = max_bounces, ArrayT = ArrayT,
                                   return_records = true)
         for (ev, lo, hi) in ev_range

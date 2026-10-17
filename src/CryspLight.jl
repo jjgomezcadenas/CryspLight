@@ -31,7 +31,7 @@ export OpticalParams, SipmGrid, Readout, TimeBinning, Accumulator, propagate_pho
 export total_terminated, active_channel, tile_channel, channel_centres
 export STATUS_DETECTED, STATUS_ABS_BULK, STATUS_ABS_WALL, STATUS_ABS_SIPM, STATUS_CAP,
        STATUS_ABS_SUR
-export load_material, surface_has_gap, run_from_config, run_photons!, run_photons_ka!
+export load_material, scintillation_times, surface_has_gap, run_from_config, run_photons!, run_photons_ka!
 export Gamma, gamma_crystal, gamma_deposits, run_events!, rand_poisson
 
 end # module

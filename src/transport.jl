@@ -339,7 +339,8 @@ run_photons!(box::Box, op::OpticalParams, grid::SipmGrid, tb::TimeBinning; kw...
 
 """
 Run n_photons from an isotropic point source with exponential (tau_ns > 0) or delta
-(tau_ns = 0) emission time. Pass either pos (a single point) or positions (a list —
+(tau_ns = 0) emission time; a second component tau2_ns with weight 1 - frac1 for the first
+one is optional. Pass either pos (a single point) or positions (a list —
 photons are assigned round-robin, giving an equal-weight scan). Deterministic in
 (seed, photon id) regardless of threading. Returns the merged Accumulator.
 """
@@ -347,7 +348,8 @@ function run_photons!(box::Box, op::OpticalParams, ro::Readout, tb::TimeBinning;
                       n_photons::Int, seed::Integer,
                       pos::Union{Nothing,NTuple{3,Float32}} = nothing,
                       positions::Union{Nothing,Vector{NTuple{3,Float32}}} = nothing,
-                      tau_ns::Float32, max_bounces::Int = 100_000)
+                      tau_ns::Float32, tau2_ns::Float32 = 0f0, frac1::Float32 = 1f0,
+                      max_bounces::Int = 100_000)
     plist = positions === nothing ? [something(pos)] : positions
     npos = length(plist)
     nt = Threads.nthreads()
@@ -360,7 +362,7 @@ function run_photons!(box::Box, op::OpticalParams, ro::Readout, tb::TimeBinning;
             s = PhiloxStream(seed, pid)
             p = plist[1 + (pid - 1) % npos]
             ux, uy, uz = isotropic_dir(s)
-            t0 = emission_time(s, tau_ns)
+            t0 = emission_time(s, tau_ns, tau2_ns, frac1)
             propagate_photon!(acc, box, op, ro, tb, s,
                               p[1], p[2], p[3], ux, uy, uz, t0;
                               max_bounces = max_bounces)

@@ -1,0 +1,15 @@
+# CsI(Tl) at laboratory temperature, 550 nm emission, with its two decay components.
+# Full-simulation file (docs_fullsim/fullsim_design.tex, Table 1); the pedagogical runs
+# keep csitl.toml (single 1000 ns component). Optics as csitl.toml: Knyazev extinction
+# 311.5 mm split f = 0.90 into absorption and Rayleigh scattering by the Brose ladder fit.
+# Decay: 730 ns (64% of the light) and 3340 ns (36%), literature values.
+name = "CsI(Tl)"
+n = 1.79
+abs_length_mm = 3115.0
+rayleigh_mm = 346.0
+yield_per_mev = 54000
+tau_ns = 730.0
+tau2_ns = 3340.0
+frac1 = 0.64
+lambda_nm = 550.0
+x0_mm = 18.6

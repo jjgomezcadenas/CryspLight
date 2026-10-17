@@ -1,0 +1,15 @@
+# BGO at 196 K (dry ice), 480 nm emission. Full-simulation file (docs_fullsim/
+# fullsim_design.tex, Table 1); the pedagogical runs keep bgo.toml (14k ph/MeV, 1768 ns).
+# Decay: 2720 ns, measured on this crystal (2.72 and 2.69 +- 0.01 us in two runs at 196 K).
+# Yield: between 14 000 ph/MeV (calibration against the Ding et al. cube) and about
+# 16 000 ph/MeV (the value implied by the longer decay time); 15 000 is the midpoint, to be
+# fitted on the data through the warm-to-cold ratio of photoelectrons.
+# Bulk and index: as bgo.toml.
+name = "BGO"
+n = 2.15
+abs_length_mm = 20000.0
+rayleigh_mm = 2222.0
+yield_per_mev = 15000
+tau_ns = 2720.0
+lambda_nm = 480.0
+x0_mm = 11.2
