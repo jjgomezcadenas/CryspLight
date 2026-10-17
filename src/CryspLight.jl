@@ -20,6 +20,8 @@ include("kernel.jl")
 include("gamma/Gamma.jl")
 include("gamma_interface.jl")
 include("events.jl")
+include("source.jl")
+include("decays.jl")
 include("config.jl")
 include("output.jl")
 
@@ -33,5 +35,6 @@ export STATUS_DETECTED, STATUS_ABS_BULK, STATUS_ABS_WALL, STATUS_ABS_SIPM, STATU
        STATUS_ABS_SUR
 export load_material, scintillation_times, surface_has_gap, run_from_config, run_photons!, run_photons_ka!
 export Gamma, gamma_crystal, gamma_deposits, run_events!, rand_poisson
+export GammaRay, na22_decay, isotropic_dir64, entry_point, face_acceptance, run_decays!
 
 end # module

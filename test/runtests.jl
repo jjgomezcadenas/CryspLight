@@ -516,6 +516,82 @@ end
     @test length(r.npe) == 5 && all(r.npe .>= 0)
 end
 
+@testset "Na-22 source and the per-decay pipeline (fullsim 0.8)" begin
+    rng = Xoshiro(81)
+    decs = [na22_decay(rng) for _ in 1:100_000]
+    @test all(d -> d[1].kind == CryspLight.GAMMA_1275 && d[1].e_mev == 1.2745, decs)
+    @test isapprox(count(d -> length(d) == 3, decs) / 100_000, 0.903; atol = 0.004)
+    d3 = first(d for d in decs if length(d) == 3)
+    @test all(d3[2].dir .≈ .-d3[3].dir) && d3[2].e_mev == d3[3].e_mev == 0.511
+    L = (48f0, 48f0, 22.4f0); src = (24.0, 24.0, -30.0)
+    e, p = entry_point(src, (0.0, 0.0, 1.0), L)
+    @test e == (24f0, 24f0, 0f0) && p ≈ 30
+    @test entry_point(src, (0.0, 0.0, -1.0), L) === nothing
+    @test entry_point(src, (1.0, 0.0, 0.0), L) === nothing
+    dc = (23.9, 23.9, 30.0) ./ sqrt(2 * 23.9^2 + 30.0^2)        # just inside a corner
+    e, p = entry_point(src, dc, L)
+    @test isapprox(e[1], 47.9; atol = 1e-3) && isapprox(e[2], 47.9; atol = 1e-3) &&
+          isapprox(e[3], 0; atol = 1e-3)
+    @test p ≈ sqrt(2 * 23.9^2 + 30.0^2)
+    @test entry_point(src, (24.0, 24.0, 30.0) ./ 45.3, L) === nothing   # the corner itself
+    # geometric acceptance of the front face from 30 mm: 12.8% of the sphere
+    acc = face_acceptance(48, 48, 30)
+    @test isapprox(acc, 0.1276; atol = 1e-3)
+    N = 400_000
+    nin = count(_ -> entry_point(src, isotropic_dir64(rng), L) !== nothing, 1:N)
+    @test isapprox(nin / N, acc; atol = 4 * sqrt(acc * (1 - acc) / N))
+
+    # the per-decay pipeline on ambient BGO, CPU backend
+    box = Box(L)
+    mat = load_material("bgo_ambient")
+    op = OpticalParams(2.15f0, 1.42f0, 20000f0, 2222f0, 0.99f0, false, true, 0.0227f0,
+                       0.5f0, 1.57f0)
+    ro = Readout(SipmGrid(6.2f0, Int32(8), Int32(8)); tiles = true, face_mm = (48, 48),
+                 sur_R = 0.5)
+    tbd = TimeBinning(100f0, Int32(40))
+    data = joinpath(dirname(@__DIR__), "data")
+    pv = gamma_crystal(L, Gamma.make_material("BGO", 7.13, joinpath(data, "xcom_BGO.csv")))
+    kw = (source_mm = src, seed = 83, batch_photons = 300_000, ArrayT = Array,
+          scintillation_times(mat)...)
+    nd = 1500
+    r = run_decays!(box, op, ro, tbd, pv, mat["yield_per_mev"]; n_decays = nd, kw...)
+    ev, ia, pe = r.events, r.interactions, r.pes
+    @test length(ev.edep_kev) == nd && size(ev.maps) == (8, 8, nd)
+    @test all(ev.edep_kev .<= 1786.5f0)
+    @test ev.edep_kev ≈ ev.edep_511_kev .+ ev.edep_1275_kev
+    fint = count(>(0), ev.edep_kev) / nd
+    @test 0.12 < fint < 0.26          # one or two gammas of the decay, 13% acceptance each
+    @test any(ev.n_gammas_in .>= 2)   # decays with both a 511 and the 1275 keV gamma
+    @test ia.offset[1] == 0 && ia.offset[end] == length(ia.x_mm) && issorted(ia.offset)
+    @test pe.offset[1] == 0 && pe.offset[end] == length(pe.channel) && issorted(pe.offset)
+    for k in 1:nd
+        @test pe.offset[k + 1] - pe.offset[k] == ev.n_detected[k] == sum(Int, ev.maps[:, :, k])
+        @test (ia.offset[k + 1] > ia.offset[k]) == (ev.edep_kev[k] > 0)
+        @test ev.n_detected[k] <= ev.n_emitted[k]
+    end
+    @test all(ia.gamma_kind .∈ Ref((Int8(1), Int8(2))))
+    @test all(ia.proc .∈ Ref((Int8(0), Int8(1), Int8(2))))
+    k = findfirst(>(0), ev.n_detected)
+    m = zeros(Int, 8, 8)
+    for c in pe.channel[pe.offset[k] + 1:pe.offset[k + 1]]
+        m[(c - 1) % 8 + 1, (c - 1) ÷ 8 + 1] += 1
+    end
+    @test m == Int.(ev.maps[:, :, k])
+    tfl = 30 / 299.792458
+    @test all(ia.t_ns .>= tfl - 1e-4) && all(pe.t_ns .>= tfl - 1e-4)
+    # photopeak scale: 511 keV x 7600 ph/MeV x collection ~0.8 x PDE 0.5 ~ 1500 pe
+    pk = ev.n_detected[(ev.edep_511_kev .> 510) .& (ev.edep_1275_kev .== 0)]
+    @test !isempty(pk) && 1000 < mean(pk) < 2000
+    # two chunks with disjoint decay ranges reproduce the decays of the single call
+    r1 = run_decays!(box, op, ro, tbd, pv, mat["yield_per_mev"]; n_decays = 800,
+                     first_decay = 1, kw...)
+    r2 = run_decays!(box, op, ro, tbd, pv, mat["yield_per_mev"]; n_decays = nd - 800,
+                     first_decay = 801, kw...)
+    @test vcat(r1.events.edep_kev, r2.events.edep_kev) == ev.edep_kev
+    @test vcat(r1.events.n_emitted, r2.events.n_emitted) == ev.n_emitted
+    @test vcat(r1.interactions.x_mm, r2.interactions.x_mm) == ia.x_mm
+end
+
 include("frozen.jl")
 
 @testset "Frozen output of the pedagogical path" begin
