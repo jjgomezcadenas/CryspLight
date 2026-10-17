@@ -479,10 +479,13 @@ following.
 \item {\bf Shapers.} Each preamplifier feeds a CR-RC$^2$ shaper with a
   peaking time between 12.5 and 87.5~ns, set in steps of 12.5~ns for the
   whole chip. A CR-RC$^2$ shaper is one differentiating stage followed by
-  two integrating ones, all with the same time constant $\theta$; the shaped
-  signal is the convolution of the input with the response
-  $(t/\theta)^2 e^{-t/\theta}$, whose peak is at $t_p = 2\theta$, so that
-  $\theta$ runs from 6.25 to 43.75~ns over the available settings.
+  two integrating ones, all with the same time constant $\theta$. The
+  preamplifier integrates the current of the SiPM, so the output of the
+  shaper for one avalanche is the response of the chain to a step, the
+  semi-Gaussian $(t/\theta)^2 e^{-t/\theta}$, whose peak is at
+  $t_p = 2\theta$; $\theta$ runs from 6.25 to 43.75~ns over the available
+  settings. The shaped signal of an event is the convolution of the current
+  of the avalanche train with that response.
   The datasheet states the order of the shaper and nothing more; the exact
   response is a parameter to be checked against a single-photoelectron
   waveform if one can be probed on the test board.

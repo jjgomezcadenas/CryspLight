@@ -739,6 +739,91 @@ end
     @test t1 == t2
 end
 
+@testset "Shaping and the Citiroc chain (fullsim 0.11)" begin
+    dev = SipmDevice()
+    dt = 0.5
+    # the device pulse on the grid peaks at 16 ns with a unit peak per avalanche
+    sh = Shaper(dev, 87.5, dt)
+    y = zeros(4000); y[1] = 1.0
+    device_pulse!(y, sh)
+    @test isapprox(maximum(y), 1.0; atol = 1e-9)
+    @test isapprox((argmax(y) - 1) * dt, 16; atol = 1.0)
+    @test isapprox(y[argmax(y) + round(Int, 50 / dt)] / maximum(y), exp(-1); rtol = 0.15)
+    # the shaped single avalanche: unit peak, at about tp after the device peak
+    y = zeros(4000); y[1] = 1.0
+    shape!(y, sh)
+    @test isapprox(maximum(y), 1.0; atol = 1e-9)
+    @test 100 < (argmax(y) - 1) * dt < 170     # 87.5 ns shaping of a 50 ns pulse
+    # linearity: two avalanches give twice the peak
+    y2 = zeros(4000); y2[1] = 2.0
+    shape!(y2, sh)
+    @test isapprox(maximum(y2), 2.0; atol = 1e-9)
+    # shaped noise has the requested rms
+    rng = Xoshiro(111)
+    gen! = noise_generator(sh, 0.1, 4000, rng)
+    nz = zeros(4000)
+    rmss = [std(gen!(nz)) for _ in 1:50]
+    @test isapprox(mean(rmss), 0.1; rtol = 0.05)
+
+    op = SipmOperation(dev; t_k = 293.15, vov = 3.0, n_channels = 64)
+    s = CitirocSettings(dt_ns = 0.5, t_start_ns = -200.0, t_end_ns = 6000.0)
+    ch = CitirocChain(s, op, Xoshiro(112))
+    # the stored fraction of the design document (16/50 ns pulse, 87.5 ns peaking)
+    @test isapprox(stored_fraction(ch, 300), 0.39; atol = 0.02)
+    @test isapprox(stored_fraction(ch, 730; tau2_ns = 3340, frac1 = 0.64), 0.15; atol = 0.015)
+    @test isapprox(stored_fraction(ch, 2720), 0.07; atol = 0.01)
+    @test isapprox(stored_fraction(ch, 1e-3), 1.0; atol = 1e-6)      # delta: everything
+
+    # one avalanche at t = 0 in channel 5, nothing else, no noise: trigger on that
+    # channel, the stored value one avalanche, the ADC at pedestal + counts per pe
+    quiet = CitirocChain(CitirocSettings(noise_pe = 0.0, fast_noise_pe = 0.0),
+                         SipmOperation(dev; t_k = 293.15, vov = 3.0, n_channels = 64),
+                         Xoshiro(113))
+    trains = [Avalanche[] for _ in 1:64]
+    trains[5] = [Avalanche(0f0, 1f0, Int8(0))]
+    e = citiroc_event(quiet, trains)
+    @test e.triggered && 0 < e.t_trigger < 30
+    @test e.hits[5] && count(e.hits) == 1
+    @test isapprox(e.stored_pe[5], 1.0; atol = 1e-3)
+    @test e.hg[5] == round(UInt16, 200 + 10) && all(e.hg[c] == 200 for c in 1:64 if c != 5)
+    @test e.lg[5] == 201
+    @test !any(e.saturated)
+    # below threshold: no trigger, nothing stored
+    half = [Avalanche[] for _ in 1:64]; half[5] = [Avalanche(0f0, 0.3f0, Int8(0))]
+    e0 = citiroc_event(quiet, half)
+    @test !e0.triggered && isnan(e0.t_trigger) && all(e0.hg .== 0)
+    # majority 2 within 50 ns: one channel is not enough, two within the window are
+    maj = CitirocChain(CitirocSettings(noise_pe = 0.0, fast_noise_pe = 0.0, majority = 2),
+                       op, Xoshiro(114))
+    @test !citiroc_event(maj, trains).triggered
+    t2 = deepcopy(trains); t2[9] = [Avalanche(20f0, 1f0, Int8(0))]
+    @test citiroc_event(maj, t2).triggered
+    t3 = deepcopy(trains); t3[9] = [Avalanche(200f0, 1f0, Int8(0))]
+    @test !citiroc_event(maj, t3).triggered
+    @test trigger_time([5.0, 20.0, NaN, 300.0], 2, 50.0) == 20.0
+    @test isnan(trigger_time([5.0, 300.0], 2, 50.0))
+    # an exponential train of 1000 avalanches (tau 300 ns) stores about 390 of them
+    rngt = Xoshiro(115)
+    tr = [Avalanche(Float32(-300 * log(rand(rngt))), 1f0, Int8(0)) for _ in 1:1000]
+    big = [Avalanche[] for _ in 1:64]; big[1] = tr
+    eb = citiroc_event(quiet, big)
+    @test eb.triggered && isapprox(eb.stored_pe[1], 390; rtol = 0.1)
+    # track and hold at the hold time stores less than the peak detector
+    th = CitirocChain(CitirocSettings(noise_pe = 0.0, fast_noise_pe = 0.0,
+                                      peak_detector = false, hold_ns = 500.0), op, Xoshiro(116))
+    @test citiroc_event(th, big).stored_pe[1] < eb.stored_pe[1]
+    # saturation: more than the input-charge ceiling flags and clamps
+    @test isapprox(quiet.pe_ceiling, 400 / (1.602e-7 * 0.93e6 * 3.0); rtol = 1e-3)
+    huge = [Avalanche[] for _ in 1:64]
+    huge[2] = [Avalanche(0f0, Float32(quiet.pe_ceiling * 1.2), Int8(0))]
+    eh = citiroc_event(quiet, huge)
+    @test eh.saturated[2] && eh.stored_pe[2] <= quiet.pe_ceiling + 1e-3
+    # with noise and the peak detector, an empty channel stores a positive bias
+    noisy = CitirocChain(CitirocSettings(hold_ns = 300.0), op, Xoshiro(117))
+    vals = [citiroc_event(noisy, trains).stored_pe[20] for _ in 1:200]
+    @test 0.05 < mean(vals) < 0.5
+end
+
 include("frozen.jl")
 
 @testset "Frozen output of the pedagogical path" begin

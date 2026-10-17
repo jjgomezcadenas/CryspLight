@@ -2,7 +2,7 @@
 # (docs_fullsim/fullsim_design.tex, Table 1). Records every photon reaching an active
 # area (pde = 1); the detection efficiency is applied by the SiPM stage by thinning.
 [run]
-n_decays = 200000           # 54k ph/MeV: seven times the photons per decay of BGO
+n_decays = 100000           # 54k ph/MeV: seven times the photons per decay of BGO; 4 GB of records
 seed = 2026102
 chunk_decays = 5000
 batch_photons = 2000000

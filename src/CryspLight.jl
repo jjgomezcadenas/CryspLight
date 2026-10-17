@@ -25,6 +25,8 @@ include("decays.jl")
 include("pes_file.jl")
 include("fullsim_config.jl")
 include("frontend/sipm.jl")
+include("frontend/shaping.jl")
+include("frontend/citiroc.jl")
 include("config.jl")
 include("output.jl")
 
@@ -43,5 +45,7 @@ export open_pes, append_pes!, close_pes, read_pes, event_pes, code_version
 export FullsimSetup, load_fullsim, run_fullsim_optical
 export SipmDevice, SipmOperation, Avalanche, breakdown_voltage, gain, pde, crosstalk, dark_rate,
        afterpulse_prob, pulse_shape, respond, total_charge, interp_clamped
+export TimeGrid, Shaper, bin_train!, shape!, device_pulse!, noise_generator, sample_index, sample_time
+export CitirocSettings, CitirocChain, CitirocEvent, citiroc_event, stored_fraction, trigger_time
 
 end # module
