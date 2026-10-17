@@ -430,6 +430,48 @@ end
     end
 end
 
+@testset "Coupling layer and SiPM window (fullsim 0.6)" begin
+    n1, n2, n3 = 2.15f0, 1.42f0, 1.57f0
+    # the window helper reproduces T2 / (1 - R1 R2) at the refracted angle
+    for deg in (0f0, 20f0, 35f0, 40f0)
+        cosi = cos(deg2rad(deg))
+        cos2 = sqrt(1f0 - (n1 / n2)^2 * (1f0 - cosi^2))
+        _, R2 = fresnel(n2, n3, cos2)
+        _, R1 = fresnel(n2, n1, cos2)
+        pexp = (1 - R2) / (1 - R1 * R2)
+        s = PhiloxStream(61, Int(deg) + 1)
+        N = 400_000
+        k = count(_ -> window_pass(s, n1, n2, n3, cosi), 1:N)
+        @test isapprox(k / N, pexp; atol = 4 * sqrt(pexp * (1 - pexp) / N) + 1e-6)
+    end
+    # a window of the same index as the coupling layer transmits everything
+    s = PhiloxStream(62, 1)
+    @test all(_ -> window_pass(s, n1, n2, n2, 0.8f0), 1:1000)
+    # the nine-argument constructor means no window
+    op9 = OpticalParams(n1, n2, 20000f0, 2222f0, 0.99f0, false, true, 0.0227f0, 0.4f0)
+    @test op9.n_window == 0f0
+    # the window costs well below a percent of the light (0.3% at normal incidence)
+    box = Box((48f0, 48f0, 22.4f0))
+    ro = Readout(SipmGrid(6.2f0, Int32(8), Int32(8)); tiles = true, face_mm = (48, 48),
+                 sur_R = 0.5)
+    opw = OpticalParams(n1, n2, 20000f0, 2222f0, 0.99f0, false, true, 0.0227f0, 1f0, n3)
+    op0 = OpticalParams(n1, n2, 20000f0, 2222f0, 0.99f0, false, true, 0.0227f0, 1f0)
+    kw = (n_photons = 200_000, seed = 63, pos = (24f0, 24f0, 11.2f0), tau_ns = 0f0)
+    aw = run_photons!(box, opw, ro, TB; kw...)
+    a0 = run_photons!(box, op0, ro, TB; kw...)
+    @test total_terminated(aw) == kw.n_photons
+    @test 0 < a0.ndet - aw.ndet < 0.01 * a0.ndet
+    # parity of the two transport versions with the window on
+    b = run_photons_ka!(box, opw, ro, TB; kw..., ArrayT = Array)
+    @test aw.counts == b.counts && aw.first_ns == b.first_ns && aw.ndet == b.ndet
+    if Metal.functional()
+        g = run_photons_ka!(box, opw, ro, TB; kw..., ArrayT = Metal.MtlArray)
+        @test total_terminated(g) == kw.n_photons
+        p = aw.ndet / kw.n_photons
+        @test abs(g.ndet - aw.ndet) < 5 * sqrt(kw.n_photons * p * (1 - p)) + 10
+    end
+end
+
 include("frozen.jl")
 
 @testset "Frozen output of the pedagogical path" begin

@@ -136,3 +136,24 @@ normal (pdf ∝ cos), uniform azimuth in the face plane.
         return (a, b, ct)
     end
 end
+
+"""
+Passage through the thin coupling layer (index n2) into the window (n3) of a photon that
+has just been transmitted from the crystal (n1) at |cos| = cosi. The layer is thin, so
+the photon stays at the same point and bounces between its two interfaces: transmitted at
+the second one it enters the window (true); reflected, it returns to the first one and is
+either transmitted back into the crystal (false) or reflected towards the window again.
+The probability of entering is T2 / (1 - R1 R2) with the Fresnel values at the refracted
+angle. Bounded at 16 round trips, after which the photon is returned to the crystal.
+"""
+@inline function window_pass(s::PhiloxStream, n1::Float32, n2::Float32, n3::Float32,
+                             cosi::Float32)
+    cos2 = sqrt(max(0f0, 1f0 - (n1 / n2)^2 * (1f0 - cosi * cosi)))
+    for _ in 1:16
+        tir2, R2 = fresnel(n2, n3, cos2)
+        (tir2 || randu(s) < R2) || return true        # into the window
+        tir1, R1 = fresnel(n2, n1, cos2)
+        (tir1 || randu(s) < R1) || return false       # back into the crystal
+    end
+    return false
+end

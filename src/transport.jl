@@ -21,7 +21,15 @@ struct OpticalParams
     air_gap::Bool           # true = back-painted (air gap), false = front-painted (contact)
     sigma_alpha::Float32    # UNIFIED surface roughness (rad) at the crystal-air interface
     pde::Float32            # applied on the fly at the SiPM plane
+    n_window::Float32       # SiPM window (resin) behind the coupling layer; 0 = none
 end
+
+"Nine-argument form: no window, the readout face is the single crystal-coupling interface."
+OpticalParams(n_crystal, n_coupling, abs_len_mm, rayleigh_mm, wrap_R, wrap_specular::Bool,
+              air_gap::Bool, sigma_alpha, pde) =
+    OpticalParams(Float32(n_crystal), Float32(n_coupling), Float32(abs_len_mm),
+                  Float32(rayleigh_mm), Float32(wrap_R), wrap_specular, air_gap,
+                  Float32(sigma_alpha), Float32(pde), 0f0)
 
 struct SipmGrid
     pitch_mm::Float32
@@ -248,6 +256,10 @@ function propagate_photon!(acc::Accumulator, box::Box, op::OpticalParams,
             # single Fresnel surface crystal -> coupling medium (grease, or air gap)
             tir, R = fresnel(op.n_crystal, op.n_coupling, cosi)
             if tir || randu(s) < R
+                ux, uy, uz = specular(ux, uy, uz, face)
+            elseif op.n_window > 0f0 &&
+                   !window_pass(s, op.n_crystal, op.n_coupling, op.n_window, cosi)
+                # reflected by the coupling-to-window interface, back into the crystal
                 ux, uy, uz = specular(ux, uy, uz, face)
             else
                 active, ii, jj = active_channel(ro, x, y)

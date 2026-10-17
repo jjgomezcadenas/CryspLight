@@ -150,6 +150,27 @@ end
     return r[1], r[2], r[3], false, st
 end
 
+@inline function fwindow(st, n1, n2, n3, cosi)
+    cos2 = sqrt(max(0f0, 1f0 - (n1 / n2)^2 * (1f0 - cosi * cosi)))
+    for _ in 1:16
+        tir2, R2 = fresnel(n2, n3, cos2)
+        refl2 = tir2
+        if !tir2
+            u, st = frandu(st)
+            refl2 = u < R2
+        end
+        refl2 || return true, st
+        tir1, R1 = fresnel(n2, n1, cos2)
+        refl1 = tir1
+        if !tir1
+            u, st = frandu(st)
+            refl1 = u < R1
+        end
+        refl1 || return false, st
+    end
+    return false, st
+end
+
 # ---- the kernel: status/idx/time/bounces record per photon ----
 
 # NB: Metal caps kernel arguments at 31 buffer bindings and each scalar counts as one —
@@ -165,7 +186,7 @@ end
     n_crystal = op.n_crystal; n_coupling = op.n_coupling
     abs_len = op.abs_len_mm; ray_len = op.rayleigh_mm
     wrap_R = op.wrap_R; wrap_spec = op.wrap_specular; air_gap = op.air_gap
-    sigma_alpha = op.sigma_alpha; pde = op.pde
+    sigma_alpha = op.sigma_alpha; pde = op.pde; n_window = op.n_window
     sur_R = ro.sur_R; sur_spec = ro.sur_specular; two_sided = ro.two_sided
     nx = ro.grid.nx
     @inbounds begin
@@ -223,7 +244,11 @@ end
                         u, st = frandu(st)
                         refl = u < R
                     end
-                    if refl
+                    entered = true
+                    if !refl && n_window > 0f0
+                        entered, st = fwindow(st, n_crystal, n_coupling, n_window, cosi)
+                    end
+                    if refl || !entered
                         ux, uy, uz = specular(ux, uy, uz, face)
                     else
                         active, ii, jj = active_channel(ro, x, y)
