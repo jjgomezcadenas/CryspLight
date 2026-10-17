@@ -1,5 +1,6 @@
 using Test
 using Statistics
+using HDF5
 using CryspLight
 using Metal
 using Random: Xoshiro
@@ -823,6 +824,146 @@ end
     vals = [citiroc_event(noisy, trains).stored_pe[20] for _ in 1:200]
     @test 0.05 < mean(vals) < 0.5
 end
+
+@testset "Digitizer chain on the avalanche train (fullsim 0.11b)" begin
+    dev = SipmDevice()
+    @test pulse_cdf(dev, 0) == 0 && pulse_cdf(dev, -3) == 0
+    @test isapprox(pulse_cdf(dev, 2000), 1.0; atol = 1e-9)
+    @test 0.5 < pulse_cdf(dev, 60) < 0.9
+    @test isapprox(window_fraction(dev, 0, -100, 2000), 1.0; atol = 1e-9)
+    @test window_fraction(dev, 500, 0, 100) == 0                  # avalanche after the window
+    @test isapprox(window_fraction(dev, 0, 0, 30) + window_fraction(dev, 0, 30, 2000), 1.0; atol = 1e-9)
+
+    op = SipmOperation(dev; t_k = 293.15, vov = 5.0, n_channels = 64)   # 43 V ambient
+    quiet = DigitizerChain(DigitizerSettings(noise_counts = 0.0, majority = 1,
+                                             threshold_counts = 10.0), op, Xoshiro(121))
+    @test isapprox(quiet.peak_counts_per_pe, 16.0) && isapprox(quiet.area_per_pe, 70.4)
+    @test quiet.n_gate == 125 && quiet.n_base == 125 && quiet.noise_charge == 0
+    # one avalanche at t = 0 in channel 7: triggers (16 > 10), its whole area in the gate,
+    # which starts 50 ns before the trigger
+    trains = [Avalanche[] for _ in 1:64]
+    trains[7] = [Avalanche(0f0, 1f0, Int8(0))]
+    e = digitizer_event(quiet, trains)
+    @test e.triggered && -10 <= e.t_trigger <= 20 && e.hits[7] && count(e.hits) == 1
+    @test isapprox(e.charge_pe[7], 1.0; atol = 0.02) && e.charge[7] == round(Int32, 70.4 * e.charge_pe[7])
+    @test all(e.charge[c] == 0 for c in 1:64 if c != 7)
+    @test isapprox(e.peak_counts[7], 16; rtol = 0.05)
+    # a small pulse in the baseline window (half an avalanche, below the threshold) is
+    # subtracted with the length ratio of the gate to the baseline window
+    tb = deepcopy(trains); tb[8] = [Avalanche(-500f0, 0.5f0, Int8(3))]
+    eb = digitizer_event(quiet, tb)
+    @test isapprox(eb.charge_pe[8], -0.5; atol = 0.02)
+    # 60 counts threshold at 16 counts per avalanche: one or two avalanches do not
+    # trigger, a pile-up of eight at once does
+    amb = DigitizerChain(DigitizerSettings(noise_counts = 0.0, majority = 1), op, Xoshiro(122))
+    @test !digitizer_event(amb, trains).triggered
+    t2 = deepcopy(trains); t2[7] = [Avalanche(0f0, 2f0, Int8(0))]
+    @test !digitizer_event(amb, t2).triggered
+    t8 = deepcopy(trains); t8[7] = [Avalanche(0f0, 8f0, Int8(0))]
+    @test digitizer_event(amb, t8).triggered
+    # majority 2 within 100 ns
+    maj = DigitizerChain(DigitizerSettings(noise_counts = 0.0, majority = 2), op, Xoshiro(123))
+    @test !digitizer_event(maj, t8).triggered
+    t82 = deepcopy(t8); t82[30] = [Avalanche(50f0, 8f0, Int8(0))]
+    @test digitizer_event(maj, t82).triggered
+    t83 = deepcopy(t8); t83[30] = [Avalanche(500f0, 8f0, Int8(0))]
+    @test !digitizer_event(maj, t83).triggered
+    # integrated noise: 4 counts rms per sample over 125 + 125^2/125 samples
+    noisy = DigitizerChain(DigitizerSettings(majority = 1, threshold_counts = 10.0), op, Xoshiro(124))
+    @test isapprox(noisy.noise_charge, 4 * sqrt(250.0))
+    qs = [digitizer_event(noisy, t8).charge[20] for _ in 1:400]
+    @test isapprox(std(qs), 4 * sqrt(250.0); rtol = 0.15) && abs(mean(qs)) < 3 * 63 / 20
+    # an exponential train keeps its whole charge in a gate longer than the decay, and
+    # a fraction 1 - exp(-gate/tau) of it otherwise
+    rngt = Xoshiro(125)
+    tr = [Avalanche(Float32(-300 * log(rand(rngt))), 1f0, Int8(0)) for _ in 1:2000]
+    big = [Avalanche[] for _ in 1:64]; big[1] = tr
+    long = DigitizerChain(DigitizerSettings(noise_counts = 0.0, majority = 1, gate_ns = 4000.0),
+                          op, Xoshiro(126))
+    el = digitizer_event(long, big)
+    @test el.triggered && isapprox(el.charge_pe[1], 2000; rtol = 0.01)
+    short = DigitizerChain(DigitizerSettings(noise_counts = 0.0, majority = 1, gate_ns = 300.0),
+                           op, Xoshiro(127))
+    es = digitizer_event(short, big)
+    @test 0.5 < es.charge_pe[1] / 2000 < 0.7
+    # saturation of the input range at a high gain
+    sat = DigitizerChain(DigitizerSettings(noise_counts = 0.0, majority = 1, gain = 100.0,
+                                           threshold_counts = 100.0), op, Xoshiro(128))
+    @test digitizer_event(sat, t8).saturated[7] == false
+    thuge = deepcopy(trains); thuge[7] = [Avalanche(0f0, 30f0, Int8(0))]   # 48000 counts
+    @test digitizer_event(sat, thuge).saturated[7]
+end
+
+@testset "Front-end stage and the event file (fullsim 0.12)" begin
+    repo = dirname(@__DIR__)
+    tmp = mktempdir()
+    st = load_fullsim(joinpath(repo, "fullsim_runs", "2026-10_ambient", "optical_bgo_ambient.toml"))
+    cfgtxt = replace(st.cfg_text, r"n_decays = \d+" => "n_decays = 400",
+                     r"chunk_decays = \d+" => "chunk_decays = 200",
+                     r"\[run\]" => "[run]\noutput_dir = \"$(tmp)\"")
+    write(joinpath(tmp, "tiny.toml"), cfgtxt)
+    pes_path = run_fullsim_optical(joinpath(tmp, "tiny.toml"); ArrayT = Array, verbose = false)
+    # thresholds high enough that the dark pulses with crosstalk do not trigger: at
+    # ambient temperature a dark avalanche with four or more crosstalk companions occurs
+    # about once per event window at 3 V, and twice at 5 V
+    for (kind, extra) in (("citiroc", "tp_ns = 87.5\nhold_ns = 300.0\nthreshold_pe = 8.0\nmajority = 1"),
+                          ("digitizer", "gain = 1.0\nthreshold_counts = 130.0\nmajority = 2\ngate_ns = 1000.0"))
+        fcfg = """
+        [run]
+        tag = "fe_$(kind)"
+        pes = "$(pes_path)"
+        seed = 7
+        output_dir = "$(tmp)"
+        [sipm]
+        temperature_k = 293.15
+        overvoltage_v = $(kind == "citiroc" ? 3.0 : 5.0)
+        gain_spread = 0.05
+        window_ns = [-1500.0, 3000.0]
+        [frontend]
+        type = "$(kind)"
+        $(extra)
+        """
+        fp = joinpath(tmp, "fe_$(kind).toml")
+        write(fp, fcfg)
+        fs = load_frontend(fp)
+        @test fs.frontend == kind && fs.op.vov == (kind == "citiroc" ? 3.0 : 5.0)
+        @test fs.chip_channels == (kind == "citiroc" ? 32 : 64)
+        kind == "citiroc" && @test fs.settings.threshold_pe == 8.0 && fs.settings.tp_ns == 87.5
+        kind == "digitizer" && @test fs.settings.majority == 2 && fs.settings.gate_ns == 1000.0
+        out = run_fullsim_frontend(fp; verbose = false)
+        @test isfile(out)
+        h5open(out, "r") do f
+            @test attrs(f["run"])["frontend"] == kind && attrs(f["run"])["n_events"] == 400
+            @test attrs(f["run"])["crystal"] == "bgo_ambient"
+            @test read(f["channels"]["channel"]) == Int16.(1:64)
+            @test isapprox(read(f["channels"]["x_mm"])[5], 24 + 3.2; atol = 1e-3)
+            @test read(f["channels"]["chip"])[33] == (kind == "citiroc" ? 1 : 0)
+            @test length(read(f["calib"]["gain_per_pe"])) == 64
+            q = read(f["events"]["charge"])
+            @test size(q) == (64, 400)
+            trig = read(f["events"]["triggered"])
+            edep = read(f["mc"]["edep_kev"])
+            @test length(trig) == 400 && edep == read_pes(pes_path).events.edep_kev
+            # photopeak events trigger; decays without a deposit almost never do
+            pk = edep .> 510
+            @test count(pk) > 0 && mean(trig[pk]) > 0.8
+            @test mean(trig[edep .== 0]) < 0.2
+            # the stored charge of photopeak events, in avalanches, is on the expected scale
+            qpe = read(f["events"]["charge_pe"])
+            tot = vec(sum(qpe; dims = 1))
+            good = pk .& (trig .== 1)
+            if kind == "citiroc"
+                @test 400 < median(tot[good]) < 900          # 3253 x 0.52 x 0.39 ~ 660
+                @test size(read(f["events"]["charge_lg"])) == (64, 400)
+            else
+                @test 1400 < median(tot[good]) < 2200        # 3253 x 0.54 x ~1 ~ 1750 + dark
+            end
+            @test all(read(f["events"]["hits"])[:, .!Bool.(trig)] .== 0)
+            @test haskey(f["mc"], "photon_maps") && size(read(f["mc"]["photon_maps"])) == (8, 8, 400)
+        end
+    end
+end
+
 
 include("frozen.jl")
 

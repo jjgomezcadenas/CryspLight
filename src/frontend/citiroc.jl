@@ -65,6 +65,7 @@ struct CitirocChain
     yf::Vector{Float64}
     nz::Vector{Float64}
     pe_ceiling::Float64        # avalanches at the input-charge ceiling
+    rng::AbstractRNG           # the noise stream; reseed per event for reproducibility
 end
 
 function CitirocChain(s::CitirocSettings, op::SipmOperation, rng::AbstractRNG)
@@ -76,7 +77,7 @@ function CitirocChain(s::CitirocSettings, op::SipmOperation, rng::AbstractRNG)
     fn = noise_generator(fast, s.fast_noise_pe, n, rng)
     ceiling = s.ceiling_pc / (E_CHARGE_PC * op.gain)
     return CitirocChain(s, op, grid, slow, fast, sn, fn, zeros(n), zeros(n), zeros(n),
-                        zeros(n), ceiling)
+                        zeros(n), ceiling, rng)
 end
 
 "First sample at which y crosses thr upwards, or 0."

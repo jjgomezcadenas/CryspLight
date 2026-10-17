@@ -1,0 +1,33 @@
+# Front-end stage, BGO ambient read by the two Citiroc 1A (campaign 2026-10_ambient).
+# SiPMs at the laboratory temperature, 3.0 V above the breakdown (overvoltage recipe);
+# Citiroc at its longest shaping with the peak detector; single-channel trigger at six
+# photoelectron-equivalents on the fast path (dark triggers at the kHz level at ambient).
+[run]
+pes = "output/optical_bgo_ambient/pes.h5"
+seed = 11
+n_events = 0                 # all decays of the optical run
+
+[sipm]
+device = "sipm_s14160"
+temperature_k = 293.15
+overvoltage_v = 3.0
+gain_spread = 0.05           # channel-to-channel spread of the gain, until measured
+window_ns = [-1500.0, 3000.0]  # dark avalanches generated over this window around the decay
+
+[frontend]
+type = "citiroc"
+tp_ns = 87.5
+hold_ns = 300.0
+peak_detector = true
+threshold_pe = 6.0
+majority = 1
+coincidence_ns = 50.0
+noise_pe = 0.1
+adc_per_pe = 10.0
+pedestal = 200.0
+adc_bits = 12
+t_start_ns = -200.0
+t_end_ns = 2000.0
+
+[channels]
+chip_channels = 32
