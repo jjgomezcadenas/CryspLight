@@ -56,7 +56,7 @@ open_results(campaign, "shaping_scan"; mode = isfile(joinpath(results_dir(campai
         push!(cols["ratio_1275_511_fit"], p1275.mean / p511.mean)
         push!(cols["ratio_1275_511_mc"], median(t1275) / median(t511))
         push!(cols["pedestal"], median(ped)); push!(cols["pedestal_rms"], std(ped))
-        push!(cols["stored_fraction"], median(t511 ./ ev.n_detected[sel511 .& trig]))
+        push!(cols["stored_fraction"], median(t511 ./ ev.n_detected[1:n][sel511 .& trig]))
         push!(cols["hg_saturated_511"], mean(br511 .> hg_ceiling))
         push!(cols["hg_saturated_1275"], mean(br1275 .> hg_ceiling))
         push!(cols["triggered_photopeak"], mean(trig[sel511])); push!(cols["triggered_empty"], mean(trig[(ev.edep_kev[1:n] .== 0)]))

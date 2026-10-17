@@ -18,7 +18,9 @@ Base.@kwdef struct DigitizerSettings
     area_over_peak::Float64 = 4.4          # area of the avalanche pulse in samples per count of peak
     noise_counts::Float64 = 4.0            # rms per sample, white
     sample_ns::Float64 = 8.0
-    threshold_counts::Float64 = 60.0       # per-channel leading edge, above the baseline
+    threshold_counts::Float64 = 60.0       # per-channel leading edge, above the baseline;
+                                           # 0 or less: external trigger at external_trigger_ns
+    external_trigger_ns::Float64 = 0.0
     majority::Int = 2
     coincidence_ns::Float64 = 100.0
     pretrigger_ns::Float64 = 1000.0        # samples kept before the trigger
@@ -112,7 +114,8 @@ function digitizer_event(ch::DigitizerChain, trains::Vector{Vector{Avalanche}})
         end
         peaks[c] = Float32(pk)
     end
-    ttrig = trigger_time(crossings, s.majority, s.coincidence_ns)
+    ttrig = s.threshold_counts <= 0 ? s.external_trigger_ns :
+            trigger_time(crossings, s.majority, s.coincidence_ns)
     charge = zeros(Int32, nch); qpe = zeros(Float32, nch)
     hits = falses(nch); sat = falses(nch)
     halfscale = 2.0^(s.bits - 1)

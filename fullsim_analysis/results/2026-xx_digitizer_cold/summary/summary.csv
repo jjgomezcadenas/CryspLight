@@ -1,0 +1,2 @@
+tag,frontend,kind,events,triggered_fraction,photopeak_triggered,empty_triggered,peak511,sigma511,fwhm511,fwhm511_mc,peak1275,ratio_1275_511,ratio_1275_511_mc,brightest_median,brightest_p99,brightest_fraction,saturated_fraction,hits_median
+"frontend_bgo_cold_digitizer","digitizer","simulation",400000,0.0461275,0.04386065983024158,0.0,8202.937809705665,233.3036494383969,0.06697967327965627,20.856007380633695,,,6.3667181013899405,324.7087097167969,1059.984067382812,0.03956365238857036,0.0,4.0

@@ -897,6 +897,12 @@ end
                            op, Xoshiro(127))
     es = digitizer_event(short, big)
     @test 0.5 < es.charge_pe[1] / 2000 < 0.7
+    # external trigger: threshold 0 places the gate at the given time without crossings
+    ext = DigitizerChain(DigitizerSettings(noise_counts = 0.0, threshold_counts = 0.0,
+                                           external_trigger_ns = 0.0), op, Xoshiro(129))
+    ee = digitizer_event(ext, trains)
+    @test ee.triggered && ee.t_trigger == 0 && isapprox(ee.charge_pe[7], 1.0; atol = 0.02)
+    @test digitizer_event(ext, [Avalanche[] for _ in 1:64]).triggered
     # saturation of the input range at a high gain
     sat = DigitizerChain(DigitizerSettings(noise_counts = 0.0, majority = 1, gain = 100.0,
                                            threshold_counts = 100.0), op, Xoshiro(128))

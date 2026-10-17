@@ -1,0 +1,2 @@
+tag,frontend,kind,events,triggered_fraction,photopeak_triggered,empty_triggered,peak511,sigma511,fwhm511,fwhm511_mc,peak1275,ratio_1275_511,ratio_1275_511_mc,brightest_median,brightest_p99,brightest_fraction,saturated_fraction,hits_median
+"frontend_bgo_cold_radioroc","radioroc","simulation",400000,0.1963925,1.0,0.0,1912.3442371735173,58.614831091705284,0.0721825728536138,0.07216840763289435,4703.732624250963,2.4596683655674743,2.4599124170087903,67.81463623046875,262.27849975585934,0.035402959467726536,0.00013,0.0

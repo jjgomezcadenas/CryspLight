@@ -631,8 +631,17 @@ events, a thousand per run, is also written as full waveforms, built with
 the same pulses and noise, for figures and for a visual comparison with the
 measured records; they are not used by the analysis.
 
-The length of the gate is a choice of the analysis that the simulation
-informs. The gate must contain the scintillation decay, but at ambient
+The gate is a choice of the analysis that the simulation informs, in its
+position as in its length. It must open before the trigger, because the
+trigger time moves by tens of nanoseconds from event to event with the
+pile-up of the first photons, and a gate opening at the trigger loses a
+variable part of the first light; the emulation scans the opening time and
+the instructions for the bench take 300~ns before the trigger. The bench
+has two operating points: gain~4 of the digitizer with 3~V of overvoltage,
+if the noise of the digitizer does not grow with its gain, which gives one
+photoelectron of 38~counts and the crosstalk and dark rate of 3~V; or gain~1
+with 5~V, 16~counts per photoelectron, which the first runs use when the
+noise check is not available. The length of the gate is the other choice. The gate must contain the scintillation decay, but at ambient
 temperature every channel collects dark photoelectrons at 6 to 8~MHz, and
 in a gate of 10~\us the 64~channels gather about 5000 of them against 1650
 of signal in BGO: their fluctuation alone is 4\% rms. A gate of 1~\us for
@@ -819,13 +828,21 @@ measured file alike, and each of them tests a different part of the model.
 \item {\bf Dependence on the overvoltage}, when a bias scan exists: light,
   crosstalk, resolution and saturated fraction against the overvoltage, to be
   compared with the curves of Section~\ref{sec:sipm}.
-\item {\bf The two readouts on the same crystal.} The photoelectrons at
+\item {\bf The readouts on the same crystal.} The photoelectrons at
   511~keV measured with the digitizer, which integrates the whole decay, and
-  with the Citiroc, which stores a fraction of them, must be in the ratio
-  computed in Section~\ref{sec:citiroc} from the pulse shape and the
-  shaping time: 0.39 for BGO and 0.15 for \csitl at ambient temperature.
-  This is a direct test of the model of the Citiroc chain with no free
+  with the Citiroc or the Radioroc2, which store a fraction of them, must be
+  in the ratio computed in Section~\ref{sec:citiroc} from the pulse shape
+  and the shaping time: 0.39 for BGO and 0.15 for \csitl with the Citiroc,
+  0.69 for BGO with the Radioroc2 at 1.8~\us, at ambient temperature. This
+  is a direct test of the model of the shaping chains with no free
   parameter.
+\item {\bf The two paths of the Radioroc2.} The high-gain path gives the
+  single-photoelectron peak of every channel and the low-gain path the
+  energy; on the channels that both paths see between 10 and 70 avalanches,
+  the ratio of the two readings, channel by channel, is the low-gain
+  calibration constant, nominally a tenth of the high-gain one and measured
+  to better than a per cent in minutes of source data. The 1275 to 511 ratio
+  of the low-gain sum then tests the linearity of that path alone.
 \item {\bf Trigger efficiency and gate length}, for the digitizer: the
   photopeak content and the trigger rate against the threshold, and the
   resolution against the length of the gate, compared with the simulated
