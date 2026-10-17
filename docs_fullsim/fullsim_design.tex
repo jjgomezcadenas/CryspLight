@@ -700,10 +700,17 @@ differences as settings.
   for the 64 channels, to the ADC of the acquisition board, which the
   simulation takes as the 12-bit converter of the evaluation board. The
   low-gain path covers 2000 photoelectrons at a gain of $10^6$, about
-  320~pC; the high-gain path saturates lower by the ratio of the gains,
-  ten at the default settings. Each channel can instead route its shaped
-  signal to a pin of its own, for a parallel digitisation that the present
-  set-up does not use.
+  320~pC, at its default preamplifier gain of 0.53; the high-gain path,
+  whose default gain is 5.3, saturates ten times lower. The ceilings scale
+  inversely with the preamplifier gains, but the high gain cannot be set
+  below 5, so its ceiling cannot exceed about 76 avalanches at our SiPM
+  gain of $2.8 \times 10^6$, which the brightest channel of a 511~keV
+  event in ambient BGO exceeds in a quarter to a half of the events; the
+  chip is therefore operated as designed, both paths read and combined,
+  the high gain for every channel below its ceiling and the low gain above
+  it, and the simulation stores that dual-gain value. Each channel can
+  instead route its shaped signal to a pin of its own, for a parallel
+  digitisation that the present set-up does not use.
 \end{enumerate}
 
 \section{Files}
