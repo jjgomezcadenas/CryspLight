@@ -1032,13 +1032,17 @@ end
     @test !radioroc_event(quiet(trigger = "majority"), trains).triggered
     t2 = deepcopy(trains); t2[9] = [Avalanche(20f0, 1f0, Int8(0))]
     @test radioroc_event(quiet(trigger = "majority"), t2).triggered
-    # saturation of the high-gain path flags the channel and clamps the stored value;
-    # the low-gain path still measures it
+    # above the high-gain ceiling the stored value comes from the low-gain path and the
+    # event is not saturated; above the low-gain ceiling it is
     huge = [Avalanche[] for _ in 1:64]
     huge[2] = [Avalanche(0f0, Float32(chc.hg_ceiling * 1.5), Int8(0))]
     eh = radioroc_event(quiet(trigger = "t1", lg_ceiling_pe = 2000.0), huge)
-    @test eh.saturated[2] && eh.stored_pe[2] <= chc.hg_ceiling + 1e-3
+    @test !eh.saturated[2] && isapprox(eh.stored_pe[2], 1.5 * chc.hg_ceiling; rtol = 1e-3)
+    @test eh.hg[2] == round(UInt16, 200 + 10 * chc.hg_ceiling)
     @test isapprox(eh.lg[2], 200 + 10 * 0.1 * chc.hg_ceiling * 1.5; atol = 1.5)
+    huge[2] = [Avalanche(0f0, Float32(chc.lg_ceiling * 1.2), Int8(0))]
+    eh2 = radioroc_event(quiet(trigger = "t1", lg_ceiling_pe = 2000.0), huge)
+    @test eh2.saturated[2] && eh2.stored_pe[2] <= chc.lg_ceiling + 1e-3
     # the settings reader accepts a scalar peaking time and a vector
     rs = settings_from(RadiorocSettings, Dict("tp_ns" => 600.0, "trigger" => "tq", "hold_ns" => 800))
     @test rs.tp_ns == fill(600.0, 64) && rs.hold_ns == 800.0 && rs.trigger == "tq"

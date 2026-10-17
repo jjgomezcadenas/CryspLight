@@ -12,7 +12,9 @@
 #   - the hold from the delay cell after the acquisition trigger, peak detectors on both
 #     paths, and the saturation of the low-gain path at 2000 avalanches of 1e6 gain, the
 #     high-gain one lower by the ratio of the gains.
-# The event record is the CitirocEvent (high gain, low gain, hits, trigger time, flags).
+# The event record is the CitirocEvent (high gain, low gain, hits, trigger time, flags);
+# its stored_pe is the dual-gain value, the high gain below its ceiling and the low gain
+# above it, in avalanches.
 
 Base.@kwdef struct RadiorocSettings
     tp_ns::Vector{Float64} = fill(300.0, 64)   # peaking time per channel, high-gain path
@@ -141,11 +143,12 @@ function radioroc_event(ch::RadiorocChain, trains::Vector{Vector{Avalanche}})
         for c in 1:nch
             vh = s.peak_detector ? maximum(view(hg_wave[c], k0:k1)) : hg_wave[c][k1]
             vl = s.peak_detector ? maximum(view(lg_wave[c], k0:k1)) : lg_wave[c][k1]
-            if vh > ch.hg_ceiling
-                sat[c] = true; vh = ch.hg_ceiling
-            end
+            # dual gain: the high-gain path measures the channel below its ceiling, the
+            # low-gain path above it; the event is saturated only when the low gain is
+            hg_sat = vh > ch.hg_ceiling
+            hg_sat && (vh = ch.hg_ceiling)
             vl > ch.lg_ceiling && (sat[c] = true; vl = ch.lg_ceiling)
-            stored[c] = vh
+            stored[c] = hg_sat ? vl : vh
             hc = s.pedestal + s.adc_per_pe * vh
             lc = s.pedestal + s.adc_per_pe * s.lg_ratio * vl
             hc >= fullscale && (sat[c] = true)

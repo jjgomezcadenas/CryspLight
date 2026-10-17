@@ -28,6 +28,10 @@ function shaping_scan(campaign::AbstractString, cfg_path::AbstractString, nmax::
         c["run"]["output_dir"] = tmp
         c["frontend"]["tp_ns"] = tp
         c["frontend"]["hold_ns"] = 1.7 * tp + 500.0
+        # the charge threshold must stay above the dark pedestal of one channel on the
+        # low-gain shaped signal, which grows with the shaping time (about 12 avalanches
+        # per channel at 1.8 us at ambient temperature)
+        c["frontend"]["tq_threshold_pe"] = tp <= 600 ? 20.0 : 40.0
         c["frontend"]["t_end_ns"] = max(c["frontend"]["t_end_ns"], 6 * tp + 4000.0)
         p = joinpath(tmp, "cfg_$(Int(tp)).toml")
         open(p, "w") do io; TOML.print(io, c); end
