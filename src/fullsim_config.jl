@@ -27,6 +27,7 @@ struct FullsimSetup
     pv::Gamma.PhysicalVolume
     yield_per_mev::Float64
     times::NamedTuple
+    intrinsic::NamedTuple          # (intrinsic_fwhm, intrinsic_exponent)
     lambda_nm::Float64
     source_mm::NTuple{3,Float64}
     n_decays::Int
@@ -77,6 +78,8 @@ function load_fullsim(cfg_path::AbstractString)
     outdir = joinpath(repo, get(run, "output_dir", "output"), tag)
     return FullsimSetup(tag, cfg, cfg_text, abspath(cfg_path), box, op, ro, tb, pv,
                         Float64(mat["yield_per_mev"]), scintillation_times(mat),
+                        (intrinsic_fwhm = Float64(get(mat, "intrinsic_fwhm_511", 0.0)),
+                         intrinsic_exponent = Float64(get(mat, "intrinsic_exponent", 0.5))),
                         Float64(mat["lambda_nm"]), (p[1], p[2], p[3]),
                         Int(run["n_decays"]), Int(run["seed"]),
                         Int(get(run, "chunk_decays", 10_000)),
@@ -107,7 +110,8 @@ function run_fullsim_optical(cfg_path::AbstractString; ArrayT = Array, verbose::
             r = run_decays!(st.box, st.op, st.ro, st.tb, st.pv, st.yield_per_mev;
                             source_mm = st.source_mm, n_decays = n, seed = st.seed,
                             first_decay = first, batch_photons = st.batch_photons,
-                            max_bounces = st.max_bounces, ArrayT = ArrayT, st.times...)
+                            max_bounces = st.max_bounces, ArrayT = ArrayT, st.times...,
+                            st.intrinsic...)
             w = append_pes!(w, r)
             verbose && @printf("%-20s decays %7d / %d, %9d photoelectron records so far\n",
                                st.tag, w.n_decays, st.n_decays, length(w.file["pes"]["channel"]))

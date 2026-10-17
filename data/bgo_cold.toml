@@ -11,5 +11,9 @@ abs_length_mm = 20000.0
 rayleigh_mm = 2222.0
 yield_per_mev = 15000
 tau_ns = 2720.0
+# Intrinsic resolution: 5% FWHM at 511 keV as for ambient BGO; applied as a Gaussian smearing
+# of the light of each decay scaling as (511/E)^exponent.
+intrinsic_fwhm_511 = 0.05
+intrinsic_exponent = 0.5
 lambda_nm = 480.0
 x0_mm = 11.2

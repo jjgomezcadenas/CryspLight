@@ -11,5 +11,9 @@ yield_per_mev = 54000
 tau_ns = 730.0
 tau2_ns = 3340.0
 frac1 = 0.64
+# Intrinsic resolution: 5% FWHM at 511 keV (our data), applied as a Gaussian smearing of the
+# light of each decay scaling as (511/E)^exponent.
+intrinsic_fwhm_511 = 0.05
+intrinsic_exponent = 0.5
 lambda_nm = 550.0
 x0_mm = 18.6

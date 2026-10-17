@@ -583,6 +583,17 @@ end
     # photopeak scale: 511 keV x 7600 ph/MeV x collection ~0.8 x PDE 0.5 ~ 1500 pe
     pk = ev.n_detected[(ev.edep_511_kev .> 510) .& (ev.edep_1275_kev .== 0)]
     @test !isempty(pk) && 1000 < mean(pk) < 2000
+    # the intrinsic resolution broadens the emitted light of photopeak decays: with 20%
+    # FWHM and the same seed the deposits are identical and the photon counts differ
+    rs = run_decays!(box, op, ro, tbd, pv, mat["yield_per_mev"]; n_decays = nd,
+                     intrinsic_fwhm = 0.20, kw...)
+    @test rs.events.edep_kev == ev.edep_kev
+    sel = (ev.edep_511_kev .> 510) .& (ev.edep_1275_kev .== 0)
+    @test std(rs.events.n_emitted[sel]) > 2 * std(ev.n_emitted[sel])
+    @test isapprox(mean(rs.events.n_emitted[sel]), mean(ev.n_emitted[sel]); rtol = 0.03)
+    @test load_fullsim(joinpath(dirname(@__DIR__), "fullsim_runs", "2026-10_ambient",
+                                "optical_bgo_ambient.toml")).intrinsic ==
+          (intrinsic_fwhm = 0.05, intrinsic_exponent = 0.5)
     # two chunks with disjoint decay ranges reproduce the decays of the single call
     r1 = run_decays!(box, op, ro, tbd, pv, mat["yield_per_mev"]; n_decays = 800,
                      first_decay = 1, kw...)
@@ -657,7 +668,7 @@ end
     # the driver, chunked by 100, reproduces the gamma-level content of a direct call
     rd = run_decays!(st.box, st.op, st.ro, st.tb, st.pv, st.yield_per_mev;
                      n_decays = 300, seed = st.seed, source_mm = st.source_mm,
-                     batch_photons = 300_000, ArrayT = Array, st.times...)
+                     batch_photons = 300_000, ArrayT = Array, st.times..., st.intrinsic...)
     @test g.events.edep_kev == rd.events.edep_kev
     @test g.events.n_emitted == rd.events.n_emitted
     @test g.attributes["seed"] == st.seed

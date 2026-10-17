@@ -75,7 +75,7 @@ id & task & status & date \\
 0.11 & Citiroc chain \code{src/frontend/citiroc.jl} on the grid of \code{shaping.jl} (first-order sections, no transform): slow and fast semi-Gaussian shapers calibrated to one avalanche, shaped noise, discriminators and majority trigger, peak detector or track-and-hold, ADC with pedestal, input-charge and ADC saturation, low-gain path; unit tests, the stored fractions 0.39/0.15/0.07 reproduced & \done & 17 Oct \\
 0.11b & Digitizer chain \code{src/frontend/digitizer.jl} on the avalanche train: gate and baseline weights from the pulse integral, integrated white noise, sampled-amplitude trigger with majority, saturation; unit tests (window fractions, baseline subtraction, thresholds, noise rms, gate length). Waveform subsample not yet written & \done & 17 Oct \\
 0.12 & Front-end stage \code{src/frontend/frontend\_run.jl} and \code{scripts/fullsim\_frontend.jl}: SiPM response per channel and one front end per decay, multithreaded and reproducible per event, writing \code{events.h5} (/run, /channels, /calib, /events, /mc); four front-end configurations of the ambient campaign; first-look \code{fullsim\_analysis/summary.jl} and \code{trigger\_scan.jl}. The converter of the bench files is JJ's & \done & 17 Oct \\
-0.13 & First emulated campaign: BGO ambient and \csitl ambient at 2, 2.7, 3, 4 and 5~V overvoltage, with both readouts; tables of photoelectrons per channel, brightest-channel tail, stored fraction, resolution floor, trigger margin; for the digitizer the trigger efficiency and dark-trigger rate against threshold and the resolution against gate length & \planned & \\
+0.13 & First emulated campaign at the bench settings (table below; figures and numbers under \code{fullsim\_analysis/results/2026-10\_ambient/}); the trigger scan done for BGO. Still to do: the overvoltage scan (2 to 5~V), the gate-length scan of the digitizer, the trigger scan for \csitl & \doing & 17 Oct \\
 0.14 & Overvoltage scan figure and numbers delivered to the bench & \planned & \\
 \bottomrule
 \end{longtable}
@@ -113,6 +113,43 @@ id & task & status & date \\
 2.6 & Design document version 1.0 with the measured parameters & \planned & \\
 \bottomrule
 \end{longtable}
+
+\subsection*{First emulated campaign (17 October 2026)}
+
+Optical runs with the intrinsic resolution of 5\% FWHM at 511~keV; front
+ends at the bench settings: Citiroc at 3.0~V (BGO) and 2.7~V (\csitl),
+87.5~ns shaping, peak detector, hold 300/500~ns, single-channel threshold of
+8 photoelectron-equivalents; DT2745 at 43~V and gain~1, threshold 120~counts
+with majority 2, gate 1~\us (BGO) and 4.5~\us (\csitl). Energies in
+avalanches of the stored or integrated signal, summed over the 64 channels.
+
+\begin{center}
+\small
+\begin{tabular}{l r r r r}
+\toprule
+ & BGO Citiroc & BGO DT2745 & \csitl Citiroc & \csitl DT2745 \\
+\midrule
+decays simulated & 400\,000 & 400\,000 & 100\,000 & 100\,000 \\
+triggered fraction of decays & 19.5\% & 19.4\% & 14.6\% & 14.8\% \\
+511~keV peak (avalanches) & 833 & 1973 & 1635 & 10\,867 \\
+FWHM at 511~keV & 8.8\% & 8.9\% & 6.6\% & 6.3\% \\
+1275 / 511 peak ratio & 2.31 & 2.49 & 2.34 & 2.50 \\
+brightest channel, median / 1\% & 30 / 103 & 74 / 274 & 43 / 261 & 272 / 1949 \\
+saturated events & 0 & 0 & 0.74\% & 0 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Three remarks. The Citiroc stores 0.42 of the digitizer's photoelectrons
+for BGO and 0.15 for \csitl, the fractions of the design document once the
+ratio of the detection efficiencies at 3.0 and 5~V is taken out. The
+1275 to 511 ratio of the Citiroc is 2.31 instead of 2.5 because each of
+the 64 peak detectors stores the maximum of its noise and dark pulses when
+the channel receives little light, a pedestal of about 120 avalanches per
+event that the digitizer's baseline subtraction removes; the measured ratio
+will show the same and the per-channel pedestal of empty events corrects
+it. The \csitl Citiroc saturates in 0.7\% of the events, the brightest
+channel of the events next to the readout face, as predicted.
 
 \section{Campaigns}
 
@@ -163,7 +200,12 @@ campaign & configuration & readout & dates \\
   overvoltage, 100~ns; not resolvable with the Citiroc.
 \item[16 Oct 2026] Intrinsic resolution 5\% FWHM at 511~keV for both
   crystals; the non-proportionality curve of BGO (Gentile et al.) as a
-  later refinement; Moszynski et al.\ to be checked.
+  later refinement; Moszynski et al.\ to be checked. \emph{17 Oct:}
+  implemented as one Gaussian factor on the light of each decay, of
+  relative width $0.05/2.355 \times (511~\mathrm{keV}/E)^{1/2}$; the
+  exponent is an assumption to be checked on the width of the 1275~keV line
+  (keys \code{intrinsic\_fwhm\_511}, \code{intrinsic\_exponent} of the
+  material files).
 \item[16 Oct 2026] Ambient digitizer runs at gain 1 and 43~V (5~V of
   overvoltage), the simplest setting for the bench; record 10~\us with
   1~\us pre-trigger. Threshold 60~counts, majority 2, \emph{corrected on
@@ -208,6 +250,12 @@ campaign & configuration & readout & dates \\
   (UM8717) read and the DT2745 added as a third front end; digitizer section
   added to the overvoltage recipe; trigger thresholds for the Citiroc and
   the digitizer estimated for the ambient runs.
+\item[17 Oct 2026] Tasks 0.4 to 0.12 coded and tested in one day (frozen
+  test, tiled layout, window, materials, source and decay pipeline,
+  photoelectron file and optical driver, SiPM model, shaping, Citiroc,
+  digitizer, front-end stage and event file, summary and trigger-scan
+  scripts); optical runs of both ambient configurations; first emulated
+  campaign, table above.
 \item[17 Oct 2026] Task 0.4: frozen-output test added and passing; the
   digests do not depend on the thread count and change with the seed or
   with any parameter.

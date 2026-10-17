@@ -5,7 +5,7 @@
 # (channel, time) and integrated map. One event is one decay, whether or not any of its
 # gammas interacted, so that the fraction of decays giving a signal is a result.
 
-using Random: Xoshiro
+using Random: Xoshiro, randn
 
 """
     run_decays!(box, op, ro, tb, pv, yield_per_mev; source_mm, n_decays, seed, tau_ns,
@@ -15,6 +15,11 @@ using Random: Xoshiro
                    n_detected, maps (nx x ny x n), first_decay
            interactions: offset (n + 1), x_mm, y_mm, z_mm, e_kev, t_ns, gamma_kind, proc
            pes: offset (n + 1), channel (UInt8, (j - 1) nx + i), t_ns
+
+The intrinsic resolution of the crystal is a Gaussian smearing of the light of each
+decay: the Poisson means of all its deposits are scaled by one factor of relative width
+intrinsic_fwhm / 2.355 x (511 keV / E_dep)^intrinsic_exponent, E_dep the energy
+deposited by the decay (0 = no smearing).
 
 Decay k (first_decay <= k < first_decay + n_decays) uses the stream Xoshiro(hash((seed,
 k))) for the decay and the gamma transport, and photon ids offset so that chunks with
@@ -26,6 +31,7 @@ function run_decays!(box::Box, op::OpticalParams, ro::Readout, tb::TimeBinning,
                      pv, yield_per_mev::Real;
                      source_mm, n_decays::Int, seed::Integer, tau_ns::Float32,
                      tau2_ns::Float32 = 0f0, frac1::Float32 = 1f0,
+                     intrinsic_fwhm::Real = 0.0, intrinsic_exponent::Real = 0.5,
                      first_decay::Int = 1, batch_photons::Int = 2_000_000,
                      max_bounces::Int = 100_000, ArrayT = Array)
     L = box.L
@@ -87,6 +93,11 @@ function run_decays!(box::Box, op::OpticalParams, ro::Readout, tb::TimeBinning,
         rng = Xoshiro(hash((seed, k)))
         gammas = na22_decay(rng)
         first_photon = length(positions) + 1
+        # gamma transport of the whole decay first, so that the intrinsic smearing can
+        # scale the light of all its deposits by one factor
+        evdeps = NTuple{6,Float32}[]
+        evkind = Int8[]
+        evtfl = Float32[]
         for g in gammas
             hit = entry_point(src, g.dir, L)
             hit === nothing && continue
@@ -96,17 +107,26 @@ function run_decays!(box::Box, op::OpticalParams, ro::Readout, tb::TimeBinning,
             ngin[ev] += Int8(1)
             tflight = Float32(path / C_MM_NS)
             for d in deps
-                edep[ev] += d[4]
-                g.kind == GAMMA_511 ? (edep511[ev] += d[4]) : (edep1275[ev] += d[4])
-                push!(ix, d[1]); push!(iy, d[2]); push!(iz, d[3]); push!(ie, d[4])
-                push!(it, d[5] + tflight); push!(ikind, g.kind)
-                push!(iproc, Int8(round(d[6])))
-                nph = rand_poisson(rng, Float64(yield_per_mev) * d[4] / 1000)
-                nemit[ev] += Int32(nph)
-                for _ in 1:nph
-                    push!(positions, (d[1], d[2], d[3]))
-                    push!(t0s, d[5] + tflight)
-                end
+                push!(evdeps, d); push!(evkind, g.kind); push!(evtfl, tflight)
+            end
+        end
+        etot = sum(d -> d[4], evdeps; init = 0f0)
+        scale = 1.0
+        if intrinsic_fwhm > 0 && etot > 0
+            srel = intrinsic_fwhm / 2.355 * (511.0 / etot)^intrinsic_exponent
+            scale = max(0.0, 1.0 + srel * randn(rng))
+        end
+        for (d, kind, tflight) in zip(evdeps, evkind, evtfl)
+            edep[ev] += d[4]
+            kind == GAMMA_511 ? (edep511[ev] += d[4]) : (edep1275[ev] += d[4])
+            push!(ix, d[1]); push!(iy, d[2]); push!(iz, d[3]); push!(ie, d[4])
+            push!(it, d[5] + tflight); push!(ikind, kind)
+            push!(iproc, Int8(round(d[6])))
+            nph = rand_poisson(rng, scale * Float64(yield_per_mev) * d[4] / 1000)
+            nemit[ev] += Int32(nph)
+            for _ in 1:nph
+                push!(positions, (d[1], d[2], d[3]))
+                push!(t0s, d[5] + tflight)
             end
         end
         ioff[ev + 1] = length(ix)
