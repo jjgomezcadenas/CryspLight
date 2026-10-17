@@ -6,7 +6,7 @@
 [run]
 pes = "output/optical_bgo_ambient/pes.h5"
 seed = 112
-n_events = 0
+n_events = 100000          # the first 100k decays
 
 [sipm]
 device = "sipm_s14160"
@@ -18,7 +18,7 @@ window_ns = [-2500.0, 3000.0]
 [frontend]
 type = "digitizer"
 gain = 4.0
-threshold_counts = 290.0
+threshold_counts = 192.0   # from the trigger scan of 18 Oct: 511 keV 1.000, 200-300 keV 1.000, dark 0.24 kHz
 majority = 2
 coincidence_ns = 100.0
 pretrigger_ns = 1000.0

@@ -12,7 +12,7 @@ n_events = 0
 [sipm]
 device = "sipm_s14160"
 temperature_k = 293.15
-overvoltage_v = 2.7
+overvoltage_v = 2.0          # agreed 18 Oct: the low gain saturates in 3% of the 511 keV events at 2.7 V
 gain_spread = 0.05
 window_ns = [-1500.0, 10000.0]
 
