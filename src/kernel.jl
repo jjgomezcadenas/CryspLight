@@ -166,9 +166,8 @@ end
     abs_len = op.abs_len_mm; ray_len = op.rayleigh_mm
     wrap_R = op.wrap_R; wrap_spec = op.wrap_specular; air_gap = op.air_gap
     sigma_alpha = op.sigma_alpha; pde = op.pde
-    disc = ro.disc; dcx = ro.cx; dcy = ro.cy; dr2 = ro.r2
     sur_R = ro.sur_R; sur_spec = ro.sur_specular; two_sided = ro.two_sided
-    pitch = ro.grid.pitch_mm; nx = ro.grid.nx; ny = ro.grid.ny
+    nx = ro.grid.nx
     @inbounds begin
         j = Int32(1) + Int32((i - 1) % npos)
         x = px[j]; y = py[j]; z = pz[j]
@@ -226,27 +225,28 @@ end
                     end
                     if refl
                         ux, uy, uz = specular(ux, uy, uz, face)
-                    elseif !disc || (x - dcx)^2 + (y - dcy)^2 <= dr2
-                        u, st = frandu(st)
-                        if u <= pde
-                            ii = min(nx, Int32(1) + unsafe_trunc(Int32, x / pitch))
-                            jj = min(ny, Int32(1) + unsafe_trunc(Int32, y / pitch))
-                            lin = (jj - Int32(1)) * nx + ii
-                            out_idx = face == FACE_FRONT ? Int16(-lin) : Int16(lin)
-                            result = STATUS_DETECTED
-                        else
-                            result = STATUS_ABS_SIPM
-                        end
                     else
-                        u, st = frandu(st)
-                        if u <= sur_R
-                            if sur_spec
-                                ux, uy, uz = specular(ux, uy, uz, face)
+                        active, ii, jj = active_channel(ro, x, y)
+                        if active
+                            u, st = frandu(st)
+                            if u <= pde
+                                lin = (jj - Int32(1)) * nx + ii
+                                out_idx = face == FACE_FRONT ? Int16(-lin) : Int16(lin)
+                                result = STATUS_DETECTED
                             else
-                                ux, uy, uz, st = flambertian(st, face)
+                                result = STATUS_ABS_SIPM
                             end
                         else
-                            result = STATUS_ABS_SUR
+                            u, st = frandu(st)
+                            if u <= sur_R
+                                if sur_spec
+                                    ux, uy, uz = specular(ux, uy, uz, face)
+                                else
+                                    ux, uy, uz, st = flambertian(st, face)
+                                end
+                            else
+                                result = STATUS_ABS_SUR
+                            end
                         end
                     end
                 elseif !air_gap

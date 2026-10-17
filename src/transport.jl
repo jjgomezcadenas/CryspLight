@@ -30,13 +30,19 @@ struct SipmGrid
 end
 
 """
-Readout description of the back face. Default (disc = false): the whole face is active,
-binned by the SiPM grid. Disc mode (a PMT photocathode): only a disc of radius r about
-(cx, cy) is active; photons transmitted outside it hit the surround, which reflects them
-back into the crystal with probability sur_R (specular or Lambertian re-injection, like a
-back-painted wrap) or kills them. sur_R = 0 is an absorbing surround (bare setup);
-sur_R ~ 0.95, Lambertian is a Tyvek-covered rear face. Detected photons are binned on the
-grid either way (the light map).
+Readout description of the back face. Default (disc = false, tiles = false): the whole
+face is active, binned by the SiPM grid. Disc mode (a PMT photocathode): only a disc of
+radius r about (cx, cy) is active; photons transmitted outside it hit the surround, which
+reflects them back into the crystal with probability sur_R (specular or Lambertian
+re-injection, like a back-painted wrap) or kills them. sur_R = 0 is an absorbing
+surround (bare setup); sur_R ~ 0.95, Lambertian is a Tyvek-covered rear face. Tiles mode
+(the bench array): the active area is a set of squares of width active_w, tile_n per
+tile and axis on the pitch tile_pitch, with a dead margin tile_edge beyond the outer
+pitch cells of each tile; tiles are butted, grid.nx ÷ tile_n of them along x, and the
+array corner sits at (x0, y0) in the crystal frame (negative when the array overhangs
+the crystal). The package surface between the active squares, and the board beyond the
+array, act as the surround (sur_R, sur_specular). Detected photons are binned on the
+grid either way (the light map); in tiles mode the bin is the channel.
 """
 struct Readout
     grid::SipmGrid
@@ -47,14 +53,96 @@ struct Readout
     sur_R::Float32
     sur_specular::Bool
     two_sided::Bool              # sensors on BOTH z faces (Kim/Ding geometries)
+    tiles::Bool                  # active squares of a tiled array instead of the full face
+    tile_n::Int32                # channels per tile along one axis
+    tile_pitch::Float32          # channel pitch inside a tile
+    tile_edge::Float32           # dead margin between the outer pitch cell and the package edge
+    active_w::Float32            # active width of a channel
+    tile_w::Float32              # tile width = 2 edge + (n - 1) pitch + active
+    x0::Float32                  # array corner in the crystal frame
+    y0::Float32
 end
 
-Readout(grid::SipmGrid; center = nothing, radius = nothing, sur_R = 0,
-        sur_specular::Bool = false, two_sided::Bool = false) =
-    radius === nothing ?
-        Readout(grid, false, 0f0, 0f0, 0f0, 0f0, false, two_sided) :
-        Readout(grid, true, Float32(center[1]), Float32(center[2]), Float32(radius)^2,
-                Float32(sur_R), sur_specular, two_sided)
+"""
+    Readout(grid; center, radius, sur_R, sur_specular, two_sided,
+            tiles, tile_n, tile_pitch, tile_edge, active_w, face_mm, origin)
+
+Keyword constructor. radius selects the disc mode; tiles = true the tiled array, whose
+corner is placed either at origin = (x0, y0) or, given face_mm = (Lx, Ly), centred on the
+face. Defaults of the tile parameters are the Hamamatsu S14161-6050HS-04 (4 x 4 channels
+of 6.0 mm on a 6.2 mm pitch, 0.2 mm margin: 25.0 mm tiles).
+"""
+function Readout(grid::SipmGrid; center = nothing, radius = nothing, sur_R = 0,
+                 sur_specular::Bool = false, two_sided::Bool = false,
+                 tiles::Bool = false, tile_n::Integer = 4, tile_pitch::Real = 6.2,
+                 tile_edge::Real = 0.2, active_w::Real = 6.0,
+                 face_mm = nothing, origin = nothing)
+    disc = radius !== nothing
+    (disc && tiles) && error("a readout is either a disc or a tiled array, not both")
+    cx = disc ? Float32(center[1]) : 0f0
+    cy = disc ? Float32(center[2]) : 0f0
+    r2 = disc ? Float32(radius)^2 : 0f0
+    sR = (disc || tiles) ? Float32(sur_R) : 0f0
+    if tiles
+        (grid.nx % tile_n == 0 && grid.ny % tile_n == 0) ||
+            error("grid $(grid.nx) x $(grid.ny) is not a whole number of $tile_n x $tile_n tiles")
+        tw = Float32(2 * tile_edge + (tile_n - 1) * tile_pitch + active_w)
+        if origin === nothing
+            face_mm === nothing && error("tiles need origin = (x0, y0) or face_mm = (Lx, Ly)")
+            x0 = Float32((face_mm[1] - (grid.nx ÷ tile_n) * tw) / 2)
+            y0 = Float32((face_mm[2] - (grid.ny ÷ tile_n) * tw) / 2)
+        else
+            x0, y0 = Float32(origin[1]), Float32(origin[2])
+        end
+        return Readout(grid, false, 0f0, 0f0, 0f0, sR, sur_specular, two_sided, true,
+                       Int32(tile_n), Float32(tile_pitch), Float32(tile_edge),
+                       Float32(active_w), tw, x0, y0)
+    end
+    return Readout(grid, disc, cx, cy, r2, sR, sur_specular, two_sided, false,
+                   Int32(0), 0f0, 0f0, 0f0, 0f0, 0f0, 0f0)
+end
+
+"""
+Channel index (1-based) along one axis of a tiled array for the coordinate s measured
+from the array corner, or 0 on a dead margin, between tiles, or outside the array.
+"""
+@inline function tile_channel(s::Float32, ro::Readout, nchan::Int32)
+    s < 0f0 && return Int32(0)
+    tile = unsafe_trunc(Int32, s / ro.tile_w)
+    r = s - Float32(tile) * ro.tile_w - ro.tile_edge
+    r < 0f0 && return Int32(0)
+    k = unsafe_trunc(Int32, r / ro.tile_pitch)
+    k >= ro.tile_n && return Int32(0)
+    r - Float32(k) * ro.tile_pitch > ro.active_w && return Int32(0)
+    i = tile * ro.tile_n + k + Int32(1)
+    return i > nchan ? Int32(0) : i
+end
+
+"""
+Whether the point (x, y) of the readout face is active, and the channel (i, j) it falls
+in. Full face: active everywhere, binned by the pitch. Disc: binned by the pitch, active
+inside the disc. Tiles: active on the squares, the channel being the square; on a dead
+area the channel indices returned are placeholders (1) and must not be used.
+"""
+@inline function active_channel(ro::Readout, x::Float32, y::Float32)
+    g = ro.grid
+    if ro.tiles
+        i = tile_channel(x - ro.x0, ro, g.nx)
+        j = tile_channel(y - ro.y0, ro, g.ny)
+        return (i > Int32(0)) & (j > Int32(0)), max(i, Int32(1)), max(j, Int32(1))
+    end
+    i = min(g.nx, Int32(1) + unsafe_trunc(Int32, x / g.pitch_mm))
+    j = min(g.ny, Int32(1) + unsafe_trunc(Int32, y / g.pitch_mm))
+    return !ro.disc || (x - ro.cx)^2 + (y - ro.cy)^2 <= ro.r2, i, j
+end
+
+"Centres (mm, crystal frame) of the channels of a tiled readout along x and y."
+function channel_centres(ro::Readout)
+    ro.tiles || error("channel_centres needs a tiled readout")
+    axis(n, o) = [o + (k ÷ ro.tile_n) * ro.tile_w + ro.tile_edge +
+                  (k % ro.tile_n) * ro.tile_pitch + ro.active_w / 2 for k in 0:n-1]
+    return axis(ro.grid.nx, ro.x0), axis(ro.grid.ny, ro.y0)
+end
 
 struct TimeBinning
     bin_ns::Float32
@@ -93,10 +181,8 @@ end
 total_terminated(a::Accumulator) =
     a.ndet + a.nabs_bulk + a.nabs_wall + a.nabs_sipm + a.ncap + a.nabs_sur
 
-@inline function record_detection!(acc::Accumulator, grid::SipmGrid, tb::TimeBinning,
-                                   x::Float32, y::Float32, t::Float32, bounces::Int)
-    i = min(grid.nx, Int32(1) + unsafe_trunc(Int32, x / grid.pitch_mm))
-    j = min(grid.ny, Int32(1) + unsafe_trunc(Int32, y / grid.pitch_mm))
+@inline function record_detection!(acc::Accumulator, tb::TimeBinning,
+                                   i::Int32, j::Int32, t::Float32, bounces::Int)
     bin = Int32(1) + unsafe_trunc(Int32, t / tb.bin_ns)
     bin = bin > tb.nbins ? tb.nbins + Int32(1) : bin
     acc.counts[i, j, bin] += UInt32(1)
@@ -163,25 +249,28 @@ function propagate_photon!(acc::Accumulator, box::Box, op::OpticalParams,
             tir, R = fresnel(op.n_crystal, op.n_coupling, cosi)
             if tir || randu(s) < R
                 ux, uy, uz = specular(ux, uy, uz, face)
-            elseif !ro.disc || (x - ro.cx)^2 + (y - ro.cy)^2 <= ro.r2
-                if randu(s) <= op.pde
-                    record_detection!(acc, ro.grid, tb, x, y, t, bounces)
-                    face == FACE_FRONT && (acc.ndet_front += 1)
-                    return STATUS_DETECTED
-                else
-                    acc.nabs_sipm += 1
-                    return STATUS_ABS_SIPM
-                end
-            elseif randu(s) <= ro.sur_R
-                # surround reflector: re-inject, like a back-painted wrap
-                if ro.sur_specular
-                    ux, uy, uz = specular(ux, uy, uz, face)
-                else
-                    ux, uy, uz = lambertian_dir(s, face)
-                end
             else
-                acc.nabs_sur += 1
-                return STATUS_ABS_SUR
+                active, ii, jj = active_channel(ro, x, y)
+                if active
+                    if randu(s) <= op.pde
+                        record_detection!(acc, tb, ii, jj, t, bounces)
+                        face == FACE_FRONT && (acc.ndet_front += 1)
+                        return STATUS_DETECTED
+                    else
+                        acc.nabs_sipm += 1
+                        return STATUS_ABS_SIPM
+                    end
+                elseif randu(s) <= ro.sur_R
+                    # surround reflector: re-inject, like a back-painted wrap
+                    if ro.sur_specular
+                        ux, uy, uz = specular(ux, uy, uz, face)
+                    else
+                        ux, uy, uz = lambertian_dir(s, face)
+                    end
+                else
+                    acc.nabs_sur += 1
+                    return STATUS_ABS_SUR
+                end
             end
         elseif !op.air_gap
             # front-painted (wrap in optical contact): no Fresnel stage, the reflector

@@ -66,7 +66,7 @@ id & task & status & date \\
 0.2 & Design document and this plan & \done & 16 Oct \\
 0.3 & Overvoltage recipe for the bench (\code{BGOTSCAN/docs/overvoltage\_recipe.tex}) & \done & 16 Oct \\
 0.4 & Frozen-output test of the pedagogical path: SHA-256 digests of three CPU runs (point source through the reference transport and through the kernel, gamma pipeline) in \code{test/frozen\_checksums.toml}, compared by \code{Pkg.test}; regenerated only by \code{test/frozen.jl --freeze} & \done & 17 Oct \\
-0.5 & Readout layout: active rectangles, dead-area reflection, overhang; parity and layout tests & \planned & \\
+0.5 & Readout layout: tiled array (active squares, margins, seam, overhang) in the \code{Readout} of both transport versions, dead area as a reflective or absorbing surround; layout, conservation and parity tests & \done & 17 Oct \\
 0.6 & Grease and resin window: second Fresnel interface; window test & \planned & \\
 0.7 & Materials: cold BGO file (2.7~\us), ambient BGO file; two-component \csitl timing & \planned & \\
 0.8 & \Na point source with both lines and coincidence summing; source test & \planned & \\
@@ -208,6 +208,10 @@ campaign & configuration & readout & dates \\
 \item[17 Oct 2026] Task 0.4: frozen-output test added and passing; the
   digests do not depend on the thread count and change with the seed or
   with any parameter.
+\item[17 Oct 2026] Task 0.5: tiled readout layout. The S14161-6050HS-04 tile
+  is 25.0~mm (datasheet outline), so the matrix is 50.0~mm and overhangs the
+  crystal by 1.0~mm per side, not 49.6 and 0.8 as first written; the active
+  fraction of the footprint, 93.4\%, was right. Design document corrected.
 \end{description}
 
 \end{document}

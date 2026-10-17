@@ -356,6 +356,80 @@ end
     @test acc.counts[2, 7, end] == 1
 end
 
+@testset "Tiled readout layout (fullsim 0.5)" begin
+    box = Box((48f0, 48f0, 22.4f0))
+    grid = SipmGrid(6.2f0, Int32(8), Int32(8))
+    ro = Readout(grid; tiles = true, face_mm = (48, 48), sur_R = 0)
+    # S14161-6050HS-04 tiles are 25.0 mm; two of them overhang the 48 mm face by 1 mm
+    @test ro.tile_w ≈ 25f0 atol = 1e-5
+    @test ro.x0 ≈ -1f0 atol = 1e-5
+    cx, cy = channel_centres(ro)
+    @test cx ≈ 24 .+ [-21.8, -15.6, -9.4, -3.2, 3.2, 9.4, 15.6, 21.8] atol = 1e-4
+    @test cy == cx
+    # channel assignment: centres, the seam, the margins, the overhang
+    @test active_channel(ro, Float32(cx[5]), Float32(cy[3])) == (true, 5, 3)
+    @test active_channel(ro, 24f0, 24f0)[1] == false            # seam between tiles
+    @test active_channel(ro, 24.3f0, 10f0)[1] == true           # 0.1 mm inside channel 5
+    @test active_channel(ro, 24.3f0, 10f0)[2] == 5
+    @test active_channel(ro, Float32(cx[1] + 3.1), 10f0)[1] == false   # 0.2 mm margin
+    @test active_channel(ro, 0f0, 10f0) == (true, 1, 2)         # crystal edge, overhanging channel
+    @test active_channel(ro, 48f0, 46f0) == (true, 8, 8)
+    @test tile_channel(-0.5f0, ro, Int32(8)) == 0
+    # active fraction of the 48 x 48 footprint: 46.4^2 / 48^2 = 0.9344
+    n = 0; na = 0
+    for x in 0.005f0:0.01f0:48f0, y in 0.005f0:0.01f0:48f0
+        n += 1; na += active_channel(ro, x, y)[1]
+    end
+    @test isapprox(na / n, (46.4 / 48)^2; atol = 1e-3)
+    # the full-face readout is unchanged by the new fields
+    ro0 = Readout(grid)
+    @test !ro0.tiles && active_channel(ro0, 24f0, 24f0) == (true, 4, 4)
+    @test_throws ErrorException Readout(grid; tiles = true)
+    @test_throws ErrorException Readout(SipmGrid(6.2f0, Int32(6), Int32(8)); tiles = true,
+                                        face_mm = (48, 48))
+
+    # transport: straight down at a channel centre is detected in that channel; at the
+    # seam with an absorbing dead area it is killed there
+    op = ideal(2.15f0)
+    acc = Accumulator(grid, TB)
+    s = PhiloxStream(41, 1)
+    @test propagate_photon!(acc, box, op, ro, TB, s, Float32(cx[6]), Float32(cy[2]),
+                            0f0, 0f0, 0f0, 1f0, 0f0) == STATUS_DETECTED
+    @test acc.counts[6, 2, 1] == 1
+    @test propagate_photon!(acc, box, op, ro, TB, s, 24f0, 24f0,
+                            0f0, 0f0, 0f0, 1f0, 0f0) == STATUS_ABS_SUR
+    # conservation with an absorbing dead area and physical parameters
+    opb = OpticalParams(2.15f0, 1.42f0, 20000f0, 2222f0, 0.99f0, false, true,
+                        Float32(deg2rad(1.3)), 0.4f0)
+    kw = (n_photons = 100_000, seed = 51, pos = (24f0, 24f0, 11.2f0), tau_ns = 300f0)
+    a = run_photons!(box, opb, ro, TB; kw...)
+    @test total_terminated(a) == kw.n_photons && a.nabs_sur > 0 && a.ndet > 0
+    @test sum(a.counts) == a.ndet
+    # no absorption anywhere + Lambertian dead area (R = 1): nothing is absorbed; the
+    # directions super-critical on all faces stay trapped (cap), as on the full face
+    rol = Readout(grid; tiles = true, face_mm = (48, 48), sur_R = 1)
+    al = run_photons!(box, ideal(2.15f0), rol, TB; n_photons = 20_000, seed = 52,
+                      pos = (24f0, 24f0, 11.2f0), tau_ns = 0f0)
+    @test al.ndet + al.ncap == 20_000 && al.ndet > 0
+    @test al.nabs_sur == al.nabs_sipm == al.nabs_wall == al.nabs_bulk == 0
+    # the dead area costs light: detected fraction below the full-face readout
+    rod = Readout(grid; tiles = true, face_mm = (48, 48), sur_R = 0.5)
+    ad = run_photons!(box, opb, rod, TB; kw...)
+    a0 = run_photons!(box, opb, Readout(SipmGrid(6f0, Int32(8), Int32(8))), TB; kw...)
+    @test ad.ndet < a0.ndet
+    # kernel parity on the CPU with the tiled layout, and Metal agreement
+    b = run_photons_ka!(box, opb, rod, TB; kw..., ArrayT = Array)
+    @test ad.counts == b.counts && ad.first_ns == b.first_ns
+    @test (ad.ndet, ad.nabs_sur, ad.nabs_sipm, ad.nabs_bulk) ==
+          (b.ndet, b.nabs_sur, b.nabs_sipm, b.nabs_bulk)
+    if Metal.functional()
+        g = run_photons_ka!(box, opb, rod, TB; kw..., ArrayT = Metal.MtlArray)
+        @test total_terminated(g) == kw.n_photons
+        p = ad.ndet / kw.n_photons
+        @test abs(g.ndet - ad.ndet) < 5 * sqrt(kw.n_photons * p * (1 - p)) + 10
+    end
+end
+
 include("frozen.jl")
 
 @testset "Frozen output of the pedagogical path" begin
