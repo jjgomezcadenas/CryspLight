@@ -70,7 +70,7 @@ id & task & status & date \\
 0.6 & Grease and resin window: second Fresnel interface with the round trips in the thin coupling layer (\code{n\_window} in \code{OpticalParams}, 0 = none); analytic, light-loss and parity tests & \done & 17 Oct \\
 0.7 & Materials: \code{bgo\_cold} (2720~ns, 15\,000 ph/MeV midpoint), \code{bgo\_ambient} (300 + 60~ns, 7600 ph/MeV midpoint), \code{csitl\_ambient} (730/3340~ns, 64/36\%); two-component emission in both transport versions and in the event pipeline; tests & \done & 17 Oct \\
 0.8 & \Na point source: whole decays (1275~keV always, 511~keV pair in 90.3\%), entry of each gamma on the crystal, flight time, per-decay pipeline \code{run\_decays!} with interaction lists, photoelectron records and maps, chunkable by decay range; acceptance and pipeline tests & \done & 17 Oct \\
-0.9 & Photoelectron records \code{pes.h5}; re-binning test & \planned & \\
+0.9 & Photoelectron file \code{output/<tag>/pes.h5} (groups events, interactions, pes with offsets; configuration and code version in the attributes), written chunk by chunk; configuration reader for \code{fullsim\_runs/} and the driver \code{scripts/fullsim\_optical.jl}; first configurations of the two campaigns; round-trip, re-binning and driver tests & \done & 17 Oct \\
 0.10 & SiPM device model (gain, PDE, crosstalk, afterpulsing, dark counts, pulse) as a module with unit tests & \planned & \\
 0.11 & Citiroc chain: shapers, noise, trigger, 64 peak detectors, hold, ADC, saturation; unit tests (the stored fractions 0.39/0.15/0.07 are the first test) & \planned & \\
 0.11b & Digitizer chain on the avalanche train: gate and baseline weights, integrated noise, sampled-amplitude trigger with majority, waveform subsample; unit tests against the analytic noise and a brute-force waveform on a few events & \planned & \\
@@ -208,6 +208,12 @@ campaign & configuration & readout & dates \\
 \item[17 Oct 2026] Task 0.4: frozen-output test added and passing; the
   digests do not depend on the thread count and change with the seed or
   with any parameter.
+\item[17 Oct 2026] The optical stage records every photon that reaches an
+  active area (\code{pde = 1} in the kernel) and the SiPM stage applies the
+  detection efficiency, which depends on the overvoltage and the wavelength,
+  by thinning the records. Thinning a Poisson process is exactly equivalent
+  to applying the efficiency photon by photon, and the overvoltage scan of
+  task 0.13 then reuses one optical run per configuration.
 \item[17 Oct 2026] Task 0.5: tiled readout layout. The S14161-6050HS-04 tile
   is 25.0~mm (datasheet outline), so the matrix is 50.0~mm and overhangs the
   crystal by 1.0~mm per side, not 49.6 and 0.8 as first written; the active

@@ -1,0 +1,45 @@
+# Optical stage, BGO at 196 K, campaign 2026-xx_digitizer_cold (read out with the DT2745
+# digitizer; docs_fullsim/fullsim_design.tex, Table 1). Records every photon reaching an
+# active area (pde = 1); the detection efficiency is applied by the SiPM stage by thinning.
+[run]
+n_decays = 400000
+seed = 2026201
+chunk_decays = 10000
+batch_photons = 2000000
+
+[crystal]
+material = "bgo_cold"       # 15 000 ph/MeV (14 000 to 16 000), 2720 ns measured
+size_mm = [48.0, 48.0, 22.4]
+density = 7.13
+xcom = "xcom_BGO.csv"
+
+[wrap]
+material = "teflon"
+
+[surface]
+finish = "backpainted"
+sigma_alpha_deg = 1.3
+
+[coupling]
+n = 1.42                    # grease; its index in the cold is an open item
+window_n = 1.57
+
+[readout]
+pitch_mm = 6.2
+nx = 8
+ny = 8
+tiles = true
+tile_n = 4
+tile_edge_mm = 0.2
+active_mm = 6.0
+dead_reflectivity = 0.5
+dead_specular = false
+pde = 1.0
+
+[source]
+type = "na22"
+position_mm = [24.0, 24.0, -30.0]
+
+[binning]
+bin_ns = 100.0
+window_ns = 20000.0

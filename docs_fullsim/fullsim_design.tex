@@ -869,6 +869,18 @@ the directory \code{output/}, which is not under version control, and the
 measured files stay outside the repository and are referred to by path from
 the configuration of each campaign.
 
+The optical stage records every photon that reaches the resin above an
+active area, with the detection efficiency set to one in the transport, and
+the SiPM stage applies the efficiency by keeping each record with the
+probability of Section~\ref{sec:sipm} for its wavelength and the overvoltage
+of the run. Thinning a Poisson process this way is exactly equivalent to
+applying the efficiency photon by photon during the transport, and it lets
+one optical run serve every overvoltage of a scan. The photoelectron file is
+written in chunks of decays as the run proceeds, so that a run of any length
+streams to disk; the random streams of the decays and of their photons are
+disjoint between chunks, and the gamma-level content of a run does not
+depend on how it was chunked.
+
 The GPU imposes a few constraints on the extensions: the tables of the
 spectra and of the wavelength-dependent quantities travel in one buffer of
 32-bit floats, the switches and scalars in one structure, and no new random

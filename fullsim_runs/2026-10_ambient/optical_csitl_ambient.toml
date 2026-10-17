@@ -1,0 +1,45 @@
+# Optical stage, CsI(Tl) at laboratory temperature, campaign 2026-10_ambient
+# (docs_fullsim/fullsim_design.tex, Table 1). Records every photon reaching an active
+# area (pde = 1); the detection efficiency is applied by the SiPM stage by thinning.
+[run]
+n_decays = 200000           # 54k ph/MeV: seven times the photons per decay of BGO
+seed = 2026102
+chunk_decays = 5000
+batch_photons = 2000000
+
+[crystal]
+material = "csitl_ambient"  # 54 000 ph/MeV, 730 ns (64%) + 3340 ns (36%)
+size_mm = [48.0, 48.0, 37.2]
+density = 4.51
+xcom = "xcom_CSI.csv"
+
+[wrap]
+material = "teflon"
+
+[surface]
+finish = "backpainted"
+sigma_alpha_deg = 1.3
+
+[coupling]
+n = 1.42
+window_n = 1.57
+
+[readout]
+pitch_mm = 6.2
+nx = 8
+ny = 8
+tiles = true
+tile_n = 4
+tile_edge_mm = 0.2
+active_mm = 6.0
+dead_reflectivity = 0.5
+dead_specular = false
+pde = 1.0
+
+[source]
+type = "na22"
+position_mm = [24.0, 24.0, -30.0]
+
+[binning]
+bin_ns = 100.0
+window_ns = 20000.0

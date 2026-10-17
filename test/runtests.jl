@@ -592,6 +592,76 @@ end
     @test vcat(r1.interactions.x_mm, r2.interactions.x_mm) == ia.x_mm
 end
 
+@testset "Photoelectron file and the fullsim configuration (fullsim 0.9)" begin
+    repo = dirname(@__DIR__)
+    st = load_fullsim(joinpath(repo, "fullsim_runs", "2026-10_ambient",
+                               "optical_bgo_ambient.toml"))
+    @test st.box.L == (48f0, 48f0, 22.4f0) && st.ro.tiles && st.ro.x0 ≈ -1f0
+    @test st.op.n_coupling == 1.42f0 && st.op.n_window == 1.57f0 && st.op.pde == 1f0
+    @test st.op.n_crystal == 2.15f0 && st.op.air_gap && st.op.sigma_alpha ≈ deg2rad(1.3f0)
+    @test st.times == (tau_ns = 300f0, tau2_ns = 60f0, frac1 = 0.9f0)
+    @test st.source_mm == (24.0, 24.0, -30.0) && st.yield_per_mev == 7600
+    @test st.ro.sur_R == 0.5f0 && st.tag == "optical_bgo_ambient"
+
+    # a short run through the writer, in two chunks, read back whole and per event
+    tmp = mktempdir()
+    path = joinpath(tmp, "pes.h5")
+    kw = (source_mm = st.source_mm, seed = 91, batch_photons = 300_000, ArrayT = Array,
+          st.times...)
+    w = open_pes(path, 8, 8; cfg_text = st.cfg_text, pde_applied = 1.0,
+                 lambda_nm = st.lambda_nm, attributes = Dict("tag" => "test"))
+    r1 = run_decays!(st.box, st.op, st.ro, st.tb, st.pv, st.yield_per_mev;
+                     n_decays = 600, first_decay = 1, kw...)
+    r2 = run_decays!(st.box, st.op, st.ro, st.tb, st.pv, st.yield_per_mev;
+                     n_decays = 400, first_decay = 601, kw...)
+    w = append_pes!(w, r1)
+    @test_throws ErrorException append_pes!(w, r1)       # wrong chunk order
+    w = append_pes!(w, r2)
+    @test w.n_decays == 1000
+    close_pes(w)
+    f = read_pes(path)
+    @test f.attributes["n_decays"] == 1000 && f.attributes["tag"] == "test"
+    @test f.attributes["pde_applied"] == 1.0 && f.attributes["lambda_nm"] == 480.0
+    @test f.events.edep_kev == vcat(r1.events.edep_kev, r2.events.edep_kev)
+    @test f.events.maps == cat(r1.events.maps, r2.events.maps; dims = 3)
+    @test f.interactions.offset ==
+          vcat(r1.interactions.offset, r1.interactions.offset[end] .+ r2.interactions.offset[2:end])
+    @test f.interactions.e_kev == vcat(r1.interactions.e_kev, r2.interactions.e_kev)
+    @test f.pes.offset == vcat(r1.pes.offset, r1.pes.offset[end] .+ r2.pes.offset[2:end])
+    @test f.pes.channel == vcat(r1.pes.channel, r2.pes.channel)
+    @test f.pes.t_ns == vcat(r1.pes.t_ns, r2.pes.t_ns)
+    @test all(f.pes.lambda_nm .== 480) && length(f.pes.lambda_nm) == length(f.pes.channel)
+    # re-binning: the maps rebuilt from the records equal the stored maps, event by event
+    for k in 1:1000
+        e = event_pes(f, k)
+        m = zeros(UInt16, 8, 8)
+        for c in e.channel
+            m[(c - 1) % 8 + 1, (c - 1) ÷ 8 + 1] += 1
+        end
+        @test m == f.events.maps[:, :, k]
+        @test length(e.t_ns) == f.events.n_detected[k]
+    end
+    # the driver end to end on a tiny configuration written in the temp dir
+    cfgtxt = replace(st.cfg_text, r"n_decays = \d+" => "n_decays = 300",
+                     r"chunk_decays = \d+" => "chunk_decays = 100",
+                     r"\[run\]" => "[run]\noutput_dir = \"$(tmp)\"")
+    cfgp = joinpath(tmp, "tiny_bgo.toml")
+    write(cfgp, cfgtxt)
+    out = run_fullsim_optical(cfgp; ArrayT = Array, verbose = false)
+    @test isfile(out) && isfile(joinpath(tmp, "tiny_bgo", "tiny_bgo.toml"))
+    g = read_pes(out)
+    @test g.attributes["n_decays"] == 300 && length(g.events.edep_kev) == 300
+    @test g.pes.offset[end] == length(g.pes.channel) == sum(g.events.n_detected)
+    @test haskey(g.attributes, "code_version") && haskey(g.attributes, "elapsed_s")
+    # the driver, chunked by 100, reproduces the gamma-level content of a direct call
+    rd = run_decays!(st.box, st.op, st.ro, st.tb, st.pv, st.yield_per_mev;
+                     n_decays = 300, seed = st.seed, source_mm = st.source_mm,
+                     batch_photons = 300_000, ArrayT = Array, st.times...)
+    @test g.events.edep_kev == rd.events.edep_kev
+    @test g.events.n_emitted == rd.events.n_emitted
+    @test g.attributes["seed"] == st.seed
+end
+
 include("frozen.jl")
 
 @testset "Frozen output of the pedagogical path" begin
