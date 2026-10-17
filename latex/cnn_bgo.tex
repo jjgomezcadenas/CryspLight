@@ -1,0 +1,157 @@
+% Cooled-BGO CNN position resolution, prepared as a paper fragment.
+%
+% Required packages in the parent document: graphicx, booktabs, amsmath, url.
+%
+% Usage:
+%   \input{cnn_bgo}             % inserts the main-text section below
+%   ...
+%   \appendix
+%   \cnnbgoappendix             % inserts the methods appendix
+%
+% The figure directory can be overridden before this file is input:
+%   \renewcommand{\cnnbgofigdir}{path/to/cnn_bgo_win}
+
+\providecommand{\cnnbgofigdir}{../analysis/results/cnn/cnn_bgo_win}
+\providecommand{\cnncode}[1]{\texttt{#1}}
+\providecommand{\cnnpath}[1]{\path{#1}}
+
+% =====================================================================
+% Main-text section
+
+\section{Position resolution in cooled BGO with a convolutional network}
+\label{sec:cnn-bgo}
+
+The three-dimensional interaction position was reconstructed from the
+$8\times8$ SiPM light map with CryspNet, a compact convolutional neural network.
+The result reported here uses the complete held-out BGO sample in the standard
+511-keV analysis window. ``No selection'' means that every event in this window
+is retained: no reconstructability or CNN-quality requirement is applied. The
+test sample contains $54\,021$ events and includes the photoelectric and Compton
+topologies present in the window.
+
+The residual distributions have a narrow central population and a broader tail,
+so a single RMS does not fully characterize the response. The central 68\%
+absolute-residual quantiles are $1.08$, $1.08$ and $1.26$~mm in $x$, $y$ and
+$z$, respectively; the corresponding global RMS values are $1.62$, $1.62$ and
+$2.46$~mm. In three dimensions, $9.73\%$ of the reconstructed points lie more
+than 5~mm from the true first interaction.
+
+A compact detector-response description is obtained by fitting each coordinate
+with two Gaussian components sharing a mean,
+\begin{equation}
+  p(\Delta q) = f_{\rm c}\,
+  \mathcal{N}(\mu,\sigma_{\rm c})
+  + (1-f_{\rm c})\,
+  \mathcal{N}(\mu,\sigma_{\rm t}),
+  \qquad q\in\{x,y,z\}.
+  \label{eq:cnn-bgo-two-gauss}
+\end{equation}
+Table~\ref{tab:cnn-bgo-resolution} gives the complete no-selection result. The
+Gaussian core has widths $0.80$, $0.82$ and $0.96$~mm, corresponding to FWHM
+values $1.88$, $1.92$ and $2.26$~mm. It contains $72$--$82\%$ of the events,
+while the remaining response is described by a component with
+$\sigma_{\rm t}\simeq2.5$--$2.6$~mm. Thus cooled BGO provides a sub-millimetre
+Gaussian core in all three coordinates and a typical-event resolution of about
+1.1--1.3~mm when the full, unselected window sample is considered.
+
+\begin{table}[htbp]
+  \centering
+  \begin{tabular}{lrrrrrr}
+    \toprule
+    coordinate
+      & $p_{68}$ & RMS
+      & $\sigma_{\rm c}$ & FWHM$_{\rm c}$
+      & $f_{\rm c}$ & $\sigma_{\rm t}$ \\
+      & \multicolumn{2}{c}{[mm]}
+      & \multicolumn{2}{c}{[mm]}
+      & & [mm] \\
+    \midrule
+    $x$ & 1.083 & 1.619 & 0.796 & 1.875 & 0.716 & 2.505 \\
+    $y$ & 1.081 & 1.622 & 0.816 & 1.922 & 0.737 & 2.586 \\
+    $z$ & 1.256 & 2.464 & 0.959 & 2.258 & 0.821 & 2.588 \\
+    \bottomrule
+  \end{tabular}
+  \caption{No-selection CNN position response in BGO. The first two columns
+  describe the full residual distribution; the remaining columns are the
+  two-Gaussian parameters of Eq.~\eqref{eq:cnn-bgo-two-gauss}.}
+  \label{tab:cnn-bgo-resolution}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{\cnnbgofigdir/residual_fit.png}
+  \caption{CNN residuals for the complete no-selection BGO test sample in
+  $x$, $y$ and $z$ (steps). The solid curve is the two-component Gaussian fit;
+  the dashed and dotted curves show its core and tail terms. The logarithmic
+  ordinate exposes the broad response beneath the sub-millimetre core. The
+  modest positive skew in the depth residual is retained in the data and is
+  summarized, rather than reproduced in detail, by the symmetric fit.}
+  \label{fig:cnn-bgo-residual-fit}
+\end{figure}
+
+% =====================================================================
+% Appendix block. Invoke with \cnnbgoappendix after the parent paper's
+% \appendix command.
+
+\newcommand{\cnnbgoappendix}{%
+\section{CNN reconstruction and response fit}
+\label{app:cnn-bgo}
+
+\subsection{Network and inputs}
+
+Each event is represented by its $8\times8$ photoelectron map and its total
+photoelectron count. The map is divided by its sum, separating the spatial light
+pattern from the event amplitude. The standardized logarithm of the total count
+is supplied as a second, scalar input. The three target coordinates are mapped
+linearly to $[-1,1]$ during training and converted back to millimetres for the
+reported residuals.
+
+CryspNet begins with a $3\times3$ convolution producing 64 channels, followed by
+two 64-channel residual blocks at the native $8\times8$ resolution. A stride-two
+convolution increases the representation to 128 channels and reduces it to
+$4\times4$; two further residual blocks are followed by global average pooling.
+The pooled 128-component descriptor is concatenated with the scalar light-yield
+input and passed through a 128-unit fully connected layer and a linear
+three-coordinate output. Batch normalization and ReLU activations are used
+throughout the convolutional path. The network contains $830\,531$ trainable
+parameters.
+
+\subsection{Training outcome}
+
+The window sample contains $360\,135$ events. A seeded permutation divides it
+into 70\% training, 15\% validation and 15\% test subsets; the test subset is
+held out until the final evaluation. The square detector symmetry supplies the
+eight exact rotations and reflections of every training map, with the same
+transformations applied to the transverse target coordinates. Validation and
+test events remain unaugmented.
+
+Training minimizes a Huber loss on the normalized coordinates with AdamW,
+using a batch size of 512, an initial learning rate of $10^{-3}$, weight decay
+$10^{-4}$ and a cosine learning-rate schedule over 15 epochs. The training loss
+falls from $0.0500$ to $0.0390$. The saved checkpoint is the epoch-10 state,
+which minimizes the mean validation RMSE; its coordinate validation values are
+$1.608$, $1.612$ and $2.434$~mm. The independent test result is the response
+reported in Table~\ref{tab:cnn-bgo-resolution}.
+
+\subsection{Two-component response fit}
+
+The fit uses the CNN prediction minus the true first-interaction coordinate for
+each of the $54\,021$ test events. Each residual is histogrammed in 150 bins over
+$[-15,15]$~mm and fitted with Eq.~\eqref{eq:cnn-bgo-two-gauss}, using
+Poisson weights. The two components share the fitted mean; the narrower width is
+identified as the core. The fitted means are $-0.032$, $-0.058$ and
+$-0.127$~mm for $x$, $y$ and $z$, showing a small global bias. The depth
+distribution also contains a positive, non-Gaussian shoulder from multi-site
+events whose light is dominated by a deeper interaction. Equation
+\eqref{eq:cnn-bgo-two-gauss} supplies a compact core--tail parameterization,
+while Fig.~\ref{fig:cnn-bgo-residual-fit} displays the full residual shape.
+
+The stored configuration is
+\cnnpath{analysis/cnn/runs/cnn_bgo_win.toml}. The training history, metrics,
+held-out events and fit products are stored under
+\cnnpath{analysis/results/cnn/cnn_bgo_win/} as \cnnpath{history.json},
+\cnnpath{metrics.json}, \cnnpath{test_events.h5}, \cnnpath{residual_fit.json}
+and \cnnpath{residual_fit.png}. The response fit is produced from the held-out
+event table by \cnnpath{analysis/cnn/fit_residuals.py}; it does not retrain the
+network.
+}
