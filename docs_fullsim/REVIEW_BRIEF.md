@@ -6,6 +6,16 @@ You are reviewing work done by another model with the author (J.J. Gómez-Cadena
 
 CryspLight is a Julia optical Monte Carlo (Metal GPU) for scintillation light in a 48 x 48 mm2 BGO or CsI(Tl) crystal read by 64 SiPMs (four Hamamatsu S14161-6050HS-04 tiles). The "full simulation", on branches fullsim and radioroc (radioroc checked out), extends it from ideal photons to what three front ends record: the Citiroc 1A ASIC, the CAEN DT2745 digitiser and the Radioroc2 ASIC. Bench runs with BGO and CsI(Tl) at room temperature start the week of 20 October 2026, with the digitiser first. The simulation is being used now to choose the bench settings, so an error here becomes a wrong setting on the bench. Its first result is a note on the six cases at room temperature (two crystals, three readouts).
 
+## What the note is, and what is known
+
+The note docs_fullsim/ambient_study.tex is a simulation made before any measurement with this set-up. Its purpose is to propose operating conditions for the bench (overvoltage, digitiser gain, thresholds, shaping, integration windows) and to predict what the measurements will show. Its settings are proposals, not established facts: the bench will first measure the inputs they depend on and the settings will be revised if the measurements differ. The inputs fall in three classes.
+
+- Fixed by the hardware or the datasheets: the geometry, the SiPM breakdown, gain and detection efficiency curves (Hamamatsu), the ASIC shaping times, gains, ranges and hold delays (Weeroc datasheets), the digitiser range and sampling (CAEN manual).
+- Taken from earlier measurements of the group or the literature, stated as such in the design document: the light yields, the decay times, the intrinsic resolution of 5% FWHM, the crosstalk and dark-count curves against overvoltage, the digitiser scale of 3.2 counts per photoelectron per volt at gain 1.
+- Assumed, to be measured in the first hour of the bench runs: the digitiser noise of 4 counts per sample at every gain (the gain-4 proposal depends on it), the noise of the ASICs, the dark-count rate and crosstalk at the actual temperature (the thresholds depend on them), the ratio of the Radioroc2 shaper gains at 300 ns and 1.8 us.
+
+Judge the note as what it is. That an input is unmeasured is known and is not a finding. A finding is a conclusion that the simulation does not support given its inputs (a code error, a wrong calculation, a misread datasheet, an analysis that does not measure what it claims), or an input whose plausible alternative value would change a proposed setting or a conclusion, with the size of the effect computed.
+
 ## Read in this order
 
 1. docs_fullsim/ambient_study.tex: the note on BGO and CsI(Tl) at room temperature with the Citiroc 1A, the DT2745 at gain 4 and 5 V, and the Radioroc2. It carries the current numerical claims (resolutions, photoelectrons, calibration, trigger). Highest priority.

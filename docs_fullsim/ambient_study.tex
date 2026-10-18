@@ -43,8 +43,10 @@ the width; the readout adds a contribution that is largest for the
 Citiroc, whose short shaping keeps a small and fluctuating fraction of the
 light, and smallest for the Radioroc2. The dark counts of the SiPMs at room
 temperature, about 4~MHz per channel, prevent the calibration of the
-Radioroc2 at its long shaping time and that of the digitiser at unit gain,
-and impose the procedures described here.
+Radioroc2 at its long shaping time and, if the noise of the digitiser
+does not grow with its gain, favour a digitiser gain of 4 over unit gain.
+The operating conditions are proposals of the simulation, to be confirmed
+by the first measurements.
 \end{abstract}
 
 \tableofcontents
@@ -156,16 +158,21 @@ are described in the design document of the simulation.
 \section{Operating conditions}
 \label{sec:conditions}
 
-The operating conditions are those planned for the measurements and are
-the best compromise found by the simulation for each readout
-(Table~\ref{tab:conditions}). The overvoltage of the SiPMs is 3~V for both
+The operating conditions are the best compromise found by the simulation
+for each readout (Table~\ref{tab:conditions}). They are proposals for the
+measurements, and each rests on inputs that the first runs will measure:
+the gain, crosstalk and dark-count rate of the SiPMs at room temperature,
+which set the thresholds, and, for the digitiser, its noise at the chosen
+gain. The simulation assumes the 4~counts per sample of the manual at every
+gain; if the noise in counts grows in proportion to the gain, the gain
+of 4 brings no advantage over unit gain. The overvoltage of the SiPMs is 3~V for both
 ASICs with BGO; with \csitl, whose light is seven times more abundant, it
 is lowered to keep the brightest channel within the range of the chip:
 to 2.7~V for the Citiroc, whose input saturates at 400~pC, and to 2.0~V for
 the Radioroc2, whose low-gain path saturates at 2000 photoelectrons of
 unit gain $10^6$. The digitiser operates at 5~V, the setting used so far
 on the bench, at a gain of 4, which places one photoelectron at 64~ADC
-counts against a noise of 4~counts per sample. The Citiroc shapes the
+counts against the assumed noise of 4~counts per sample. The Citiroc shapes the
 signal with its longest peaking time, 87.5~ns; the Radioroc2 with its
 longest, 1.8~\us, on both its high-gain and low-gain paths, and the
 energy is read from the low-gain path. The digitiser integrates over
@@ -526,13 +533,15 @@ adds a term that ranges from 5 to 6\% FWHM for the Citiroc down to 2 to
 channel, shape the operation of every readout: they set the trigger
 thresholds at 7 to 8 photoelectrons, add to the width through the
 integration window of the digitiser and the pedestal of the peak
-detectors, and determine how the gain can be calibrated. The digitiser
-must run at gain 4, at which its single-photoelectron peaks are
-separated, and analyse its records with a matched filter; the Radioroc2
-must be calibrated at a short shaping time and transfer the gain to its
-long one; the Citiroc calibrates directly. The measurements of the coming
-weeks will test these predictions, starting with the number of
-photoelectrons and the single-photoelectron spectra, which are the least
-dependent on the readout.
+detectors, and determine how the gain can be calibrated. In the simulation the
+digitiser separates its single-photoelectron peaks at gain 4, provided its
+noise in counts does not grow with the gain, and only with a matched
+filter; the Radioroc2 must be calibrated at a short shaping time and
+transfer the gain to its long one; the Citiroc calibrates directly. The
+first measurements decide whether these proposals stand: the noise of the
+digitiser at gains 1 and 4, the single-photoelectron spectra, the dark-count
+rate and crosstalk of the SiPMs and the trigger rate against the threshold,
+and then the number of photoelectrons, which is the least dependent on the
+readout.
 
 \end{document}
