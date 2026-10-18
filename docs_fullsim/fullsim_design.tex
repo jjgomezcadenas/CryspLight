@@ -654,11 +654,18 @@ pulses in the gate, 34 avalanches rms over the 64 channels for BGO, and the
 excess noise of 19\% crosstalk enter the width, but little: with the energy
 scale taken from the two photopeaks the digitizer gives 9.2\% FWHM on
 ambient BGO at 5~V and 8.8\% at 3~V, and 6.1\% on \csitl at both. The
-bench therefore operates at gain~1 of the digitizer and 5~V of
-overvoltage, where one photoelectron is 16~counts against a nominal noise
-of 4~counts per sample, enough to fit the gain of each channel from the
-peaks of its dark-pulse spectrum; at 3~V a gain of 4 would be needed for
-the same purpose. The length of the gate is the other choice. The gate must contain the scintillation decay, but at ambient
+bench operates at 5~V of overvoltage and gain~4 of the digitizer, where
+one photoelectron is 64~counts against a nominal noise of 4~counts per
+sample. The gain is the decisive choice for the calibration, not for the
+energy: at ambient temperature each channel sees a dark pulse every 125~ns
+on average, and the simulated waveforms show that at gain~1, with
+16~counts per photoelectron, the one- and two-photoelectron peaks of the
+dark-pulse spectrum are too shallow to fit channel by channel, whatever
+the estimator of the amplitude. At gain~4 a matched filter (the samples
+weighted with the pulse of one cell, after subtracting the mean of the
+four preceding samples) gives clean peaks, with a width of 6\% of the
+gain and a fitted gain that follows the true one to 0.1\% between
+channels. The length of the gate is the other choice. The gate must contain the scintillation decay, but at ambient
 temperature every channel collects dark photoelectrons at 6 to 8~MHz, and
 in a gate of 10~\us the 64~channels gather about 5000 of them against 1650
 of signal in BGO: their fluctuation alone is 4\% rms. A gate of 1~\us for
@@ -857,7 +864,13 @@ measured file alike, and each of them tests a different part of the model.
   parameter.
 \item {\bf The two paths of the Radioroc2.} The high-gain path gives the
   single-photoelectron peak of every channel and the low-gain path the
-  energy; on the channels that both paths see between 10 and 70 avalanches,
+  energy. The peaks exist only at a short shaping time: at 1.8~\us about
+  eight dark pulses fall within the shaping time of each channel and pile
+  up, while at 300~ns the peaks are clean and the fitted gain follows the
+  true one to 1.4\%. The calibration run is therefore taken at 300~ns, and
+  the gain at 1.8~\us follows from the ratio of the shaper gains at the two
+  peaking times, which the measurement must determine, for instance with
+  the charge-injection input of the chip; on the channels that both paths see between 10 and 70 avalanches,
   the ratio of the two readings, channel by channel, is the low-gain
   calibration constant, nominally a tenth of the high-gain one and measured
   to better than a per cent in minutes of source data. The 1275 to 511 ratio

@@ -80,9 +80,10 @@ id & task & status & date \\
 0.11b & Digitizer chain \code{src/frontend/digitizer.jl} on the avalanche train: gate and baseline weights from the pulse integral, integrated white noise, sampled-amplitude trigger with majority, saturation; unit tests (window fractions, baseline subtraction, thresholds, noise rms, gate length). Waveform subsample not yet written & \done & 17 Oct \\
 0.12 & Front-end stage \code{src/frontend/frontend\_run.jl} and \code{scripts/fullsim\_frontend.jl}: SiPM response per channel and one front end per decay, multithreaded and reproducible per event, writing \code{events.h5} (/run, /channels, /calib, /events, /mc); four front-end configurations of the ambient campaign; first-look \code{fullsim\_analysis/summary.jl} and \code{trigger\_scan.jl}. The converter of the bench files is JJ's & \done & 17 Oct \\
 0.13 & First emulated campaign at the bench settings (table below), the summaries of the seven event files, the trigger scans (ambient BGO with the three front ends, cold BGO with digitizer and Radioroc2), the shaping scans of the Radioroc2, the gate scans of the digitizer and the dynamic-range studies, all as tracked scripts with outputs under \code{fullsim\_analysis/results/}. Still to do: the overvoltage scan (2 to 5~V) and the trigger scan for \csitl & \doing & 18 Oct \\
-0.14 & Settings and procedure delivered to the bench: \code{BGOTSCAN/docs/digitiser\_run\_instructions\_and\_procedure.tex} (version 3, 18 Oct: gain 1 at 5~V only, gain calibration from the dark pulses of every record, breakdown scan at 42 to 44~V, expectations from the comparison) & \done & 18 Oct \\
+0.14 & Settings and procedure delivered to the bench: \code{BGOTSCAN/docs/digitiser\_run\_instructions\_and\_procedure.tex} (version 4, 18 Oct: gain 4 at 5~V, gain calibration from the dark pulses with a matched filter, breakdown scan at 41 to 43~V, threshold 480~counts with majority 2, expectations from the simulation) & \done & 18 Oct \\
 0.16 & Analysis layer: Julia library \code{fullsim\_analysis/lib}, one script per study under \code{scripts/} writing HDF5 and CSV, Python plotters under \code{plots/} & \done & 17 Oct \\
 0.18 & Comparison of the three front ends in their optimal conditions on ambient BGO and \csitl (running plan and results below): \code{fullsim\_analysis/scripts/compare.jl}, \code{plots/compare.py}; the peak-detector pedestals of the ASICs from \code{scripts/pedestal.jl}, subtracted per channel; resolution from the two-peak energy scale & \done & 18 Oct \\
+0.19 & Note on the ambient study, \code{docs\_fullsim/ambient\_study.tex}: the six cases (two crystals, three readouts) with trigger, calibration from dark counts, energy spectrum, resolution and the chain from photons to recorded charge; scripts \code{fullsim\_analysis/scripts/calibration.jl}, \code{ambient\_study.jl}, plotters \code{plots/ambient\_study.py}, \code{plots/geometry.py}; results in \code{fullsim\_analysis/results/2026-10\_ambient/study/} & \done & 18 Oct \\
 0.17 & Position resolution on the emulated maps of the ambient BGO study, photopeak and single interaction, with the Anger and CNN reconstructions of the pedagogical simulation reading the emulated charge maps (pedestal-subtracted charge per channel, the low gain for the Radioroc2; the true sites and processes from the photoelectron file, whose decay $k$ is event $k$ of the event file); one number per front end (moved from 2.5) & \planned & \\
 0.15 & Radioroc2 chain \code{src/frontend/radioroc.jl} (per-channel shaping, noise falling with the peaking time, T1/T2 on the time preamplifier and TQ on the low-gain shaper, hold, both paths with their ceilings) on the branch \code{radioroc}; configurations of the three crystals; shaping-time scan \code{fullsim\_analysis/shaping\_scan.jl}; the cold comparison Radioroc2 against digitizer & \doing & 17 Oct \\
 \bottomrule
@@ -240,9 +241,8 @@ intrinsic 5\% and the dark pulses dominate. The raw comparison, before the
 pedestal was subtracted, had given 6.3\% for the BGO Radioroc2, an artefact
 of dividing the width by a peak position that includes the pedestal. The
 gain of 4 of the digitizer brings 0.4 points on BGO and nothing on \csitl;
-its only use would be the single-photoelectron calibration, whose
-amplitude over the noise per sample is 9.6 at gain~4 against 4.0 at
-gain~1, the latter sufficient. Results in
+it is needed for the single-photoelectron calibration, as the simulated
+dark-pulse waveforms showed afterwards (decision below). Results in
 \code{fullsim\_analysis/results/2026-10\_ambient/compare/} (table
 \code{compare.csv}, figures \code{compare\_bgo\_ambient.png} and
 \code{compare\_csitl\_ambient.png}) and \code{.../pedestal/}.
@@ -353,6 +353,14 @@ campaign & configuration & readout & dates \\
   pulses of the records (software-triggered runs and the pre-trigger of the
   source runs), with no hardware threshold; the breakdown scan moves to 42
   to 44~V.
+\item[18 Oct 2026] \emph{Revised the same day:} the digitizer runs at
+  gain~4 and 5~V. The simulated waveforms of the dark pulses show that at
+  gain~1 the single-photoelectron peaks cannot be fitted channel by
+  channel; at gain~4 a matched filter separates them cleanly. The range,
+  1~V at gain~4, holds the largest pulse of 0.6~V. The Radioroc2 is
+  calibrated at 300~ns of shaping, since at 1.8~\us the dark pulses pile
+  up and no peak exists; the transfer to 1.8~\us needs the ratio of the
+  shaper gains.
 \item[18 Oct 2026] For the peak-detector chips the pedestal of the peak
   detectors is subtracted channel by channel and the energy scale is the
   line through the 511 and 1275~keV peaks.
@@ -403,7 +411,11 @@ campaign & configuration & readout & dates \\
   the peak-detector pedestals; results in the running-plan section.
   \code{peak\_fit} no longer cuts a peak that lies at the edge of its search
   range (it had cut the pedestal-subtracted 511~keV peak of the
-  Radioroc2). Laura's instructions rewritten as version 3, for gain 1 only.
+  Radioroc2). Laura's instructions rewritten as version 3, for gain 1 only, then as
+  version 4 for gain 4 after the calibration study. Note on the ambient
+  study written (task 0.19): resolutions 10.1, 9.1, 8.5\% (BGO) and 7.4,
+  6.1, 6.1\% (\csitl) for the Citiroc, the digitizer at gain~4 and 5~V and
+  the Radioroc2.
 \item[18 Oct 2026] Gate scans of the digitizer (BGO and \csitl ambient,
   BGO cold), run on all decays before the rule of approving each run was
   agreed: opening the gate before $-50$~ns brings nothing (my hypothesis of a
