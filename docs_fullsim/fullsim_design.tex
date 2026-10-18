@@ -510,7 +510,19 @@ following.
   channels stores its own maximum, and a channel that receives little light
   stores the maximum of its noise within the hold window; this gives a
   positive bias to the dim channels which the simulation reproduces because
-  it stores the maxima the same way. The alternative mode of the chip, in
+  it stores the maxima the same way. At ambient temperature the maximum is
+  set by the dark pulses and their crosstalk companions rather than by the
+  electronic noise: emulated decays with no energy deposit, read with an
+  external trigger, store 1.5 avalanches per channel on average with the
+  Citiroc (about 100 over the 64 channels for BGO) and 12 with the
+  Radioroc2 at 1.8~\us, whose longer hold window collects more dark pulses
+  (785 over the 64 channels). This pedestal is measured on random-trigger
+  events and subtracted channel by channel. It is not exactly an additive
+  constant: in a channel that receives light the stored maximum is that of
+  the signal, which a dark pulse changes only if it falls on top of it, so
+  the subtraction over-corrects the bright channels. The energy scale is
+  therefore taken from the 511 and 1275~keV peaks, which absorbs the
+  remaining offset. The alternative mode of the chip, in
   which the signal is sampled at a fixed time instead of at its maximum, is
   available in the simulation as well.
 \item {\bf Readout and conversion.} The stored values are read out through a
@@ -639,14 +651,14 @@ additional nanosecond of gate collects dark pulses; at 5~V of overvoltage
 the best gate is 1~\us for ambient BGO (9.3\% FWHM, 10.2\% at 2~\us) and
 3~\us for \csitl (5.9\%, 6.2\% at 4.5~\us). At that overvoltage the dark
 pulses in the gate, 34 avalanches rms over the 64 channels for BGO, and the
-excess noise of 19\% crosstalk make the digitizer the least precise of the
-three front ends on ambient BGO; at 3~V both terms shrink, which is why the
-operating point with the digitizer gain at 4 and 3~V is the preferred one. The bench
-has two operating points: gain~4 of the digitizer with 3~V of overvoltage,
-if the noise of the digitizer does not grow with its gain, which gives one
-photoelectron of 38~counts and the crosstalk and dark rate of 3~V; or gain~1
-with 5~V, 16~counts per photoelectron, which the first runs use when the
-noise check is not available. The length of the gate is the other choice. The gate must contain the scintillation decay, but at ambient
+excess noise of 19\% crosstalk enter the width, but little: with the energy
+scale taken from the two photopeaks the digitizer gives 9.2\% FWHM on
+ambient BGO at 5~V and 8.8\% at 3~V, and 6.1\% on \csitl at both. The
+bench therefore operates at gain~1 of the digitizer and 5~V of
+overvoltage, where one photoelectron is 16~counts against a nominal noise
+of 4~counts per sample, enough to fit the gain of each channel from the
+peaks of its dark-pulse spectrum; at 3~V a gain of 4 would be needed for
+the same purpose. The length of the gate is the other choice. The gate must contain the scintillation decay, but at ambient
 temperature every channel collects dark photoelectrons at 6 to 8~MHz, and
 in a gate of 10~\us the 64~channels gather about 5000 of them against 1650
 of signal in BGO: their fluctuation alone is 4\% rms. A gate of 1~\us for
@@ -809,7 +821,9 @@ measured file alike, and each of them tests a different part of the model.
 \item {\bf The energy spectrum} of the equalised sum of the 64 channels: the 511 and 1275~keV lines, the sum peak, the Compton
   continua and the backscatter region. The ratio of the two photopeak
   positions, 2.5 if the chain is linear, tests the dynamic range and the
-  trigger. The width of the 511~keV line, decomposed into the noise measured
+  trigger; for the peak-detector chips the energy scale is the straight
+  line through the two peaks, since the pedestal of the peak detectors
+  leaves an offset. The width of the 511~keV line, decomposed into the noise measured
   from the pedestals, the statistics of the stored fraction and the
   remainder, tests the electronics model and measures the intrinsic
   resolution.
@@ -999,8 +1013,8 @@ number is drawn unless the corresponding extension is on.
   photoelectrons of cold BGO, is enough for the cold runs.
 \item For the digitizer: the noise below 1~MHz and its correlation within
   a group of 16 channels, and whether the gain stage lowers the noise per
-  photoelectron, which decides whether the cold runs can be taken at 3~V of
-  overvoltage with gain 4 rather than at 5~V with gain 1.
+  photoelectron, which decides whether the gain of 1 used at ambient
+  temperature serves the cold runs, where the overvoltage may be lower.
 \item In the gamma transport: fluorescence and escape of the K-shell X-rays,
   Doppler broadening, and scattering in the source holder and in the
   cryostat.
