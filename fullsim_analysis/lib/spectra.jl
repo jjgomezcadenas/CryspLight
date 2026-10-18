@@ -17,11 +17,12 @@ end
 
 """
 The 511 keV peak of the sums of the triggered events: the most populated peak of the upper
-spectrum, between a quarter of the 99.5% quantile and that quantile.
+spectrum, between a fifth of the 99.5% quantile and that quantile (the coincidence of
+the 1275 keV gamma with a 511 keV one sets the quantile near 3.5 times the 511 keV peak).
 """
 function find_peak511(tot::AbstractVector)
     hi = quantile(tot, 0.995)
-    return peak_fit(tot, 0.25hi, hi)
+    return peak_fit(tot, 0.2hi, hi)
 end
 
 "The 1275 keV peak, searched between 2.2 and 2.8 times the 511 keV one."

@@ -1,6 +1,7 @@
 """Figure of the front-end comparison from results/<campaign>/compare/: for every crystal,
 the 511 keV photopeak sum of each front end (normalised to its mean), the seed-channel and
-dimmest-channel distributions, and a table of the main numbers.
+dimmest-channel distributions (pedestal subtracted for the ASICs), and a table of the main
+numbers; the FWHM of the table is the one from the two-peak energy scale.
 
     python3 fullsim_analysis/plots/compare.py <campaign>
 """
@@ -33,13 +34,13 @@ def main():
                 ax.set_ylabel("fraction of events")
                 ax.legend()
             axs[1, 1].axis("off")
-            cols = ["frontend", "overvoltage_v", "fwhm511_tagged", "stored_per_emitted",
-                    "charge_per_channel_mean", "seed_median", "seed_above_ceiling", "spe_snr"]
+            cols = ["frontend", "overvoltage_v", "fwhm511_scale", "stored_per_emitted",
+                    "charge_per_channel_mean", "seed_median", "saturated", "spe_snr"]
             heads = ["front end", "Vov", "FWHM", "stored /\nemitted", "per\nchannel", "seed",
-                     "seed above\nceiling", "SPE\nS/N"]
-            cells = [[r.frontend, f"{r.overvoltage_v:.1f}", f"{100 * r.fwhm511_tagged:.1f}%",
+                     "saturated", "SPE\nS/N"]
+            cells = [[r.frontend, f"{r.overvoltage_v:.1f}", f"{100 * r.fwhm511_scale:.1f}%",
                       f"{r.stored_per_emitted:.3f}", f"{r.charge_per_channel_mean:.1f}",
-                      f"{r.seed_median:.0f}", f"{100 * r.seed_above_ceiling:.1f}%", f"{r.spe_snr:.0f}"]
+                      f"{r.seed_median:.0f}", f"{100 * r.saturated:.1f}%", f"{r.spe_snr:.1f}"]
                      for _, r in d[cols].iterrows()]
             t = axs[1, 1].table(cellText=cells, colLabels=heads, loc="center")
             t.auto_set_font_size(False)

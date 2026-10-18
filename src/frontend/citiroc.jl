@@ -4,7 +4,8 @@
 #      with shaped white noise of the rms measured on the pedestals;
 #   2. the fast shaper (15 ns) and the discriminator of each channel, whose first
 #      crossing time feeds the trigger: a majority of N channels within a coincidence
-#      window (N = 1 is the OR), as the FPGA builds it;
+#      window (N = 1 is the OR), as the FPGA builds it, or an external trigger at a fixed
+#      time (a random-trigger run, for the pedestals);
 #   3. the peak detector (the maximum of the slow signal from the trigger to the hold) or
 #      the track-and-hold (the value at the hold), per channel;
 #   4. the conversion to ADC counts with the pedestal and the counts per avalanche of
@@ -32,6 +33,8 @@ Base.@kwdef struct CitirocSettings
     ceiling_pc::Float64 = 400.0         # input charge at which the chain saturates
     majority::Int = 1                   # channels within the coincidence window to trigger
     coincidence_ns::Float64 = 50.0
+    trigger::String = "majority"        # "majority" of the discriminators, or "external"
+    external_trigger_ns::Float64 = 0.0  # trigger time of the "external" mode (a random-trigger run)
     dt_ns::Float64 = 1.0                # grid step of the emulation
     t_start_ns::Float64 = -200.0        # grid start relative to the decay
     t_end_ns::Float64 = 2000.0          # grid end
@@ -131,7 +134,9 @@ function citiroc_event(ch::CitirocChain, trains::Vector{Vector{Avalanche}})
         ch.slow_noise!(ch.nz)
         y .+= ch.nz
     end
-    ttrig = trigger_time(crossings, s.majority, s.coincidence_ns)
+    ttrig = s.trigger == "external" ? s.external_trigger_ns :
+            s.trigger == "majority" ? trigger_time(crossings, s.majority, s.coincidence_ns) :
+            error("trigger $(s.trigger) not supported (majority, external)")
     hg = zeros(UInt16, nch); lg = zeros(UInt16, nch)
     hits = falses(nch); sat = falses(nch); stored = zeros(Float32, nch)
     fullscale = 2^s.adc_bits - 1

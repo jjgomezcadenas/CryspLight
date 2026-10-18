@@ -804,6 +804,13 @@ end
     half = [Avalanche[] for _ in 1:64]; half[5] = [Avalanche(0f0, 0.3f0, Int8(0))]
     e0 = citiroc_event(quiet, half)
     @test !e0.triggered && isnan(e0.t_trigger) && all(e0.hg .== 0)
+    # external trigger at a fixed time: recorded even below threshold, the peak
+    # detector keeps the subthreshold avalanche
+    ext = CitirocChain(CitirocSettings(noise_pe = 0.0, fast_noise_pe = 0.0, trigger = "external",
+                                       external_trigger_ns = -10.0), op, Xoshiro(115))
+    ee = citiroc_event(ext, half)
+    @test ee.triggered && ee.t_trigger == -10f0
+    @test isapprox(ee.stored_pe[5], 0.3; atol = 1e-3) && ee.stored_pe[1] == 0
     # majority 2 within 50 ns: one channel is not enough, two within the window are
     maj = CitirocChain(CitirocSettings(noise_pe = 0.0, fast_noise_pe = 0.0, majority = 2),
                        op, Xoshiro(114))

@@ -45,7 +45,9 @@ end
 
 Mean and sigma of the most populated peak of x within [lo, hi]: the mode of a histogram
 starts a Gaussian plus linear fit in ±4 initial sigmas (5% of the mode), repeated with the
-fitted width. n is the number of entries within ±2 sigma. NaN when the fit fails.
+fitted width. The range only locates the mode: the fit window takes all of x, so a peak
+near an edge of the range is not cut. n is the number of entries within ±2 sigma. NaN
+when the fit fails.
 """
 function peak_fit(x::AbstractVector, lo::Real, hi::Real; nbins::Int = 100)
     sel = x[(x .>= lo) .& (x .<= hi)]
@@ -56,11 +58,11 @@ function peak_fit(x::AbstractVector, lo::Real, hi::Real; nbins::Int = 100)
     mu, sg = xc[argmax(c)], 0.05 * xc[argmax(c)]
     for _ in 1:2
         e2 = range(mu - 4sg, mu + 4sg; length = 41)
-        c2 = [count(v -> e2[i] <= v < e2[i + 1], sel) for i in 1:40]
+        c2 = [count(v -> e2[i] <= v < e2[i + 1], x) for i in 1:40]
         x2 = 0.5 .* (e2[1:end-1] .+ e2[2:end])
         f = fit_gauss_linear(x2, c2, mu, sg)
         f === nothing && return (mean = NaN, sigma = NaN, n = 0)
         mu, sg = f.mu, f.sigma
     end
-    return (mean = mu, sigma = sg, n = count(abs.(sel .- mu) .<= 2sg))
+    return (mean = mu, sigma = sg, n = count(abs.(x .- mu) .<= 2sg))
 end

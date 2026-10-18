@@ -21,17 +21,19 @@ const APPLY = Dict("citiroc" => citiroc_event, "digitizer" => digitizer_event,
                    "radioroc" => radioroc_event)
 
 """
-    emulate(pes, op, kind, settings, list; seed) -> (stored, triggered, ttrig, saturated)
+    emulate(pes, op, kind, settings, list; seed) -> (stored, triggered, ttrig, saturated, hg, lg)
 
 Apply the front end to the decays in list: stored is nch x length(list) in avalanches
 (the stored_pe of the Citiroc and Radioroc2 events, the charge in avalanches of the
-digitizer ones), triggered and saturated (any channel) are Bool vectors, ttrig in ns.
+digitizer ones), triggered and saturated (any channel) are Bool vectors, ttrig in ns;
+hg and lg are the ADC counts of the two paths of the ASICs (zero for the digitizer).
 """
 function emulate(pes, op::SipmOperation, kind::AbstractString, settings, list::AbstractVector{<:Integer};
                  seed::Integer = 5)
     nch = length(op.gain_factor)
     n = length(list)
     stored = zeros(Float32, nch, n); trig = falses(n); ttrig = fill(NaN32, n); sat = falses(n)
+    hg = zeros(UInt16, nch, n); lg = zeros(UInt16, nch, n)
     make = chain_maker(kind, settings, op)
     chains = [make(t) for t in 1:Threads.maxthreadid()]
     apply = APPLY[kind]
@@ -43,8 +45,9 @@ function emulate(pes, op::SipmOperation, kind::AbstractString, settings, list::A
         ev = apply(ch, trains)
         stored[:, i] = kind == "digitizer" ? ev.charge_pe : ev.stored_pe
         trig[i] = ev.triggered; ttrig[i] = ev.t_trigger; sat[i] = any(ev.saturated)
+        kind == "digitizer" || (hg[:, i] = ev.hg; lg[:, i] = ev.lg)
     end
-    return (stored = stored, triggered = trig, ttrig = ttrig, saturated = sat)
+    return (stored = stored, triggered = trig, ttrig = ttrig, saturated = sat, hg = hg, lg = lg)
 end
 
 """
