@@ -220,10 +220,11 @@ offset where channels are bright (64~keV for the BGO Radioroc2, whose
 photopeak decays:
 
 \begin{center}
-\small
+\footnotesize
 \begin{tabular}{l c c c c c c}
 \toprule
-front end & Vov & FWHM BGO & stored/emitted & FWHM \csitl & stored/emitted & saturated \\
+ & & \multicolumn{2}{c}{BGO} & \multicolumn{2}{c}{\csitl} & saturated \\
+front end & Vov & FWHM & stored/emitted & FWHM & stored/emitted & BGO / \csitl \\
 \midrule
 Citiroc 1A & 3.0 / 2.7~V & 10.1\% & 0.19 & 7.4\% & 0.055 & 0 / 3.4\% \\
 DT2745, gain 1 & 5.0~V & 9.2\% & 0.51 & 6.1\% & 0.37 & 0 \\
@@ -285,7 +286,7 @@ channel of the events next to the readout face, as predicted.
 
 \section{Campaigns}
 
-\begin{tabular}{l l l l}
+\begin{tabular}{p{0.25\textwidth} p{0.2\textwidth} p{0.3\textwidth} p{0.15\textwidth}}
 \toprule
 campaign & configuration & readout & dates \\
 \midrule
