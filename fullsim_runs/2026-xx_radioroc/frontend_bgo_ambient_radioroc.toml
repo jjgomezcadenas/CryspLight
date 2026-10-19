@@ -1,28 +1,31 @@
 # Front-end stage, bgo_ambient read by the Radioroc2 (campaign 2026-xx_radioroc). Charge trigger
 # TQ on the low-gain shaper (the time triggers T1 and T2 are emulated as the comparison),
-# slow-mode shaping of 1800 ns on both paths (the longest, agreed 18 Oct), hold 3560 ns after
-# the trigger (1.7 tp + 500 ns), charge threshold 40 avalanches, 12-bit ADC; default gains
-# (high 5.3, low 0.53), energy from the low-gain path.
+# shaping of 100 ns on the high-gain path, where the dark counts give single-photoelectron
+# peaks for the gain calibration, and slow-mode shaping of 1800 ns on the low-gain path (the
+# longest, agreed 18 Oct), which measures the energy; the ratio of the two paths is
+# assumed known from charge injection. Hold 3560 ns after the trigger (1.7 tp + 500 ns), charge
+# threshold 40 avalanches, 12-bit ADC; default gains (high 5.3, low 0.53).
 # The shaping time is the subject of the scan (fullsim_analysis/shaping_scan.jl).
 [run]
 pes = "output/optical_bgo_ambient/pes.h5"
 seed = 31
-n_events = 100000           # the first 100k decays: 13k photopeak events
+n_events = 10000             # 10k decays for the check of 19 Oct; 50k for the final run
 
 [sipm]
 device = "sipm_s14160"
 temperature_k = 293.15
 overvoltage_v = 3.0
 gain_spread = 0.05
-window_ns = [-1500.0, 6000.0]
+window_ns = [-8600.0, 6000.0]   # from the start of the grid with its warm-up (four peaking times)
 
 [frontend]
 type = "radioroc"
-tp_ns = 1800.0
+tp_ns = 100.0               # high gain: calibration on the dark counts (best of the test of 19 Oct)
+tp_lg_ns = 1800.0           # low gain: energy
 hold_ns = 3560.0
 peak_detector = true
 trigger = "tq"
-tq_threshold_pe = 40.0
+tq_threshold_pe = 30.0   # from the trigger scan of 19 Oct: 511 keV 1.000, 200-300 keV 0.847, dark 0.00 kHz (below 0.32 at 95%)
 t1_threshold_pe = 0.5
 t2_threshold_pe = 3.0
 majority = 2

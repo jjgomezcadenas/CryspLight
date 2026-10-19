@@ -4,7 +4,13 @@ using HDF5
 using CryspLight
 using Metal
 using Random: Xoshiro
+import Random
 using CryspLight: face_axis, specular, emission_time
+
+"The operating point without dark counts, for chains fed with hand-made avalanche trains
+(the chains remove the mean level of the dark counts they expect)."
+nodark(o) = SipmOperation(o.dev, o.t_k, o.vov, o.vbr, o.gain, o.pde_peak, o.crosstalk, 0.0,
+                          o.afterpulse, o.gain_factor, o.window_ns)
 
 const GRID = SipmGrid(6f0, Int32(8), Int32(8))
 const TB = TimeBinning(100f0, Int32(40))
@@ -690,14 +696,21 @@ end
     @test isapprox(dark_rate(dev, 298.15, 3.2), 6.0e6 * 0.54 / 0.50)
     @test dark_rate(dev, 196.0, 6.5) < 2e4            # kHz in the cold, as measured
     @test isapprox(afterpulse_prob(dev, 3.0), 0.01) && isapprox(afterpulse_prob(dev, 6.0), 0.04)
-    # pulse: peak 1 reached 16 ns after the avalanche, then a 50 ns fall
-    ts = 0:0.1:400
+    # pulse: the 50 ns recharge filtered by 50 ohm x 2000 pF = 100 ns, peak 1 reached
+    # 100 ln 2 = 69.3 ns after the avalanche, then a 100 ns fall
+    ts = 0:0.1:800
     v = [pulse_shape(dev, t) for t in ts]
     @test isapprox(maximum(v), 1.0; atol = 1e-6)
     tp = ts[argmax(v)]
-    @test isapprox(tp, 16; atol = 0.2)
+    @test isapprox(tp, 100 * log(2); atol = 0.2)
     @test pulse_shape(dev, 0) == 0 && pulse_shape(dev, -5) == 0
-    @test isapprox(pulse_shape(dev, tp + 100) / pulse_shape(dev, tp + 50), exp(-1); rtol = 0.1)
+    @test isapprox(pulse_shape(dev, 500) / pulse_shape(dev, 400), exp(-1); rtol = 0.02)
+    # the two constants play symmetric roles; 100 ohm doubles the input one
+    p1 = physical_pulse(100, 2000, 25); p2 = physical_pulse(50, 2000, 50)
+    @test isapprox(p1.fall, p2.fall) && isapprox(p1.t_peak, p2.t_peak)
+    d100 = with_input(dev, 100)
+    @test d100.pulse_fall_ns == 200 && d100.input_ohm == 100 && dev.input_ohm == 50
+    @test physical_pulse(50, 2000, 25).fall == 50.0       # equal constants: finite limit
 
     # operating point and response statistics
     op = SipmOperation(dev; t_k = 293.15, vov = 3.0, n_channels = 64,
@@ -720,7 +733,7 @@ end
     p480 = pde(dev, 3.0, 480)
     @test isapprox(length(tr) / n, p480; atol = 4 * sqrt(p480 / n))
     @test all(a -> a.kind == 0 && a.q == 1, tr)
-    # crosstalk alone: mean total charge per kept photon is 1 / (1 - p)
+    # crosstalk alone: mean total charge per kept photon is 1 / (1 - lambda), lambda = -ln(1 - p)
     noct = SipmOperation(SipmDevice(merge(load_material("sipm_s14160"),
         Dict("device" => merge(load_material("sipm_s14160")["device"],
              Dict("dark_hz" => 0.0, "afterpulse_prob" => 0.0)))));
@@ -728,15 +741,21 @@ end
     tr = respond(noct, zeros(Float32, n), fill(450f0, n), rng)
     nph = count(a -> a.kind == 0, tr)
     pct = crosstalk(dev, 3.0)
-    @test isapprox(total_charge(tr) / nph, 1 / (1 - pct); rtol = 0.02)
-    # dark counts alone over the default window of 11 us: Poisson, mean rate x length
+    @test isapprox(total_charge(tr) / nph, 1 / (1 + log(1 - pct)); rtol = 0.02)
+    # branching: no extra cell with probability 1 - p, and the Borel tail
+    nk = [CryspLight.n_crosstalk(rng, 0.195) for _ in 1:400_000]
+    @test isapprox(mean(nk .== 0), 0.805; atol = 0.003)
+    lam = -log(1 - 0.195)
+    borel(n) = exp(-lam * n) * (lam * n)^(n - 1) / factorial(n)
+    @test isapprox(mean(nk .== 4), borel(5); rtol = 0.1)
+    # dark counts alone over the default window of 20 us: Poisson, mean rate x length
     opd = SipmOperation(dev; t_k = 293.15, vov = 3.0, n_channels = 1)
     only_dark = respond(opd, Float32[], Float32[], rng)
     @test !isempty(only_dark) && all(a -> a.kind in (1, 2, 3), only_dark)
     nd = [count(a -> a.kind == 3, respond(opd, Float32[], Float32[], rng)) for _ in 1:400]
-    mu = dark_rate(dev, 293.15, 3.0) * 11_000e-9
+    mu = dark_rate(dev, 293.15, 3.0) * 20_000e-9
     @test isapprox(mean(nd), mu; atol = 4 * sqrt(mu / 400))
-    @test all(a -> -1000 <= a.t_ns <= 10_000, only_dark)
+    @test all(a -> -10_000 <= a.t_ns <= 10_000, only_dark)
     # afterpulses: delayed, reduced, about 1% of the avalanches at 3 V
     tr = respond(op, zeros(Float32, n), fill(450f0, n), rng)
     ap = filter(a -> a.kind == 2, tr)
@@ -754,18 +773,18 @@ end
 @testset "Shaping and the Citiroc chain (fullsim 0.11)" begin
     dev = SipmDevice()
     dt = 0.5
-    # the device pulse on the grid peaks at 16 ns with a unit peak per avalanche
+    # the device pulse on the grid peaks at 69 ns with a unit peak per avalanche
     sh = Shaper(dev, 87.5, dt)
     y = zeros(4000); y[1] = 1.0
     device_pulse!(y, sh)
     @test isapprox(maximum(y), 1.0; atol = 1e-9)
-    @test isapprox((argmax(y) - 1) * dt, 16; atol = 1.0)
-    @test isapprox(y[argmax(y) + round(Int, 50 / dt)] / maximum(y), exp(-1); rtol = 0.15)
+    @test isapprox((argmax(y) - 1) * dt, 100 * log(2); atol = 1.0)
+    @test isapprox(y[round(Int, 500 / dt) + 1] / y[round(Int, 400 / dt) + 1], exp(-1); rtol = 0.02)
     # the shaped single avalanche: unit peak, at about tp after the device peak
     y = zeros(4000); y[1] = 1.0
     shape!(y, sh)
     @test isapprox(maximum(y), 1.0; atol = 1e-9)
-    @test 100 < (argmax(y) - 1) * dt < 170     # 87.5 ns shaping of a 50 ns pulse
+    @test 170 < (argmax(y) - 1) * dt < 260     # 87.5 ns shaping of the 69/100 ns pulse
     # linearity: two avalanches give twice the peak
     y2 = zeros(4000); y2[1] = 2.0
     shape!(y2, sh)
@@ -773,28 +792,42 @@ end
     # shaped noise has the requested rms
     rng = Xoshiro(111)
     gen! = noise_generator(sh, 0.1, 4000, rng)
-    nz = zeros(4000)
-    rmss = [std(gen!(nz)) for _ in 1:50]
-    @test isapprox(mean(rmss), 0.1; rtol = 0.05)
+    # (on long series: the sample rms of a short, strongly correlated series is biased low)
+    @test isapprox(std(gen!(zeros(2_000_000))), 0.1; rtol = 0.03)
+    # the noise scale does not depend on the stream that built the generator: two
+    # generators reseeded alike give the same series
+    ra = Xoshiro(1); rb = Xoshiro(2)
+    ga = noise_generator(sh, 0.1, 4000, ra); gb = noise_generator(sh, 0.1, 4000, rb)
+    Random.seed!(ra, 5); Random.seed!(rb, 5)
+    @test ga(zeros(500)) == gb(zeros(500))
 
-    op = SipmOperation(dev; t_k = 293.15, vov = 3.0, n_channels = 64)
+    op = nodark(SipmOperation(dev; t_k = 293.15, vov = 3.0, n_channels = 64))
     s = CitirocSettings(dt_ns = 0.5, t_start_ns = -200.0, t_end_ns = 6000.0)
     ch = CitirocChain(s, op, Xoshiro(112))
-    # the stored fraction of the design document (16/50 ns pulse, 87.5 ns peaking)
-    @test isapprox(stored_fraction(ch, 300), 0.39; atol = 0.02)
-    @test isapprox(stored_fraction(ch, 730; tau2_ns = 3340, frac1 = 0.64), 0.15; atol = 0.015)
-    @test isapprox(stored_fraction(ch, 2720), 0.07; atol = 0.01)
+    # the stored fraction of the design document (69/100 ns pulse, 87.5 ns peaking, voltage
+    # preamplifier: the differentiation suppresses the slow part of the train)
+    @test isapprox(stored_fraction(ch, 300), 0.29; atol = 0.02)
+    @test isapprox(stored_fraction(ch, 730; tau2_ns = 3340, frac1 = 0.64), 0.10; atol = 0.01)
+    @test isapprox(stored_fraction(ch, 2720), 0.041; atol = 0.005)
+    # behind a charge-sensitive preamplifier the same chain keeps more (0.49 for 300 ns)
+    chq = CitirocChain(CitirocSettings(dt_ns = 0.5, t_start_ns = -200.0, t_end_ns = 6000.0,
+                                       voltage_preamp = false), op, Xoshiro(112))
+    @test isapprox(stored_fraction(chq, 300), 0.49; atol = 0.02)
+    # a voltage-sensitive chain does not pass a constant input
+    shv = Shaper(dev, 87.5, dt; voltage = true)
+    yc = ones(20000); shape!(yc, shv)
+    @test abs(yc[end]) < 1e-6 && abs(maximum(yc[end-100:end])) < 1e-6
     @test isapprox(stored_fraction(ch, 1e-3), 1.0; atol = 1e-6)      # delta: everything
 
     # one avalanche at t = 0 in channel 5, nothing else, no noise: trigger on that
     # channel, the stored value one avalanche, the ADC at pedestal + counts per pe
     quiet = CitirocChain(CitirocSettings(noise_pe = 0.0, fast_noise_pe = 0.0),
-                         SipmOperation(dev; t_k = 293.15, vov = 3.0, n_channels = 64),
+                         nodark(SipmOperation(dev; t_k = 293.15, vov = 3.0, n_channels = 64)),
                          Xoshiro(113))
     trains = [Avalanche[] for _ in 1:64]
     trains[5] = [Avalanche(0f0, 1f0, Int8(0))]
     e = citiroc_event(quiet, trains)
-    @test e.triggered && 0 < e.t_trigger < 30
+    @test e.triggered && 0 < e.t_trigger < 60
     @test e.hits[5] && count(e.hits) == 1
     @test isapprox(e.stored_pe[5], 1.0; atol = 1e-3)
     @test e.hg[5] == round(UInt16, 200 + 10) && all(e.hg[c] == 200 for c in 1:64 if c != 5)
@@ -821,12 +854,21 @@ end
     @test !citiroc_event(maj, t3).triggered
     @test trigger_time([5.0, 20.0, NaN, 300.0], 2, 50.0) == 20.0
     @test isnan(trigger_time([5.0, 300.0], 2, 50.0))
-    # an exponential train of 1000 avalanches (tau 300 ns) stores about 390 of them
+    # an early isolated crossing does not veto a later coincidence of the same channel
+    @test trigger_time([[-1000.0, 0.0], [2.0]], 2, 50.0) == 2.0
+    @test isnan(trigger_time([[-1000.0, 0.0], Float64[]], 2, 50.0))   # one channel is not two
+    tlate = deepcopy(trains); tlate[1] = [Avalanche(-1000f0, 3f0, Int8(0)), Avalanche(0f0, 3f0, Int8(0))]
+    tlate[9] = [Avalanche(0f0, 3f0, Int8(0))]
+    maj3 = CitirocChain(CitirocSettings(noise_pe = 0.0, fast_noise_pe = 0.0, majority = 2,
+                                        threshold_pe = 2.0, t_start_ns = -1200.0), op, Xoshiro(118))
+    et = citiroc_event(maj3, tlate)
+    @test et.triggered && 0 < et.t_trigger < 80      # the rise of the pulse delays the crossing
+    # an exponential train of 1000 avalanches (tau 300 ns) stores about 270 of them
     rngt = Xoshiro(115)
     tr = [Avalanche(Float32(-300 * log(rand(rngt))), 1f0, Int8(0)) for _ in 1:1000]
     big = [Avalanche[] for _ in 1:64]; big[1] = tr
     eb = citiroc_event(quiet, big)
-    @test eb.triggered && isapprox(eb.stored_pe[1], 390; rtol = 0.1)
+    @test eb.triggered && isapprox(eb.stored_pe[1], 270; rtol = 0.1)
     # track and hold at the hold time stores less than the peak detector
     th = CitirocChain(CitirocSettings(noise_pe = 0.0, fast_noise_pe = 0.0,
                                       peak_detector = false, hold_ns = 500.0), op, Xoshiro(116))
@@ -837,33 +879,64 @@ end
     huge[2] = [Avalanche(0f0, Float32(quiet.pe_ceiling * 1.2), Int8(0))]
     eh = citiroc_event(quiet, huge)
     @test eh.saturated[2] && eh.stored_pe[2] <= quiet.pe_ceiling + 1e-3
+    # a long train whose total exceeds the ceiling but whose stored amplitude does not is
+    # not saturated
+    slowtr = [Avalanche[] for _ in 1:64]
+    slowtr[2] = [Avalanche(Float32(-1000 * log(rand(rngt))), Float32(quiet.pe_ceiling / 500), Int8(0)) for _ in 1:1000]
+    es2 = citiroc_event(quiet, slowtr)
+    @test !es2.saturated[2] && es2.stored_pe[2] < quiet.pe_ceiling
     # with noise and the peak detector, an empty channel stores a positive bias
     noisy = CitirocChain(CitirocSettings(hold_ns = 300.0), op, Xoshiro(117))
     vals = [citiroc_event(noisy, trains).stored_pe[20] for _ in 1:200]
     @test 0.05 < mean(vals) < 0.5
+    # a high gain at full scale is not a saturation: the low gain measures the channel
+    big2 = [Avalanche[] for _ in 1:64]
+    big2[1] = [Avalanche(Float32(-300 * log(rand(rngt))), 1f0, Int8(0)) for _ in 1:1500]
+    eb2 = citiroc_event(quiet, big2)
+    @test eb2.hg[1] == 4095 && !eb2.saturated[1] && isapprox(eb2.stored_pe[1], 405; rtol = 0.1)
+    # separate shaping of the two gains: short high gain, low gain at 87.5 ns keeps the
+    # stored fraction of 87.5 ns
+    two = CitirocChain(CitirocSettings(noise_pe = 0.0, fast_noise_pe = 0.0, tp_ns = 25.0,
+                                       tp_lg_ns = 87.5, dt_ns = 0.5), op, Xoshiro(119))
+    e2g = citiroc_event(two, big)
+    @test isapprox(Float64(e2g.lg[1]) - 200, 270; rtol = 0.1)
+    @test Float64(e2g.hg[1]) - 200 < 10 * (Float64(e2g.lg[1]) - 200)
+    @test citiroc_event(two, trains).lg[5] == 201
+    # self-triggered calibration: a single avalanche held at its maximum gives the
+    # pedestal plus one gain; the delay is the time from the crossing to the maximum
+    @test CryspLight.noise_at(CitirocSettings(), 87.5) == 0.1
+    @test isapprox(CryspLight.noise_at(CitirocSettings(), 21.875), 0.2)
+    d = hold_at_peak(two)
+    @test 20 < d < 80
+    hv = hg_at_crossings(two, trains, d)
+    @test hv[5] == [210.0] && all(isempty(hv[c]) for c in 1:64 if c != 5)
+    @test only(hg_at_crossings(two, trains, d - 45)[5]) < 210
 end
 
 @testset "Digitizer chain on the avalanche train (fullsim 0.11b)" begin
     dev = SipmDevice()
     @test pulse_cdf(dev, 0) == 0 && pulse_cdf(dev, -3) == 0
-    @test isapprox(pulse_cdf(dev, 2000), 1.0; atol = 1e-9)
-    @test 0.5 < pulse_cdf(dev, 60) < 0.9
-    @test isapprox(window_fraction(dev, 0, -100, 2000), 1.0; atol = 1e-9)
+    @test isapprox(pulse_cdf(dev, 4000), 1.0; atol = 1e-9)
+    @test 0.1 < pulse_cdf(dev, 60) < 0.4                       # 69 ns to the peak
+    @test isapprox(window_fraction(dev, 0, -100, 4000), 1.0; atol = 1e-9)
     @test window_fraction(dev, 500, 0, 100) == 0                  # avalanche after the window
-    @test isapprox(window_fraction(dev, 0, 0, 30) + window_fraction(dev, 0, 30, 2000), 1.0; atol = 1e-9)
+    @test isapprox(window_fraction(dev, 0, 0, 30) + window_fraction(dev, 0, 30, 4000), 1.0; atol = 1e-9)
 
-    op = SipmOperation(dev; t_k = 293.15, vov = 5.0, n_channels = 64)   # 43 V ambient
+    op = nodark(SipmOperation(dev; t_k = 293.15, vov = 5.0, n_channels = 64))   # 43 V ambient
     quiet = DigitizerChain(DigitizerSettings(noise_counts = 0.0, majority = 1,
                                              threshold_counts = 10.0), op, Xoshiro(121))
-    @test isapprox(quiet.peak_counts_per_pe, 16.0) && isapprox(quiet.area_per_pe, 70.4)
+    @test isapprox(quiet.peak_counts_per_pe, 16.0)
+    # the charge of one avalanche is the area of its sampled pulse (count-samples)
+    yq = zeros(Float64, 4000); yq[1] = 1.0; device_pulse!(yq, quiet.pulse)
+    @test isapprox(quiet.area_per_pe, 16.0 * sum(yq) * quiet.grid.dt / 8.0; rtol = 1e-6)
     @test quiet.n_gate == 125 && quiet.n_base == 125 && quiet.noise_charge == 0
     # one avalanche at t = 0 in channel 7: triggers (16 > 10), its whole area in the gate,
     # which starts 50 ns before the trigger
     trains = [Avalanche[] for _ in 1:64]
     trains[7] = [Avalanche(0f0, 1f0, Int8(0))]
     e = digitizer_event(quiet, trains)
-    @test e.triggered && -10 <= e.t_trigger <= 20 && e.hits[7] && count(e.hits) == 1
-    @test isapprox(e.charge_pe[7], 1.0; atol = 0.02) && e.charge[7] == round(Int32, 70.4 * e.charge_pe[7])
+    @test e.triggered && -10 <= e.t_trigger <= 60 && e.hits[7] && count(e.hits) == 1
+    @test isapprox(e.charge_pe[7], 1.0; atol = 0.02) && e.charge[7] == round(Int32, quiet.area_per_pe * e.charge_pe[7])
     @test all(e.charge[c] == 0 for c in 1:64 if c != 7)
     @test isapprox(e.peak_counts[7], 16; rtol = 0.05)
     # a small pulse in the baseline window (half an avalanche, below the threshold) is
@@ -892,7 +965,7 @@ end
     qs = [digitizer_event(noisy, t8).charge[20] for _ in 1:400]
     @test isapprox(std(qs), 4 * sqrt(250.0); rtol = 0.15) && abs(mean(qs)) < 3 * 63 / 20
     # an exponential train keeps its whole charge in a gate longer than the decay, and
-    # a fraction 1 - exp(-gate/tau) of it otherwise
+    # a fraction of it otherwise (a third for 300 ns, the 100 ns pulse delaying the charge)
     rngt = Xoshiro(125)
     tr = [Avalanche(Float32(-300 * log(rand(rngt))), 1f0, Int8(0)) for _ in 1:2000]
     big = [Avalanche[] for _ in 1:64]; big[1] = tr
@@ -903,7 +976,7 @@ end
     short = DigitizerChain(DigitizerSettings(noise_counts = 0.0, majority = 1, gate_ns = 300.0),
                            op, Xoshiro(127))
     es = digitizer_event(short, big)
-    @test 0.5 < es.charge_pe[1] / 2000 < 0.7
+    @test 0.25 < es.charge_pe[1] / 2000 < 0.45
     # external trigger: threshold 0 places the gate at the given time without crossings
     ext = DigitizerChain(DigitizerSettings(noise_counts = 0.0, threshold_counts = 0.0,
                                            external_trigger_ns = 0.0), op, Xoshiro(129))
@@ -916,6 +989,14 @@ end
     @test digitizer_event(sat, t8).saturated[7] == false
     thuge = deepcopy(trains); thuge[7] = [Avalanche(0f0, 30f0, Int8(0))]   # 48000 counts
     @test digitizer_event(sat, thuge).saturated[7]
+    # majority 2: an isolated dark pulse at -1000 ns in channel 1 does not veto the
+    # later coincidence of channels 1 and 2 at 0
+    dmaj = DigitizerChain(DigitizerSettings(noise_counts = 0.0, gain = 4.0, threshold_counts = 480.0,
+                                            majority = 2), op, Xoshiro(130))
+    tl = [Avalanche[] for _ in 1:64]
+    tl[1] = [Avalanche(-1000f0, 12f0, Int8(0)), Avalanche(0f0, 12f0, Int8(0))]
+    tl[2] = [Avalanche(0f0, 12f0, Int8(0))]
+    @test digitizer_event(dmaj, tl).triggered
 end
 
 @testset "Front-end stage and the event file (fullsim 0.12)" begin
@@ -942,7 +1023,7 @@ end
         temperature_k = 293.15
         overvoltage_v = $(kind == "citiroc" ? 3.0 : 5.0)
         gain_spread = 0.05
-        window_ns = [-1500.0, 3000.0]
+        window_ns = [-3200.0, 3000.0]
         [frontend]
         type = "$(kind)"
         $(extra)
@@ -977,7 +1058,7 @@ end
             tot = vec(sum(qpe; dims = 1))
             good = pk .& (trig .== 1)
             if kind == "citiroc"
-                @test 400 < median(tot[good]) < 900          # 3253 x 0.52 x 0.39 ~ 660
+                @test 600 < median(tot[good]) < 1100         # 3253 x 0.52 x 0.49 ~ 830, plus dark
                 @test size(read(f["events"]["charge_lg"])) == (64, 400)
             else
                 @test 1400 < median(tot[good]) < 2200        # 3253 x 0.54 x ~1 ~ 1750 + dark
@@ -991,7 +1072,7 @@ end
 
 @testset "Radioroc2 chain (fullsim 0.15)" begin
     dev = SipmDevice()
-    op = SipmOperation(dev; t_k = 293.15, vov = 3.0, n_channels = 64)
+    op = nodark(SipmOperation(dev; t_k = 293.15, vov = 3.0, n_channels = 64))
     tdev = with_pulse(dev, 5.0, 20.0)
     @test tdev.pulse_rise_ns == 5 && tdev.pulse_fall_ns == 20 && tdev.n_cells == dev.n_cells
     # no noise and no ceiling, except where the ceiling is the subject
@@ -1004,7 +1085,7 @@ end
     @test isapprox(stored_fraction(ch, 2720), 0.55; atol = 0.03)
     @test isapprox(stored_fraction(ch, 1000), 0.81; atol = 0.03)
     ch3 = quiet(tp_ns = fill(300.0, 64))
-    @test isapprox(stored_fraction(ch3, 300), 0.67; atol = 0.03)
+    @test isapprox(stored_fraction(ch3, 300), 0.70; atol = 0.03)
     ch12 = quiet(tp_ns = fill(1200.0, 64))
     @test isapprox(stored_fraction(ch12, 300), 0.94; atol = 0.02)
     # per-channel peaking times: one calibrated shaper per distinct value
@@ -1028,6 +1109,13 @@ end
     @test e1.triggered && e1.hits[5] && count(e1.hits) == 1
     @test isapprox(e1.stored_pe[5], 1.0; atol = 1e-3) && e1.hg[5] == 210 && e1.lg[5] == 201
     @test !radioroc_event(quiet(trigger = "t2"), trains).triggered
+    # self-triggered calibration on T1 with the peak detector up to the maximum
+    chs = quiet(tp_ns = fill(25.0, 64), tp_lg_ns = fill(1800.0, 64))
+    dr = hold_at_peak(chs)
+    @test 60 < dr < 160              # 25 ns shaping of the 69/100 ns pulse
+    @test hg_at_crossings(chs, trains, dr)[5] == [210.0]
+    # crossings within the hold of the previous one give no value
+    @test length(CryspLight.held_at_crossings(collect(1.0:100.0), [0.0, 5.0, 60.0], CryspLight.TimeGrid(0.0, 1.0, 100), 30.0, true)) == 2
     @test !radioroc_event(quiet(trigger = "tq"), trains).triggered
     # a 1000-avalanche exponential train (tau 300 ns) in one channel: the charge trigger
     # fires, the stored value is about 0.67 of it at 300 ns shaping and 0.97 at 1.8 us;
@@ -1061,6 +1149,21 @@ end
     @test rs.tp_ns == fill(600.0, 64) && rs.hold_ns == 800.0 && rs.trigger == "tq"
     rv = settings_from(RadiorocSettings, Dict("tp_ns" => collect(1.0:64.0)))
     @test rv.tp_ns == collect(1.0:64.0)
+    # the steady current of the dark counts gives no offset: with the slow shaping, the
+    # value held at a random time on empty records averages to zero, early or late in the
+    # record (the grid starts four peaking times before the record)
+    opd = SipmOperation(dev; t_k = 293.15, vov = 3.0, n_channels = 4, window_ns = (-9000.0, 6000.0))
+    held(hold) = begin
+        chd = RadiorocChain(RadiorocSettings(; noise_pe_100ns = 0.0, time_noise_pe = 0.0, tp_ns = fill(1800.0, 4),
+                                             trigger = "external", external_trigger_ns = 0.0,
+                                             peak_detector = false, hold_ns = hold, t_end_ns = 5000.0),
+                            opd, Xoshiro(152))
+        rd = Xoshiro(153)
+        [radioroc_event(chd, [respond(opd, Float32[], Float32[], rd) for _ in 1:4]).stored_pe[1] for _ in 1:400]
+    end
+    early, late = held(0.0), held(4000.0)
+    @test abs(mean(early)) < 4 * std(early) / sqrt(400) && abs(mean(late)) < 4 * std(late) / sqrt(400)
+    @test isapprox(std(early), std(late); rtol = 0.2)
 end
 
 include("frozen.jl")

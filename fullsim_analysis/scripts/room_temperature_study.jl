@@ -1,9 +1,11 @@
-# Numbers and distributions of the ambient-temperature study (docs_fullsim/ambient_study.tex):
+# Numbers and distributions of the study at room temperature (docs_fullsim/room_temperature_study.tex):
 # BGO and CsI(Tl) read by the Citiroc 1A, the DT2745 digitiser (gain 4, 5 V) and the
 # Radioroc2, six cases on the same decays of the two optical runs. For each case:
-#   energy      the sum of the 64 channels of the energy path (pedestal subtracted for the
-#               ASICs), calibrated in keV with the 511 and 1275 keV peaks; its spectrum
-#               and the Gaussian-plus-linear fit of the 511 keV peak;
+#   energy      the sum of the 64 channels in photoelectrons by the route of the
+#               measurement (ADC values minus the zero level, over the gain, both from
+#               the calibration on the dark counts; lib/calibrate.jl), calibrated in keV with the
+#               511 and 1275 keV peaks; its spectrum and the Gaussian-plus-linear fit of
+#               the 511 keV peak;
 #   light       on the events in which one 511 keV gamma deposits its full energy, the
 #               photons emitted, the photons reaching the SiPMs, the photoelectrons and
 #               the fired cells (photoelectrons with their crosstalk and afterpulses),
@@ -13,10 +15,11 @@
 #               the 16-84% interval over the median, times 2.355), whose differences in
 #               quadrature attribute the width to the light collection and detection,
 #               to the SiPM (crosstalk and afterpulses) and to the readout (dark counts,
-#               noise, shaping, pedestal);
+#               noise, shaping, zero level);
 #   channels    the brightest and the least illuminated channel of each of those events.
-# Writes results/<campaign>/study/study.h5 (one group per case) and study.csv.
-#   julia --project=. --threads=8 fullsim_analysis/scripts/ambient_study.jl <campaign> [n_replay]
+# Writes results/<campaign>/room_temperature/room_temperature.h5 (one group per case) and
+# room_temperature.csv.
+#   julia --project=. --threads=8 fullsim_analysis/scripts/room_temperature_study.jl <campaign> [n_replay]
 include(joinpath(@__DIR__, "..", "lib", "FullsimAnalysis.jl"))
 using .FullsimAnalysis
 using CryspLight, HDF5, Statistics, Printf, TOML
@@ -38,24 +41,25 @@ nreplay = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 3000
 "Relative width in FWHM units: half the 16-84% interval over the median, times 2.355."
 relwidth(x) = 2.355 * (quantile(x, 0.84) - quantile(x, 0.16)) / 2 / median(x)
 
-function energy_path(e)
-    e.frontend == "radioroc" && return e.qlg
-    return e.q
-end
-
-function pedestal_of(campaign, e)
-    e.frontend == "digitizer" && return zeros(e.nch)
-    h5open(f -> read(f[e.tag]["energy_mean"]), joinpath(results_dir(campaign, "pedestal"), "pedestal.h5"))
+"""
+Sum over channels of the zero level of the low gain above the electronic pedestal, in
+photoelectrons: what the peak detectors store from the dark pulses and the noise (zero
+for the digitiser).
+"""
+function pedestal_sum(e, cal)
+    e.frontend == "digitizer" && return 0.0
+    base = Float64(e.run["fe_pedestal"])
+    return sum((cal.lg_pedestal .- base) ./ (cal.gain .* cal.lg_over_hg))
 end
 
 rows = Dict{String,Any}[]
-open_results(campaign, "study"; mode = "w") do h5
+open_results(campaign, "room_temperature"; mode = "w") do h5
     for (case, cfg) in CASES
         st = load_frontend(joinpath(REPO, cfg))
         e = read_events(joinpath(st.outdir, "events.h5"))
         pes = read_pes(st.pes_path)
         op = st.op
-        q = energy_path(e) .- pedestal_of(campaign, e)
+        q, cal = measured_charge(e, campaign)
         tot = vec(sum(q[:, e.trig]; dims = 1))
         p511 = find_peak511(tot); p1275 = find_peak1275(tot, p511)
         slope = (p1275.mean - p511.mean) / (1275 - 511)
@@ -92,7 +96,7 @@ open_results(campaign, "study"; mode = "w") do h5
             "overvoltage_v" => op.vov, "gain_electrons" => op.gain, "pde_peak" => op.pde_peak,
             "crosstalk" => op.crosstalk, "afterpulse" => op.afterpulse, "dark_hz" => op.dark_hz,
             "window_ns" => window, "dark_in_window" => op.dark_hz * window * 1e-9 * e.nch,
-            "pedestal_sum" => sum(pedestal_of(campaign, e)),
+            "pedestal_sum" => pedestal_sum(e, cal), "failed_gain_fits" => cal.failed_fits,
             "keV_per_unit" => 1 / slope, "offset_kev" => 511 - p511.mean / slope,
             "ratio_1275_511" => p1275.mean / p511.mean,
             "fwhm511" => fwhm, "fwhm511_err" => dfwhm, "peak1275_fwhm" => 2.355 * p1275.sigma / p1275.mean,
@@ -125,10 +129,10 @@ open_results(campaign, "study"; mode = "w") do h5
     end
 end
 cols = ["case", "tag", "frontend", "crystal", "overvoltage_v", "gain_electrons", "pde_peak", "crosstalk",
-        "afterpulse", "dark_hz", "window_ns", "dark_in_window", "pedestal_sum", "keV_per_unit", "offset_kev",
+        "afterpulse", "dark_hz", "window_ns", "dark_in_window", "pedestal_sum", "failed_gain_fits", "keV_per_unit", "offset_kev",
         "ratio_1275_511", "fwhm511", "fwhm511_err", "peak1275_fwhm", "photopeak_events", "replayed",
         "photons_emitted", "photons_at_sipm", "photoelectrons", "fired_cells", "recorded_pe", "collection",
         "detection", "pe_per_emitted", "recorded_per_pe", "intrinsic", "width_pe", "width_cells",
         "width_recorded", "term_statistics", "term_sipm", "term_readout", "brightest_median",
         "brightest_p99", "least_median"]
-println("written ", write_table(campaign, "study", "study", [c => [r[c] for r in rows] for c in cols]))
+println("written ", write_table(campaign, "room_temperature", "room_temperature", [c => [r[c] for r in rows] for c in cols]))

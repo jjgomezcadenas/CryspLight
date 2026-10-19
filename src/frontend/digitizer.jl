@@ -15,7 +15,6 @@
 Base.@kwdef struct DigitizerSettings
     gain::Float64 = 1.0                    # digitizer gain setting (x1 ... x100)
     counts_per_pe_per_volt::Float64 = 3.2  # peak counts of one avalanche per volt of overvoltage, gain 1
-    area_over_peak::Float64 = 4.4          # area of the avalanche pulse in samples per count of peak
     noise_counts::Float64 = 4.0            # rms per sample, white
     sample_ns::Float64 = 8.0
     threshold_counts::Float64 = 60.0       # per-channel leading edge, above the baseline;
@@ -62,15 +61,29 @@ struct DigitizerChain
 end
 
 function DigitizerChain(s::DigitizerSettings, op::SipmOperation, rng::AbstractRNG)
-    n = ceil(Int, (s.t_end_ns - s.t_start_ns) / s.dt_ns)
-    grid = TimeGrid(s.t_start_ns, s.dt_ns, n)
+    # warm-up: ten falls of the SiPM pulse, in whole samples so that the sampling times
+    # keep their phase with respect to the start of the record
+    warm = s.sample_ns * ceil(10 * op.dev.pulse_fall_ns / s.sample_ns)
+    grid = chain_grid(op, s.t_start_ns, s.t_end_ns, s.dt_ns, warm)
+    n = grid.n
     pulse = Shaper(op.dev, 1.0, s.dt_ns)       # only its device-pulse calibration is used
     pk = s.counts_per_pe_per_volt * op.vov * s.gain
+    # area of the avalanche pulse in samples per count of peak, from the pulse itself
+    # (peak one on the grid), so that the charge and the waveform describe the same pulse
+    aop = pulse_area_over_peak(pulse, s.sample_ns)
     ng = round(Int, s.gate_ns / s.sample_ns)
     nb = round(Int, s.baseline_ns / s.sample_ns)
     nq = s.noise_counts * sqrt(ng + ng^2 / nb)
-    return DigitizerChain(s, op, grid, pulse, zeros(n), zeros(n), pk, pk * s.area_over_peak,
+    return DigitizerChain(s, op, grid, pulse, zeros(n), zeros(n), pk, pk * aop,
                           nq, ng, nb, rng)
+end
+
+"Area of the device pulse of one avalanche, in samples of sample_ns, per unit of its peak."
+function pulse_area_over_peak(pulse::Shaper, sample_ns::Real)
+    n = ceil(Int, 20 * pulse.dev.pulse_fall_ns / pulse.dt)
+    y = zeros(Float64, n); y[1] = 1.0
+    device_pulse!(y, pulse)
+    return sum(y) * pulse.dt / maximum(y) / sample_ns
 end
 
 """
@@ -96,20 +109,28 @@ Apply the digitizer to the avalanche trains of the channels of one event.
 function digitizer_event(ch::DigitizerChain, trains::Vector{Vector{Avalanche}})
     s, g, dev = ch.s, ch.grid, ch.op.dev
     nch = length(trains)
-    crossings = fill(NaN, nch)
+    crossings = [Float64[] for _ in 1:nch]
     peaks = zeros(Float32, nch)
     step = max(1, round(Int, s.sample_ns / g.dt))
     for c in 1:nch
         amp = ch.peak_counts_per_pe * ch.op.gain_factor[c]
         bin_train!(ch.x, g, trains[c])
         any(!=(0.0), ch.x) || continue
+        # the discriminator works on the signal above the baseline, which the steady
+        # current of the dark counts raises (amp carries the gain factor of the channel)
+        ch.x .-= dark_charge_per_ns(ch.op) * g.dt
         device_pulse!(ch.x, ch.pulse)
         pk = 0.0
+        above = false
         @inbounds for k in 1:step:g.n
             v = amp * ch.x[k] + s.noise_counts * randn(ch.rng)
             v > pk && (pk = v)
-            if isnan(crossings[c]) && v >= s.threshold_counts
-                crossings[c] = sample_time(g, k)
+            # leading-edge discriminator, re-armed when the sample falls below threshold
+            if v >= s.threshold_counts
+                above || (t = sample_time(g, k); t >= s.t_start_ns && push!(crossings[c], t))
+                above = true
+            else
+                above = false
             end
         end
         peaks[c] = Float32(pk)
@@ -137,8 +158,7 @@ function digitizer_event(ch::DigitizerChain, trains::Vector{Vector{Avalanche}})
             charge[c] = Int32(round(q))
             qpe[c] = Float32(q / area)
             sat[c] = peaks[c] >= halfscale
-            hits[c] = isfinite(crossings[c]) &&
-                      ttrig - s.coincidence_ns <= crossings[c] <= ttrig + s.coincidence_ns
+            hits[c] = in_trigger_window(crossings[c], ttrig, s.coincidence_ns)
         end
     end
     return DigitizerEvent(charge, qpe, hits, Float32(ttrig), isfinite(ttrig), sat, peaks)

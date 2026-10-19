@@ -4,20 +4,35 @@
 # one, divided by the window over which dark avalanches were generated, is the dark
 # trigger rate. Writes results/<campaign>/trigger_scan/trigger_scan.csv (appending the
 # rows of this configuration). Plot with fullsim_analysis/plots/trigger_scan.py.
-#   julia --project=. --threads=8 fullsim_analysis/scripts/trigger_scan.jl <campaign> <frontend config> [n_events]
-# The thresholds and modes scanned depend on the front end (table below).
+#   julia --project=. --threads=8 fullsim_analysis/scripts/trigger_scan.jl <campaign> <frontend config> [n_events] [modes]
+# The thresholds and modes scanned depend on the front end (table below); modes, a
+# comma-separated list, restricts the scan to some of them.
 include(joinpath(@__DIR__, "..", "lib", "FullsimAnalysis.jl"))
 using .FullsimAnalysis
 using CryspLight, Statistics, Printf
 
 campaign, cfg = ARGS[1], ARGS[2]
 nmax = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1500
+only_modes = length(ARGS) >= 4 ? split(ARGS[4], ",") : nothing
 r = open_pes_run(cfg)
 st, pes, op = r.setup, r.pes, r.op
 lists = event_lists(pes; nmax = nmax)
 tag = st.tag
-window_ns = op.window_ns[2] - op.window_ns[1]
 base = st.settings
+# exposure of the dark-trigger count: the part of the record on which the trigger is
+# tested (the emulation grid) that also holds dark counts
+window_ns = min(base.t_end_ns, op.window_ns[2]) - max(base.t_start_ns, op.window_ns[1])
+
+"One-sided 95% upper limit on the mean of a Poisson count k (bisection on the cdf)."
+function poisson_ul95(k::Integer)
+    cdf(mu) = sum(exp(-mu + i * log(mu) - sum(log, 1:i; init = 0.0)) for i in 0:k)
+    lo, hi = 0.0, 10.0 + 5k
+    for _ in 1:100
+        mid = (lo + hi) / 2
+        cdf(mid) > 0.05 ? (lo = mid) : (hi = mid)
+    end
+    return (lo + hi) / 2
+end
 
 # the scan: (mode, thresholds, settings constructor)
 scans = if st.frontend == "citiroc"
@@ -41,9 +56,10 @@ else
       t -> with(base; trigger = "majority", t1_threshold_pe = t, majority = 2))]
 end
 
+only_modes === nothing || (scans = [sc for sc in scans if sc[1] in only_modes])
 rows = (tag = String[], frontend = String[], mode = String[], threshold = Float64[], threshold_pe = Float64[],
         efficiency_511 = Float64[], efficiency_200_300 = Float64[], dark_per_window = Float64[],
-        window_ns = Float64[], dark_khz = Float64[])
+        window_ns = Float64[], dark_khz = Float64[], dark_triggers = Int[], dark_khz_ul95 = Float64[])
 for (mode, thresholds, make) in scans, t in thresholds
     s = make(t)
     f(list) = mean(emulate(pes, op, st.frontend, s, list).triggered)
@@ -54,6 +70,11 @@ for (mode, thresholds, make) in scans, t in thresholds
     push!(rows.efficiency_511, e511); push!(rows.efficiency_200_300, ec)
     push!(rows.dark_per_window, ed); push!(rows.window_ns, window_ns)
     push!(rows.dark_khz, ed / window_ns * 1e6)
+    # the record holds at most one trigger, so the fraction over the exposure is a rate
+    # only while it is small, as it is near the chosen thresholds
+    k = round(Int, ed * length(lists.empty))
+    push!(rows.dark_triggers, k)
+    push!(rows.dark_khz_ul95, poisson_ul95(k) / (length(lists.empty) * window_ns) * 1e6)
     @printf("%-28s %-12s threshold %6.1f: 511 keV %.3f, 200-300 keV %.3f, dark per window %.3f (%.1f kHz)\n",
             tag, mode, t, e511, ec, ed, ed / window_ns * 1e6)
     flush(stdout)

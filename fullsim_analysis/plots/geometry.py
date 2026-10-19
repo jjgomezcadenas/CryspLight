@@ -83,7 +83,7 @@ def main():
     b.legend(loc="upper right", fontsize=7)
     b.grid(False)
     fig.tight_layout()
-    save(fig, campaign, "study", "geometry")
+    save(fig, campaign, "room_temperature", "geometry")
 
 
 if __name__ == "__main__":

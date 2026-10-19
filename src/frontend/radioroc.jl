@@ -52,7 +52,7 @@ function with_pulse(dev::SipmDevice, rise_ns::Real, fall_ns::Real)
                dev.dark_hz_ref, dev.dark_t_ref, dev.dark_vov_ref, dev.dark_doubling_k,
                dev.ap_prob_ref, dev.ap_vov_ref, dev.ap_tau_ns, dev.recovery_ns,
                dev.n_cells, Float64(rise_ns), Float64(fall_ns),
-               rise_constant(Float64(rise_ns), Float64(fall_ns)))
+               rise_constant(Float64(rise_ns), Float64(fall_ns)), dev.ct_pf, dev.input_ohm)
 end
 
 struct RadiorocChain
@@ -75,8 +75,10 @@ end
 noise_at(s::RadiorocSettings, tp::Real) = s.noise_pe_100ns * (100.0 / tp)^s.noise_exponent
 
 function RadiorocChain(s::RadiorocSettings, op::SipmOperation, rng::AbstractRNG)
-    n = ceil(Int, (s.t_end_ns - s.t_start_ns) / s.dt_ns)
-    grid = TimeGrid(s.t_start_ns, s.dt_ns, n)
+    # warm-up: four of the longest peaking times and ten falls of the SiPM pulse
+    grid = chain_grid(op, s.t_start_ns, s.t_end_ns, s.dt_ns,
+                      4 * maximum(vcat(s.tp_ns, s.tp_lg_ns)) + 10 * op.dev.pulse_fall_ns)
+    n = grid.n
     tps = unique(vcat(s.tp_ns, s.tp_lg_ns))
     shapers = Dict(tp => Shaper(op.dev, tp, s.dt_ns; order = s.order) for tp in tps)
     noise = Dict(tp => noise_generator(shapers[tp], noise_at(s, tp), n, rng) for tp in tps)
@@ -91,28 +93,27 @@ tp_hg(ch::RadiorocChain, c::Int) = ch.s.tp_ns[c]
 tp_lg(ch::RadiorocChain, c::Int) = isempty(ch.s.tp_lg_ns) ? ch.s.tp_ns[c] : ch.s.tp_lg_ns[c]
 
 """
-    radioroc_event(ch, trains) -> CitirocEvent
+    radioroc_waves(ch, trains) -> (t1, t2, tq, hg_wave, lg_wave)
 
-Apply the Radioroc2 to the avalanche trains of one event. hits marks the channels whose
-T1 fired within the coincidence window of the acquisition trigger.
+The crossing times of the three triggers of each channel and its two shaped signals
+(high and low gain, in avalanches, with their noise) on the grid of the chain.
 """
-function radioroc_event(ch::RadiorocChain, trains::Vector{Vector{Avalanche}})
+function radioroc_waves(ch::RadiorocChain, trains::Vector{Vector{Avalanche}})
     s, g = ch.s, ch.grid
     nch = length(trains)
-    t1 = fill(NaN, nch); t2 = fill(NaN, nch); tq = fill(NaN, nch)
+    t1 = [Float64[] for _ in 1:nch]; t2 = [Float64[] for _ in 1:nch]; tq = [Float64[] for _ in 1:nch]
     hg_wave = [zeros(Float64, g.n) for _ in 1:nch]
     lg_wave = [zeros(Float64, g.n) for _ in 1:nch]
     for c in 1:nch
         bin_train!(ch.x, g, trains[c])
         ch.x .*= ch.op.gain_factor[c]
+        remove_dark_level!(ch.x, ch.op, c, g.dt)
         # time preamplifier: raw pulse plus its noise, two thresholds
         copyto!(ch.yt, ch.x)
         device_pulse!(ch.yt, ch.time_pulse)
         s.time_noise_pe > 0 && (ch.yt .+= s.time_noise_pe .* randn(ch.rng, g.n))
-        k1 = first_crossing(ch.yt, s.t1_threshold_pe)
-        k1 > 0 && (t1[c] = sample_time(g, k1))
-        k2 = first_crossing(ch.yt, s.t2_threshold_pe)
-        k2 > 0 && (t2[c] = sample_time(g, k2))
+        t1[c] = crossing_times(ch.yt, s.t1_threshold_pe, g; tmin = s.t_start_ns)
+        t2[c] = crossing_times(ch.yt, s.t2_threshold_pe, g; tmin = s.t_start_ns)
         # high-gain path
         y = hg_wave[c]
         copyto!(y, ch.x)
@@ -125,9 +126,21 @@ function radioroc_event(ch::RadiorocChain, trains::Vector{Vector{Avalanche}})
         shape!(yl, ch.shapers[tp_lg(ch, c)])
         ch.noise[tp_lg(ch, c)](ch.nz)
         yl .+= ch.nz ./ s.lg_ratio          # the same input noise, larger in avalanche units
-        kq = first_crossing(yl, s.tq_threshold_pe)
-        kq > 0 && (tq[c] = sample_time(g, kq))
+        tq[c] = crossing_times(yl, s.tq_threshold_pe, g; tmin = s.t_start_ns)
     end
+    return t1, t2, tq, hg_wave, lg_wave
+end
+
+"""
+    radioroc_event(ch, trains) -> CitirocEvent
+
+Apply the Radioroc2 to the avalanche trains of one event. hits marks the channels whose
+T1 fired within the coincidence window of the acquisition trigger.
+"""
+function radioroc_event(ch::RadiorocChain, trains::Vector{Vector{Avalanche}})
+    s, g = ch.s, ch.grid
+    nch = length(trains)
+    t1, t2, tq, hg_wave, lg_wave = radioroc_waves(ch, trains)
     ttrig = s.trigger == "tq" ? trigger_time(tq, 1, s.coincidence_ns) :
             s.trigger == "t1" ? trigger_time(t1, 1, s.coincidence_ns) :
             s.trigger == "t2" ? trigger_time(t2, 1, s.coincidence_ns) :
@@ -154,10 +167,36 @@ function radioroc_event(ch::RadiorocChain, trains::Vector{Vector{Avalanche}})
             hc >= fullscale && (sat[c] = true)
             hg[c] = UInt16(clamp(round(Int, hc), 0, fullscale))
             lg[c] = UInt16(clamp(round(Int, lc), 0, fullscale))
-            hits[c] = isfinite(t1[c]) && ttrig - s.coincidence_ns <= t1[c] <= ttrig + s.coincidence_ns
+            hits[c] = in_trigger_window(t1[c], ttrig, s.coincidence_ns)
         end
     end
     return CitirocEvent(hg, lg, hits, Float32(ttrig), isfinite(ttrig), sat, stored)
+end
+
+"""
+    hg_at_crossings(ch, trains, delay) -> per-channel vectors of high-gain ADC counts
+
+The self-triggered calibration of the dark counts: every T1 crossing of a channel starts
+its high-gain peak detector, held delay later, converted to ADC counts with the pedestal.
+"""
+function hg_at_crossings(ch::RadiorocChain, trains::Vector{Vector{Avalanche}}, delay::Real)
+    s = ch.s
+    t1, _, _, hgw, _ = radioroc_waves(ch, trains)
+    full = 2^s.adc_bits - 1
+    return [clamp.(round.(s.pedestal .+ s.adc_per_pe .* held_at_crossings(hgw[c], t1[c], ch.grid, delay, s.peak_detector)), 0, full)
+            for c in eachindex(trains)]
+end
+
+"""
+Delay from the T1 crossing of a single avalanche to the maximum of its high-gain signal
+(channel 1), without noise: the hold delay that a scan on the bench would choose.
+"""
+function hold_at_peak(ch::RadiorocChain)
+    g = ch.grid
+    fill!(ch.x, 0.0); ch.x[sample_index(g, 0.0)] = 1.0
+    copyto!(ch.yt, ch.x); device_pulse!(ch.yt, ch.time_pulse)
+    copyto!(ch.y, ch.x); shape!(ch.y, ch.shapers[tp_hg(ch, 1)])
+    return sample_time(g, argmax(ch.y)) - sample_time(g, first_crossing(ch.yt, ch.s.t1_threshold_pe))
 end
 
 "Stored fraction of an exponential train on the high-gain path of channel c (no noise)."

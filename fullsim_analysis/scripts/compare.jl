@@ -50,7 +50,7 @@ calibration_noise(e) = median(Float64.(e.calib["pedestal_rms"]) ./ Float64.(e.ca
 
 "Single-avalanche signal over noise on the path used to calibrate the gain."
 spe_snr(e) = e.frontend == "digitizer" ?
-    median(Float64.(e.calib["gain_per_pe"])) / e.run["fe_area_over_peak"] / e.run["fe_noise_counts"] :
+    median(Float64.(e.calib["peak_counts_per_pe"])) / e.run["fe_noise_counts"] :
     1 / calibration_noise(e)
 
 "Peak-detector pedestal per channel of the energy path (zeros for the digitizer)."

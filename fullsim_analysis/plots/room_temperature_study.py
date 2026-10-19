@@ -1,5 +1,5 @@
-"""Figures of the ambient-temperature study (docs_fullsim/ambient_study.tex) from
-results/<campaign>/study/ (study.csv, study.h5), .../trigger_scan/trigger_scan.csv and
+"""Figures of the study at room temperature (docs_fullsim/room_temperature_study.tex) from
+results/<campaign>/room_temperature/ (room_temperature.csv, room_temperature.h5), .../trigger_scan/trigger_scan.csv and
 .../calibration/ (calibration.csv, calibration.h5):
 
   case_<case>.png    one per case: trigger efficiency and dark trigger rate against the
@@ -11,7 +11,7 @@ results/<campaign>/study/ (study.csv, study.h5), .../trigger_scan/trigger_scan.c
                            efficiencies of each step;
   compare_channels.png     brightest and least illuminated channel distributions.
 
-    python3 fullsim_analysis/plots/ambient_study.py <campaign>
+    python3 fullsim_analysis/plots/room_temperature_study.py <campaign>
 """
 import sys
 
@@ -56,23 +56,25 @@ def trigger_panel(ax, campaign, r):
 
 def calibration_panel(ax, campaign, r):
     c = read_table(campaign, "calibration", "calibration")
-    key = f"{r.tag}_tp300" if r.frontend == "radioroc" else r.tag
+    key = r.tag
     row = c[c.tag == key]
     with h5py.File(results_dir(campaign, "calibration") / "calibration.h5", "r") as f:
         if key not in f:
             ax.text(0.5, 0.5, "no calibration", ha="center", transform=ax.transAxes)
             return
-        e, n = read_hist(f[key], "spectrum_norm")
+        e, n = read_hist(f[key], "spectrum_cal")
+        tp = f[key].attrs.get("tp_ns", float("nan"))
     step_hist(ax, e, n, color="k")
-    ax.set_xlabel("amplitude / true single-photoelectron amplitude")
+    ax.set_xlabel("(amplitude - fitted zero) / fitted gain")
     ax.set_ylabel("entries")
-    ttl = "single-photoelectron spectrum"
-    if r.frontend == "radioroc":
-        ttl += ", 300 ns shaping"
+    ttl = "dark-count spectrum"
+    if r.frontend != "digitizer" and np.isfinite(tp):
+        ttl += f", high gain, {tp:g} ns shaping"
     if not row.empty:
         ax.text(0.97, 0.95, f"fitted / true gain\n{row.fitted_over_true_median.iloc[0]:.3f} "
                 f"$\\pm$ {row.fitted_over_true_mad.iloc[0]:.3f}", ha="right", va="top", transform=ax.transAxes)
     ax.set_title(ttl)
+    ax.set_xlim(-0.5, 4.5)
 
 
 def spectrum_panel(ax, h5, r):
@@ -105,8 +107,8 @@ def chain_panel(ax, r):
 
 def main():
     campaign = sys.argv[1]
-    df = read_table(campaign, "study", "study")
-    with h5py.File(results_dir(campaign, "study") / "study.h5", "r") as h5:
+    df = read_table(campaign, "room_temperature", "room_temperature")
+    with h5py.File(results_dir(campaign, "room_temperature") / "room_temperature.h5", "r") as h5:
         for _, r in df.iterrows():
             fig, axs = plt.subplots(2, 2, figsize=(12, 8.5))
             trigger_panel(axs[0, 0], campaign, r)
@@ -114,7 +116,7 @@ def main():
             spectrum_panel(axs[1, 0], h5, r)
             chain_panel(axs[1, 1], r)
             fig.suptitle(case_label(r))
-            save(fig, campaign, "study", f"case_{r.case}")
+            save(fig, campaign, "room_temperature", f"case_{r.case}")
 
         # resolution
         fig, (a, b) = plt.subplots(1, 2, figsize=(13, 4.8))
@@ -138,7 +140,7 @@ def main():
         b.legend(fontsize=7)
         a.set_title("energy resolution")
         b.set_title("contributions, added in quadrature")
-        save(fig, campaign, "study", "compare_resolution")
+        save(fig, campaign, "room_temperature", "compare_resolution")
 
         # light
         fig, (a, b) = plt.subplots(1, 2, figsize=(13, 4.8))
@@ -158,7 +160,7 @@ def main():
         b.set_ylabel("ratio")
         b.legend(fontsize=7)
         b.set_title("efficiency of each step")
-        save(fig, campaign, "study", "compare_light")
+        save(fig, campaign, "room_temperature", "compare_light")
 
         # channels
         fig, (a, b) = plt.subplots(1, 2, figsize=(13, 4.8))
@@ -174,7 +176,7 @@ def main():
         for ax in (a, b):
             ax.set_ylabel("fraction of events")
             ax.legend(fontsize=7)
-        save(fig, campaign, "study", "compare_channels")
+        save(fig, campaign, "room_temperature", "compare_channels")
 
 
 if __name__ == "__main__":

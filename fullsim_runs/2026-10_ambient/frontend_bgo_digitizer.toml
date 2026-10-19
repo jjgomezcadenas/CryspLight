@@ -13,7 +13,7 @@ device = "sipm_s14160"
 temperature_k = 293.15
 overvoltage_v = 5.0
 gain_spread = 0.05
-window_ns = [-2500.0, 3000.0]
+window_ns = [-3200.0, 3000.0]
 
 [frontend]
 type = "digitizer"

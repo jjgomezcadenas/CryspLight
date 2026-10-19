@@ -5,7 +5,8 @@
 # charges in units of one avalanche, by
 #   1. thinning the records with the detection efficiency at the wavelength and the
 #      overvoltage of the run,
-#   2. adding, to each avalanche, a geometric number of simultaneous crosstalk avalanches,
+#   2. adding, to each avalanche, its simultaneous crosstalk avalanches, by branching: each
+#      fired cell fires a Poisson number of neighbours, and each of those does the same,
 #   3. adding afterpulses, delayed by an exponential time and reduced by the fraction of
 #      the cell recharge completed at that delay,
 #   4. adding the dark avalanches of the acquisition window, with their crosstalk and
@@ -40,6 +41,37 @@ struct SipmDevice
     pulse_rise_ns::Float64      # avalanche current pulse into the electronics: time to peak
     pulse_fall_ns::Float64      # decay constant after the peak
     pulse_tr_ns::Float64        # rise constant of (1 - exp(-t/tr)) exp(-t/fall) giving that peak
+    ct_pf::Float64              # terminal capacitance of the device [pF]
+    input_ohm::Float64          # input resistance of the electronics the pulse is computed for
+end
+
+"""
+    physical_pulse(recovery_ns, ct_pf, r_ohm) -> (t_peak, fall, tr)
+
+The current pulse of one avalanche in the input resistance r_ohm of the electronics: the
+recharge current of the fired cell, exponential with the recovery time, flows into the
+input resistance in parallel with the capacitance of the whole device, which filters it
+with r C_t. The pulse is the difference of the two exponentials, rising with the shorter
+time constant and falling with the longer one; it is returned in the form
+(1 - exp(-t/tr)) exp(-t/fall) used by the shapers, with its time to peak. The fast
+component through the parasitic capacitance of the quenching resistor is neglected.
+"""
+function physical_pulse(recovery_ns::Real, ct_pf::Real, r_ohm::Real)
+    rc = r_ohm * ct_pf * 1e-3                       # ohm x pF = 1e-3 ns
+    ta, tb = max(recovery_ns, rc), min(recovery_ns, rc)
+    tb >= 0.999ta && (tb = 0.999ta)                 # equal constants: the limit t exp(-t/ta)
+    tr = 1 / (1 / tb - 1 / ta)
+    return (t_peak = ta * tb / (ta - tb) * log(ta / tb), fall = ta, tr = tr)
+end
+
+"A copy of the device with the pulse computed for the input resistance r_ohm."
+function with_input(dev::SipmDevice, r_ohm::Real)
+    p = physical_pulse(dev.recovery_ns, dev.ct_pf, r_ohm)
+    SipmDevice(dev.name, dev.vbr_25c, dev.dvbr_dt, dev.gain_per_volt, dev.pde_vov,
+               dev.pde_val, dev.pde_lambda, dev.pde_spectral, dev.ct_vov, dev.ct_val,
+               dev.dark_hz_ref, dev.dark_t_ref, dev.dark_vov_ref, dev.dark_doubling_k,
+               dev.ap_prob_ref, dev.ap_vov_ref, dev.ap_tau_ns, dev.recovery_ns,
+               dev.n_cells, p.t_peak, p.fall, p.tr, dev.ct_pf, Float64(r_ohm))
 end
 
 "Rise constant tr such that (1 - exp(-t/tr)) exp(-t/fall) peaks at t_peak (bisection)."
@@ -71,8 +103,8 @@ function SipmDevice(mat::AbstractDict)
                       v("crosstalk"), d["dark_hz"], d["dark_t_k"], d["dark_vov_v"],
                       d["dark_doubling_k"], d["afterpulse_prob"], d["afterpulse_vov_v"],
                       d["afterpulse_tau_ns"], d["recovery_ns"], Int(d["n_cells"]),
-                      d["pulse_rise_ns"], d["pulse_fall_ns"],
-                      rise_constant(Float64(d["pulse_rise_ns"]), Float64(d["pulse_fall_ns"])))
+                      physical_pulse(d["recovery_ns"], d["terminal_capacitance_pf"], d["input_ohm"])...,
+                      Float64(d["terminal_capacitance_pf"]), Float64(d["input_ohm"]))
 end
 
 SipmDevice(name::AbstractString = "sipm_s14160") = SipmDevice(load_material(name))
@@ -140,7 +172,7 @@ end
 
 function SipmOperation(dev::SipmDevice; t_k::Real, vov::Real, n_channels::Integer,
                        gain_spread::Real = 0.0, seed::Integer = 1,
-                       window_ns = (-1000.0, 10_000.0))
+                       window_ns = (-10_000.0, 10_000.0))
     rng = Xoshiro(hash((:gain, seed)))
     gf = gain_spread > 0 ? [max(0.5, 1 + gain_spread * randn(rng)) for _ in 1:n_channels] :
                            ones(Float64, n_channels)
@@ -162,12 +194,22 @@ const AV_CROSSTALK = Int8(1)
 const AV_AFTERPULSE = Int8(2)
 const AV_DARK = Int8(3)
 
-"Geometric number of extra crosstalk avalanches for one primary: P(k) = (1 - p) p^k."
-@inline function n_crosstalk(rng::AbstractRNG, p::Float64)
-    k = 0
-    while rand(rng) < p
-        k += 1
-        k >= 50 && break
+"Mean number of neighbours one fired cell fires, given the probability p of at least one extra cell."
+branching_mean(p::Real) = -log(1 - p)
+
+"""
+Number of extra crosstalk avalanches for one primary, by branching: each fired cell fires
+a Poisson number of neighbours of mean lambda = -ln(1 - p), so that the probability of at
+least one extra cell is p, and each of those does the same. The total number of cells is
+Borel distributed, P(n) = exp(-lambda n) (lambda n)^(n - 1) / n!, of mean 1 / (1 - lambda).
+"""
+function n_crosstalk(rng::AbstractRNG, p::Float64)
+    lam = branching_mean(p)
+    k, pending = 0, 1
+    while pending > 0 && k < 200
+        born = rand_poisson(rng, lam * pending)
+        k += born
+        pending = born
     end
     return k
 end
@@ -220,6 +262,18 @@ function respond(op::SipmOperation, times_ns::AbstractVector, lambdas_nm::Abstra
     end
     sort!(out; by = a -> a.t_ns)
     return out
+end
+
+"""
+Mean charge per ns of the dark avalanches of one channel, in avalanche units: the dark
+rate times the mean charge of a dark count with its crosstalk (1 / (1 - lambda)
+avalanches, lambda the branching mean) and its afterpulses (each avalanche adds one with
+probability afterpulse, of mean charge ap_tau / (ap_tau + recovery)).
+"""
+function dark_charge_per_ns(op::SipmOperation)
+    dev = op.dev
+    cluster = 1 / (1 - branching_mean(op.crosstalk))
+    return op.dark_hz * 1e-9 * cluster * (1 + op.afterpulse * dev.ap_tau_ns / (dev.ap_tau_ns + dev.recovery_ns))
 end
 
 "Total charge of a train in avalanche units, and in photoelectron-equivalents of charge."

@@ -1,23 +1,33 @@
 # Single-photoelectron calibration of a front end from the dark counts of the SiPMs, as
-# the bench measures it, on decays with no energy deposit:
-#   Citiroc and Radioroc2  self-trigger of one channel on its own discriminator at half a
-#                          photoelectron (the fast shaper of the Citiroc, the time
-#                          preamplifier T1 of the Radioroc2), high-gain value held at the
-#                          peaking time after the trigger (track and hold); the channels
-#                          whose discriminator fired within 2 ns of the trigger, and whose
-#                          value is therefore held at its peak, enter the spectrum;
+# the bench measures it, on decays with no energy deposit; each readout is calibrated
+# with its own data only.
+#   Citiroc and Radioroc2  the high gain at a short peaking time (where the dark counts do
+#                          not pile up) is held at its maximum after every crossing of
+#                          the discriminator of the channel at half a photoelectron (the
+#                          fast shaper of the Citiroc, track and hold; T1 of the
+#                          Radioroc2, peak detector), the hold delay being the one a scan
+#                          on the bench would choose (crossing to maximum of a single
+#                          avalanche). Per channel, the photoelectron peaks of the
+#                          spectrum (minima of its smoothed second derivative, numbered
+#                          from the random-trigger pedestal) give the gain (slope of the
+#                          line through them) and the zero level of the high gain (its
+#                          intercept). The zero level
+#                          of the low gain (the energy path, production settings) is the
+#                          mean low-gain value of the channels whose discriminator did not
+#                          fire, on self-triggered dark-count events. The low-gain gain is
+#                          the high-gain one times the ratio of the two paths, assumed
+#                          known from charge injection;
 #   digitiser              the sampled waveform of every channel with its noise, filtered
 #                          with the sampled pulse of one cell (matched filter) after
 #                          subtracting the mean of the 4 samples before, and the local
-#                          maxima of the filtered waveform.
-# For each channel the one-photoelectron peak is fitted; its position is the gain (the
-# baseline being subtracted), compared with the gain the simulation used. The ratio is
-# not one: the hold of the ASICs does not fall exactly at the maximum, and the sampling of
-# the digitiser misses part of the peak; it is common to all channels. For the Radioroc2 an optional peaking
-# time replaces the one of the configuration (the calibration can use a shorter one).
+#                          maxima of the filtered waveform; the one-photoelectron peak is
+#                          the gain, the zero level is zero by construction.
+# The fitted gains are compared with those of the simulation.
 # Writes results/<campaign>/calibration/calibration.h5 (one group per case: spectrum
-# normalised channel by channel to the true gain, raw spectrum, fitted and true gains)
-# and calibration.csv (one row per case).
+# calibrated with the fitted gain and zero, the same with the simulation's values, raw
+# spectrum of channel 1, fitted and true gains, zero levels) and calibration.csv (one row
+# per case). tp_ns replaces the high-gain peaking time of the configuration (the case is
+# then named <tag>_tp<tp>).
 #   julia --project=. --threads=8 fullsim_analysis/scripts/calibration.jl <campaign> <frontend config> [n_empty] [tp_ns]
 include(joinpath(@__DIR__, "..", "lib", "FullsimAnalysis.jl"))
 using .FullsimAnalysis
@@ -25,34 +35,59 @@ using CryspLight, HDF5, Statistics, Printf
 using Random: Xoshiro, seed!
 
 campaign, cfg = ARGS[1], ARGS[2]
-nmax = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 20_000
+nmax = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 5000
 tp_override = length(ARGS) >= 4 ? parse(Float64, ARGS[4]) : NaN
 r = open_pes_run(cfg)
 st, pes, op = r.setup, r.pes, r.op
 kind, s = st.frontend, st.settings
-case = isfinite(tp_override) ? "$(st.tag)_tp$(Int(tp_override))" : st.tag
+case = isfinite(tp_override) ? "$(st.tag)_tp$(replace(string(tp_override), ".0" => ""))" : st.tag
 empty = event_lists(pes; nmax = nmax).empty
 nch = length(op.gain_factor)
-vals = [Float64[] for _ in 1:nch]          # per channel, in counts above the baseline
+vals = [Float64[] for _ in 1:nch]          # per channel, ADC counts (with the pedestal for the ASICs)
+zero_true = zeros(nch); lg_zero = fill(NaN, nch); hold_delay = NaN; tp_cal = NaN
 
 if kind == "citiroc" || kind == "radioroc"
+    # calibration settings: high gain at the calibration peaking time, low gain as produced
     cs = if kind == "citiroc"
-        with(s; trigger = "majority", majority = 1, threshold_pe = 0.5, coincidence_ns = 2.0,
-             peak_detector = false, hold_ns = s.tp_ns)
+        tp_cal = isfinite(tp_override) ? tp_override : s.tp_ns
+        with(s; tp_ns = tp_cal, tp_lg_ns = CryspLight.tp_lg(s), threshold_pe = 0.5)
     else
-        tp = isfinite(tp_override) ? tp_override : s.tp_ns[1]
-        with(s; trigger = "t1", t1_threshold_pe = 0.5, coincidence_ns = 2.0, peak_detector = false,
-             tp_ns = fill(tp, nch), tp_lg_ns = Float64[], hold_ns = tp)
+        tp_cal = isfinite(tp_override) ? tp_override : s.tp_ns[1]
+        with(s; tp_ns = fill(tp_cal, nch), tp_lg_ns = isempty(s.tp_lg_ns) ? s.tp_ns : s.tp_lg_ns,
+             t1_threshold_pe = 0.5, peak_detector = true)
     end
-    res = emulate(pes, op, kind, cs, empty)
+    make = chain_maker(kind, cs, op)
+    nt = Threads.maxthreadid()
+    chains = [make(t) for t in 1:nt]
+    hold_delay = hold_at_peak(chains[1])
+    local_vals = [[Float64[] for _ in 1:nch] for _ in 1:nt]
+    Threads.@threads :static for i in eachindex(empty)
+        k = empty[i]
+        ch = chains[Threads.threadid()]; lv = local_vals[Threads.threadid()]
+        seed!(ch.rng, hash((5, k, :noise)))
+        trains = event_trains(op, event_pes(pes, k), nch, Xoshiro(hash((5, k))))
+        v = hg_at_crossings(ch, trains, hold_delay)
+        for c in 1:nch
+            append!(lv[c], v[c])
+        end
+    end
     # the ADC values are integers: a uniform spread over each count lets the peak fits
     # treat them as a continuous variable without binning artefacts
     rng = Xoshiro(17)
-    for i in eachindex(empty), c in 1:nch
-        res.triggered[i] && res.hits[c, i] &&
-            push!(vals[c], Float64(res.hg[c, i]) - s.pedestal + rand(rng) - 0.5)
+    for t in 1:nt, c in 1:nch
+        append!(vals[c], local_vals[t][c] .+ rand(rng, length(local_vals[t][c])) .- 0.5)
+    end
+    # zero level of the low gain: self-triggered dark-count events with the production
+    # settings, the channels whose discriminator did not fire
+    ps = kind == "citiroc" ? with(s; trigger = "majority", majority = 1, threshold_pe = 0.5) :
+                             with(s; trigger = "t1", t1_threshold_pe = 0.5)
+    res = emulate(pes, op, kind, ps, empty[1:min(2000, length(empty))])
+    for c in 1:nch
+        sel = res.triggered .& .!res.hits[c, :]
+        lg_zero[c] = mean(Float64.(res.lg[c, sel]))
     end
     true_gain = s.adc_per_pe .* op.gain_factor
+    zero_true .= s.pedestal
     unit = "ADC counts, high gain"
 else
     # digitiser: the sampled waveform of each channel over the dark window
@@ -94,15 +129,19 @@ else
     unit = "ADC counts, matched-filter amplitude"
 end
 
-# per channel: the one- and two-photoelectron peaks, searched around the nominal gain
+# per channel: the gain and zero level from the photoelectron peaks (the ASICs), or the
+# one-photoelectron peak (the digitiser, whose zero is zero)
 nominal = median(true_gain)
-fitted = fill(NaN, nch); sig1 = fill(NaN, nch)
+fitted = fill(NaN, nch); zero_fit = fill(NaN, nch); npeaks = zeros(Int, nch)
 for c in 1:nch
-    length(vals[c]) < 100 && continue
-    p1 = peak_fit(vals[c], 0.6nominal, 1.25nominal; nbins = 60)
-    isfinite(p1.mean) || continue
-    fitted[c] = p1.mean        # the baseline is subtracted: the one-photoelectron position is the gain
-    sig1[c] = p1.sigma
+    length(vals[c]) < 300 && continue
+    if kind == "digitizer"
+        p1 = peak_fit(vals[c], 0.6nominal, 1.25nominal; nbins = 60)
+        fitted[c] = p1.mean; zero_fit[c] = 0.0; npeaks[c] = isfinite(p1.mean)
+    else
+        lad = photoelectron_ladder(vals[c], nominal; pedestal = s.pedestal)
+        fitted[c] = lad.gain; zero_fit[c] = lad.zero; npeaks[c] = length(lad.peaks)
+    end
 end
 ok = isfinite.(fitted)
 ratio = fitted[ok] ./ true_gain[ok]
@@ -111,25 +150,33 @@ ratio = fitted[ok] ./ true_gain[ok]
 rmed = isempty(ratio) ? NaN : median(ratio)
 rmad = isempty(ratio) ? NaN : 1.4826 * median(abs.(ratio .- rmed))
 nout = count(abs.(ratio .- rmed) .> 5rmad)
-allnorm = reduce(vcat, [vals[c] ./ true_gain[c] for c in 1:nch])
-allraw = reduce(vcat, vals)
+dzero = count(ok) > 0 ? median((zero_fit[ok] .- zero_true[ok]) ./ true_gain[ok]) : NaN
+gcal = [ok[c] ? fitted[c] : any(ok) ? median(fitted[ok]) : true_gain[c] for c in 1:nch]
+zcal = [ok[c] ? zero_fit[c] : any(ok) ? median(zero_fit[ok]) : zero_true[c] for c in 1:nch]
+allcal = reduce(vcat, [(vals[c] .- zcal[c]) ./ gcal[c] for c in 1:nch])
+allnorm = reduce(vcat, [(vals[c] .- zero_true[c]) ./ true_gain[c] for c in 1:nch])
 
 open_results(campaign, "calibration"; mode = isfile(joinpath(results_dir(campaign, "calibration"), "calibration.h5")) ? "r+" : "w") do h5
     haskey(h5, case) && delete_object(h5, case)
     gr = create_group(h5, case)
     stamp!(gr, "config" => st.cfg_text, "frontend" => kind, "unit" => unit, "n_empty" => length(empty),
-           "tp_ns" => kind == "radioroc" ? (isfinite(tp_override) ? tp_override : s.tp_ns[1]) :
-                      kind == "citiroc" ? s.tp_ns : NaN)
-    write_hist!(gr, "spectrum_norm", histogram(allnorm, 0.0, 4.0, 160)...)
-    write_hist!(gr, "spectrum_raw", histogram(allraw, 0.0, 4nominal, 160)...)
+           "tp_ns" => tp_cal, "hold_delay_ns" => hold_delay)
+    write_hist!(gr, "spectrum_cal", histogram(allcal, -0.5, 4.5, 250)...)
+    write_hist!(gr, "spectrum_norm", histogram(allnorm, -0.5, 4.5, 250)...)
+    lo1 = kind == "digitizer" ? 0.0 : s.pedestal - nominal
+    write_hist!(gr, "spectrum_ch1", histogram(vals[1], lo1, lo1 + 5nominal, 250)...)
     write_vector!(gr, "gain_fitted", fitted); write_vector!(gr, "gain_true", true_gain)
-    write_vector!(gr, "sigma_1pe", sig1); write_vector!(gr, "entries", [length(v) for v in vals])
+    write_vector!(gr, "zero_fitted", zero_fit); write_vector!(gr, "zero_true", zero_true)
+    write_vector!(gr, "lg_pedestal", lg_zero); write_vector!(gr, "peaks_found", Float64.(npeaks))
+    write_vector!(gr, "entries", [length(v) for v in vals])
 end
-@printf("%-40s %-9s %d empty decays: %d entries per channel (median); gain fitted in %d of %d channels, fitted/true %.3f ± %.3f (median, MAD), %d outliers; one-photoelectron peak width %.2f of the gain\n",
-        case, kind, length(empty), median(length.(vals)), count(ok), nch, rmed, rmad, nout,
-        count(ok) > 0 ? median(sig1[ok] ./ fitted[ok]) : NaN)
+@printf("%-40s %-9s %d empty decays, hold %.1f ns: %d entries per channel (median); gain fitted in %d of %d channels (%d with three peaks), fitted/true %.3f ± %.3f (median, MAD), %d outliers; zero level %+.3f pe from the true one\n",
+        case, kind, length(empty), hold_delay, median(length.(vals)), count(ok), nch, count(npeaks .>= 3),
+        rmed, rmad, nout, dzero)
 println("written ", update_table(campaign, "calibration", "calibration",
     ["tag" => [case], "frontend" => [kind], "unit" => [unit], "n_empty" => [length(empty)],
+     "tp_ns" => [tp_cal], "hold_delay_ns" => [hold_delay],
      "entries_per_channel" => [median(length.(vals))], "channels_fitted" => [count(ok)],
-     "gain_nominal" => [nominal], "fitted_over_true_median" => [rmed], "fitted_over_true_mad" => [rmad], "outlier_channels" => [nout],
-     "sigma1_over_gain" => [count(ok) > 0 ? median(sig1[ok] ./ fitted[ok]) : NaN]]))
+     "channels_three_peaks" => [count(npeaks .>= 3)],
+     "gain_nominal" => [nominal], "fitted_over_true_median" => [rmed], "fitted_over_true_mad" => [rmad],
+     "outlier_channels" => [nout], "zero_offset_pe" => [dzero]]))

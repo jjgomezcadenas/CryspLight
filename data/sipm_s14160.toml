@@ -27,7 +27,14 @@ dark_doubling_k = 9.0            # factor 2 every 9 K
 afterpulse_prob = 0.01           # 1% at 3 V (literature on the same technology), ~ Vov^2
 afterpulse_vov_v = 3.0
 afterpulse_tau_ns = 100.0
-recovery_ns = 50.0               # cell recharge time constant
+recovery_ns = 50.0               # cell recharge time constant (quenching resistor x cell
+                                 #   capacitance): assumed, not given by the datasheet; a fall of
+                                 #   about 60 ns is reported with a pulse-shortening amplifier
+                                 #   (Kampert, arXiv:2411.16710)
 n_cells = 14331
-pulse_rise_ns = 16.0             # avalanche pulse into 100 ohm, our measurement (DT2745)
-pulse_fall_ns = 50.0
+terminal_capacitance_pf = 2000.0 # datasheet
+input_ohm = 50.0                 # input resistance of the electronics (Citiroc: 50 ohm
+                                 #   termination of the datasheet; Radioroc2 and DT2745 taken
+                                 #   alike until measured). The pulse of one avalanche is the
+                                 #   recharge current filtered by input_ohm x 2000 pF = 100 ns:
+                                 #   rise to a peak at 69 ns, fall 100 ns (physical_pulse)

@@ -12,7 +12,7 @@ device = "sipm_s14160"
 temperature_k = 196.0
 overvoltage_v = 3.0
 gain_spread = 0.05
-window_ns = [-1500.0, 12000.0]
+window_ns = [-8600.0, 12000.0]   # from the start of the grid with its warm-up (four peaking times)
 
 [frontend]
 type = "radioroc"

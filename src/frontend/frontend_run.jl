@@ -8,7 +8,8 @@
 # [run]       tag, pes (photoelectron file, relative to the repository), seed, n_events
 #             (0 = all), output_dir
 # [sipm]      device (data/<name>.toml), temperature_k, overvoltage_v, gain_spread,
-#             window_ns = [t0, t1] for the dark avalanches
+#             window_ns = [t0, t1] for the dark avalanches, input_ohm (input resistance of
+#             the electronics, which sets the pulse; default that of the device file)
 # [frontend]  type = "citiroc" | "digitizer", then the keys of CitirocSettings or
 #             DigitizerSettings (names as in the structs)
 # [channels]  chip_channels (channels per chip, 32 for the Citiroc, 64 for the others);
@@ -54,6 +55,7 @@ function load_frontend(cfg_path::AbstractString; nx::Integer = 8, ny::Integer = 
     pes_path = isabspath(run["pes"]) ? run["pes"] : joinpath(repo, run["pes"])
     sp = cfg["sipm"]
     dev = SipmDevice(get(sp, "device", "sipm_s14160"))
+    haskey(sp, "input_ohm") && (dev = with_input(dev, sp["input_ohm"]))
     win = get(sp, "window_ns", [-1000.0, 10_000.0])
     op = SipmOperation(dev; t_k = sp["temperature_k"], vov = sp["overvoltage_v"],
                        n_channels = Int(nx * ny), gain_spread = get(sp, "gain_spread", 0.0),
@@ -194,8 +196,9 @@ function run_fullsim_frontend(cfg_path::AbstractString; verbose::Bool = true)
         cb["gain_per_pe"] = Float32.(unit .* st.op.gain_factor)
         cb["gain_per_pe_unit"] = has_lg ? "ADC counts per avalanche, high gain" :
                                           "count-samples per avalanche"
+        has_lg || (cb["peak_counts_per_pe"] = Float32.(chain.peak_counts_per_pe .* st.op.gain_factor))
         cb["pedestal"] = fill(Float32(has_lg ? st.settings.pedestal : 0), nch)
-        ped_rms = st.frontend == "citiroc" ? st.settings.noise_pe * st.settings.adc_per_pe :
+        ped_rms = st.frontend == "citiroc" ? CryspLight.noise_at(st.settings, st.settings.tp_ns) * st.settings.adc_per_pe :
                   st.frontend == "radioroc" ? noise_at(st.settings, st.settings.tp_ns[1]) * st.settings.adc_per_pe :
                   chain.noise_charge
         cb["pedestal_rms"] = fill(Float32(ped_rms), nch)

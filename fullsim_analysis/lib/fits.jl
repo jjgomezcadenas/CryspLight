@@ -66,3 +66,90 @@ function peak_fit(x::AbstractVector, lo::Real, hi::Real; nbins::Int = 100)
     end
     return (mean = mu, sigma = sg, n = count(abs.(x .- mu) .<= 2sg))
 end
+
+"""
+    peak_fit_window(x, lo, hi, w; nbins = 40) -> (mean, sigma, n)
+
+The most populated peak of x within [lo, hi], fitted with a Gaussian plus a linear
+background in a window of ±w around the mode of the histogram (nbins bins over [lo, hi]),
+then again in ±2.5 fitted sigmas (at least ±w/2). n is the number of entries within ±2
+sigma. NaN when there are fewer than 100 entries in [lo, hi] or the fit fails.
+"""
+function peak_fit_window(x::AbstractVector, lo::Real, hi::Real, w::Real; nbins::Int = 40)
+    sel = x[(x .>= lo) .& (x .<= hi)]
+    length(sel) < 100 && return (mean = NaN, sigma = NaN, n = 0)
+    edges = range(lo, hi; length = nbins + 1)
+    c = [count(v -> edges[i] <= v < edges[i + 1], sel) for i in 1:nbins]
+    mu, sg, half = 0.5 * (edges[argmax(c)] + edges[argmax(c) + 1]), w / 4, w
+    for _ in 1:2
+        e2 = range(mu - half, mu + half; length = 31)
+        c2 = [count(v -> e2[i] <= v < e2[i + 1], x) for i in 1:30]
+        f = fit_gauss_linear(0.5 .* (e2[1:end-1] .+ e2[2:end]), c2, mu, sg)
+        (f === nothing || abs(f.mu - mu) > half) && return (mean = NaN, sigma = NaN, n = 0)
+        mu, sg = f.mu, f.sigma
+        half = max(2.5sg, w / 2)
+    end
+    return (mean = mu, sigma = sg, n = count(abs.(x .- mu) .<= 2sg))
+end
+
+"""
+    photoelectron_ladder(x, nominal; pedestal) -> (gain, zero, peaks)
+
+Gain and zero level of a self-triggered dark-count spectrum x (ADC counts). The peaks
+are located as the minima of the second derivative of the histogram (bins of a
+fiftieth of the nominal gain), smoothed with a Gaussian of 0.12 nominal gains, which
+resolves a peak that is only a shoulder on the tail of the previous one; each minimum is
+refined by a parabola. Starting from the most prominent peak, the chain of peaks spaced
+by 0.6 to 1.4 times the nominal gain (then the running spacing) is kept, up and down.
+The one-photoelectron peak is the first of the chain more than 0.3 spacings above the
+pedestal (the random-trigger value), which excludes a peak at the pedestal itself; it
+and the next two, the 2 and 3 photoelectron peaks, give the gain and the zero as the
+slope and the intercept of the straight line through their positions against their
+numbers (the higher structures are compressed by the pile-up and left out). NaN with
+fewer than two peaks.
+"""
+function photoelectron_ladder(x::AbstractVector, nominal::Real; pedestal::Real = 0.0)
+    nan = (gain = NaN, zero = NaN, peaks = Float64[])
+    lo, hi = quantile(x, 0.001), quantile(x, 0.999)
+    w = nominal / 50
+    nb = ceil(Int, (hi - lo) / w) + 1
+    nb < 20 && return nan
+    c = zeros(nb)
+    for v in x
+        k = floor(Int, (v - lo) / w) + 1
+        1 <= k <= nb && (c[k] += 1)
+    end
+    sg = 0.12 * nominal / w                       # kernel sigma in bins
+    hw = ceil(Int, 5sg)
+    ker = [((t / sg)^2 - 1) / sg^2 * exp(-0.5 * (t / sg)^2) for t in -hw:hw]
+    d2 = [sum(ker[j + hw + 1] * c[k + j] for j in -hw:hw if 1 <= k + j <= nb) for k in 1:nb]
+    dmin = minimum(d2)
+    dmin < 0 || return nan
+    mins = [k for k in 2:nb-1 if d2[k] < d2[k - 1] && d2[k] <= d2[k + 1] && d2[k] < 0.003dmin]
+    isempty(mins) && return nan
+    pos(k) = lo + (k - 0.5 + 0.5 * (d2[k - 1] - d2[k + 1]) / (d2[k - 1] - 2d2[k] + d2[k + 1])) * w
+    ref = mins[argmin(d2[mins])]
+    chain = [pos(ref)]
+    for dir in (1, -1)
+        last, sp = pos(ref), Float64(nominal)
+        cand = dir > 0 ? [k for k in mins if k > ref] : reverse([k for k in mins if k < ref])
+        for k in cand
+            d = dir * (pos(k) - last)
+            d < 0.6sp && continue
+            d > 1.4sp && break
+            sp = length(chain) > 1 ? d : sp
+            last = pos(k)
+            dir > 0 ? push!(chain, last) : pushfirst!(chain, last)
+        end
+    end
+    length(chain) < 2 && return nan
+    g0 = median(diff(chain))
+    i1 = findfirst(p -> p - pedestal > 0.3g0, chain)
+    i1 === nothing && return nan
+    chain = chain[i1:min(i1 + 2, end)]
+    length(chain) < 2 && return nan
+    n = collect(1.0:length(chain))
+    nm, pm = sum(n) / length(n), sum(chain) / length(chain)
+    gain = sum((n .- nm) .* (chain .- pm)) / sum(abs2, n .- nm)
+    return (gain = gain, zero = pm - gain * nm, peaks = chain)
+end
