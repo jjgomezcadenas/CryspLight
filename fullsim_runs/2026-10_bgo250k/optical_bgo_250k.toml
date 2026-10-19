@@ -1,0 +1,46 @@
+# Optical stage, BGO at 250 K, campaign 2026-10_bgo250k (docs_fullsim/fullsim_design.tex,
+# Table 1: the cold configuration from 20 Oct 2026).
+# Records every photon reaching an active area (pde = 1); the detection efficiency, which
+# depends on the overvoltage, is applied by the SiPM stage by thinning the records.
+[run]
+n_decays = 100000           # 100k decays (20 Oct 2026): enough for the 10k check and the 50k final run
+seed = 2026105
+chunk_decays = 10000
+batch_photons = 2000000
+
+[crystal]
+material = "bgo_250k"       # 13 500 ph/MeV, 840 ns (Gironnet scaled to 8000 at 295 K)
+size_mm = [48.0, 48.0, 22.4]
+density = 7.13
+xcom = "xcom_BGO.csv"
+
+[wrap]
+material = "teflon"
+
+[surface]
+finish = "backpainted"      # air gap between the crystal and the tape
+sigma_alpha_deg = 1.3
+
+[coupling]
+n = 1.42                    # optical grease
+window_n = 1.57             # silicone resin of the tiles
+
+[readout]
+pitch_mm = 6.2
+nx = 8
+ny = 8
+tiles = true
+tile_n = 4
+tile_edge_mm = 0.2
+active_mm = 6.0
+dead_reflectivity = 0.5     # package surface between channels; to fit on the maps
+dead_specular = false
+pde = 1.0
+
+[source]
+type = "na22"
+position_mm = [24.0, 24.0, -30.0]
+
+[binning]
+bin_ns = 100.0
+window_ns = 8000.0

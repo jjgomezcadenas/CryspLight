@@ -1,0 +1,20 @@
+# BGO at 250 K (-23 C), 480 nm emission: the cold configuration of the full simulation from
+# 20 Oct 2026 (docs_fullsim/fullsim_design.tex, Table 1). Yield and decay from Gironnet et
+# al., NIM A 594 (2008) 358 (data/bgo_gironnet_T.csv, scripts/bgo_gironnet_table.py):
+# light 1.69 times that at 295 K, scaled to the 8000 ph/MeV of bgo_ambient.toml; decay
+# 0.84 us from their three-level model, single exponential above 150 K. The decay is at the
+# precision limit of their technique (which gives 0.43 us at 295 K against 0.30 us in the
+# literature), so it may be 20 to 30% long. Near 250 K the light changes by about 1% per
+# kelvin. Bulk and index: as bgo.toml.
+name = "BGO"
+n = 2.15
+abs_length_mm = 20000.0
+rayleigh_mm = 2222.0
+yield_per_mev = 13500
+tau_ns = 840.0
+# Intrinsic resolution: 5% FWHM at 511 keV as for ambient BGO; applied as a Gaussian smearing
+# of the light of each decay scaling as (511/E)^exponent.
+intrinsic_fwhm_511 = 0.05
+intrinsic_exponent = 0.5
+lambda_nm = 480.0
+x0_mm = 11.2

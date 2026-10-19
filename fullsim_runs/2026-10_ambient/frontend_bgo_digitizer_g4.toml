@@ -17,7 +17,7 @@ window_ns = [-3200.0, 3000.0]
 [frontend]
 type = "digitizer"
 gain = 4.0
-threshold_counts = 704.0   # from the trigger scan of 19 Oct: 511 keV 1.000, 200-300 keV 0.997, dark 0.00 kHz (below 0.40 at 95%)
+threshold_counts = 704.0   # from the trigger scan of 20 Oct 2026: 511 keV 1.000, 200-300 keV 0.998, dark 0.00 kHz (below 0.40 at 95%)
 majority = 2
 coincidence_ns = 100.0
 pretrigger_ns = 1000.0

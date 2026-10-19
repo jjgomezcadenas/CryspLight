@@ -17,15 +17,16 @@
 #               to the SiPM (crosstalk and afterpulses) and to the readout (dark counts,
 #               noise, shaping, zero level);
 #   channels    the brightest and the least illuminated channel of each of those events.
-# Writes results/<campaign>/room_temperature/room_temperature.h5 (one group per case) and
-# room_temperature.csv.
-#   julia --project=. --threads=8 fullsim_analysis/scripts/room_temperature_study.jl <campaign> [n_replay]
+# Writes results/<campaign>/<set>/<set>.h5 (one group per case) and <set>.csv, where <set> is
+# room_temperature (the six cases above, the default) or bgo_250k (BGO at 250 K read by the
+# digitiser and the Radioroc2).
+#   julia --project=. --threads=8 fullsim_analysis/scripts/room_temperature_study.jl <campaign> [n_replay] [set]
 include(joinpath(@__DIR__, "..", "lib", "FullsimAnalysis.jl"))
 using .FullsimAnalysis
 using CryspLight, HDF5, Statistics, Printf, TOML
 using Random: Xoshiro
 
-const CASES = [
+const ROOM = [
     ("bgo_citiroc", "fullsim_runs/2026-10_ambient/frontend_bgo_citiroc.toml"),
     ("bgo_digitiser", "fullsim_runs/2026-10_ambient/frontend_bgo_digitizer_g4.toml"),
     ("bgo_radioroc", "fullsim_runs/2026-xx_radioroc/frontend_bgo_ambient_radioroc.toml"),
@@ -33,10 +34,17 @@ const CASES = [
     ("csitl_digitiser", "fullsim_runs/2026-10_ambient/frontend_csitl_digitizer_g4.toml"),
     ("csitl_radioroc", "fullsim_runs/2026-xx_radioroc/frontend_csitl_ambient_radioroc.toml"),
 ]
+const BGO250 = [
+    ("bgo250_digitiser", "fullsim_runs/2026-10_bgo250k/frontend_bgo_250k_digitizer_g4.toml"),
+    ("bgo250_radioroc", "fullsim_runs/2026-10_bgo250k/frontend_bgo_250k_radioroc.toml"),
+]
+const SETS = Dict("room_temperature" => ROOM, "bgo_250k" => BGO250)
 const REPO = normpath(joinpath(@__DIR__, "..", ".."))
 
 campaign = ARGS[1]
 nreplay = length(ARGS) >= 2 ? parse(Int, ARGS[2]) : 3000
+set = length(ARGS) >= 3 ? ARGS[3] : "room_temperature"
+const CASES = SETS[set]
 
 "Relative width in FWHM units: half the 16-84% interval over the median, times 2.355."
 relwidth(x) = 2.355 * (quantile(x, 0.84) - quantile(x, 0.16)) / 2 / median(x)
@@ -53,7 +61,7 @@ function pedestal_sum(e, cal)
 end
 
 rows = Dict{String,Any}[]
-open_results(campaign, "room_temperature"; mode = "w") do h5
+open_results(campaign, set; mode = "w") do h5
     for (case, cfg) in CASES
         st = load_frontend(joinpath(REPO, cfg))
         e = read_events(joinpath(st.outdir, "events.h5"))
@@ -135,4 +143,4 @@ cols = ["case", "tag", "frontend", "crystal", "overvoltage_v", "gain_electrons",
         "detection", "pe_per_emitted", "recorded_per_pe", "intrinsic", "width_pe", "width_cells",
         "width_recorded", "term_statistics", "term_sipm", "term_readout", "brightest_median",
         "brightest_p99", "least_median"]
-println("written ", write_table(campaign, "room_temperature", "room_temperature", [c => [r[c] for r in rows] for c in cols]))
+println("written ", write_table(campaign, set, set, [c => [r[c] for r in rows] for c in cols]))

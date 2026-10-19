@@ -1,0 +1,3 @@
+tag,frontend,unit,n_empty,tp_ns,hold_delay_ns,entries_per_channel,channels_fitted,channels_three_peaks,gain_nominal,fitted_over_true_median,fitted_over_true_mad,outlier_channels,zero_offset_pe
+"frontend_bgo_250k_digitizer_g4","digitizer","ADC counts, matched-filter amplitude",10000,,,14148.5,64,0,64.23803430518987,1.0558321391543488,0.0004778324136081331,0,0.0
+"frontend_bgo_250k_radioroc","radioroc","ADC counts, high gain",20000,100.0,229.0,18689.0,64,64,10.005812186166228,0.9971850276777054,0.0055340798286402405,1

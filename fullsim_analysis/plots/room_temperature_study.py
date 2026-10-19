@@ -11,7 +11,7 @@ results/<campaign>/room_temperature/ (room_temperature.csv, room_temperature.h5)
                            efficiencies of each step;
   compare_channels.png     brightest and least illuminated channel distributions.
 
-    python3 fullsim_analysis/plots/room_temperature_study.py <campaign>
+    python3 fullsim_analysis/plots/room_temperature_study.py <campaign> [room_temperature|bgo_250k]
 """
 import sys
 
@@ -22,7 +22,7 @@ import numpy as np
 from common import read_hist, read_table, results_dir, save, step_hist
 
 LABEL = {"citiroc": "Citiroc 1A", "digitizer": "DT2745", "radioroc": "Radioroc2"}
-CRYSTAL = {"bgo_ambient": "BGO", "csitl_ambient": "CsI(Tl)"}
+CRYSTAL = {"bgo_ambient": "BGO", "csitl_ambient": "CsI(Tl)", "bgo_250k": "BGO 250 K"}
 MODE = {"citiroc": "single", "digitizer": "majority2", "radioroc": "tq"}
 COLOR = {"citiroc": "#1f77b4", "digitizer": "#2ca02c", "radioroc": "#d62728"}
 
@@ -107,8 +107,9 @@ def chain_panel(ax, r):
 
 def main():
     campaign = sys.argv[1]
-    df = read_table(campaign, "room_temperature", "room_temperature")
-    with h5py.File(results_dir(campaign, "room_temperature") / "room_temperature.h5", "r") as h5:
+    study = sys.argv[2] if len(sys.argv) > 2 else "room_temperature"
+    df = read_table(campaign, study, study)
+    with h5py.File(results_dir(campaign, study) / f"{study}.h5", "r") as h5:
         for _, r in df.iterrows():
             fig, axs = plt.subplots(2, 2, figsize=(12, 8.5))
             trigger_panel(axs[0, 0], campaign, r)
@@ -116,7 +117,7 @@ def main():
             spectrum_panel(axs[1, 0], h5, r)
             chain_panel(axs[1, 1], r)
             fig.suptitle(case_label(r))
-            save(fig, campaign, "room_temperature", f"case_{r.case}")
+            save(fig, campaign, study, f"case_{r.case}")
 
         # resolution
         fig, (a, b) = plt.subplots(1, 2, figsize=(13, 4.8))
@@ -140,7 +141,7 @@ def main():
         b.legend(fontsize=7)
         a.set_title("energy resolution")
         b.set_title("contributions, added in quadrature")
-        save(fig, campaign, "room_temperature", "compare_resolution")
+        save(fig, campaign, study, "compare_resolution")
 
         # light
         fig, (a, b) = plt.subplots(1, 2, figsize=(13, 4.8))
@@ -160,12 +161,12 @@ def main():
         b.set_ylabel("ratio")
         b.legend(fontsize=7)
         b.set_title("efficiency of each step")
-        save(fig, campaign, "room_temperature", "compare_light")
+        save(fig, campaign, study, "compare_light")
 
         # channels
         fig, (a, b) = plt.subplots(1, 2, figsize=(13, 4.8))
         for _, r in df.iterrows():
-            ls = "-" if r.crystal == "bgo_ambient" else "--"
+            ls = "--" if r.crystal == "csitl_ambient" else "-"
             e, n = read_hist(h5[r.case], "brightest")
             step_hist(a, e, n / n.sum(), color=COLOR[r.frontend], ls=ls, label=case_label(r))
             e, n = read_hist(h5[r.case], "least")
@@ -176,7 +177,7 @@ def main():
         for ax in (a, b):
             ax.set_ylabel("fraction of events")
             ax.legend(fontsize=7)
-        save(fig, campaign, "room_temperature", "compare_channels")
+        save(fig, campaign, study, "compare_channels")
 
 
 if __name__ == "__main__":

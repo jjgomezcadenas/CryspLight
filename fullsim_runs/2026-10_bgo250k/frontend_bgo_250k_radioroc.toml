@@ -1,0 +1,37 @@
+# Front-end stage, BGO at 250 K read by the Radioroc2, as at room temperature: charge trigger
+# TQ on the low-gain shaper, high gain at 100 ns (calibration on the dark counts), low gain
+# at 1800 ns (energy; it holds most of the 840 ns decay), hold 3560 ns after the trigger.
+# Dark counts about 30 times lower than at room temperature. Threshold from the trigger scan.
+[run]
+pes = "output/optical_bgo_250k/pes.h5"
+seed = 61
+n_events = 10000             # 10k decays for the check of 19 Oct; 50k for the final run
+
+[sipm]
+device = "sipm_s14160"
+temperature_k = 250.0
+overvoltage_v = 3.0
+gain_spread = 0.05
+window_ns = [-8600.0, 6000.0]   # from the start of the grid with its warm-up (four peaking times)
+
+[frontend]
+type = "radioroc"
+tp_ns = 100.0               # high gain: calibration on the dark counts (best of the test of 19 Oct)
+tp_lg_ns = 1800.0           # low gain: energy
+hold_ns = 3560.0
+peak_detector = true
+trigger = "tq"
+tq_threshold_pe = 10.0   # from the trigger scan of 20 Oct 2026: 511 keV 1.000, 200-300 keV 1.000, dark 0.00 kHz (below 0.32 at 95%)
+t1_threshold_pe = 0.5
+t2_threshold_pe = 3.0
+majority = 2
+coincidence_ns = 50.0
+noise_pe_100ns = 0.1
+adc_per_pe = 10.0
+pedestal = 200.0
+adc_bits = 12
+t_start_ns = -200.0
+t_end_ns = 8000.0
+
+[channels]
+chip_channels = 64

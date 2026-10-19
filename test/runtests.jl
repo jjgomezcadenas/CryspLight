@@ -488,10 +488,10 @@ end
     @test [emission_time(s1, 300f0) for _ in 1:1000] ==
           [emission_time(s2, 300f0, 0f0, 1f0) for _ in 1:1000]
     # the material files of the full simulation
-    amb = load_material("bgo_ambient"); cold = load_material("bgo_cold")
+    amb = load_material("bgo_ambient"); cold = load_material("bgo_250k")
     csi = load_material("csitl_ambient")
     @test scintillation_times(amb) == (tau_ns = 300f0, tau2_ns = 60f0, frac1 = 0.9f0)
-    @test scintillation_times(cold) == (tau_ns = 2720f0, tau2_ns = 0f0, frac1 = 1f0)
+    @test scintillation_times(cold) == (tau_ns = 840f0, tau2_ns = 0f0, frac1 = 1f0)
     @test scintillation_times(csi) == (tau_ns = 730f0, tau2_ns = 3340f0, frac1 = 0.64f0)
     @test amb["n"] == cold["n"] == load_material("bgo")["n"]
     @test csi["abs_length_mm"] == load_material("csitl")["abs_length_mm"]
@@ -586,7 +586,7 @@ end
     @test m == Int.(ev.maps[:, :, k])
     tfl = 30 / 299.792458
     @test all(ia.t_ns .>= tfl - 1e-4) && all(pe.t_ns .>= tfl - 1e-4)
-    # photopeak scale: 511 keV x 7600 ph/MeV x collection ~0.8 x PDE 0.5 ~ 1500 pe
+    # photopeak scale: 511 keV x 8000 ph/MeV x collection ~0.8 x PDE 0.5 ~ 1500 pe
     pk = ev.n_detected[(ev.edep_511_kev .> 510) .& (ev.edep_1275_kev .== 0)]
     @test !isempty(pk) && 1000 < mean(pk) < 2000
     # the intrinsic resolution broadens the emitted light of photopeak decays: with 20%
@@ -618,7 +618,7 @@ end
     @test st.op.n_coupling == 1.42f0 && st.op.n_window == 1.57f0 && st.op.pde == 1f0
     @test st.op.n_crystal == 2.15f0 && st.op.air_gap && st.op.sigma_alpha ≈ deg2rad(1.3f0)
     @test st.times == (tau_ns = 300f0, tau2_ns = 60f0, frac1 = 0.9f0)
-    @test st.source_mm == (24.0, 24.0, -30.0) && st.yield_per_mev == 7600
+    @test st.source_mm == (24.0, 24.0, -30.0) && st.yield_per_mev == 8000
     @test st.ro.sur_R == 0.5f0 && st.tag == "optical_bgo_ambient"
 
     # a short run through the writer, in two chunks, read back whole and per event

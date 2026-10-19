@@ -7,6 +7,7 @@ confidence (the upper limit of the count of dark triggers).
 """
 import re
 import sys
+from datetime import date
 
 import pandas as pd
 
@@ -19,7 +20,7 @@ if ok.empty:
 r = ok.iloc[0]
 s = open(cfg).read()
 s, n = re.subn(rf"^{key} = [\d.]+.*$",
-               f"{key} = {r.threshold}   # from the trigger scan of 19 Oct: 511 keV {r.efficiency_511:.3f}, "
+               f"{key} = {r.threshold}   # from the trigger scan of {date.today():%d %b %Y}: 511 keV {r.efficiency_511:.3f}, "
                f"200-300 keV {r.efficiency_200_300:.3f}, dark {r.dark_khz:.2f} kHz (below {r.dark_khz_ul95:.2f} at 95%)", s, flags=re.M)
 assert n == 1, f"{key} not found in {cfg}"
 open(cfg, "w").write(s)

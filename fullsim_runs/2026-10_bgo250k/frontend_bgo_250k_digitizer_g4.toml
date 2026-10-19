@@ -1,0 +1,33 @@
+# Front-end stage, BGO at 250 K read by the DT2745 digitiser at gain 4 and 5 V of overvoltage,
+# as at room temperature. Dark counts about 30 times lower (factor 2 every 9 K); the gate of
+# 4 us holds 99% of the 840 ns decay. Threshold from the trigger scan (majority 2 within
+# 100 ns).
+[run]
+pes = "output/optical_bgo_250k/pes.h5"
+seed = 52
+n_events = 10000             # 10k decays for the check of 19 Oct; 50k for the final run
+
+[sipm]
+device = "sipm_s14160"
+temperature_k = 250.0
+overvoltage_v = 5.0
+gain_spread = 0.05
+window_ns = [-3200.0, 6000.0]
+
+[frontend]
+type = "digitizer"
+gain = 4.0
+threshold_counts = 320.0   # from the trigger scan of 20 Oct 2026: 511 keV 1.000, 200-300 keV 1.000, dark 0.25 kHz (below 0.65 at 95%)
+majority = 2
+coincidence_ns = 100.0
+pretrigger_ns = 1000.0
+gate_start_ns = -50.0
+gate_ns = 4000.0
+baseline_ns = 900.0
+noise_counts = 4.0
+sample_ns = 8.0
+t_start_ns = -2000.0
+t_end_ns = 6000.0
+
+[channels]
+chip_channels = 64

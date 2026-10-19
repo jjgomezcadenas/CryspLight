@@ -1,15 +1,16 @@
 # BGO at laboratory temperature (about 295 K), 480 nm emission. Full-simulation file
 # (docs_fullsim/fullsim_design.tex, Table 1); the pedagogical runs keep bgo.toml.
-# Yield: 7000 to 8200 ph/MeV from the temperature dependence of the BGO light yield
-# (Gironnet et al.) applied to the value at 195 K; 7600 is the midpoint, to be fitted on
-# the ambient data (ratio of photoelectrons between the warm and the cold runs).
-# Decay: 300 ns main component plus a minor 60 ns one, 10% of the light (literature).
+# Yield: 8000 ph/MeV at room temperature, adopted on 20 Oct 2026 as the robust reference
+# value; it anchors the temperature dependence of Gironnet et al., NIM A 594 (2008) 358
+# (data/bgo_gironnet_T.csv, scripts/bgo_gironnet_table.py), which sets the cold yields.
+# Decay: 300 ns main component plus a minor 60 ns one, 10% of the light (literature; the
+# 0.43 us of Gironnet at 295 K is below the precision of their technique).
 # Bulk and index: as bgo.toml (no temperature dependence expected for defect scattering).
 name = "BGO"
 n = 2.15
 abs_length_mm = 20000.0
 rayleigh_mm = 2222.0
-yield_per_mev = 7600
+yield_per_mev = 8000
 tau_ns = 300.0
 tau2_ns = 60.0
 frac1 = 0.9
