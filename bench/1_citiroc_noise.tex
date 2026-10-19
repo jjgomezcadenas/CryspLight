@@ -1,0 +1,156 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-noshorthands]{babel}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{enumitem}
+\setlist{itemsep=2pt}
+
+\title{Pedestal y ruido del Citiroc con la CAEN A5202}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\noindent La tarjeta que usamos es una CAEN A5202 (dos Citiroc~1A, 64 canales),
+controlada con el software Janus. Los nombres de los parámetros son los de
+Janus (Sección~\ref{sec:janus}). Estudio número 1.
+
+\section*{Programa de festejos}
+
+\noindent {\bf Setup}
+\begin{itemize}
+\item {\bf Acción:} montar sin cristal, con los  SiPM conectados y a oscuras, polarizados entre 1 y 2~V por
+  debajo de la tensión de ruptura (breakdown voltage, BV;
+  Sección~\ref{sec:razon}). En Janus,
+  usar los parámetros definidos en la Sección~\ref{sec:janus}.
+\item {\bf Resultado:} cada run se para solo a los 10\,000 eventos y lleva su
+  propio número \texttt{N}. Al acabar, Janus escribe en \texttt{DataFilePath}
+  \texttt{RunN\_list.csv} (para cada evento y canal, la baja y la alta
+  ganancia), los histogramas de cada canal \texttt{RunN\_PHA\_HG\_0\_ch.txt}
+  y \texttt{RunN\_PHA\_LG\_0\_ch.txt}, \texttt{RunN\_Info.txt} (la
+  configuración del run) y el fichero de temperatura y tensión.
+\item {\bf Precaución:} en el primer run, comprobar que los SiPM no dan avalanchas: el espectro de
+  alta ganancia de cada canal debe ser una sola gaussiana, sin pico de
+  1 fotoelectrón (pe) a su derecha. Si aparece, bajar la tensión 0,5~V y
+  repetir.
+\end{itemize}
+
+\noindent {\bf Paso 1: ruido frente al shaping de la alta ganancia}
+\begin{itemize}
+\item {\bf Acción:} un run por cada valor de \texttt{HG\_ShapingTime} =
+  25, 50 y 87,5~ns, con \texttt{LG\_ShapingTime} = 87,5~ns en todos:
+  3 runs.
+\item {\bf Resultado:} 3 ficheros \texttt{RunN\_list.csv}, con sus
+  histogramas.
+\item {\bf Análisis:} el de la Sección~\ref{sec:datos}, para cada run
+  y canal, la media (pedestal) y la anchura (ruido) de la alta y la baja
+  ganancia.
+\end{itemize}
+
+\noindent {\bf Paso 2 (opcional): pedestal en peak detector}
+\begin{itemize}
+\item {\bf Acción:} un run con \texttt{PeakDetectorMode} = PEAK\_STRETCH,
+  \texttt{HG\_ShapingTime} = 25~ns, \texttt{LG\_ShapingTime} = 87,5~ns y
+  \texttt{HoldDelay} = 200~ns.
+\item {\bf Resultado:} el pedestal tal como lo verán los runs de energía
+  (los runs con cristal y fuente), que usan peak detector: más alto y más estrecho que en track \& hold,
+  porque el chip guarda el máximo del ruido dentro de la ventana.
+\end{itemize}
+
+\noindent {\bf Qué necesita tu estudiante}
+\begin{itemize}
+\item Todo lo que hay en \texttt{DataFilePath}.
+\item Logbook, una línea por run: número de run, paso al que
+  corresponde y cualquier incidencia. La configuración, la temperatura y
+  la tensión ya están en los ficheros de Janus.
+\end{itemize}
+
+\section{Cómo entra la medida en el modelo}
+\label{sec:razon}
+
+\begin{itemize}
+\item El ruido electrónico de cada canal entra en la resolución en energía y
+  en la anchura de los picos de los espectros de un fotoelectrón (single
+  photoelectron, SPE) con los que se calibra la ganancia. La simulación
+  estima el ruido, pero la estimación puede quedarse corta. Necesitamos datos. 
+\item El ruido de un preamplificador crece con la capacitancia de su
+  entrada, y la de nuestros SiPM es grande, unos 2000~pF por canal. Por eso hay que medirlo con los SiPM conectados.
+\item Por debajo del BV el SiPM conserva su capacitancia
+  pero no produce avalanchas. El pedestal medido así
+  contiene, por tanto, solo el ruido electrónico. Por encima del BV aparecen también
+  los pulsos oscuros (dark pulses, DP), con una frecuencia de varios MHz por canal.
+\item El BV es 38,0~V a 25~$^\circ$C y baja 34~mV por
+  grado; a temperatura ambiente, \texttt{HV\_Vbias} $\approx$ 36,5~V deja todos
+  los canales entre 1 y 2~V por debajo. 
+  \item El modelo de la simulación supone 0,1~pe de ruido en alta ganancia
+  con shaping de 87,5~ns y 3~V de overvoltage (tensión por encima del BV).
+  El ruido es fijo en carga, y la carga de un pe es proporcional al
+  overvoltage, así que a 5~V son 0,06~pe. Supone además que el ruido crece como $(87{,}5~\mathrm{ns}/t_p)^{1/2}$
+  al acortar el peaking time $t_p$, y que la baja ganancia tiene el mismo
+  ruido en cuentas de ADC que la alta. Estas medidas nos permiten entender lo realistas que son estas suposiciones.
+\end{itemize}
+
+\section{Parámetros de Janus (A5202)}
+\label{sec:janus}
+
+\begin{center}
+\small
+\begin{tabular}{p{0.3\textwidth} p{0.6\textwidth}}
+\hline
+parámetro & valor \\
+\hline
+\texttt{HV\_Vbias} & el que deje la tensión en cada SiPM entre 1 y 2~V por
+debajo del BV (unos 36,5~V a temperatura ambiente si \texttt{HV\_IndivAdj}
+no resta nada); \texttt{HV\_IndivAdj}: los valores que tenga cargados
+la tarjeta, los mismos en los tres estudios \\
+\texttt{AcquisitionMode} & SPECTROSCOPY \\
+\texttt{BunchTrgSource} & PTRG (trigger periódico, independiente de la señal) \\
+\texttt{PtrgPeriod} & 1~ms: 10\,000 eventos en 10~s \\
+\texttt{PeakDetectorMode} & TRACK\&HOLD (paso 1); PEAK\_STRETCH (paso 2) \\
+\texttt{HG\_ShapingTime} & 25, 50 o 87,5~ns, según el run \\
+\texttt{LG\_ShapingTime} & 87,5~ns \\
+\texttt{HoldDelay} & cualquiera en el paso 1 (sin señal no importa); 200~ns en el paso 2 \\
+\texttt{HG\_Gain} & el valor por defecto (50) \\
+\texttt{LG\_Gain} & el valor por defecto (50) \\
+\texttt{GainSelect} & BOTH \\
+\texttt{StopRunMode}, \texttt{PresetCounts} & PRESET\_COUNTS, 10000 \\
+\texttt{OF\_ListCSV}, \texttt{OF\_SpectHisto}, \texttt{OF\_RunInfo},
+\texttt{OF\_ServiceInfo} & 1 \\
+\texttt{RunNumber\_AutoIncr} & 1 \\
+\hline
+\end{tabular}
+\end{center}
+
+\section{Análisis}
+\label{sec:datos}
+
+\begin{itemize}
+\item Para cada canal y cada ganancia, una gaussiana
+  ajustada al espectro. Su media es el pedestal y su sigma el ruido, los
+  dos en cuentas de ADC. Para comparar runs se usa la mediana sobre los 64
+  canales. Un canal con una cola o un segundo pico tiene avalanchas o
+  ruido de otro origen, y se anota aparte.
+\item {\bf Paso a fotoelectrones:} el ruido en pe es el ruido en cuentas de
+  ADC dividido por la ganancia en cuentas de ADC por pe, que miden los
+  runs de calibración con SPE. Hay que usar la ganancia medida con el mismo
+  shaping y el mismo \texttt{HG\_Gain}.
+\end{itemize}
+
+\section{Lo que se espera, según el modelo}
+
+\begin{itemize}
+\item {\bf Ruido de la alta ganancia, en pe de 5~V} (los de la calibración):
+  0,06 a 87,5~ns, 0,08 a 50~ns y 0,11 a 25~ns.
+\item {\bf Prueba sin ganancia:} el cociente entre el ruido a un shaping y
+  el ruido a 87,5~ns, en cuentas de ADC, no depende de la ganancia. El
+  modelo da 1,32 a 50~ns y 1,87 a 25~ns.
+\item {\bf Baja ganancia:} el mismo ruido en cuentas de ADC que la alta a
+  87,5~ns (run de 87,5~ns del paso 1, donde las dos tienen el mismo
+  shaping).
+\item {\bf Pedestal:} distinto en cada canal, estable entre runs. En peak
+  detector (paso 2), más alto que en track \& hold.
+\end{itemize}
+
+\end{document}

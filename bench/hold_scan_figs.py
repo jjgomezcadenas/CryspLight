@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""hold_scan_figs.py: figures of bench/hold_track_calib.tex (hold delay scan with the Citiroc).
+"""hold_scan_figs.py: figures of bench/2_citiroc_hold_track.tex (hold delay scan with the Citiroc).
 
     python3 bench/hold_scan_figs.py
 
