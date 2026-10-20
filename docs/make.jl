@@ -15,13 +15,12 @@ using .FullsimAnalysis
 # checkdocs = :exports makes Documenter fail when a docstring of an exported name is left
 # out of the pages, but it does not see exported names that have no docstring at all.
 # Those are caught here, before the build; test/runtests.jl makes the same check for
-# CryspLight. An exported name that is not defined in the module has nothing to document
-# and is reported as a warning.
+# CryspLight. An exported name that is not defined in the module is an error too.
 for mod in (CryspLight, FullsimAnalysis)
     exported = filter(n -> n !== nameof(mod), names(mod))
     undefined = filter(n -> !isdefined(mod, n), exported)
     isempty(undefined) ||
-        @warn "exported names of $mod that are not defined: $(join(undefined, ", "))"
+        error("exported names of $mod that are not defined: $(join(undefined, ", "))")
     undocumented = filter(n -> isdefined(mod, n) && !Base.Docs.hasdoc(mod, n), exported)
     isempty(undocumented) ||
         error("exported names of $mod without a docstring: $(join(undocumented, ", "))")

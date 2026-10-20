@@ -16,11 +16,11 @@ const GRID = SipmGrid(6f0, Int32(8), Int32(8))
 const TB = TimeBinning(100f0, Int32(40))
 
 @testset "Docstrings of the exported names" begin
-    # every exported name defined in the module has a docstring, the same check that
-    # docs/make.jl makes before building the reference (names exported but not defined
-    # have nothing to document and are skipped)
-    exported = filter(n -> n !== :CryspLight && isdefined(CryspLight, n), names(CryspLight))
-    undocumented = filter(n -> !Base.Docs.hasdoc(CryspLight, n), exported)
+    # every exported name is defined in the module and has a docstring, the same checks
+    # that docs/make.jl makes before building the reference
+    exported = filter(n -> n !== :CryspLight, names(CryspLight))
+    @test isempty(filter(n -> !isdefined(CryspLight, n), exported))
+    undocumented = filter(n -> isdefined(CryspLight, n) && !Base.Docs.hasdoc(CryspLight, n), exported)
     @test isempty(undocumented)
 end
 
