@@ -1,0 +1,156 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\setlist{itemsep=2pt}
+
+\title{Changes proposed to the PET CAEN DAQ for the Citiroc bench calibration}
+\author{J.\,J.~Gómez-Cadenas (CRYSP)}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Context}
+
+The CRYSP bench studies monolithic BGO and CsI(Tl) crystals,
+$48\times48$~mm$^2$ in cross section, read out by an $8\times8$ array of
+Hamamatsu S14160-6050HS SiPMs ($6\times6$~mm$^2$, about 2~nF each). One of
+the readouts under study is the Citiroc~1A on a CAEN A5202, read through a
+DT5215 concentrator with the PET CAEN DAQ written by José María Benlloch
+(pet-caen-daq). Before taking data with a crystal and a source we calibrate
+the electronics with the SiPMs alone, in three short studies: the pedestal and
+noise of every channel with the SiPMs biased below breakdown; the delay
+between the trigger and the maximum of the shaped pulse, measured by scanning
+the hold delay; and the single-photoelectron (SPE) spectra of the dark pulses,
+which give the gain of every channel against the overvoltage and the shaping
+time. The results feed a simulation of the full chain, from the light in the
+crystal to the charge recorded by each readout, and the simulation is
+compared with the measurements channel by channel.
+
+\section{Why track and hold}
+
+The Citiroc samples its slow shaper in one of two ways. In the peak
+detector mode (FERSlib calls it PEAK\_STRETCH) the chip follows the shaper
+from the trigger to the hold and keeps the maximum. In the track and hold mode
+it keeps the value at the instant of the hold. The peak detector is the right
+choice for the energy runs, where the pulse is a scintillation flash and the
+maximum is what matters. For the calibration it has two drawbacks with our
+sensors. The dark rate is several MHz per channel and the single-avalanche
+pulse of a 2~nF device falls in about 100~ns, so a window of a few hundred
+nanoseconds often contains a second dark pulse, and the maximum of the window
+picks it up. And the maximum of the noise over a window is not the noise of
+one sample, so the pedestal width measured in peak detector mode cannot be
+compared directly with the noise of the model. In track and hold the value
+is taken at a fixed time after the trigger: scanning the hold delay maps the
+shaped pulse point by point, the SPE spectrum is taken at the maximum of that
+pulse without the rest of the window, and the pedestal width is the noise of
+one sample. We intend to take the calibration in both modes, track and hold
+to understand the chain and peak detector because it is the mode of the
+energy runs.
+
+\section{What the DAQ does today}
+
+Reading the code of pet-caen-daq (main at 75086b2, 27 July 2026) next to
+FERSlib 5.0.1 we found four things relevant to these measurements.
+
+\begin{enumerate}
+\item {\bf The mode cannot be selected.} FERSlib reads
+  \texttt{PeakDetectorMode} from the configuration file and writes it into
+  the \texttt{CitirocConfig} register; the JANUS GUI does not list it. The
+  DAQ validates every assignment against a catalogue and rejects the whole
+  configuration if it contains an unknown setting, so a run with
+  \texttt{PeakDetectorMode} does not start, and every run is taken with the
+  peak detector.
+\item {\bf The Citiroc mode register is never written.} With automatic ASIC
+  configuration the FPGA builds the slow-control stream of each Citiroc from
+  board registers, and the chip modes come from \texttt{CitirocConfig}
+  (\texttt{0x01000108}). FERSlib composes this register on every
+  configuration. The DAQ writes it only during a threshold staircase, and
+  restores the previous configuration afterwards, so a data run keeps
+  whatever value the board held before. As a consequence
+  \texttt{FastShaperInput} and \texttt{HV\_Adjust\_Range} are validated and
+  audited as applied but do not reach the chip.
+\item {\bf The hold-delay scan keeps coarse spectra.} Each point of the scan
+  stores the high-gain spectrum of every channel in 512 bins of 16 ADC codes
+  (32 in the 14-bit range), the binning of the JANUS heatmap. This is enough
+  to locate the maximum of the pulse, but the SPE peaks at the default gain
+  are separated by only a few such bins, too few to fit their positions and
+  widths, and the low gain is not kept.
+\item {\bf The recorded Citiroc stream is the planned one.} The HDF5 file of
+  a run stores the 1144 bits of each Citiroc in
+  \texttt{citiroc\_stream\_words}, but these are computed from the
+  configuration, not read from the chip. The code to read the stream back
+  and compare it (\texttt{VerifyCitirocReadback}) exists and is tested, but
+  is not called in production. The file therefore records what the DAQ
+  intended, not what the chip holds.
+\end{enumerate}
+
+\section{The pull requests}
+
+Each change is a separate pull request against jmbenlloch/pet-caen-daq, in
+English, with its documentation, unit tests, simulator integration tests,
+and the complete suite that runs without hardware (Go plain, HDF5 and
+integration tests, frontend format, lint, type check and unit tests). None of
+them changes the behaviour of a configuration that does not use the new
+settings, beyond making the existing settings take effect.
+
+\begin{center}
+\small
+\begin{tabular}{p{0.07\textwidth} p{0.33\textwidth} p{0.5\textwidth}}
+\toprule
+PR & change & compatibility and tests \\
+\midrule
+\#73 & write \texttt{CitirocConfig} on every configuration, composed as
+FERSlib does & with JANUS defaults the register is \texttt{0x00070f21}; the
+production sample gives \texttt{0x00070fa1}; \texttt{FastShaperInput} and
+\texttt{HV\_Adjust\_Range} now take effect; register, stream and simulator
+readback tested \\
+\#74 & add \texttt{PeakDetectorMode} (PEAK\_STRETCH or TRACK\&HOLD), built on
+\#73 & omitted means PEAK\_STRETCH and gives the register of \#73; register
+bits 2 and 3, stream bits 306 and 307, audit and frontend catalogue tested \\
+\#75 & store full-resolution spectra of both gains in hold-delay scans, split
+by the channel's discriminator flag & additive table
+\texttt{hold\_delay/full\_spectra}; the 512-bin heatmap, the API and the UI
+are unchanged; rebinning the new spectra reproduces the heatmap exactly \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+A fourth change was planned and is not yet submitted: reading the Citiroc
+stream back after every configuration, storing it in the HDF5 file next to
+the planned one, and reporting any difference in the configuration audit.
+Testing it properly needs the simulator to build the stream from the board
+registers as the firmware does, and the read stream has to travel from the
+configuration step to the run file. We would rather agree on the design first.
+
+\section{What we need to use it}
+
+The changes help only once they run on the bench. After review and merge the
+container has to be rebuilt and installed on the laboratory computer. The
+first run in TRACK\&HOLD is also the first hardware test of the register
+bits, which are confirmed from the FERSlib source but have not been
+exercised by this DAQ: a hold-delay scan with the dark pulses as signal
+should then show the held amplitude follow the shaped pulse, rising and
+falling with the delay, instead of the plateau that the peak detector
+gives. Until the merge the bench measurements are taken in peak detector
+mode, which the calibration procedure supports.
+
+\section{Questions for José María}
+
+\begin{enumerate}
+\item The DAQ does not expose \texttt{EnableQdiscrLatch} and
+  \texttt{EnableChannelTrgout}; \#73 uses the FERSlib defaults (both 1),
+  which changes stream bits 258 and 1143 with respect to the planned stream
+  stored until now. Is that the value wanted in production?
+\item Was the absence of \texttt{CitirocConfig} from the configuration plan
+  deliberate, for a hardware reason we may have missed?
+\item Is there a reason not to call \texttt{VerifyCitirocReadback} after
+  configuration, and how would you like the read stream to be stored?
+\item The schema version of the hold-delay artifact is left at 1, since \#75
+  only adds a table. Would you prefer to increase it?
+\end{enumerate}
+
+\end{document}

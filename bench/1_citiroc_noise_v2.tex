@@ -1,0 +1,187 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-noshorthands]{babel}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{enumitem}
+\setlist{itemsep=2pt}
+
+\title{Pedestal y ruido del Citiroc con el DAQ de José María}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section*{Menú}
+
+
+\begin{enumerate}
+\item Tarjeta CAEN A5202 (dos Citiroc~1A, 64 canales),
+leída a través del concentrador DT5215 con el programa de adquisición de
+datos (DAQ) de JMB.
+\item Uso los nombres que JMB define en su DAQ, que en todo caso, coinciden con los del software de CAEN (Janus, Sección~\ref{sec:janus}). 
+\item Por el momento, el El DAQ trabaja siempre en modo \texttt{peak stretch}. El chip sigue la salida del slow shaper entre el trigger y el hold y guarda su máximo. El \texttt{HoldDelay}
+fija cuándo llega el hold y, por tanto, la duración de esa ventana. Todavía no está implementada la  opción de \texttt{track \& hold}.
+\end{enumerate}
+
+
+\section*{Programa de festejos}
+
+\noindent {\bf Setup}
+\begin{itemize}
+\item {\bf Acción:} montar sin cristal, con los SiPM conectados y a oscuras.
+  En la pestaña {\bf Acquisition}, poner los parámetros de la
+  Sección~\ref{sec:janus}, con \texttt{HV\_Vbias} de forma que los SiPM queden
+  entre 1 y 2~V por debajo de la tensión de ruptura (breakdown voltage, BV;
+  Sección~\ref{sec:razon}). Guardar la configuración con {\bf Save config}.
+  En la pestaña {\bf Hardware}, encender el HV de la tarjeta y esperar a que
+  Vmon e Imon estén estables. Janus no debe estar abierto: los dos programas
+  no pueden controlar la tarjeta a la vez.
+\item {\bf Resultado:} cada run se para solo a los 10\,000 eventos. El DAQ
+  le asigna un número \texttt{N} y escribe \texttt{run\_N.0000.h5} (para cada
+  evento y canal, la alta y la baja ganancia, junto con la configuración del
+  run, la temperatura y la tensión) y \texttt{run\_N.histograms.h5} (los
+  histogramas de cada canal).
+\item {\bf Precaución:} en el primer run, mirar en la pestaña {\bf Plots} el
+  espectro de alta ganancia de algunos canales: debe ser una sola gaussiana,
+  sin pico de 1 fotoelectrón (pe) a su derecha. Si aparece, los SiPM dan
+  avalanchas: bajar \texttt{HV\_Vbias} 0,5~V y repetir.
+\end{itemize}
+
+\noindent {\bf Paso 1: ruido frente al shaping de la alta ganancia}
+\begin{itemize}
+\item {\bf Acción:} con \texttt{HoldDelay} = 0~ns, un run por cada valor de
+  \texttt{HG\_ShapingTime} = 25, 50 y 87,5~ns, con
+  \texttt{LG\_ShapingTime} = 87,5~ns en todos: 3 runs.
+\item {\bf Resultado:} 3 runs, cada uno con sus dos ficheros.
+\item {\bf Análisis:} el de la Sección~\ref{sec:datos}: para cada run y
+  canal, la media (pedestal) y la anchura (ruido) de la alta y la baja
+  ganancia.
+\end{itemize}
+
+\noindent {\bf Paso 2: pedestal frente al HoldDelay}
+\begin{itemize}
+\item {\bf Acción:} con \texttt{HG\_ShapingTime} = 25~ns, un run con
+  \texttt{HoldDelay} = 96~ns y otro con \texttt{HoldDelay} = 200~ns: 2 runs.
+  El de 0~ns ya está hecho en el paso 1.
+\item {\bf Resultado:} 2 runs, cada uno con sus dos ficheros.
+\item {\bf Análisis:} el mismo que en el paso 1. Al alargar la ventana, el
+  chip guarda el máximo del ruido en un intervalo más largo, y el pedestal
+  sube y se estrecha. Las medidas de energía (con cristal y fuente) se harán
+  con un \texttt{HoldDelay} de este orden, así que este es el pedestal que
+  verán.
+\end{itemize}
+
+\noindent {\bf Qué necesita tu estudiante}
+\begin{itemize}
+\item De cada run, los dos ficheros \texttt{.h5}, que se descargan en la
+  pestaña {\bf Runs}: seleccionar el run y pulsar {\bf Download} en cada
+  fichero de la lista {\bf Artifacts}.
+\item Logbook, una línea por run: número de run, paso al que corresponde y
+  cualquier incidencia. La configuración, la temperatura y la tensión ya
+  están dentro de los ficheros.
+\end{itemize}
+
+\section{Cómo entra la medida en el modelo}
+\label{sec:razon}
+
+\begin{itemize}
+\item El ruido electrónico de cada canal entra en la resolución en energía y
+  en la anchura de los picos de los espectros de un fotoelectrón (single
+  photoelectron, SPE) con los que se calibra la ganancia. La simulación
+  estima el ruido, pero la estimación puede quedarse corta. Necesitamos datos.
+\item El ruido de un preamplificador crece con la capacitancia de su
+  entrada, y la de nuestros SiPM es grande, unos 2000~pF por canal. Por eso
+  hay que medirlo con los SiPM conectados.
+\item Por debajo del BV el SiPM conserva su capacitancia pero no produce
+  avalanchas. El pedestal medido así contiene, por tanto, solo el ruido
+  electrónico. Por encima del BV aparecen también los pulsos oscuros (dark
+  pulses, DP), con una frecuencia de varios MHz por canal.
+\item El BV es 38,0~V a 25~$^\circ$C y baja 34~mV por grado; a temperatura
+  ambiente, \texttt{HV\_Vbias} $\approx$ 36,5~V deja todos los canales entre
+  1 y 2~V por debajo.
+\item El modelo de la simulación supone 0,1~pe de ruido en alta ganancia con
+  shaping de 87,5~ns y 3~V de overvoltage (tensión por encima del BV). El
+  ruido es fijo en carga, y la carga de un pe es proporcional al
+  overvoltage, así que a 5~V son 0,06~pe. Supone además que el ruido crece
+  como $(87{,}5~\mathrm{ns}/t_p)^{1/2}$ al acortar el peaking time $t_p$, y
+  que la baja ganancia tiene el mismo ruido en cuentas de ADC que la alta.
+  Estas medidas nos permiten entender lo realistas que son estas
+  suposiciones.
+\item Con \texttt{HoldDelay} = 0~ns la ventana del peak stretch es la más
+  corta posible, y el valor guardado se acerca al ruido en un instante, que
+  es lo que describe el modelo. Con ventanas más largas el modelo
+  calcula el máximo del ruido en la misma ventana, para los mismos
+  \texttt{HoldDelay}.
+\end{itemize}
+
+\section{Parámetros del DAQ (A5202)}
+\label{sec:janus}
+
+\begin{center}
+\small
+\begin{tabular}{p{0.3\textwidth} p{0.6\textwidth}}
+\hline
+parámetro & valor \\
+\hline
+\texttt{HV\_Vbias} & el que deje la tensión en cada SiPM entre 1 y 2~V por
+debajo del BV (unos 36,5~V a temperatura ambiente si \texttt{HV\_IndivAdj}
+no resta nada) \\
+\texttt{HV\_IndivAdj} & los valores de la configuración de partida, los
+mismos en los tres estudios \\
+\texttt{AcquisitionMode} & SPECTROSCOPY \\
+\texttt{BunchTrgSource} & PTRG (trigger periódico, independiente de la señal) \\
+\texttt{PtrgPeriod} & 1~ms: 10\,000 eventos en 10~s \\
+\texttt{HG\_ShapingTime} & 25, 50 o 87,5~ns, según el run \\
+\texttt{LG\_ShapingTime} & 87,5~ns \\
+\texttt{HoldDelay} & 0~ns (paso 1); 96 o 200~ns (paso 2) \\
+\texttt{HG\_Gain}, \texttt{LG\_Gain} & los valores de la configuración de
+partida, los mismos en los tres estudios \\
+\texttt{GainSelect} & BOTH \\
+\texttt{ZS\_Threshold\_HG}, \texttt{ZS\_Threshold\_LG} & 0 (sin zero
+suppression: hay que leer todos los canales en todos los eventos) \\
+\texttt{ChEnableMask0}, \texttt{ChEnableMask1} & todos los canales
+({\bf Configure channels}, {\bf Enable all}) \\
+\texttt{StopRunMode}, \texttt{PresetCounts} & PRESET\_COUNTS, 10000 \\
+{\bf Store run histograms} & activado (al final de la categoría RunCtrl) \\
+\hline
+\end{tabular}
+\end{center}
+
+\section{Análisis}
+\label{sec:datos}
+
+\begin{itemize}
+\item Los datos están en \texttt{run\_N.0000.h5}, en la tabla
+  \texttt{/events/spectroscopy/observations}: una fila por evento y canal,
+  con las columnas \texttt{channel}, \texttt{high\_gain} y
+  \texttt{low\_gain}.
+\item Para cada canal y cada ganancia, una gaussiana ajustada al espectro.
+  Su media es el pedestal y su sigma el ruido, los dos en cuentas de ADC.
+  Para comparar runs se usa la mediana sobre los 64 canales. Un canal con
+  una cola o un segundo pico tiene avalanchas o ruido de otro origen, y se
+  anota aparte.
+\item {\bf Paso a fotoelectrones:} el ruido en pe es el ruido en cuentas de
+  ADC dividido por la ganancia en cuentas de ADC por pe, que miden los runs
+  de calibración con SPE. Hay que usar la ganancia medida con el mismo
+  shaping y el mismo \texttt{HG\_Gain}.
+\end{itemize}
+
+\section{Lo que se espera, según el modelo}
+
+\begin{itemize}
+\item {\bf Ruido de la alta ganancia, en pe de 5~V} (los de la calibración),
+  con \texttt{HoldDelay} = 0~ns: 0,06 a 87,5~ns, 0,08 a 50~ns y 0,11 a
+  25~ns.
+\item {\bf Prueba sin ganancia:} el cociente entre el ruido a un shaping y
+  el ruido a 87,5~ns, en cuentas de ADC, no depende de la ganancia. El
+  modelo da 1,32 a 50~ns y 1,87 a 25~ns.
+\item {\bf Baja ganancia:} el mismo ruido en cuentas de ADC que la alta a
+  87,5~ns (run de 87,5~ns del paso 1, donde las dos tienen el mismo
+  shaping).
+\item {\bf Pedestal:} distinto en cada canal, estable entre runs. En el paso
+  2, más alto y más estrecho cuanto más largo es el \texttt{HoldDelay}.
+\end{itemize}
+
+\end{document}
