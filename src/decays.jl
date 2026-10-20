@@ -9,12 +9,25 @@ using Random: Xoshiro, randn
 
 """
     run_decays!(box, op, ro, tb, pv, yield_per_mev; source_mm, n_decays, seed, tau_ns,
-                tau2_ns, frac1, first_decay, batch_photons, max_bounces, ArrayT)
+                tau2_ns, frac1, intrinsic_fwhm, intrinsic_exponent, first_decay,
+                batch_photons, max_bounces, ArrayT)
         -> NamedTuple with
            events: edep_kev, edep_511_kev, edep_1275_kev, n_gammas_in, n_emitted,
                    n_detected, maps (nx x ny x n), first_decay
            interactions: offset (n + 1), x_mm, y_mm, z_mm, e_kev, t_ns, gamma_kind, proc
            pes: offset (n + 1), channel (UInt8, (j - 1) nx + i), t_ns
+
+Simulate n_decays Na-22 decays at source_mm (mm, crystal frame, outside the crystal):
+the gammas that meet the crystal are transported by the vendored core (pv), each deposit
+gives a Poisson number of photons of mean yield_per_mev (photons per MeV) times its
+energy, and the photons are transported with run_photons_ka! in batches of about
+batch_photons. Per decay, events holds the deposited energies in keV (all, of the 511
+keV gammas, of the 1275 keV gamma), the number of gammas that deposited energy, the
+numbers of photons emitted and detected, and the integrated map of the detected photons
+(UInt16). interactions lists every deposit (position in mm, energy in keV, time in ns,
+gamma kind 1 = 511 keV or 2 = 1275 keV, process code 0 photoelectric, 1 Compton, 2
+below cut) and pes every detected photon (channel and time in ns); in both, the records
+of decay ev are those from offset[ev] + 1 to offset[ev + 1].
 
 The intrinsic resolution of the crystal is a Gaussian smearing of the light of each
 decay: the Poisson means of all its deposits are scaled by one factor of relative width
@@ -51,9 +64,10 @@ function run_decays!(box::Box, op::OpticalParams, ro::Readout, tb::TimeBinning,
     positions = NTuple{3,Float32}[]
     t0s = Float32[]
     ev_range = Tuple{Int,Int,Int}[]
-    # photon ids: a decay k owns ids starting at a block unique to k; the block size is
-    # the largest photon count a decay can produce, bounded by the yield at 1786 keV plus
-    # a wide margin, so that chunks are stream-disjoint without coordination
+    # photon ids: a chunk starting at decay k numbers its photons consecutively from
+    # (k - 1) x block; the block size is the largest photon count a decay can produce,
+    # bounded by the yield at 1786 keV plus a wide margin, so a chunk of n decays uses
+    # fewer than n blocks of ids and chunks are stream-disjoint without coordination
     block = Int64(ceil(yield_per_mev * 1.7865 * 1.5)) + 1000
     pid0 = (first_decay - 1) * block
     pending = Int64[]              # the pid offset of each batch flush

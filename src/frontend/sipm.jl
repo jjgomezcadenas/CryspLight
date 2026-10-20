@@ -17,7 +17,21 @@
 
 using Random: AbstractRNG, Xoshiro, rand, randn, randexp
 
-"Device parameters of one SiPM type, read from data/<name>.toml."
+"""
+    SipmDevice(name = "sipm_s14160")
+    SipmDevice(mat::AbstractDict)
+
+Device parameters of one SiPM type, read from data/<name>.toml (or from its parsed Dict,
+table [device]): the breakdown voltage at 25 C (V) and its temperature coefficient
+(V/K), the gain per volt of overvoltage, the PDE at the peak wavelength against the
+overvoltage (V) and its spectral factor against the wavelength (nm), the crosstalk
+probability against the overvoltage, the dark rate per device (Hz) at a reference
+temperature (K) and overvoltage with its doubling temperature (K), the afterpulse
+probability at a reference overvoltage with its delay constant (ns), the cell recharge
+time (ns), the number of cells, the terminal capacitance (pF) and the input resistance
+of the electronics (ohm). The avalanche current pulse in that resistance (time to peak,
+fall and rise constants in ns) is computed with physical_pulse on construction.
+"""
 struct SipmDevice
     name::String
     vbr_25c::Float64            # breakdown voltage at 25 C [V]
@@ -48,10 +62,11 @@ end
 """
     physical_pulse(recovery_ns, ct_pf, r_ohm) -> (t_peak, fall, tr)
 
-The current pulse of one avalanche in the input resistance r_ohm of the electronics: the
-recharge current of the fired cell, exponential with the recovery time, flows into the
-input resistance in parallel with the capacitance of the whole device, which filters it
-with r C_t. The pulse is the difference of the two exponentials, rising with the shorter
+The current pulse of one avalanche in the input resistance r_ohm (ohm) of the
+electronics, for the recharge time recovery_ns (ns) and the terminal capacitance ct_pf
+(pF) of the device; the three returned times are in ns. The recharge current of the
+fired cell, exponential with the recovery time, flows into the input resistance in
+parallel with the capacitance of the whole device, which filters it with r C_t. The pulse is the difference of the two exponentials, rising with the shorter
 time constant and falling with the longer one; it is returned in the form
 (1 - exp(-t/tr)) exp(-t/fall) used by the shapers, with its time to peak. The fast
 component through the parasitic capacitance of the quenching resistor is neglected.
@@ -64,7 +79,12 @@ function physical_pulse(recovery_ns::Real, ct_pf::Real, r_ohm::Real)
     return (t_peak = ta * tb / (ta - tb) * log(ta / tb), fall = ta, tr = tr)
 end
 
-"A copy of the device with the pulse computed for the input resistance r_ohm."
+"""
+    with_input(dev::SipmDevice, r_ohm) -> SipmDevice
+
+A copy of the device with the avalanche pulse recomputed (physical_pulse) for the input
+resistance r_ohm of the electronics, in ohm.
+"""
 function with_input(dev::SipmDevice, r_ohm::Real)
     p = physical_pulse(dev.recovery_ns, dev.ct_pf, r_ohm)
     SipmDevice(dev.name, dev.vbr_25c, dev.dvbr_dt, dev.gain_per_volt, dev.pde_vov,
@@ -85,7 +105,12 @@ function rise_constant(t_peak::Float64, fall::Float64)
     return 0.5 * (lo + hi)
 end
 
-"Linear interpolation with constant extrapolation."
+"""
+    interp_clamped(xs::Vector{Float64}, ys::Vector{Float64}, x) -> Float64
+
+Linear interpolation of the table (xs, ys), xs increasing, at x, with constant
+extrapolation (ys[1] below xs[1], ys[end] above xs[end]). Units are those of the table.
+"""
 function interp_clamped(xs::Vector{Float64}, ys::Vector{Float64}, x::Real)
     x <= xs[1] && return ys[1]
     x >= xs[end] && return ys[end]
@@ -109,22 +134,44 @@ end
 
 SipmDevice(name::AbstractString = "sipm_s14160") = SipmDevice(load_material(name))
 
-"Breakdown voltage at temperature T [K]."
+"""
+    breakdown_voltage(dev::SipmDevice, t_k) -> Float64
+
+Breakdown voltage [V] at the temperature t_k [K], linear in the temperature about its
+value at 25 C.
+"""
 breakdown_voltage(dev::SipmDevice, t_k::Real) = dev.vbr_25c + dev.dvbr_dt * (t_k - 298.15)
 
-"Gain (electrons per avalanche) at the overvoltage vov [V]."
+"""
+    gain(dev::SipmDevice, vov) -> Float64
+
+Gain (electrons per avalanche) at the overvoltage vov [V], proportional to it.
+"""
 gain(dev::SipmDevice, vov::Real) = dev.gain_per_volt * vov
 
-"Detection efficiency at the overvoltage vov [V] and wavelength lambda [nm]."
+"""
+    pde(dev::SipmDevice, vov, lambda_nm) -> Float64
+
+Photon detection efficiency (a probability) at the overvoltage vov [V] and the wavelength
+lambda_nm [nm]: the PDE at the peak wavelength, interpolated in the overvoltage, times
+the spectral factor, interpolated in the wavelength.
+"""
 pde(dev::SipmDevice, vov::Real, lambda_nm::Real) =
     interp_clamped(dev.pde_vov, dev.pde_val, vov) *
     interp_clamped(dev.pde_lambda, dev.pde_spectral, lambda_nm)
 
-"Crosstalk probability at the overvoltage vov [V]."
+"""
+    crosstalk(dev::SipmDevice, vov) -> Float64
+
+Crosstalk probability (of at least one extra cell per avalanche) at the overvoltage vov
+[V], interpolated in the table of the device and clamped to [0, 0.95].
+"""
 crosstalk(dev::SipmDevice, vov::Real) = clamp(interp_clamped(dev.ct_vov, dev.ct_val, vov), 0.0, 0.95)
 
 """
-Dark rate per device [Hz] at temperature T [K] and overvoltage vov [V]: the reference
+    dark_rate(dev::SipmDevice, t_k, vov) -> Float64
+
+Dark rate per device [Hz] at the temperature t_k [K] and overvoltage vov [V]: the reference
 value scaled by a factor 2 per dark_doubling_k of temperature and by the ratio of the
 detection efficiencies at the peak wavelength (the trigger probability of a thermal
 carrier follows that of a photon).
@@ -134,13 +181,21 @@ dark_rate(dev::SipmDevice, t_k::Real, vov::Real) =
     interp_clamped(dev.pde_vov, dev.pde_val, vov) /
     interp_clamped(dev.pde_vov, dev.pde_val, dev.dark_vov_ref)
 
-"Afterpulse probability at the overvoltage vov [V], scaling with its square."
+"""
+    afterpulse_prob(dev::SipmDevice, vov) -> Float64
+
+Afterpulse probability per avalanche at the overvoltage vov [V]: the reference value
+scaled with the square of the overvoltage, clamped to [0, 0.5].
+"""
 afterpulse_prob(dev::SipmDevice, vov::Real) =
     clamp(dev.ap_prob_ref * (vov / dev.ap_vov_ref)^2, 0.0, 0.5)
 
 """
-Normalised avalanche current pulse at time t [ns] after the avalanche: peak 1 at
-pulse_rise_ns, exponential fall with pulse_fall_ns.
+    pulse_shape(dev::SipmDevice, t) -> Float64
+
+Normalised avalanche current pulse at time t [ns] after the avalanche, (1 - exp(-t/tr))
+exp(-t/fall): 0 for t <= 0, peak 1 at pulse_rise_ns, exponential fall with
+pulse_fall_ns.
 """
 function pulse_shape(dev::SipmDevice, t::Real)
     t <= 0 && return 0.0
@@ -152,9 +207,15 @@ function pulse_shape(dev::SipmDevice, t::Real)
 end
 
 """
-Operating point of one run: temperature, overvoltage and the derived quantities, with
-the per-channel gain factors (unit mean, relative spread gain_spread) and the length of
-the acquisition window over which dark avalanches are generated.
+    SipmOperation(dev::SipmDevice; t_k, vov, n_channels, gain_spread = 0.0, seed = 1,
+                  window_ns = (-10_000.0, 10_000.0))
+
+Operating point of one run: the device, the temperature t_k [K], the overvoltage vov [V]
+and the derived quantities (breakdown voltage vbr [V], gain in electrons per avalanche,
+PDE at the peak wavelength, crosstalk and afterpulse probabilities, dark rate dark_hz
+[Hz]), with the per-channel gain factors (n_channels values of unit mean and relative
+spread gain_spread, drawn from a stream of seed and floored at 0.5) and the acquisition
+window (t0, t1) in ns relative to the decay over which dark avalanches are generated.
 """
 struct SipmOperation
     dev::SipmDevice
@@ -182,10 +243,17 @@ function SipmOperation(dev::SipmDevice; t_k::Real, vov::Real, n_channels::Intege
                          afterpulse_prob(dev, vov), gf, (Float64(window_ns[1]), Float64(window_ns[2])))
 end
 
-"An avalanche of one channel: time [ns] and charge in units of one full avalanche."
+"""
+    Avalanche(t_ns::Float32, q::Float32, kind::Int8)
+
+An avalanche of one channel: its time t_ns [ns from the decay], its charge q in units of
+one full avalanche (1 for a photon, crosstalk or dark avalanche; below 1 for an
+afterpulse, which fires a partly recharged cell) and its kind (0 photon, 1 crosstalk, 2
+afterpulse, 3 dark).
+"""
 struct Avalanche
     t_ns::Float32
-    q::Float32           # 1 for a full avalanche; crosstalk adds integers; afterpulses < 1
+    q::Float32           # 1 for a full avalanche (each crosstalk cell is its own entry); afterpulses < 1
     kind::Int8           # 0 photon, 1 crosstalk, 2 afterpulse, 3 dark
 end
 
@@ -240,9 +308,11 @@ end
     respond(op, times_ns, lambdas_nm, rng) -> Vector{Avalanche}
 
 The avalanche train of one channel for one event: the photon records of that channel
-(times and wavelengths), thinned by the detection efficiency, each kept photon followed
-by its companions; then the dark avalanches of the window, Poisson in number, uniform in
-time, with their companions. Sorted in time.
+(times in ns and wavelengths in nm), thinned by the detection efficiency at the
+overvoltage of op, each kept photon followed by its companions (crosstalk and
+afterpulses); then the dark avalanches of the window of op, Poisson in number, uniform in
+time, with their companions. Sorted in time; charges in avalanche units. The per-channel
+gain factors are not applied here.
 """
 function respond(op::SipmOperation, times_ns::AbstractVector, lambdas_nm::AbstractVector,
                  rng::AbstractRNG)
@@ -276,5 +346,10 @@ function dark_charge_per_ns(op::SipmOperation)
     return op.dark_hz * 1e-9 * cluster * (1 + op.afterpulse * dev.ap_tau_ns / (dev.ap_tau_ns + dev.recovery_ns))
 end
 
-"Total charge of a train in avalanche units, and in photoelectron-equivalents of charge."
+"""
+    total_charge(train::Vector{Avalanche}) -> Float64
+
+Total charge of a train in avalanche units: the sum of the charges q of its avalanches
+(the per-channel gain factor is not applied).
+"""
 total_charge(train::Vector{Avalanche}) = sum(Float64(a.q) for a in train; init = 0.0)

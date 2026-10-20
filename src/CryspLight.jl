@@ -1,8 +1,10 @@
 """
 CryspLight — optical-photon transport in a wrapped scintillating crystal read out by a
-SiPM matrix. v0: CPU reference implementation (Float32 throughout, counter-based Philox
-RNG) of the physics specified in latex/crysp_light_metal.tex. The Metal port reuses the
-same kernel logic.
+SiPM matrix, with the gamma transport that feeds it (the vendored submodule Gamma) and
+the emulation of the SiPM and of the readout electronics. The optical transport has a
+CPU reference implementation (Float32 throughout, counter-based Philox RNG) and a
+KernelAbstractions kernel that runs on the CPU or on Metal and reproduces it draw for
+draw. Physics specified in latex/crysp_light_metal.tex.
 """
 module CryspLight
 
@@ -35,7 +37,7 @@ include("output.jl")
 
 export PhiloxStream, randu
 export Box, wall_hit, FACE_XP, FACE_XM, FACE_YP, FACE_YM, FACE_BACK, FACE_FRONT
-export fresnel, specular!, lambertian_dir, isotropic_dir, rayleigh_dir, surface_interact,
+export fresnel, lambertian_dir, isotropic_dir, rayleigh_dir, surface_interact,
        window_pass
 export OpticalParams, SipmGrid, Readout, TimeBinning, Accumulator, propagate_photon!
 export total_terminated, active_channel, tile_channel, channel_centres

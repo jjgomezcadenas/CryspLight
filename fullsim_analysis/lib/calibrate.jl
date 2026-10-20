@@ -65,7 +65,13 @@ function matched_filter(v::AbstractVector, tpl::AbstractVector, nrm::Real, norm:
     return y
 end
 
-"Local maxima of a filtered waveform above `floor`: the pulse amplitudes of the calibration."
+"""
+    filter_amplitudes(y, floor) -> Vector{Float64}
+
+Local maxima of a filtered waveform y (matched_filter) above `floor`: the pulse
+amplitudes of the calibration, in units of the amplitude of one cell when y is
+normalised.
+"""
 function filter_amplitudes(y::AbstractVector, floor::Real)
     out = Float64[]
     @inbounds for j in 2:length(y)-1
@@ -78,7 +84,14 @@ end
 read_case(campaign, study, file, case, name) =
     h5open(f -> Float64.(read(f[case][name])), joinpath(results_dir(campaign, study), file))
 
-"Fitted gains with the failed fits replaced by the median of the others (and their count)."
+"""
+    fitted_gains(campaign, case) -> (gains::Vector{Float64}, nfailed::Int)
+
+The per-channel gains fitted by the calibration script for a case (dataset gain_fitted of
+results/<campaign>/calibration/calibration.h5: ADC counts per cell for the ASICs, peak
+counts per cell for the digitizer), with the failed fits replaced by the median of the
+others, and the number of failed fits.
+"""
 function fitted_gains(campaign, case)
     g = read_case(campaign, "calibration", "calibration.h5", case, "gain_fitted")
     bad = .!isfinite.(g)
@@ -89,8 +102,11 @@ end
 """
     measured_charge(e, campaign; calib_case = e.tag) -> (q, info)
 
-q: nch x n charges in photoelectrons by the route of the measurement; info: a named tuple
-with the gains, pedestals and ratios used.
+The charges of an event file e (read_events) by the route of the measurement, using the
+calibration of the case calib_case of the campaign (fitted_gains): q is nch x n in
+photoelectrons, from the low-gain ADC counts for the ASICs and from the charge in
+count-samples for the digitizer; info is a named tuple with the gains, the number of
+failed fits, and the pedestals and ratios used.
 """
 function measured_charge(e, campaign; calib_case = e.tag)
     gain, nfail = fitted_gains(campaign, calib_case)

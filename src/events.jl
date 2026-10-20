@@ -7,7 +7,13 @@
 
 using Random: Xoshiro, randn, rand
 
-"Poisson sampler: Knuth below lambda = 50, Gaussian approximation above."
+"""
+    rand_poisson(rng::AbstractRNG, lam::Float64) -> Int
+
+A Poisson-distributed count of mean lam: Knuth's product method below lam = 50, above it
+the Gaussian approximation lam + sqrt(lam) N(0, 1), rounded and floored at 0. Returns 0
+for lam <= 0.
+"""
 function rand_poisson(rng::AbstractRNG, lam::Float64)
     lam <= 0.0 && return 0
     lam > 50.0 && return max(0, round(Int, lam + sqrt(lam) * randn(rng)))
@@ -22,12 +28,17 @@ function rand_poisson(rng::AbstractRNG, lam::Float64)
 end
 
 """
-    run_events!(box, op, ro, tb, pv, yield_per_mev; n_events, seed, tau_ns, ...)
+    run_events!(box, op, ro, tb, pv, yield_per_mev; n_events, seed, tau_ns, tau2_ns = 0,
+                frac1 = 1, e0_mev = 0.511, max_bounces = 100_000,
+                batch_photons = 2_000_000, ArrayT = Array)
         -> NamedTuple (edep, npe, maps, tmin, xyz1, e1, xyz2, e2, er, int_type, n_int)
 
-Shoot n_events gammas of e0_mev entering uniformly over the front (z = 0) face along
-+z; transport deposits with the vendored gamma core, expand into optical photons and
-transport them in batches. Per event: the deposited energy [keV], the detected
+Shoot n_events gammas of e0_mev (MeV) entering uniformly over the front (z = 0) face along
++z; transport deposits with the vendored gamma core (pv, from gamma_crystal), expand them
+into optical photons (a Poisson number of mean yield_per_mev x E per deposit, emitted at
+the deposit time plus the scintillation delay of tau_ns, tau2_ns, frac1 in ns) and
+transport them with run_photons_ka! in batches of about batch_photons. Event ev draws
+from Xoshiro(hash((seed, ev))). Per event: the deposited energy [keV], the detected
 photoelectron count, the time-integrated nx x ny photoelectron map, and the nx x ny
 matrix of first-photoelectron times [ns] (Inf32 where a SiPM saw nothing). Truth:
 position/energy of the first and second interaction (xyz1 3 x n [mm], e1 [keV], xyz2,

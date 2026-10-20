@@ -15,6 +15,15 @@ nodark(o) = SipmOperation(o.dev, o.t_k, o.vov, o.vbr, o.gain, o.pde_peak, o.cros
 const GRID = SipmGrid(6f0, Int32(8), Int32(8))
 const TB = TimeBinning(100f0, Int32(40))
 
+@testset "Docstrings of the exported names" begin
+    # every exported name is defined in the module and has a docstring, the same checks
+    # that docs/make.jl makes before building the reference
+    exported = filter(n -> n !== :CryspLight, names(CryspLight))
+    @test isempty(filter(n -> !isdefined(CryspLight, n), exported))
+    undocumented = filter(n -> isdefined(CryspLight, n) && !Base.Docs.hasdoc(CryspLight, n), exported)
+    @test isempty(undocumented)
+end
+
 @testset "Configuration validation" begin
     @test surface_has_gap("backpainted")
     @test !surface_has_gap("frontpainted")

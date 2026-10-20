@@ -12,7 +12,12 @@ const DEP_PHOTO = 0.0f0        # photoelectric (terminal full absorption)
 const DEP_COMPTON = 1.0f0      # Compton recoil (photon continues)
 const DEP_BELOWCUT = 2.0f0     # scattered photon below the 10 keV cut, absorbed locally
 
-"Vendored gamma volume for a crystal of size L (mm) and a gamma Material."
+"""
+    gamma_crystal(L::NTuple{3,Float32}, mat::Gamma.Material) -> Gamma.PhysicalVolume
+
+The volume of the vendored gamma core for a crystal of sides L (mm) made of mat: a
+Gamma.Box of half-lengths L / 20 cm, centred on the origin as the core requires.
+"""
 gamma_crystal(L::NTuple{3,Float32}, mat::Gamma.Material) =
     Gamma.PhysicalVolume(
         Gamma.LogicalVolume("crystal",
@@ -23,9 +28,13 @@ gamma_crystal(L::NTuple{3,Float32}, mat::Gamma.Material) =
     gamma_deposits(pv, L, entry_mm, dir, rng; e0_mev = 0.511)
         -> Vector{NTuple{6,Float32}}  # (x, y, z [mm], E [keV], t [ns], proc)
 
-Transport one gamma entering the crystal at entry_mm (crystal frame) along dir and
-return its energy deposits in the crystal frame, time-stamped from the path length.
-The sixth element is the process code (DEP_PHOTO / DEP_COMPTON / DEP_BELOWCUT).
+Transport one gamma of energy e0_mev (MeV) entering the crystal pv (gamma_crystal of
+sides L in mm) at entry_mm (mm, crystal frame) along the unit direction dir, drawing from
+rng, and return its energy deposits in the order they happen, in the crystal frame. The
+time of a deposit is the gamma path length from the entry point divided by c. The sixth
+element is the process code: DEP_PHOTO = 0 (photoelectric), DEP_COMPTON = 1 (Compton
+recoil), DEP_BELOWCUT = 2 (scattered photon below the 10 keV cut, absorbed locally).
+Empty when the gamma crosses without depositing energy.
 """
 function gamma_deposits(pv, L::NTuple{3,Float32}, entry_mm, dir, rng::AbstractRNG;
                         e0_mev::Float64 = 0.511)

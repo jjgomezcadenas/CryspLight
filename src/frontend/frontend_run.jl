@@ -1,5 +1,5 @@
 # The SiPM and electronics stage of the full simulation: reads the photoelectron file of
-# an optical run, applies the SiPM response and one front end (Citiroc or digitizer) to
+# an optical run, applies the SiPM response and one front end (Citiroc, Radioroc2 or digitizer) to
 # every decay, and writes the event file common to measurements and simulation (design
 # document, Section "Files", Table "Structure of the event file"), with the group /mc of
 # simulated quantities.
@@ -10,13 +10,22 @@
 # [sipm]      device (data/<name>.toml), temperature_k, overvoltage_v, gain_spread,
 #             window_ns = [t0, t1] for the dark avalanches, input_ohm (input resistance of
 #             the electronics, which sets the pulse; default that of the device file)
-# [frontend]  type = "citiroc" | "digitizer", then the keys of CitirocSettings or
-#             DigitizerSettings (names as in the structs)
+# [frontend]  type = "citiroc" | "digitizer" | "radioroc", then the keys of
+#             CitirocSettings, DigitizerSettings or RadiorocSettings (names as in the structs)
 # [channels]  chip_channels (channels per chip, 32 for the Citiroc, 64 for the others);
 #             the acquisition channel number of geometric channel k is k - 1 by default
 
 using Random: Xoshiro, seed!
 
+"""
+    FrontendSetup
+
+A front-end configuration resolved by load_frontend: the tag, the parsed configuration
+(cfg), its text and path, the path of the photoelectron file it reads, the seed, the
+number of events to process (0 = all), the SiPM operating point op, the front-end kind
+("citiroc", "digitizer" or "radioroc") with its settings struct, the number of channels
+per chip, and the output directory.
+"""
 struct FrontendSetup
     tag::String
     cfg::Dict{String,Any}
@@ -32,7 +41,14 @@ struct FrontendSetup
     outdir::String
 end
 
-"Build a keyword struct from a TOML table, ignoring the keys that are not fields."
+"""
+    settings_from(T::Type, tbl::AbstractDict) -> T
+
+Build the keyword struct T (CitirocSettings, DigitizerSettings, RadiorocSettings) from a
+TOML table, ignoring the keys that are not fields and keeping the defaults of the fields
+that are absent. Values are converted to the field types; a number given for a
+Vector{Float64} field (a per-channel setting) is repeated over 64 channels.
+"""
 function settings_from(T::Type, tbl::AbstractDict)
     kw = Dict{Symbol,Any}()
     for (k, v) in tbl
@@ -46,6 +62,16 @@ function settings_from(T::Type, tbl::AbstractDict)
     return T(; kw...)
 end
 
+"""
+    load_frontend(cfg_path; nx = 8, ny = 8) -> FrontendSetup
+
+Read a front-end configuration (the tables listed at the top of this file): the
+photoelectron file (a path relative to the repository unless absolute), the SiPM device
+with its input resistance, the operating point for nx x ny channels (temperature in K,
+overvoltage in V, gain spread, dark window in ns, default [-1000, 10000]), the front-end
+kind and its settings, and the channels per chip (32 for the Citiroc, 64 otherwise). The
+output directory is <repository>/<run.output_dir, default output>/<tag>.
+"""
 function load_frontend(cfg_path::AbstractString; nx::Integer = 8, ny::Integer = 8)
     cfg_text = read(cfg_path, String)
     cfg = TOML.parse(cfg_text)
@@ -73,7 +99,14 @@ function load_frontend(cfg_path::AbstractString; nx::Integer = 8, ny::Integer = 
                          settings, chip, outdir)
 end
 
-"Split the records of one event into the per-channel trains of the SiPM stage."
+"""
+    event_trains(op::SipmOperation, e, nch, rng) -> Vector{Vector{Avalanche}}
+
+Split the photoelectron records e of one event (event_pes: channel, t_ns in ns,
+lambda_nm in nm) into the per-channel avalanche trains of the SiPM stage (respond), one
+train per channel 1..nch, drawing from rng. Channels with no record still carry their
+dark avalanches.
+"""
 function event_trains(op::SipmOperation, e, nch::Int, rng::AbstractRNG)
     order = sortperm(e.channel)
     trains = [Avalanche[] for _ in 1:nch]
@@ -97,10 +130,17 @@ function event_trains(op::SipmOperation, e, nch::Int, rng::AbstractRNG)
 end
 
 """
-    run_fullsim_frontend(cfg_path; verbose) -> path of the event file
+    run_fullsim_frontend(cfg_path; verbose = true) -> String
 
 Apply the SiPM stage and the configured front end to every decay of the photoelectron
-file and write output/<tag>/events.h5.
+file (or to the first n_events), threaded and deterministic in (seed, event), and write
+<output dir>/<tag>/events.h5, with a copy of the configuration beside it. The event file
+holds /run (attributes: provenance, operating point, the settings as fe_<field>),
+/channels (geometry and chip mapping), /calib (the gains in ADC counts or count-samples
+per avalanche, pedestals and noise used), /events (charge in ADC counts or
+count-samples, charge_lg, charge_pe in avalanches, hits, t_trigger_ns, triggered, flags)
+and /mc (deposited energies in keV, photon counts and maps, first interaction).
+Returns the path of the event file.
 """
 function run_fullsim_frontend(cfg_path::AbstractString; verbose::Bool = true)
     st = load_frontend(cfg_path)

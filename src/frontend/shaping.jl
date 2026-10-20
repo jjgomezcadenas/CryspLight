@@ -11,17 +11,39 @@
 using Statistics: std
 using Random: AbstractRNG, randn, randn!
 
-"A uniform time grid: t_k = t0 + (k - 1) dt, k = 1..n."
+"""
+    TimeGrid(t0, dt, n)
+
+A uniform time grid of n samples, t_k = t0 + (k - 1) dt for k = 1..n, with t0 and dt in
+ns (t0 relative to the decay).
+"""
 struct TimeGrid
     t0::Float64
     dt::Float64
     n::Int
 end
 
+"""
+    sample_index(g::TimeGrid, t) -> Int
+
+Index k of the sample whose interval [t_k, t_k + dt) contains the time t [ns]; it may lie
+outside 1..n, which the callers check.
+"""
 sample_index(g::TimeGrid, t::Real) = 1 + floor(Int, (t - g.t0) / g.dt)
+
+"""
+    sample_time(g::TimeGrid, k) -> Float64
+
+Time [ns] of sample k of the grid, t0 + (k - 1) dt.
+"""
 sample_time(g::TimeGrid, k::Integer) = g.t0 + (k - 1) * g.dt
 
-"Bin a train of avalanches (time, charge) onto the grid: charge per sample."
+"""
+    bin_train!(x::Vector{Float64}, g::TimeGrid, train::Vector{Avalanche}) -> x
+
+Bin a train of avalanches onto the grid, in place: x (length g.n) receives the charge per
+sample in avalanche units; avalanches outside the grid are dropped.
+"""
 function bin_train!(x::Vector{Float64}, g::TimeGrid, train::Vector{Avalanche})
     fill!(x, 0.0)
     for a in train
@@ -84,8 +106,10 @@ end
 
 """
 Avalanche current pulse of the device applied to a binned charge series, in place:
-the difference of two integrators, exp(-t/tf) - exp(-t/(1/tf + 1/tr)^-1), normalised so
-that one unit of charge gives a peak of one.
+the difference of two integrators, exp(-t/tf) - exp(-t/(1/tf + 1/tr)^-1), each scaled to
+start at one, so that a unit charge gives a pulse that is zero at the avalanche and peaks
+below one at pulse_rise_ns. The absolute scale is set by the callers from the
+single-avalanche peak (Shaper).
 """
 function sipm_pulse!(y::Vector{Float64}, dev::SipmDevice, dt::Float64)
     tf = dev.pulse_fall_ns
@@ -149,12 +173,16 @@ function crrc_voltage!(y::Vector{Float64}, tp::Float64, dt::Float64; order::Int 
 end
 
 """
-A shaping chain: the device pulse followed by a CR-RC^order shaper of peaking time tp,
+    Shaper(dev::SipmDevice, tp_ns, dt; order = 2, n_cal = 0, voltage = false)
+
+A shaping chain on a grid of step dt (ns): the device pulse followed by a CR-RC^order
+shaper of peaking time tp_ns (ns),
 behind a charge-sensitive preamplifier (voltage = false: the shaped output follows the
 integrated charge) or a voltage-sensitive one (voltage = true: the shaper acts on the
 current pulse itself), calibrated so that one avalanche gives a peak of one at the
-output. The same object shapes white input noise, so that the noise at the output has
-the spectrum of the chain.
+output. The calibration measures the single-avalanche peak on n_cal samples (0 = a
+length set from tp_ns and the pulse fall time). The same object shapes white input noise,
+so that the noise at the output has the spectrum of the chain.
 """
 struct Shaper
     dev::SipmDevice
@@ -179,7 +207,13 @@ function Shaper(dev::SipmDevice, tp_ns::Real, dt::Real; order::Int = 2, n_cal::I
     return Shaper(dev, Float64(tp_ns), order, Float64(dt), u, us, voltage)
 end
 
-"Shaped output, in units of one avalanche, of a binned charge series (in place)."
+"""
+    shape!(y::Vector{Float64}, sh::Shaper) -> y
+
+Shaped output of a binned charge series y (avalanches per sample, on the grid step of
+sh), in place: the device pulse and the shaper, scaled so that the output is in units of
+the peak of one avalanche.
+"""
 function shape!(y::Vector{Float64}, sh::Shaper)
     sipm_pulse!(y, sh.dev, sh.dt)
     shaper_filter!(y, sh.tp_ns, sh.dt, sh.order, sh.voltage)
@@ -187,7 +221,12 @@ function shape!(y::Vector{Float64}, sh::Shaper)
     return y
 end
 
-"Device pulse only (no shaper), in units of one avalanche, of a binned series (in place)."
+"""
+    device_pulse!(y::Vector{Float64}, sh::Shaper) -> y
+
+The device pulse only (no shaper) of a binned charge series y (avalanches per sample), in
+place, in units of the peak of the pulse of one avalanche.
+"""
 function device_pulse!(y::Vector{Float64}, sh::Shaper)
     sipm_pulse!(y, sh.dev, sh.dt)
     y ./= sh.unit_sipm
@@ -195,12 +234,17 @@ function device_pulse!(y::Vector{Float64}, sh::Shaper)
 end
 
 """
-Shaped white noise: a Gaussian series at the input of the shaper, shaped, and scaled so
-that its rms at the output is rms_out (in units of one avalanche). The scale follows
+    noise_generator(sh::Shaper, rms_out, n, rng) -> function (out::Vector{Float64})
+
+A generator of shaped white noise: the returned function fills its argument out in
+place, and returns it, with a Gaussian series drawn from rng at the input of the shaper,
+shaped, and scaled so that its rms at the output is rms_out (in units of one avalanche).
+n sets the length of the impulse response used for the scale. The scale follows
 from the impulse response h of the shaper, whose output variance for unit white input
 is the sum of h squared; it is therefore the same for every chain built with the same
 settings, whatever the random stream. Each series is shaped from a preceding stretch of
-ten peaking times, so that the noise is stationary from its first sample.
+ten peaking times, so that the noise is stationary from its first sample. The shaper
+alone filters the noise, without the device pulse.
 """
 function noise_generator(sh::Shaper, rms_out::Real, n::Int, rng::AbstractRNG)
     nw = ceil(Int, 10 * sh.tp_ns / sh.dt)
@@ -221,7 +265,7 @@ function noise_generator(sh::Shaper, rms_out::Real, n::Int, rng::AbstractRNG)
 end
 
 """
-    dark_baseline(sh::Shaper, op::SipmOperation) -> level in avalanche units
+    dark_baseline(sh::Shaper, op::SipmOperation) -> Float64, level in avalanche units
 
 The steady level that the mean current of the dark avalanches would hold at the output of
 the chain if it were not removed (remove_dark_level!): the settled response of the chain to

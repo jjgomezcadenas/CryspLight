@@ -3,9 +3,12 @@
 # design note.
 
 """
-Unpolarized Fresnel reflectance for a photon in medium n1 hitting an interface to n2 at
-|cos(theta_i)| = cosi. Returns (tir, R): tir = total internal reflection (R meaningless),
-otherwise R = (Rs + Rp)/2.
+    fresnel(n1, n2, cosi) -> (tir::Bool, R::Float32)
+
+Unpolarized Fresnel reflectance for a photon in a medium of refractive index n1 hitting
+an interface to index n2 at |cos(theta_i)| = cosi (all Float32). tir = true is total
+internal reflection (R is then returned as 1 and carries no information); otherwise R =
+(Rs + Rp)/2 is the reflection probability. No random draw.
 """
 @inline function fresnel(n1::Float32, n2::Float32, cosi::Float32)
     sin2t = (n1 / n2)^2 * (1f0 - cosi^2)
@@ -39,7 +42,11 @@ end
     sqrt(-2f0 * log(randu(s))) * cos(2f0 * Float32(pi) * randu(s))
 
 """
-UNIFIED specular-lobe interaction at a rough crystal--air interface (air-gap finishes):
+    surface_interact(s, ux, uy, uz, face, n_crystal, sigma_alpha) -> (ux, uy, uz, transmitted)
+
+UNIFIED specular-lobe interaction at a rough crystal--air interface (air-gap finishes),
+for a photon of unit direction (ux, uy, uz) hitting the face of code face, with the
+crystal index n_crystal and the roughness sigma_alpha in radians (all Float32):
 sample a micro-facet normal tilted by alpha ~ |N(0, sigma_alpha)| from the average normal,
 apply Fresnel/TIR against the facet. Returns (ux, uy, uz, transmitted): the lobe-reflected
 direction (transmitted = false), or the unchanged direction with transmitted = true (the
@@ -81,8 +88,11 @@ seen by the photon and reflections that would leave the crystal; fallback = idea
 end
 
 """
-Rayleigh scattering: new direction with the (1 + cos^2 theta) phase function about the
-current one (polarization not tracked).
+    rayleigh_dir(s, ux, uy, uz) -> (ux, uy, uz)
+
+Rayleigh scattering: a new unit direction (Float32) drawn with the (1 + cos^2 theta)
+phase function about the current unit direction (ux, uy, uz); polarization is not
+tracked.
 """
 @inline function rayleigh_dir(s::PhiloxStream, ux::Float32, uy::Float32, uz::Float32)
     mu = 0f0
@@ -112,8 +122,11 @@ current one (polarization not tracked).
 end
 
 """
-Lambertian direction about the inward normal of a face: cos(theta) = sqrt(xi) about the
-normal (pdf ∝ cos), uniform azimuth in the face plane.
+    lambertian_dir(s, face) -> (ux, uy, uz)
+
+Lambertian unit direction (Float32) about the inward normal of the face of code face:
+cos(theta) = sqrt(xi) about the normal (pdf ∝ cos), uniform azimuth in the face plane.
+Used for the diffuse re-injection by a PTFE-like wrap or surround.
 """
 @inline function lambertian_dir(s::PhiloxStream, face::Int32)
     ct = sqrt(randu(s))                 # cos(theta) w.r.t. inward normal
@@ -138,9 +151,11 @@ normal (pdf ∝ cos), uniform azimuth in the face plane.
 end
 
 """
+    window_pass(s, n1, n2, n3, cosi) -> Bool
+
 Passage through the thin coupling layer (index n2) into the window (n3) of a photon that
-has just been transmitted from the crystal (n1) at |cos| = cosi. The layer is thin, so
-the photon stays at the same point and bounces between its two interfaces: transmitted at
+has just been transmitted from the crystal (n1) at |cos| = cosi (all Float32). The layer
+is thin, so the photon stays at the same point and bounces between its two interfaces: transmitted at
 the second one it enters the window (true); reflected, it returns to the first one and is
 either transmitted back into the crystal (false) or reflected towards the window again.
 The probability of entering is T2 / (1 - R1 R2) with the Fresnel values at the refracted

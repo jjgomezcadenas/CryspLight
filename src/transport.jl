@@ -3,14 +3,45 @@
 
 const C_MM_NS = 299.792458f0
 
+"Terminal status (Int32 1): the photon reached an active area and passed the PDE draw."
 const STATUS_DETECTED = Int32(1)
+"Terminal status (Int32 2): the photon was absorbed in the bulk of the crystal."
 const STATUS_ABS_BULK = Int32(2)   # bulk absorption in the crystal
+"Terminal status (Int32 3): the photon was absorbed by the wrap (probability 1 - wrap_R)."
 const STATUS_ABS_WALL = Int32(3)   # killed by the wrap (1 - R)
+"""
+Terminal status (Int32 4): the photon was transmitted to an active area of the sensor but
+failed the PDE draw.
+"""
 const STATUS_ABS_SIPM = Int32(4)   # transmitted to the sensor but failed the PDE draw
+"""
+Terminal status (Int32 5): the photon reached the bounce cap max_bounces (a diagnostic,
+about zero with physical reflectivities below one).
+"""
 const STATUS_CAP      = Int32(5)   # bounce cap (diagnostic; ~0 with physical R < 1)
+"""
+Terminal status (Int32 6): the photon was transmitted through the readout face outside
+the active region and absorbed by the surround (probability 1 - sur_R).
+"""
 const STATUS_ABS_SUR  = Int32(6)   # transmitted outside the active region, killed by
                                    # the surround (1 - R_surround)
 
+"""
+    OpticalParams(n_crystal, n_coupling, abs_len_mm, rayleigh_mm, wrap_R, wrap_specular,
+                  air_gap, sigma_alpha, pde, n_window)
+
+The optical parameters of a run, an isbits struct passed as such to the GPU kernel. The
+refractive indices are those of the crystal, of the coupling layer at the readout face
+(n_coupling: grease 1.45, or 1 for an air gap) and of the SiPM window behind that layer
+(n_window, 0 = no window). The bulk absorption length abs_len_mm and the Rayleigh
+scattering length rayleigh_mm are in mm (Inf32 disables each). The wrap reflects with
+probability wrap_R, specularly (wrap_specular = true, ESR) or diffusely (false, PTFE),
+behind an air gap (air_gap = true, back-painted finish) or in optical contact with the
+crystal (false, front-painted). sigma_alpha is the UNIFIED micro-facet roughness of the
+crystal-air interface in radians (0 = polished), and pde the detection probability
+applied on the fly to every photon that reaches an active area (1 records every photon
+arriving there). All fields are Float32 or Bool.
+"""
 struct OpticalParams
     n_crystal::Float32
     n_coupling::Float32     # grease, 1.45
@@ -24,13 +55,28 @@ struct OpticalParams
     n_window::Float32       # SiPM window (resin) behind the coupling layer; 0 = none
 end
 
-"Nine-argument form: no window, the readout face is the single crystal-coupling interface."
+"""
+    OpticalParams(n_crystal, n_coupling, abs_len_mm, rayleigh_mm, wrap_R, wrap_specular,
+                  air_gap, sigma_alpha, pde)
+
+Nine-argument form, with any real numbers converted to Float32: no window (n_window = 0),
+so the readout face is the single crystal-coupling interface.
+"""
 OpticalParams(n_crystal, n_coupling, abs_len_mm, rayleigh_mm, wrap_R, wrap_specular::Bool,
               air_gap::Bool, sigma_alpha, pde) =
     OpticalParams(Float32(n_crystal), Float32(n_coupling), Float32(abs_len_mm),
                   Float32(rayleigh_mm), Float32(wrap_R), wrap_specular, air_gap,
                   Float32(sigma_alpha), Float32(pde), 0f0)
 
+"""
+    SipmGrid(pitch_mm::Float32, nx::Int32, ny::Int32)
+
+The channel grid of the readout face: nx x ny square cells of side pitch_mm (mm) starting
+at the corner (0, 0) of the face. A full-face or disc readout bins a photon detected at
+(x, y) into the cell (1 + floor(x / pitch), 1 + floor(y / pitch)), clamped to the grid; a
+tiled readout (Readout) takes only nx and ny from it, the channel geometry being that of
+the tiles.
+"""
 struct SipmGrid
     pitch_mm::Float32
     nx::Int32
@@ -50,7 +96,10 @@ pitch cells of each tile; tiles are butted, grid.nx ÷ tile_n of them along x, a
 array corner sits at (x0, y0) in the crystal frame (negative when the array overhangs
 the crystal). The package surface between the active squares, and the board beyond the
 array, act as the surround (sur_R, sur_specular). Detected photons are binned on the
-grid either way (the light map); in tiles mode the bin is the channel.
+grid either way (the light map); in tiles mode the bin is the channel. two_sided = true
+puts sensors on both z faces. Lengths (cx, cy, r2 = radius squared, tile_pitch,
+tile_edge, active_w, tile_w, x0, y0) are in mm, sur_R is a probability. Built with the
+keyword constructor below.
 """
 struct Readout
     grid::SipmGrid
@@ -73,12 +122,16 @@ end
 
 """
     Readout(grid; center, radius, sur_R, sur_specular, two_sided,
-            tiles, tile_n, tile_pitch, tile_edge, active_w, face_mm, origin)
+            tiles, tile_n, tile_pitch, tile_edge, active_w, face_mm, origin) -> Readout
 
-Keyword constructor. radius selects the disc mode; tiles = true the tiled array, whose
-corner is placed either at origin = (x0, y0) or, given face_mm = (Lx, Ly), centred on the
-face. Defaults of the tile parameters are the Hamamatsu S14161-6050HS-04 (4 x 4 channels
-of 6.0 mm on a 6.2 mm pitch, 0.2 mm margin: 25.0 mm tiles).
+Keyword constructor. With neither radius nor tiles the whole face is active. radius
+(mm) selects the disc mode, centred at center = (cx, cy) in mm; tiles = true the tiled
+array, whose corner is placed either at origin = (x0, y0) (mm) or, given face_mm = (Lx,
+Ly), centred on the face. The grid must hold a whole number of tile_n x tile_n tiles.
+sur_R (probability, default 0) and sur_specular describe the surround and apply only to
+the disc and tiles modes. Defaults of the tile parameters are the Hamamatsu
+S14161-6050HS-04 (4 x 4 channels of 6.0 mm on a 6.2 mm pitch, 0.2 mm margin: 25.0 mm
+tiles).
 """
 function Readout(grid::SipmGrid; center = nothing, radius = nothing, sur_R = 0,
                  sur_specular::Bool = false, two_sided::Bool = false,
@@ -111,8 +164,11 @@ function Readout(grid::SipmGrid; center = nothing, radius = nothing, sur_R = 0,
 end
 
 """
-Channel index (1-based) along one axis of a tiled array for the coordinate s measured
-from the array corner, or 0 on a dead margin, between tiles, or outside the array.
+    tile_channel(s::Float32, ro::Readout, nchan::Int32) -> Int32
+
+Channel index (1-based) along one axis of a tiled array for the coordinate s (mm)
+measured from the array corner, or 0 on a dead margin, between tiles, beyond nchan
+channels or outside the array.
 """
 @inline function tile_channel(s::Float32, ro::Readout, nchan::Int32)
     s < 0f0 && return Int32(0)
@@ -127,9 +183,11 @@ from the array corner, or 0 on a dead margin, between tiles, or outside the arra
 end
 
 """
-Whether the point (x, y) of the readout face is active, and the channel (i, j) it falls
-in. Full face: active everywhere, binned by the pitch. Disc: binned by the pitch, active
-inside the disc. Tiles: active on the squares, the channel being the square; on a dead
+    active_channel(ro::Readout, x::Float32, y::Float32) -> (active::Bool, i::Int32, j::Int32)
+
+Whether the point (x, y) of the readout face (mm, crystal frame) is active, and the
+channel (i, j) it falls in. Full face: active everywhere, binned by the pitch. Disc:
+binned by the pitch, active inside the disc. Tiles: active on the squares, the channel being the square; on a dead
 area the channel indices returned are placeholders (1) and must not be used.
 """
 @inline function active_channel(ro::Readout, x::Float32, y::Float32)
@@ -144,7 +202,13 @@ area the channel indices returned are placeholders (1) and must not be used.
     return !ro.disc || (x - ro.cx)^2 + (y - ro.cy)^2 <= ro.r2, i, j
 end
 
-"Centres (mm, crystal frame) of the channels of a tiled readout along x and y."
+"""
+    channel_centres(ro::Readout) -> (cx, cy)
+
+Centres (mm, crystal frame) of the channels of a tiled readout: cx along x (nx values,
+channel i) and cy along y (ny values, channel j), Float32 vectors. An error for a readout
+that is not tiled.
+"""
 function channel_centres(ro::Readout)
     ro.tiles || error("channel_centres needs a tiled readout")
     axis(n, o) = [o + (k ÷ ro.tile_n) * ro.tile_w + ro.tile_edge +
@@ -152,11 +216,31 @@ function channel_centres(ro::Readout)
     return axis(ro.grid.nx, ro.x0), axis(ro.grid.ny, ro.y0)
 end
 
+"""
+    TimeBinning(bin_ns::Float32, nbins::Int32)
+
+Time binning of the detected photoelectrons: nbins bins of bin_ns ns from t = 0, the
+emission time origin, and one overflow bin for later detections.
+"""
 struct TimeBinning
     bin_ns::Float32
     nbins::Int32            # counts array has nbins + 1, the last is the overflow bin
 end
 
+"""
+    Accumulator(grid::SipmGrid, tb::TimeBinning)
+
+The tallies of an optical run, empty when constructed, filled by propagate_photon! (or
+reduced from the per-photon records by run_photons_ka!) and summed over threads with
+merge!. counts (UInt32, nx x ny x (nbins + 1)) holds the detected photoelectrons per
+channel and time bin, the last bin being the overflow; first_ns (Float32, nx x ny) the
+earliest detection time per channel in ns, Inf32 where there was none. The Int64
+counters are the numbers of photons per terminal status: ndet (detected, of which
+ndet_front on the z = 0 face of a two-sided readout), nabs_bulk, nabs_wall, nabs_sipm
+(failed the PDE draw), ncap (bounce cap) and nabs_sur (absorbed by the readout-face
+surround). nscat counts the Rayleigh scatters of all photons (not filled by
+run_photons_ka!), and sum_bounces_det the bounces of the detected photons, summed.
+"""
 mutable struct Accumulator
     counts::Array{UInt32,3}         # nx × ny × (nbins+1) photoelectron counts
     first_ns::Matrix{Float32}       # earliest detected time per SiPM (Inf if none)
@@ -186,6 +270,13 @@ function Base.merge!(a::Accumulator, b::Accumulator)
     return a
 end
 
+"""
+    total_terminated(acc::Accumulator) -> Int64
+
+Number of photons that reached a terminal status (detected, absorbed in the bulk, by the
+wall, at the SiPM or by the surround, or capped). It equals the number of photons run,
+which is the conservation check of the tests.
+"""
 total_terminated(a::Accumulator) =
     a.ndet + a.nabs_bulk + a.nabs_wall + a.nabs_sipm + a.ncap + a.nabs_sur
 
@@ -201,13 +292,24 @@ total_terminated(a::Accumulator) =
     acc.sum_bounces_det += bounces
 end
 
+"""
+    propagate_photon!(acc, box, op, grid::SipmGrid, tb, s, x, y, z, ux, uy, uz, t0; max_bounces)
+
+The same with a full-face readout, Readout(grid).
+"""
 propagate_photon!(acc::Accumulator, box::Box, op::OpticalParams, grid::SipmGrid,
                   tb::TimeBinning, s::PhiloxStream, x, y, z, ux, uy, uz, t0; kw...) =
     propagate_photon!(acc, box, op, Readout(grid), tb, s, x, y, z, ux, uy, uz, t0; kw...)
 
 """
-Transport one photon from (x,y,z) with direction (ux,uy,uz) and emission time t0 (ns)
-until it is detected or absorbed. Accumulates into acc and returns the status.
+    propagate_photon!(acc, box, op, ro::Readout, tb, s, x, y, z, ux, uy, uz, t0;
+                      max_bounces = 100_000) -> Int32 status
+
+Transport one photon from (x, y, z) (mm, crystal frame) with unit direction (ux, uy, uz)
+and emission time t0 (ns), all Float32, drawing from the stream s, until it is detected
+or absorbed, or until max_bounces wall hits and Rayleigh scatters. Accumulates into acc
+(a detection goes into the channel and the time bin of tb of its arrival time in ns) and
+returns the terminal status code (STATUS_DETECTED to STATUS_ABS_SUR).
 """
 function propagate_photon!(acc::Accumulator, box::Box, op::OpticalParams,
                            ro::Readout, tb::TimeBinning, s::PhiloxStream,
@@ -334,15 +436,25 @@ function propagate_photon!(acc::Accumulator, box::Box, op::OpticalParams,
     end
 end
 
+"""
+    run_photons!(box, op, grid::SipmGrid, tb; kw...)
+
+The same with a full-face readout, Readout(grid).
+"""
 run_photons!(box::Box, op::OpticalParams, grid::SipmGrid, tb::TimeBinning; kw...) =
     run_photons!(box, op, Readout(grid), tb; kw...)
 
 """
+    run_photons!(box, op, ro::Readout, tb; n_photons, seed, pos | positions, tau_ns,
+                 tau2_ns = 0, frac1 = 1, max_bounces = 100_000) -> Accumulator
+
 Run n_photons from an isotropic point source with exponential (tau_ns > 0) or delta
 (tau_ns = 0) emission time; a second component tau2_ns with weight 1 - frac1 for the first
-one is optional. Pass either pos (a single point) or positions (a list —
-photons are assigned round-robin, giving an equal-weight scan). Deterministic in
-(seed, photon id) regardless of threading. Returns the merged Accumulator.
+one is optional (times in ns, Float32). Pass either pos (a single point) or positions (a
+list — photons are assigned round-robin, giving an equal-weight scan), as Float32 mm
+triples in the crystal frame. Photon k (1-based) draws from PhiloxStream(seed, k), so the
+result is deterministic in (seed, photon id) regardless of threading. Returns the
+Accumulator merged over the threads.
 """
 function run_photons!(box::Box, op::OpticalParams, ro::Readout, tb::TimeBinning;
                       n_photons::Int, seed::Integer,

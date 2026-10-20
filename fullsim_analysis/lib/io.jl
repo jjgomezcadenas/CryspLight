@@ -4,14 +4,16 @@
 """
     read_events(path) -> NamedTuple
 
-Fields: path, tag, frontend, kind ("simulation" or "measurement"), run (the attributes of
-/run as a Dict), nch, n, q (charge in avalanches, nch x n, Float64; the dual-gain value
-for the ASICs), charge (raw, as stored), lg (low-gain counts or nothing), qlg (low-gain
+An event file of the common layout (run_fullsim_frontend, or a measurement converted to
+it) read whole. Fields: path, tag, frontend, kind ("simulation" or "measurement"), run
+(the attributes of /run as a Dict), nch, n, q (charge in avalanches, nch x n, Float64;
+the dual-gain value for the ASICs), charge (raw, as stored: ADC counts for the ASICs,
+count-samples for the digitizer), lg (low-gain ADC counts or nothing), qlg (low-gain
 charge in avalanches from its own calibration, or nothing), calib (the /calib group as a
-Dict), hits (nch x n, Bool), trig (n, Bool), ttrig (n),
-flags (n, UInt8), x and y (channel centres, mm), chip, and mc (nothing for a measurement,
-else edep, e511, e1275, nph (photons at the active areas), maps (8 x 8 x n photons),
-ngam).
+Dict), hits (nch x n, Bool), trig (n, Bool), ttrig (n, ns), flags (n, UInt8), x and y
+(channel centres, mm), chip, and mc (nothing for a measurement, else edep, e511, e1275
+in keV, nph (photons at the active areas), nemit (photons emitted), maps (8 x 8 x n
+photons), ngam).
 """
 function read_events(path::AbstractString)
     h5open(path, "r") do f
@@ -47,12 +49,31 @@ function read_events(path::AbstractString)
     end
 end
 
-"Decays tagged by the simulation as a full absorption of one 511 keV gamma alone."
+"""
+    select_photopeak511(e) -> BitVector
+
+Decays of a simulated event file (read_events) tagged as a full absorption of one 511 keV
+gamma alone: more than 510 keV from the 511 keV gammas and nothing from the 1275 keV one.
+An error for a measurement.
+"""
 select_photopeak511(e) = e.mc === nothing ? error("no simulated tags in $(e.tag)") :
     (e.mc.e511 .> 510) .& (e.mc.e1275 .== 0)
-"Decays tagged as a full absorption of the 1275 keV gamma alone."
+"""
+    select_photopeak1275(e) -> BitVector
+
+Decays tagged as a full absorption of the 1275 keV gamma alone: more than 1273 keV from
+it and nothing from the 511 keV gammas.
+"""
 select_photopeak1275(e) = (e.mc.e1275 .> 1273) .& (e.mc.e511 .== 0)
-"Decays with no energy deposit."
+"""
+    select_empty(e) -> BitVector
+
+Decays with no energy deposit in the crystal.
+"""
 select_empty(e) = e.mc.edep .== 0
-"Decays with a deposited energy in [lo, hi] keV."
+"""
+    select_compton(e, lo = 200, hi = 300) -> BitVector
+
+Decays with a deposited energy strictly between lo and hi keV.
+"""
 select_compton(e, lo = 200, hi = 300) = (e.mc.edep .> lo) .& (e.mc.edep .< hi)

@@ -1,6 +1,11 @@
 # Photon generation: isotropic directions and the scintillation emission time.
 
-"Isotropic unit vector."
+"""
+    isotropic_dir(s::PhiloxStream) -> (ux, uy, uz)
+
+Isotropic unit vector (Float32 components) from two draws of the stream: the cosine of
+the polar angle, then the azimuth.
+"""
 @inline function isotropic_dir(s::PhiloxStream)
     uz = 1f0 - 2f0 * randu(s)
     r = sqrt(max(0f0, 1f0 - uz * uz))

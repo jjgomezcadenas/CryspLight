@@ -28,9 +28,16 @@ function _extendible(g, name, T, dims0::Tuple, chunk::Tuple)
 end
 
 """
-    open_pes(path, nx, ny; cfg_text, pde_applied, lambda_nm, extra...) -> PesWriter
+    open_pes(path, nx, ny; cfg_text = "", pde_applied = 1.0, lambda_nm = 0.0,
+             attributes = Dict()) -> PesWriter
 
-Create the file with empty extendible datasets and the run attributes.
+Create the photoelectron file at path for an nx x ny readout, with empty extendible
+datasets (layout at the top of this file) and the run attributes: the configuration text
+cfg_text, the code version, the PDE applied in the transport (pde_applied, 1 when the
+records are the photons arriving at the active areas), the emission wavelength lambda_nm
+(nm, written with every record), n_decays = 0, the keys of the channel, gamma_kind and
+proc codes, and every pair of the Dict attributes. The returned writer holds the open
+file; fill it with append_pes! and close it with close_pes.
 """
 function open_pes(path::AbstractString, nx::Integer, ny::Integer;
                   cfg_text::AbstractString = "", pde_applied::Real = 1.0,
@@ -81,7 +88,15 @@ function _append!(d, v::AbstractVector)
     return
 end
 
-"Append the result of run_decays! (a chunk of consecutive decays) to the file."
+"""
+    append_pes!(w::PesWriter, r::NamedTuple) -> PesWriter
+
+Append the result r of run_decays! (a chunk of consecutive decays, which must start at
+the decay after the last one in the file) to the file, offsets shifted to the records
+already there, each photoelectron record carrying the wavelength of the file. Returns a
+new writer with the updated decay count, which replaces w for the next chunk
+(w = append_pes!(w, r)).
+"""
 function append_pes!(w::PesWriter, r::NamedTuple)
     ev, ia, pe = r.events, r.interactions, r.pes
     ev.first_decay == w.n_decays + 1 ||
@@ -113,9 +128,22 @@ function append_pes!(w::PesWriter, r::NamedTuple)
     return PesWriter(w.file, w.nx, w.ny, w.n_decays + n)
 end
 
+"""
+    close_pes(w::PesWriter)
+
+Close the HDF5 file of the writer; the file is complete only after this call.
+"""
 close_pes(w::PesWriter) = close(w.file)
 
-"Read a photoelectron file whole into the NamedTuple layout of run_decays!."
+"""
+    read_pes(path) -> NamedTuple (events, interactions, pes, attributes)
+
+Read a photoelectron file whole into the NamedTuple layout of run_decays! (energies in
+keV, positions in mm, times in ns, first_decay = 1), with two additions: pes also holds
+lambda_nm (UInt16, nm) per record, and attributes is a Dict of the file attributes (the
+configuration text config_toml, code_version, pde_applied, lambda_nm, n_decays and the
+code keys).
+"""
 function read_pes(path::AbstractString)
     h5open(path, "r") do f
         rd(g, k) = read(f[g][k])
@@ -139,14 +167,25 @@ function read_pes(path::AbstractString)
     end
 end
 
-"Records of event k (1-based) as views: (channel, t_ns, lambda_nm)."
+"""
+    event_pes(r::NamedTuple, k::Integer) -> (channel, t_ns, lambda_nm)
+
+The photoelectron records of event k (1-based) of a file read with read_pes, as views:
+channel (UInt8, (j - 1) nx + i), t_ns (Float32, ns from the decay) and lambda_nm
+(UInt16, nm).
+"""
 function event_pes(r::NamedTuple, k::Integer)
     lo, hi = r.pes.offset[k] + 1, r.pes.offset[k + 1]
     return (channel = view(r.pes.channel, lo:hi), t_ns = view(r.pes.t_ns, lo:hi),
             lambda_nm = view(r.pes.lambda_nm, lo:hi))
 end
 
-"Git description of the working tree, or 'unknown' outside a repository."
+"""
+    code_version() -> String
+
+The git description of the repository working tree (git describe --always --dirty
+--tags), stamped into the output files, or "unknown" outside a repository.
+"""
 function code_version()
     try
         return readchomp(`git -C $(dirname(@__DIR__)) describe --always --dirty --tags`)

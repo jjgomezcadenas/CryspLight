@@ -3,14 +3,23 @@
 
 const RESULTS_ROOT = normpath(joinpath(@__DIR__, "..", "results"))
 
-"Directory of a study, created if needed."
+"""
+    results_dir(campaign, study) -> String
+
+The directory fullsim_analysis/results/<campaign>/<study>/ of a study, created if needed.
+"""
 function results_dir(campaign::AbstractString, study::AbstractString)
     d = joinpath(RESULTS_ROOT, campaign, study)
     mkpath(d)
     return d
 end
 
-"Open (create) the HDF5 file <study>.h5 of a study and run f on it."
+"""
+    open_results(f, campaign, study; mode = "w") -> String
+
+Open the HDF5 file <study>.h5 in the study directory (created, or overwritten, with the
+default mode "w") and run f on it, as in a do block. Returns the path of the file.
+"""
 function open_results(f::Function, campaign::AbstractString, study::AbstractString;
                       mode::AbstractString = "w")
     path = joinpath(results_dir(campaign, study), study * ".h5")
@@ -18,7 +27,12 @@ function open_results(f::Function, campaign::AbstractString, study::AbstractStri
     return path
 end
 
-"Provenance attributes on a group or file: code version, date, and any pairs given."
+"""
+    stamp!(g, pairs...) -> g
+
+Provenance attributes on an HDF5 group or file: code_version, the UTC date of writing,
+and one attribute per name => value pair given.
+"""
 function stamp!(g, pairs::Pair...)
     a = attrs(g)
     a["code_version"] = code_version()
@@ -31,25 +45,41 @@ end
 
 now_utc() = Libc.strftime("%Y-%m-%dT%H:%M:%SZ", time())
 
-"A histogram as two datasets, <name>_edges and <name>_counts."
+"""
+    write_hist!(g, name, edges, counts) -> g
+
+Write a histogram into the HDF5 group g as two datasets, <name>_edges (Float64) and
+<name>_counts (Int64).
+"""
 function write_hist!(g, name::AbstractString, edges::AbstractVector, counts::AbstractVector)
     g[name * "_edges"] = Float64.(collect(edges))
     g[name * "_counts"] = Int64.(collect(counts))
     return g
 end
 
-"A vector dataset, Float64 unless integer."
+"""
+    write_vector!(g, name, v) -> g
+
+Write the vector v into the HDF5 group g as the dataset name: Int64 for an integer
+vector, Float64 otherwise.
+"""
 write_vector!(g, name::AbstractString, v::AbstractVector) =
     (g[name] = eltype(v) <: Integer ? Int64.(collect(v)) : Float64.(collect(v)); g)
 
-"A matrix dataset (channel maps, 8 x 8)."
+"""
+    write_matrix!(g, name, m) -> g
+
+Write the matrix m (channel maps, 8 x 8) into the HDF5 group g as the Float64 dataset
+name.
+"""
 write_matrix!(g, name::AbstractString, m::AbstractMatrix) = (g[name] = Float64.(collect(m)); g)
 
 """
-    write_table(campaign, study, name, columns)
+    write_table(campaign, study, name, columns) -> String
 
-CSV table <name>.csv in the study directory; columns is a vector of name => vector pairs
-of equal length. Numbers are written with full precision, NaN as empty.
+Write the CSV table <name>.csv in the study directory and return its path; columns is a
+vector of name => vector pairs of equal length. Numbers are written with full precision,
+non-finite values as empty, Bool as 0/1 and anything else as a quoted string.
 """
 function write_table(campaign::AbstractString, study::AbstractString, name::AbstractString,
                      columns::Vector)
@@ -71,12 +101,12 @@ _cell(v::Bool) = v ? "1" : "0"
 _cell(v) = "\"" * replace(string(v), "\"" => "\"\"") * "\""
 
 """
-    update_table(campaign, study, name, columns; key = "tag")
+    update_table(campaign, study, name, columns; key = "tag") -> String
 
 Write the rows of `columns` into <name>.csv, replacing the rows of the existing file whose
 `key` equals one of the new keys and keeping the others; columns are matched by name, and
-a column missing on one side is left empty there. Lets several scripts runs (one per tag)
-build one campaign table.
+a column missing on one side is left empty there. Lets several script runs (one per tag)
+build one campaign table. Returns the path of the file.
 """
 function update_table(campaign::AbstractString, study::AbstractString, name::AbstractString,
                       columns::Vector; key::AbstractString = "tag")

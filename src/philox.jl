@@ -28,8 +28,12 @@ const PHILOX_W1 = 0xBB67AE85
 end
 
 """
-A per-photon stream of uniforms: key = (seed, seed>>32), counter = (photon id lo, hi,
-block index, 0). One Philox call yields four UInt32s, buffered.
+    PhiloxStream(seed, photon_id) -> PhiloxStream
+
+The random stream of one photon: Philox4x32-10 with key = (low, high 32 bits of the
+integer seed) and counter = (low, high 32 bits of photon_id, block index, 0). One Philox
+call yields four UInt32 values, buffered and consumed in order by randu. Two streams with
+the same (seed, photon_id) give the same draws, whatever thread runs them.
 """
 mutable struct PhiloxStream
     key::NTuple{2,UInt32}
@@ -58,5 +62,10 @@ end
     return x
 end
 
-"Uniform Float32 in (0, 1] — safe as the argument of log."
+"""
+    randu(s::PhiloxStream) -> Float32
+
+The next uniform draw of the stream, in (0, 1] with 24-bit resolution: never 0, so it is
+safe as the argument of log, and equal to 1 with probability 2^-24. Advances the stream.
+"""
 @inline randu(s::PhiloxStream) = ((next_u32!(s) >>> 8) + 1.0f0) * Float32(exp2(-24))
