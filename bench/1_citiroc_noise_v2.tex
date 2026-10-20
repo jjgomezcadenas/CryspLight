@@ -23,34 +23,41 @@
 leída a través del concentrador DT5215 con el programa de adquisición de
 datos (DAQ) de JMB.
 \item Uso los nombres que JMB define en su DAQ, que en todo caso, coinciden con los del software de CAEN (Janus, Sección~\ref{sec:janus}). 
-\item El DAQ trabaja en modo peak stretch (programa de festejos, nota 0).
+\item \sloppy El chip trabaja en modo peak stretch. En Janus es
+  \texttt{PeakDetectorMode} = PEAK\_STRETCH; en el DAQ de JMB es el modo por
+  defecto y no hay que configurar nada.
 \end{enumerate}
 
 \section{Medida del pedestal y el ruido}
 \label{sec:medida}
 
-\subsection*{La cadena del Citiroc}
-
 \begin{figure}[!h]
 \centering
-\includegraphics[width=0.55\textwidth]{mecanismo_ps.png}
+\includegraphics[width=0.45\textwidth]{mecanismo_ps.png}
 \caption{Una avalancha de 1~fotoelectrón en $t = 0$, según el modelo de la
 simulación. {\bf Arriba}, el pulso del SiPM, normalizado a 1 en su máximo.
 {\bf En el centro}, la salida del fast shaper: el canal se dispara cuando
 cruza 0,5~fotoelectrones, a 14~ns. {\bf Abajo}, la salida del slow shaper a
 25, 50 y 87,5~ns; las flechas marcan el tiempo entre el trigger y el máximo
-(31, 58 y 90~ns), el \texttt{HoldDelay} mínimo para que el peak stretch lo
-recoja, sin contar la latencia de la tarjeta.}
+(31, 58 y 90~ns). La latencia de la tarjeta retrasa el comienzo de la
+ventana y se resta de estos tiempos: el \texttt{HoldDelay} mínimo para que
+el peak stretch recoja el máximo es el tiempo de la flecha menos la
+latencia. Si la latencia pasa de 31~ns, con 25~ns la ventana empieza
+después del máximo y se pierde señal.}
 \label{fig:mecanismo}
 \end{figure}
 
+\subsection*{La cadena del Citiroc}
+
+
+
 \begin{itemize}
-\item Cada avalancha del SiPM produce un pulso que sube hasta su máximo en
+\item En el modelo, cada avalancha del SiPM produce un pulso que sube hasta su máximo en
   69~ns y cae con una constante de 100~ns (Figura~\ref{fig:mecanismo},
   arriba). La subida la marca la recarga de la celda, unos 50~ns, y la
   caída el producto de la capacitancia del SiPM por la resistencia de
   entrada, 2000~pF $\times$ 50~$\Omega$. Su carga es la de un fotoelectrón
-  (pe).
+  (pe). El pulso real se mide con el osciloscopio (nota 0).
 \item El pulso entra en dos preamplificadores en paralelo: el de alta
   ganancia (HG), para señales de pocos pe, y el de baja ganancia (LG), para
   los cientos de pe que recibe un canal en un evento de 511~keV. Sus
@@ -64,16 +71,18 @@ recoja, sin contar la latencia de la tarjeta.}
   próximos.
 \item En paralelo, el fast shaper (FS, 15~ns) y un discriminador disparan el
   canal cuando la señal cruza un umbral (Figura~\ref{fig:mecanismo},
-  centro). En la A5202 el trigger del evento es el OR de los 64 canales, o
-  un trigger periódico (PTRG), como en esta nota; el hold es común a los 64
+  centro). En la A5202 el trigger del evento es el OR o una mayoría de
+  los 64 canales (en producción, 4 de 64), o un trigger periódico (PTRG),
+  como en esta nota; el hold es común a los 64
   canales.
-\item Desde el trigger, el chip sigue la salida de cada slow shaper y va
-  guardando el valor más alto que alcanza; al llegar el hold deja de
-  seguirla y conserva ese máximo (peak stretch). El hold tiene que llegar
-  después del máximo del pulso, no necesariamente en él. La FPGA de la tarjeta manda el hold
-  \texttt{HoldDelay} después del trigger, en pasos de 8~ns, más un retraso
-  propio de la tarjeta (la latencia), que no conocemos. Después se
-  digitalizan las dos ganancias de los 64 canales.
+\item La FPGA de la tarjeta recibe el trigger y, con un retraso propio que
+  no conocemos (la latencia), abre la ventana. Desde ese momento el chip
+  sigue la salida de cada slow shaper y va guardando el valor más alto que
+  alcanza; la FPGA manda el hold \texttt{HoldDelay} después, en pasos de
+  8~ns, y el chip deja de seguirla y conserva ese máximo (peak stretch). La
+  ventana dura el \texttt{HoldDelay}; la latencia solo retrasa su comienzo.
+  El hold tiene que llegar después del máximo del pulso, no necesariamente
+  en él. Después se digitalizan las dos ganancias de los 64 canales.
 \end{itemize}
 
 \subsection*{Pedestal y ruido}
@@ -107,8 +116,8 @@ avalancha de 1~pe con slow shaper de 25~ns, frente al \texttt{HoldDelay}:
 crece hasta el máximo del pulso y se queda en él. {\bf Centro y derecha},
 solo ruido (SiPM por debajo del BV), con slow shaper de 25 y 87,5~ns: el
 valor guardado, en unidades del ruido en un instante, para tres
-\texttt{HoldDelay} y una latencia supuesta de 50~ns. El pedestal sube y se
-estrecha al alargar la ventana, más deprisa a 25~ns.}
+\texttt{HoldDelay}; con 0~ns es el ruido en un instante. El pedestal sube y
+se estrecha al alargar la ventana, más deprisa a 25~ns.}
 \label{fig:ventana}
 \end{figure}
 
@@ -117,15 +126,16 @@ estrecha al alargar la ventana, más deprisa a 25~ns.}
   (el máximo hasta el hold) crece con el \texttt{HoldDelay} hasta
   que la ventana contiene el máximo del pulso, y después se queda en una
   meseta (Figura~\ref{fig:ventana}, izquierda).
-\item Con solo ruido, el chip guarda el máximo del ruido en la ventana. La
-  ventana dura la latencia más el \texttt{HoldDelay}, así que con
-  \texttt{HoldDelay} = 0~ns no es nula. Al alargarla, el máximo es cada vez
+\item Con solo ruido, el chip guarda el máximo del ruido en la ventana. Con
+  \texttt{HoldDelay} = 0~ns la ventana es casi nula y el valor guardado es
+  el ruido en un instante (quizá con un pequeño desfase entre la apertura y
+  el hold, que el paso~2 permite ajustar). Al alargarla, el máximo es cada vez
   mayor y varía menos de un evento a otro: el pedestal sube y se estrecha
   (Figura~\ref{fig:ventana}, centro y derecha).
 \item El efecto depende del shaping. El ruido de un shaper corto cambia más
   deprisa, caben más fluctuaciones independientes en la misma ventana, y el
-  pedestal se desplaza más: con 296~ns de \texttt{HoldDelay}, unas 2,3 veces
-  el ruido en un instante a 25~ns y 1,7 veces a 87,5~ns.
+  pedestal se desplaza más: con 296~ns de \texttt{HoldDelay}, unas 2,2 veces
+  el ruido en un instante a 25~ns y 1,6 veces a 87,5~ns.
 \item Por eso la anchura medida no es directamente el ruido: es la del
   máximo del ruido en la ventana, y se compara con la que da el modelo para
   la misma ventana.
@@ -139,7 +149,7 @@ estrecha al alargar la ventana, más deprisa a 25~ns.}
   87,5~ns en todos los runs.
 \item La alta ganancia sirve para calibrar con los DP (menú~3): los picos de
   1, 2 y 3~pe dan la ganancia de cada canal, que se pasa a la baja ganancia
-  con el cociente entre las dos ganancias.
+  con el cociente medido entre las dos ganancias.
 \item Para calibrar, un shaping largo es malo: con varios MHz de DP por
   canal, a 87,5~ns los pulsos se apilan y los picos de SPE se borran; con un
   shaping corto se separan. Pero un shaping corto tiene más ruido, y ese
@@ -162,7 +172,8 @@ estrecha al alargar la ventana, más deprisa a 25~ns.}
   \item \texttt{HV\_Vbias} de forma que los SiPM queden entre 1 y 2~V por
     debajo del BV (Sección~\ref{sec:medida}): unos 36,5~V, en lugar de los 45,4~V de
     producción. Fijarlo antes de lanzar el run, no durante.
-  \item Guardar la configuración con {\bf Save config}.
+  \item Lanzar un run corto (nota 0) para que la tarjeta reciba la
+    configuración y la tensión.
   \item En la pestaña {\bf Hardware}, encender el HV de la tarjeta y esperar
     a que Vmon e Imon estén estables.
   \end{itemize}
@@ -257,9 +268,9 @@ estrecha al alargar la ventana, más deprisa a 25~ns.}
   que la baja ganancia tiene el mismo ruido en cuentas de ADC que la alta.
   Estas medidas nos permiten entender lo realistas que son estas
   suposiciones.
-\item El modelo calcula el máximo del ruido en la ventana de cada run, la
-  latencia más el \texttt{HoldDelay}. La latencia, que no conocemos, se
-  ajusta con los runs del paso~2.
+\item El modelo calcula el máximo del ruido en la ventana de cada run, el
+  \texttt{HoldDelay}. Si hay un pequeño desfase entre la apertura de la
+  ventana y el hold, se ajusta con los runs del paso~2.
 \end{itemize}
 
 \section{Parámetros del DAQ (A5202)}
@@ -298,6 +309,11 @@ medidas) \\
 \end{tabular}
 \end{center}
 
+\noindent Los parámetros con índice del fichero de producción (por ejemplo
+\texttt{TD\_CoarseThreshold[0]} o \texttt{ChEnableMask0[1]}) son de cada
+tarjeta y mandan sobre el valor común: cambiarlos también, o quitarlos
+(nota 0).
+
 \section{Análisis}
 \label{sec:datos}
 
@@ -323,13 +339,12 @@ medidas) \\
 
 \begin{itemize}
 \item {\bf Ruido de la alta ganancia, en pe de 5~V} (los de la calibración),
-  en un instante: 0,06 a 87,5~ns, 0,08 a 50~ns y 0,11 a 25~ns. Las
-  anchuras medidas con \texttt{HoldDelay} = 0~ns saldrán algo menores, sobre
-  todo a 25~ns, porque la ventana no es nula.
+  con \texttt{HoldDelay} = 0~ns: 0,06 a 87,5~ns, 0,08 a 50~ns y 0,11 a
+  25~ns. Si hay un desfase entre la apertura y el hold, las anchuras saldrán
+  algo menores, sobre todo a 25~ns.
 \item {\bf Prueba sin ganancia:} el cociente entre el ruido a un shaping y
   el ruido a 87,5~ns, en cuentas de ADC, no depende de la ganancia. El
-  modelo da 1,32 a 50~ns y 1,87 a 25~ns en un instante; con una latencia de
-  unos 50~ns, los cocientes medidos serán más bien 1,2 a 1,3 y 1,5 a 1,7.
+  modelo da 1,32 a 50~ns y 1,87 a 25~ns; con un desfase, algo menos.
 \item {\bf Baja ganancia:} el mismo ruido en cuentas de ADC que la alta a
   87,5~ns (run de 87,5~ns del paso 1, donde las dos tienen el mismo
   shaping).

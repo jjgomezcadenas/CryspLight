@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """hold_scan_figs.py: figures of the Citiroc bench notes (v1/2_citiroc_hold_track.tex, hold delay
-scan; 1_citiroc_noise_v2.tex, pedestal and noise in peak stretch: ventana.png).
+scan; 1_citiroc_noise_v2.tex, pedestal and noise in peak stretch: ventana.png, mecanismo_ps.png;
+2_citiroc_hold_scan_v2.tex, hold delay scan in peak stretch: scan_ps.png).
 
     python3 bench/hold_scan_figs.py
 
@@ -208,7 +209,9 @@ def fig_staircase():
     fig.tight_layout(); fig.savefig(OUT / "staircase.png", dpi=150); plt.close(fig)
 
 
-LATENCY = 50.0                 # assumed trigger-to-hold latency of the board (ns), not measured
+OFFSET = 0.0                   # possible arming-to-hold offset added to the window (ns): the
+                               # window is HoldDelay (gtrg to hold, FERSlib); the latency from
+                               # the crossing to gtrg shifts it along the pulse, not lengthens it
 
 
 def shaped_noise(tp, n):
@@ -226,7 +229,7 @@ def fig_window():
     """Peak stretch: the stored value is the maximum between trigger and hold. Left, a 1 pe
     pulse at 25 ns against the hold delay (no noise). Centre and right, noise alone (SiPM
     below breakdown): distribution of the stored value, in units of the rms of one sample,
-    for windows LATENCY + HoldDelay, at 25 and 87.5 ns."""
+    for windows OFFSET + HoldDelay, at 25 and 87.5 ns (HoldDelay 0 is one sample)."""
     tc = crossing(FAST, THR)
     y = shaped(25.0)
     delays = np.arange(0, 121, 8)
@@ -242,16 +245,39 @@ def fig_window():
     for a, tp in zip(ax[1:], (25.0, 87.5)):
         z = shaped_noise(tp, n_ev * 1200 + 6000)
         starts = np.arange(n_ev) * 1200
-        a.hist(z[starts], bins, histtype="step", ls="--", color="k", label="un instante: media 0, anchura 1")
         for hd, c in ((0, "C0"), (96, "C1"), (296, "C3")):
-            w = int(LATENCY + hd)
+            w = int(OFFSET + hd)
             m = np.array([z[s:s + w + 1].max() for s in starts])
+            lab = "HoldDelay 0 ns (un instante)" if hd == 0 else f"HoldDelay {hd} ns"
             a.hist(m, bins, histtype="step", lw=1.3, color=c,
-                   label=f"HoldDelay {hd} ns: media {m.mean():.2f}, anchura {m.std():.2f}")
-        a.set_title(f"Solo ruido, slow shaper {tp:g} ns (latencia {LATENCY:.0f} ns)")
+                   label=f"{lab}: media {m.mean():.2f}, anchura {m.std():.2f}")
+        a.set_title(f"Solo ruido, slow shaper {tp:g} ns")
         a.set_xlabel("valor guardado (rms del ruido en un instante)"); a.legend(fontsize=7)
     ax[1].set_ylabel("eventos")
     fig.tight_layout(); fig.savefig(OUT / "ventana.png", dpi=150); plt.close(fig)
+
+
+def fig_scan_ps():
+    """Peak stretch, the hold delay scan expected for the channel that triggers: mean stored
+    value against HoldDelay (no latency) at 25, 50 and 87.5 ns. Solid, the toy with noise,
+    dark pulses and crosstalk; dashed, one avalanche without noise. Dotted lines at the model
+    minimum HoldDelay."""
+    tc = crossing(FAST, THR)
+    fig, ax = plt.subplots(figsize=(7, 4))
+    delays = np.arange(0, 201, 8)
+    for tp, c in ((25.0, "C0"), (50.0, "C1"), (87.5, "C2")):
+        v = stored(tp, delays, "pd", n_ev=2000)
+        y = shaped(tp)
+        clean = np.interp(tc + delays, T, np.maximum.accumulate(np.where(T >= tc, y, 0)))
+        d = model_delay(tp)
+        ax.plot(delays, v.mean(axis=0), "s-", c=c, mfc="none", label=f"slow shaper {tp:g} ns (mínimo {d:.0f} ns)")
+        ax.plot(delays, clean, "--", c=c, lw=1)
+        ax.axvline(d, c=c, ls=":")
+    ax.set_xlabel("HoldDelay desde el trigger (ns), sin latencia")
+    ax.set_ylabel("valor guardado medio (pe)")
+    ax.set_title("Peak stretch: canal que dispara")
+    ax.legend(fontsize=8, loc="lower right")
+    fig.tight_layout(); fig.savefig(OUT / "scan_ps.png", dpi=150); plt.close(fig)
 
 
 if __name__ == "__main__":
@@ -263,4 +289,5 @@ if __name__ == "__main__":
     fig_staircase()
     fig_window()
     fig_mechanism(peak_stretch=True)
+    fig_scan_ps()
     print("figures in", OUT)

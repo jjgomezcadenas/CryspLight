@@ -19,28 +19,43 @@ El programa de festejos pide calibrar la electrónica + SiPMs. Usamos la tarjeta
 adquisición de datos (DAQ) de JMB. Este aperitivo explica
 solo el orden de las medidas, luego hay un menú con instrucciones para cada estudio.  
 
-\section*{Peak stretch vs Track \& hold}
+\section*{El modo de medida: peak stretch}
 
-El Citiroc guarda la salida del slow shaper de cada canal de una de dos
-maneras. En {\bf peak stretch} sigue la señal entre el trigger y el hold y
-guarda su máximo; el \texttt{HoldDelay} fija la duración de esa ventana. En
-{\bf track \& hold} guarda el valor en el instante del hold; el
-\texttt{HoldDelay} fija entonces en qué punto del pulso se toma la muestra.
-El DAQ de JMB trabaja a día de hoy siempre en peak stretch, que,
-en todo caso, es el modo con el que se hacen las medidas de
-energía.
+El Citiroc sigue la salida del slow shaper de cada canal entre el trigger y
+el hold y guarda su máximo; el \texttt{HoldDelay} fija la duración de esa
+ventana. Es el modo peak stretch, el de las medidas de energía. En Janus es
+\texttt{PeakDetectorMode} = PEAK\_STRETCH; en el DAQ de JMB es el modo por
+defecto y no hay que configurar nada.
 
-\section*{Primera ronda de medidas: peak stretch}
+\section*{Cómo aplica el DAQ la configuración}
+
+\begin{itemize}
+\item Los parámetros de la pestaña {\bf Acquisition}, incluida la tensión
+  \texttt{HV\_Vbias}, llegan a la tarjeta solo al lanzar un run ({\bf Start
+  run}). {\bf Save config} no configura la tarjeta: solo guarda la
+  configuración en un fichero del ordenador.
+\item Los scans (staircase y hold-delay scan) no aplican la configuración:
+  usan la del último run. Por eso, después de cambiar cualquier parámetro
+  (tensión, shaping, máscaras, umbral), lanzar un {\bf run corto} antes del
+  scan o del run de medida: {\bf Start run} y, a los pocos segundos,
+  {\bf Stop and drain}. Si ha cambiado la tensión, esperar a que Vmon e
+  Imon estén estables antes de seguir.
+\item \sloppy En el fichero de producción, los parámetros con índice (por ejemplo
+  \texttt{TD\_CoarseThreshold[0]}) son de cada tarjeta y mandan sobre el
+  valor común: cambiarlos también, o quitarlos.
+\end{itemize}
+
+\section*{Las medidas}
 
 \begin{enumerate}
 \item {\bf Pedestal y ruido} (menú 1). Con los SiPM por debajo de la tensión
   de ruptura (breakdown voltage, BV), queremos calcular la media y la anchura del pedestal de
   cada canal en función del shaping time y del \texttt{HoldDelay}.
 \item {\bf Hold delay scan} (menú 2). Con los SiPM por encima del BV, queremos calcular el
-  espectro de los pulsos oscuros (Dark Pulses, DP) frente al \texttt{HoldDelay}. En peak
-  stretch el valor guardado crece mientras la ventana no llega al máximo del
+  espectro de los pulsos oscuros (Dark Pulses, DP) frente al \texttt{HoldDelay}. El
+  valor guardado crece mientras la ventana no llega al máximo del
   pulso y después se estabiliza; el scan da el \texttt{HoldDelay} mínimo que
-  recoge el máximo y cuánto sube el pedestal al alargar la ventana.
+  recoge el máximo y la latencia de la tarjeta.
 \item {\bf Calibración con los DP} (menú 3). Los espectros de
   uno, dos y tres fotoelectrones (single photoelectron, SPE) de cada canal,
   a varios shaping times y overvoltages (tensión por encima del BV), que dan
@@ -48,10 +63,9 @@ energía.
   trigger frente al umbral, que da el crosstalk.
 \end{enumerate}
 
-\noindent Empezamos por peak stretch por dos razones: es lo único que el DAQ
-permite hoy, y es el modo en que se tomarán los datos con cristal, así que
-esta calibración es la que se usará entonces. Además, estos datos nos
-sirven ya para comparar con la simulación.
+\noindent Las medidas se hacen en el modo en que se tomarán los datos con
+cristal, así que esta calibración es la que se usará entonces. Además, estos
+datos nos sirven ya para comparar con la simulación.
 
 \section*{La forma del pulso: osciloscopio}
 
@@ -113,7 +127,9 @@ un conector la señal analógica de un canal elegido (la sonda analógica). Pued
   \item Una captura de pantalla.
   \end{itemize}
 \item {\bf Las seis medidas que queremos:} (cada línea es una medida distinta, con su
-  configuración y sus ficheros):
+  configuración y sus ficheros). Entre una y otra: {\bf Stop and drain},
+  cambiar los parámetros y {\bf Start run}; si cambia la tensión, esperar a
+  que Vmon e Imon estén estables.
   \begin{enumerate}
   \item \texttt{AnalogProbe0} = SLOW\_HG, \texttt{HG\_ShapingTime} =
     87,5~ns, a 5~V.
@@ -127,10 +143,11 @@ un conector la señal analógica de un canal elegido (la sonda analógica). Pued
     preamplificador, que no depende del shaping.
   \item \texttt{AnalogProbe0} = SLOW\_LG con \texttt{LG\_ShapingTime} =
     87,5~ns, a 5~V. Aquí un fotoelectrón da menos de 1~mV y no se puede
-    disparar en la señal: poner \texttt{Tlogic\_Mask0} con solo el bit del
-    canal sondeado (0x00000001 para el canal~0) y \texttt{T0\_Out} = T-OR,
-    llevar el LEMO T0-OUT del panel frontal a otro canal del osciloscopio y
-    disparar en él.
+    disparar en la señal: poner \texttt{TriggerLogic} = OR64,
+    \texttt{Tlogic\_Mask0} con solo el bit del canal sondeado (0x00000001
+    para el canal~0), \texttt{Tlogic\_Mask1} = 0x00000000 y
+    \texttt{T0\_Out} = TLOGIC, llevar el LEMO T0-OUT del panel frontal a otro
+    canal del osciloscopio y disparar en él.
   \end{enumerate}
 \item {\bf Resultado:} por cada medida, cuatro ficheros (pulso, cero,
   sueltos, captura), con la sonda, el canal, el shaping, el overvoltage y la
@@ -138,13 +155,10 @@ un conector la señal analógica de un canal elegido (la sonda analógica). Pued
   configuración del osciloscopio.
 \item {\bf Precaución:} al terminar, volver a poner \texttt{AnalogProbe0} =
   OFF, y devolver a sus valores de partida \texttt{PresetCounts},
-  \texttt{Tlogic\_Mask0} y \texttt{T0\_Out}. Con la sonda conectada la ganancia del canal cambia
+  \texttt{TriggerLogic}, \texttt{Tlogic\_Mask0}, \texttt{Tlogic\_Mask1} y
+  \texttt{T0\_Out}. Con la sonda conectada la ganancia del canal cambia
   ligeramente: esta configuración no sirve para los runs de los menús 1 a 3.
 \end{itemize}
-
-\section*{Track \& hold, más adelante}
-
-Track \& hold no está disponible todavía en el DAQ. 
 
 \section*{Qué necesita el cocinero}
 
@@ -163,11 +177,14 @@ Track \& hold no está disponible todavía en el DAQ.
   \hline
   fecha y hora & al empezar el run o al guardar el fichero \\
   run o fichero & número de run del DAQ, o nombre del CSV \\
+  tipo & run, run corto, staircase, hold-delay scan u osciloscopio \\
   menú y paso & por ejemplo, 1.2 (menú 1, paso 2) u osciloscopio \\
   \texttt{HG\_ShapingTime} & en ns \\
   \texttt{LG\_ShapingTime} & en ns \\
   \texttt{HoldDelay} & en ns \\
   \texttt{HV\_Vbias} & en V \\
+  \texttt{TD\_CoarseThreshold} & el umbral, si cambia (menús 2 y 3) \\
+  canal que dispara & la máscara, en los scans del menú 2 \\
   temperatura & la de la tarjeta, en $^\circ$C \\
   eventos & número de eventos del run \\
   incidencias & cualquier cosa rara; vacío si no hay \\

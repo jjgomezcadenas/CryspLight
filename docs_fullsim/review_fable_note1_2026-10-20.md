@@ -47,3 +47,43 @@ The run histograms are 4K bins over 8192 codes by default (service/histogram.go:
 5. Table: HV_IndivAdj = 0 (production), HG_Gain = LG_Gain = 55 (production), EnableServiceEvents on, per-channel ZS lines 0 or absent.
 6. Section Análisis: 1-count bins, Sheppard's correction below 2 counts, histogram file only for the Plots check; restore the Runs/Artifacts/Download lines.
 7. Section "Cómo entra la medida": add that the simulation keeps noise_pe fixed in avalanches at its configured overvoltage, so the 5 V comparison uses noise_pe = 0.06.
+
+## Final pass (revised note, 2026-10-20)
+
+Checked: the new Section 1, both figures and captions, fig_window() in bench/hold_scan_figs.py (lines 211–254), the steps, the table and the cross-references. The revision is consistent and the student-facing fixes are in. One premise, which my own review introduced, needs correcting, and a handful of small things follow from it.
+
+### 1. The window is HoldDelay, not latency plus HoldDelay (correction to my review)
+
+In FERSlib both ends of the peak-detection window come from the same FPGA signal: gtrg is propagated to the Citiroc pin global_trig, which arms the peak detector (FERS_configure_5202.c:246, crcfg_enable_gtrg; datasheet: track phase until trigger, peak detection from trigger to hold), and the hold is issued HoldDelay after gtrg (FERS_Registers_520X.h:84, "Time from gtrg to peak hold"). The latency between the physical crossing, or the PTRG edge, and gtrg therefore shifts the window along the pulse but does not lengthen it; the window length is HoldDelay plus whatever small difference exists between the arming path and the hold path, likely zero to a clock cycle or two. This is also what the simulation does (citiroc.jl:220–224, window from the trigger to trigger + hold_ns, no latency). Consequences for the note:
+
+- Line 120–122, "La ventana dura la latencia más el HoldDelay, así que con HoldDelay = 0 ns no es nula": replace by "La ventana dura el HoldDelay más un posible desfase, de pocos ns, entre la orden de seguir el máximo y el hold; con HoldDelay = 0 ns puede ser casi nula o no, y el paso 2 lo decide". Same change at line 260–262 ("la latencia más el HoldDelay" → "el HoldDelay más ese desfase, que se ajusta con los runs del paso 2").
+- Line 73–75 is right as written (the latency delays the hold) but should add that it also delays the start of the window, so it moves the window along the pulse instead of widening it; and for the pulse this means the minimum HoldDelay of Figure 1 is reduced by the latency, and a latency above 31 ns puts the window past the maximum at 25 ns shaping. Minimal wording for the caption of Figure 1, last clause: "la latencia de la tarjeta desplaza la ventana y se resta de ese mínimo".
+- Lines 325–332 ("Lo que se espera"): present the two cases instead of one. If the window at HoldDelay = 0 is a few ns, the widths and ratios are the single-sample ones (0.06/0.08/0.11 pe; 1.32 and 1.87). If there is an offset of tens of ns, they are smaller: with the 50 ns of the figure, the toy itself gives widths of 0.70σ at 25 ns and 0.90σ at 87.5 ns, hence ratios of about 1.45 at 25 ns (not "1,5 a 1,7") and 1.15–1.2 at 50 ns; the note's ranges should read "1,4 a 1,7" and "1,15 a 1,3", or better, quote the two cases and let the step-2 fit decide. The analysis of step 2 then fits the window offset, which may come out zero; nothing else in the plan changes.
+- Figure 2 caption and panel titles say "latencia supuesta de 50 ns": rename to "desfase supuesto de 50 ns" (the quantity added to the window), and state that it is an upper-case illustration, not a measured value. The left panel, which has no offset, is consistent with window = HoldDelay and needs no change.
+
+### 2. Physics statements in Section 1
+
+- Line 48–53, the SiPM pulse: correct description of the model (peak at 69 ns, fall 2000 pF × 50 Ω = 100 ns, rise constant 50 ns), but written as fact. Add "en el modelo" and that the oscilloscope measurement of note 0 will show the real one; the rise being "la recarga de la celda, unos 50 ns" is an assumption of the toy, not a datasheet number.
+- Line 61–62, shaping 12.5 to 87.5 ns in steps of 12.5 ns: correct (datasheet 6.2).
+- Line 62–64, "un shaping largo ... tiene menos ruido": true for series noise, which dominates with 2 nF at the input, and that is what the model assumes; acceptable as written, optionally "con nuestra capacitancia de entrada".
+- Line 67–69, "el trigger del evento es el OR de los 64 canales, o un trigger periódico": the production configuration triggers on a majority of 4 of the 64 (TriggerLogic MAJ64, MajorityLevel 4), and the OR is one of several options. Minimal: "el OR o una mayoría de los 64 canales (en producción, 4 de 64), o un trigger periódico (PTRG), como en esta nota". The common hold is right.
+- Line 70–76, peak stretch and hold: correct (datasheet 6.3.2), subject to the window remark above. "En pasos de 8 ns" is right; 300 ns becomes 296 ns as line 207 says.
+- Line 125–128, faster rise and narrowing at short shaping, and the numbers 2.3 and 1.7 at 296 ns: correct for the toy as drawn (legend: 2.27 and 1.69 with the 50 ns offset); with no offset the window is 296 ns and the means are about 2.2 and 1.7, so the sentence survives either way. Say "unas 2,2–2,3" or leave as is.
+- Line 137–150, the two gains: correct. "El cociente entre las dos ganancias" should be the measured ratio, not the nominal 10 ("con el cociente medido entre las dos ganancias").
+- Caption of Figure 1, 14 ns crossing and 31/58/90 ns: consistent with the figure and the toy.
+
+### 3. Is fig_window a fair toy?
+
+Yes, as the model's own prediction: white noise through the same CR-RC² (θ = t_p/2) that the simulation uses for its noise (shaping.jl noise_generator), unit rms, windows drawn 1200 ns apart so they are independent, 20 000 windows per curve. Two things could mislead: the 50 ns added to the window, discussed above, and the implicit assumption that the noise correlation time is the shaper's; real 1/f or pickup components would lengthen it and reduce the bias, which is exactly what the step-2 fit will show. The script's LATENCY constant (line 211) should be renamed to an offset and commented as "assumed for illustration".
+
+### 4. Internal consistency and the student
+
+- Abbreviations: pe (line 53), HG/LG (55), SS and FS (58, 65; FS is reused, SS is not), PTRG (68), SPE (85), BV (90), DP (93) are all defined before use; FPGA (73) is not, and is fine for this reader. The caption of Figure 1 says "1 fotoelectrón" before pe is defined: fine.
+- Steps and counts: step 1 three runs, step 2 five, step 3 one, nine in total; the table's HoldDelay list matches; "los tres estudios" (lines 276, 285) means the three menus, which is clear from note 0.
+- Cross-references all resolve (sec:medida, sec:janus, sec:datos); sec:razon is defined and no longer referenced, harmless.
+- Line 163, 36.5 V versus 45.4 V of production, and lines 285–292 (gains 55, HV_IndivAdj 0, EnableServiceEvents, per-channel ZS): as recommended and consistent with the fixture.
+- One item from the review not yet in the text: the simulation keeps noise_pe fixed in avalanche units at its configured 3 V, so whoever simulates the 5 V case sets noise_pe = 0.06; one sentence at line 252–259 is enough.
+- Line 309–312 of Análisis is right; add "ajuste con bins de 1 cuenta" since σ will be a few counts.
+- Step 3 is good; it could also be the place to note the board temperature from the Hardware tab at start and end, which the logbook already asks for.
+
+Nothing else blocks the note. The only change of substance is the window premise in section 1 above; it does not alter the runs, only how the expectation and the figure are worded and how step 2 is fitted.

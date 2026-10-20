@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""citiroc_spe_figs.py: figures of bench/3_citiroc_spe_calib.tex (SPE calibration of the Citiroc).
+"""citiroc_spe_figs.py: figures of the Citiroc SPE calibration notes (v1/3_citiroc_spe_calib.tex;
+3_citiroc_spe_calib_v2.tex, peak stretch with a periodic trigger: spe_ptrg.png).
 
     python3 bench/citiroc_spe_figs.py
 
@@ -73,9 +74,46 @@ def staircase_xt():
     fig.tight_layout(); fig.savefig(OUT / "staircase_crosstalk.png", dpi=150); plt.close(fig)
 
 
+def ptrg_ladder(tp, window, xt=0.195, rate=4.4, n_ev=20000, noise=None, spacing=1500):
+    """Peak stretch with a periodic trigger: stored value (pe) of one channel per event, the
+    maximum over [0, window] ns of a dark-pulse train (Poisson, branching crosstalk) through
+    the slow shaper, plus shaped noise of rms `noise` (pe). Windows `spacing` ns apart on one
+    long trace, so the pulses before each window are included."""
+    from scipy.signal import fftconvolve
+    noise = 0.06 * np.sqrt(87.5 / tp) if noise is None else noise
+    n = n_ev * spacing + 2000
+    h.XT = xt
+    k = h.RNG.poisson(rate * 1e-3 * n)
+    imp = np.zeros(n)
+    np.add.at(imp, h.RNG.integers(0, n, k), h.borel(k))
+    sig = fftconvolve(imp, h.shaped(tp, n=1500))[:n]
+    z = h.shaped_noise(tp, n + 6000)[:n] * noise
+    tr = sig + z
+    starts = 2000 + np.arange(n_ev - 2) * spacing
+    w = int(window)
+    return np.array([tr[s:s + w + 1].max() for s in starts])
+
+
+def spe_ptrg():
+    """Spectra of one channel with a periodic trigger at 5 V, HoldDelay 96 and 200 ns, slow
+    shaper 25, 50 and 87.5 ns, in pe."""
+    bins = np.linspace(-1.0, 5.0, 241)
+    fig, ax = plt.subplots(1, 3, figsize=(14, 4), sharey=True)
+    for a, tp in zip(ax, (25.0, 50.0, 87.5)):
+        for wdw, c in ((96, "C0"), (200, "C3")):
+            v = ptrg_ladder(tp, wdw)
+            a.hist(v, bins, histtype="step", lw=1.3, color=c, label=f"HoldDelay {wdw} ns")
+        a.set_title(f"PTRG, slow shaper {tp:g} ns, 5 V (toy)")
+        a.set_xlabel("valor guardado (pe)"); a.legend(fontsize=8)
+        a.set_yscale("log")
+    ax[0].set_ylabel("eventos")
+    fig.tight_layout(); fig.savefig(OUT / "spe_ptrg.png", dpi=150); plt.close(fig)
+
+
 if __name__ == "__main__":
     spectra()
     staircase_xt()
+    spe_ptrg()
     for v in (3.0, 5.0):
         bt = borel_tail(VOV[v][0])[:6]
         print(v, "V plateau ratios (branching):", np.round(bt[1:] / bt[:-1], 3),
