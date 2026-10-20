@@ -5,6 +5,7 @@ authors = ["J.J. Gomez-Cadenas", "Claude"]
 
 [deps]
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+H5Zblosc = "c8ec2601-a99c-407f-b158-e79c03c2f5f7"
 HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
 KernelAbstractions = "63c18a36-062a-441e-b654-da1e3ab1ce7c"
 Metal = "dde4c033-4e86-420c-a63e-0dd931031962"
@@ -15,6 +16,7 @@ TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
 
 [compat]
 CairoMakie = "0.15.13"
+H5Zblosc = "0.1.2"
 KernelAbstractions = "0.9.42"
 Metal = "1.10.0"
 Random = "1.11"

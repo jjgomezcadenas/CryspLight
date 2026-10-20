@@ -1338,3 +1338,37 @@ include("frozen.jl")
         @test Set(keys(current)) == Set(keys(stored))
     end
 end
+
+@testset "Bench DAQ files: run, histograms, staircase and hold-delay scan" begin
+    # Files written by pet-caen-daq (main 75086b2): a simulated four-board run with the
+    # production configuration and test pulses, and two scan artifacts with known contents.
+    fx = joinpath(@__DIR__, "fixtures", "daq")
+    r = read_daq_run(joinpath(fx, "run_1.0000.h5"))
+    @test r.run_id == "1" && r.schema == 2 && r.nevents == 4
+    @test length(r.obs.hg) == 256 && sort(unique(r.obs.chain)) == 0:3
+    # one row per channel and board: 64 channels of board 0, one event each
+    @test all(==(1), length.(daq_channel_values(r; chain = 0)))
+    @test sum(daq_spectra(r; chain = 0)) == 64
+    # the run histograms hold the same values: bin of 2 codes, one entry each
+    H = read_daq_histograms(joinpath(fx, "run_1.histograms.h5"))
+    @test sort(collect(keys(H))) == ["pha_high", "pha_low", "toa", "tot"]
+    s0 = only(filter(s -> s.chain == 0 && s.channel == 0, H["pha_high"]))
+    hg0 = only(daq_channel_values(r; chain = 0)[1])
+    @test s0.entries == 1 && s0.counts[floor(Int, (hg0 - s0.minimum) / s0.bin_width) + 1] == 1
+    # configuration: indexed lines override the common value for their board
+    p = r.config.params
+    @test daq_param(p, "TD_CoarseThreshold"; board = 0) == "181"
+    @test daq_param(p, "TD_CoarseThreshold"; board = 1) == "183"
+    @test daq_value(p, "HoldDelay") == 300.0
+    # the service records carry the monitored HV, here equal to the requested HV_Vbias
+    @test length(r.service.hv_v) == 8 && all(r.service.validity .== 0x7f)
+    @test r.service.hv_v[1] ≈ daq_value(p, "HV_Vbias")
+    st = read_daq_staircase(joinpath(fx, "staircase.h5"))
+    @test st.threshold == [300, 250, 200] && st.t_or_rate == [200.0, 400.0, 600.0]
+    @test st.rate[1:3, 2] == [20.0, 22.0, 24.0] && st.count[64, 3] == 83
+    hd = read_daq_hold_delay(joinpath(fx, "hold-delay.h5"))
+    @test hd.delay_ns == [0, 8, 16] && hd.events == [100, 100, 100]
+    @test hd.counts[11, 1, 1] == 60 && hd.counts[42, 1, 2] == 40 && hd.counts[21, 6, 3] == 9
+    @test vec(sum(hd.counts[:, 1, :]; dims = 1)) == [100, 100, 100]
+    @test hd.missing[64, :] == [0, 1, 2] && hd.bin_low[2] == 16
+end
