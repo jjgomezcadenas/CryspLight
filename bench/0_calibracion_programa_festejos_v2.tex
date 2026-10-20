@@ -60,45 +60,86 @@ la salida del slow shaper, y esa forma es la entrada de la simulación que
 más influencia tiene en la posición y la anchura del pico de 511~keV. La A5202 saca a
 un conector la señal analógica de un canal elegido (la sonda analógica). Puede medirse con el osciloscopio (es fácil que ya lo hayas hecho).
 
+\noindent {\bf Preparación}
 \begin{itemize}
-\item {\bf Acción:}
+\item {\bf Acción (DAQ):}
   \begin{itemize}
-  \item SiPM a 5~V de overvoltage, a oscuras.
-  \item En la pestaña {\bf Acquisition}: \texttt{AnalogProbe0} = SLOW\_HG.
-  \item \texttt{ProbeChannel0} = un canal entre 0 y 31.
-  \item \texttt{DigitalProbe0} = HOLD.
-  \item \texttt{T0\_Out} = DPROBE.
-  \item Trigger PTRG.
-  \item Conectar la señal analógica, que sale por el conector MCX Probe~1
-    de la tarjeta (cable RG174 con clavija MCX macho), a un canal del
-    osciloscopio, con la entrada a 1~M$\Omega$.
-  \item Conectar la señal digital, que sale por el LEMO T0-OUT del panel
-    frontal (niveles LVTTL), a otro canal, también a 1~M$\Omega$.
-  \item Disparar el osciloscopio en la señal analógica, a la mitad de la
-    altura de un DP de un fotoelectrón.
-  \item Lanzar un run, para que la tarjeta genere el hold.
+  \item SiPM a oscuras.
+  \item Los parámetros del menú 1, con las ganancias (\texttt{HG\_Gain},
+    \texttt{LG\_Gain}) de la configuración de partida.
+  \item \texttt{HV\_Vbias} para 5~V de overvoltage: unos 43~V a temperatura
+    ambiente.
+  \item \texttt{AnalogProbe0} = SLOW\_HG.
+  \item \texttt{ProbeChannel0} = un canal entre 0 y 31 (anotarlo).
+  \item \texttt{PresetCounts} muy grande (100\,000\,000): con el valor del
+    menú 1 el run se para a los 10~s.
+  \item Lanzar un run, para que el DAQ aplique la configuración; dejarlo
+    corriendo mientras se mide.
   \end{itemize}
-\item {\bf Resultado:} los DP de un fotoelectrón en la pantalla y
-  el instante del hold.
-\item {\bf Acción:}
+\item {\bf Acción (osciloscopio):}
   \begin{itemize}
-  \item Ventana del osciloscopio de unos 500~ns, que incluya la caída
-    completa del DP.
-  \item Para \texttt{HG\_ShapingTime} = 87,5, 50 y 25~ns: activar el
-    promedio del osciloscopio (average) sobre unos 1000 disparos y guardar
-    la waveform promediada en un fichero CSV, desde el menú de guardado del
-    osciloscopio.
-  \item En los mismos tres ajustes: con el promedio desactivado, adquirir en
-    modo single y guardar una decena de DP sueltos, un CSV por DP.
-  \item En cada fichero, guardar los dos canales: la señal analógica y la
-    del hold.
-  \item Repetir a 87,5~ns con \texttt{AnalogProbe0} = SLOW\_LG.
+  \item Osciloscopio de 100~MHz o más, sin límite de ancho de banda,
+    acoplamiento DC.
+  \item La señal analógica sale por el conector MCX Probe~1 de la tarjeta:
+    llevarla a un canal del osciloscopio con un cable RG174 (clavija MCX
+    macho) de medio metro como mucho.
+  \item Escala vertical de 5 a 10~mV por división: un fotoelectrón debería
+    dar entre 3 y 10~mV.
+  \item Registro de 2~$\mu$s, con el disparo al 30\,\% de la pantalla y un
+    holdoff de más de 2~$\mu$s.
+  \item Mirar un DP suelto y elegir el flanco del disparo según su
+    polaridad.
+  \item Comparar el mismo DP con la entrada a 1~M$\Omega$ y a 50~$\Omega$:
+    si a 50~$\Omega$ la amplitud baja a la mitad y la forma no cambia, usar
+    50~$\Omega$; si no, 1~M$\Omega$. Anotar la elección.
   \end{itemize}
-\item {\bf Resultado:} ficheros CSV de waveforms por cada ajuste,
-  con el shaping y la sonda en el nombre.
+\item {\bf Resultado:} los DP en la pantalla. Si no aparece ninguna señal,
+  parar y avisar.
+\end{itemize}
+
+\noindent {\bf Medida}
+\begin{itemize}
+\item {\bf Acción:} en cada una de las seis medidas de la lista de abajo,
+  guardar desde el menú del osciloscopio:
+  \begin{itemize}
+  \item El promedio (average) de 1000 disparos o más, con el disparo en la
+    señal a la mitad de la altura de un DP de un fotoelectrón (nunca por
+    debajo de 0,4): la waveform del pulso, en CSV.
+  \item El promedio de 1000 disparos o más con el disparo automático del
+    osciloscopio (auto), que no está ligado a los DP: es la línea de cero
+    del pulso anterior, en CSV.
+  \item Entre 10 y 20 DP sueltos en modo single (o un fichero de secuencia,
+    si el osciloscopio lo permite).
+  \item Una captura de pantalla.
+  \end{itemize}
+\item {\bf Las seis medidas que queremos:} (cada línea es una medida distinta, con su
+  configuración y sus ficheros):
+  \begin{enumerate}
+  \item \texttt{AnalogProbe0} = SLOW\_HG, \texttt{HG\_ShapingTime} =
+    87,5~ns, a 5~V.
+  \item \texttt{AnalogProbe0} = SLOW\_HG, \texttt{HG\_ShapingTime} = 50~ns,
+    a 5~V.
+  \item \texttt{AnalogProbe0} = SLOW\_HG, \texttt{HG\_ShapingTime} = 25~ns,
+    a 5~V.
+  \item \texttt{AnalogProbe0} = SLOW\_HG, \texttt{HG\_ShapingTime} =
+    87,5~ns, a 3~V de overvoltage (\texttt{HV\_Vbias} 2~V menos).
+  \item \texttt{AnalogProbe0} = PREAMP\_HG, a 5~V: la salida del
+    preamplificador, que no depende del shaping.
+  \item \texttt{AnalogProbe0} = SLOW\_LG con \texttt{LG\_ShapingTime} =
+    87,5~ns, a 5~V. Aquí un fotoelectrón da menos de 1~mV y no se puede
+    disparar en la señal: poner \texttt{Tlogic\_Mask0} con solo el bit del
+    canal sondeado (0x00000001 para el canal~0) y \texttt{T0\_Out} = T-OR,
+    llevar el LEMO T0-OUT del panel frontal a otro canal del osciloscopio y
+    disparar en él.
+  \end{enumerate}
+\item {\bf Resultado:} por cada medida, cuatro ficheros (pulso, cero,
+  sueltos, captura), con la sonda, el canal, el shaping, el overvoltage y la
+  terminación en el nombre. Guardar también una vez el fichero de
+  configuración del osciloscopio.
 \item {\bf Precaución:} al terminar, volver a poner \texttt{AnalogProbe0} =
-  OFF y \texttt{T0\_Out} a su valor de partida: con la sonda conectada la
-  ganancia del canal cambia ligeramente.
+  OFF, y devolver a sus valores de partida \texttt{PresetCounts},
+  \texttt{Tlogic\_Mask0} y \texttt{T0\_Out}. Con la sonda conectada la ganancia del canal cambia
+  ligeramente: esta configuración no sirve para los runs de los menús 1 a 3.
 \end{itemize}
 
 \section*{Track \& hold, más adelante}
@@ -110,7 +151,8 @@ Track \& hold no está disponible todavía en el DAQ.
 \begin{itemize}
 \item De cada run, los ficheros \texttt{.h5} que indica cada menú, y una
   línea en el logbook con el número de run, la nota y el paso a los que corresponde, y cualquier incidencia.
-\item {\bf El logbook:} abrir una hoja de Google, compartirla conmigo y
+\item \begin{minipage}[t]{\linewidth}
+  {\bf El logbook:} abrir una hoja de Google, compartirla conmigo y
   escribir en ella una fila por cada run del DAQ y por cada fichero del
   osciloscopio, con estas columnas:
   \begin{center}
@@ -132,6 +174,10 @@ Track \& hold no está disponible todavía en el DAQ.
   \hline
   \end{tabular}
   \end{center}
+  En las filas del osciloscopio, además: sonda, canal, terminación, longitud
+  del cable, escala vertical, fuente y nivel del disparo, número de
+  promedios, longitud del registro e intervalo de muestreo.
+  \end{minipage}
 \item Los ficheros CSV de waveforms del osciloscopio, con el canal, la
   tensión y las escalas de tiempo y de amplitud anotadas.
 \item Si algo no se comporta como espera el menú, para y grita. 

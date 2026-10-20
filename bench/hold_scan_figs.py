@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""hold_scan_figs.py: figures of bench/2_citiroc_hold_track.tex (hold delay scan with the Citiroc).
+"""hold_scan_figs.py: figures of the Citiroc bench notes (v1/2_citiroc_hold_track.tex, hold delay
+scan; 1_citiroc_noise_v2.tex, pedestal and noise in peak stretch: ventana.png).
 
     python3 bench/hold_scan_figs.py
 
@@ -103,7 +104,9 @@ def stored(tp, delays, mode, n_ev=20000, jitter=1.0, noise=None, win_before=600)
     return res + RNG.normal(0, noise, res.shape)
 
 
-def fig_mechanism():
+def fig_mechanism(peak_stretch=False):
+    """peak_stretch=True writes mecanismo_ps.png, with the arrows labelled as the minimum
+    HoldDelay (bench note 1 v2); False writes mecanismo.png as in the v1 notes."""
     d25, d87 = model_delay(25.0), model_delay(87.5)
     tc = crossing(FAST, THR)
     fig, ax = plt.subplots(3, 1, figsize=(7, 7.5), sharex=True)
@@ -117,12 +120,14 @@ def fig_mechanism():
         ax[2].plot(T, y, c, label=f"slow shaper {tp:g} ns: máximo a {tm:.0f} ns")
         yl = {25.0: 1.12, 50.0: 1.32, 87.5: 1.52}[tp]
         ax[2].annotate("", xy=(tm, yl), xytext=(tc, yl), arrowprops=dict(arrowstyle="<->", color=c))
-        ax[2].text(tm + 4, yl - 0.04, f"hold delay {d:.0f} ns", c=c)
+        lab = f"HoldDelay mínimo {d:.0f} ns" if peak_stretch else f"hold delay {d:.0f} ns"
+        ax[2].text(tm + 4, yl - 0.04, lab, c=c)
     ax[2].axvline(tc, c="C3")
     ax[2].set_ylim(-0.35, 1.65); ax[2].axhline(0, c="k", lw=0.5)
     ax[2].set_ylabel("shaped pulse (pe)"); ax[2].set_xlabel("tiempo (ns)"); ax[2].legend(loc="lower right")
     ax[2].set_xlim(0, 300)
-    fig.tight_layout(); fig.savefig(OUT / "mecanismo.png", dpi=150); plt.close(fig)
+    name = "mecanismo_ps.png" if peak_stretch else "mecanismo.png"
+    fig.tight_layout(); fig.savefig(OUT / name, dpi=150); plt.close(fig)
     return d25, d87
 
 
@@ -203,6 +208,52 @@ def fig_staircase():
     fig.tight_layout(); fig.savefig(OUT / "staircase.png", dpi=150); plt.close(fig)
 
 
+LATENCY = 50.0                 # assumed trigger-to-hold latency of the board (ns), not measured
+
+
+def shaped_noise(tp, n):
+    """White noise through the slow shaper (CR-RC^2, theta = tp/2), normalised to unit rms."""
+    from scipy.signal import lfilter
+    a = np.exp(-DT / (tp / 2))
+    y = lfilter([a, -a], [1, -a], RNG.normal(size=n))
+    for _ in range(2):
+        y = lfilter([1 - a], [1, -a], y)
+    y = y[5000:]
+    return y / y.std()
+
+
+def fig_window():
+    """Peak stretch: the stored value is the maximum between trigger and hold. Left, a 1 pe
+    pulse at 25 ns against the hold delay (no noise). Centre and right, noise alone (SiPM
+    below breakdown): distribution of the stored value, in units of the rms of one sample,
+    for windows LATENCY + HoldDelay, at 25 and 87.5 ns."""
+    tc = crossing(FAST, THR)
+    y = shaped(25.0)
+    delays = np.arange(0, 121, 8)
+    pd = np.interp(tc + delays, T, np.maximum.accumulate(np.where(T >= tc, y, 0)))
+    fig, ax = plt.subplots(1, 3, figsize=(14, 4))
+    ax[0].plot(T - tc, y, "k", lw=1, label="pulso del slow shaper, 25 ns")
+    ax[0].plot(delays, pd, "s", mfc="none", c="C3", label="peak stretch: máximo hasta el hold")
+    ax[0].set_xlim(-20, 130); ax[0].set_ylim(-0.4, 1.15); ax[0].axhline(0, c="k", lw=0.5)
+    ax[0].set_xlabel("HoldDelay desde el trigger (ns)"); ax[0].set_ylabel("valor guardado (pe)")
+    ax[0].set_title("Señal de 1 pe, sin ruido"); ax[0].legend(fontsize=8, loc="lower right")
+    bins = np.linspace(-4, 6, 201)
+    n_ev = 20000
+    for a, tp in zip(ax[1:], (25.0, 87.5)):
+        z = shaped_noise(tp, n_ev * 1200 + 6000)
+        starts = np.arange(n_ev) * 1200
+        a.hist(z[starts], bins, histtype="step", ls="--", color="k", label="un instante: media 0, anchura 1")
+        for hd, c in ((0, "C0"), (96, "C1"), (296, "C3")):
+            w = int(LATENCY + hd)
+            m = np.array([z[s:s + w + 1].max() for s in starts])
+            a.hist(m, bins, histtype="step", lw=1.3, color=c,
+                   label=f"HoldDelay {hd} ns: media {m.mean():.2f}, anchura {m.std():.2f}")
+        a.set_title(f"Solo ruido, slow shaper {tp:g} ns (latencia {LATENCY:.0f} ns)")
+        a.set_xlabel("valor guardado (rms del ruido en un instante)"); a.legend(fontsize=7)
+    ax[1].set_ylabel("eventos")
+    fig.tight_layout(); fig.savefig(OUT / "ventana.png", dpi=150); plt.close(fig)
+
+
 if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
     d25, d87 = fig_mechanism()
@@ -210,4 +261,6 @@ if __name__ == "__main__":
     fig_modes(d25)
     fig_spectra(d25)
     fig_staircase()
+    fig_window()
+    fig_mechanism(peak_stretch=True)
     print("figures in", OUT)
