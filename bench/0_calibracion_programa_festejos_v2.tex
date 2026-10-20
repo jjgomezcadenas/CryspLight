@@ -1,0 +1,140 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-noshorthands]{babel}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{enumitem}
+\setlist{itemsep=2pt}
+
+\title{Calibración del Citiroc: programa de festejos}
+\author{JJ}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section*{Aperitivo}
+
+El programa de festejos pide calibrar la electrónica + SiPMs. Usamos la tarjeta CAEN A5202 (dos Citiroc~1A, 64 canales), leída a través del concentrador DT5215 con el programa de
+adquisición de datos (DAQ) de JMB. Este aperitivo explica
+solo el orden de las medidas, luego hay un menú con instrucciones para cada estudio.  
+
+\section*{Peak stretch vs Track \& hold}
+
+El Citiroc guarda la salida del slow shaper de cada canal de una de dos
+maneras. En {\bf peak stretch} sigue la señal entre el trigger y el hold y
+guarda su máximo; el \texttt{HoldDelay} fija la duración de esa ventana. En
+{\bf track \& hold} guarda el valor en el instante del hold; el
+\texttt{HoldDelay} fija entonces en qué punto del pulso se toma la muestra.
+El DAQ de JMB trabaja a día de hoy siempre en peak stretch, que,
+en todo caso, es el modo con el que se hacen las medidas de
+energía.
+
+\section*{Primera ronda de medidas: peak stretch}
+
+\begin{enumerate}
+\item {\bf Pedestal y ruido} (menú 1). Con los SiPM por debajo de la tensión
+  de ruptura (breakdown voltage, BV), queremos calcular la media y la anchura del pedestal de
+  cada canal en función del shaping time y del \texttt{HoldDelay}.
+\item {\bf Hold delay scan} (menú 2). Con los SiPM por encima del BV, queremos calcular el
+  espectro de los pulsos oscuros (Dark Pulses, DP) frente al \texttt{HoldDelay}. En peak
+  stretch el valor guardado crece mientras la ventana no llega al máximo del
+  pulso y después se estabiliza; el scan da el \texttt{HoldDelay} mínimo que
+  recoge el máximo y cuánto sube el pedestal al alargar la ventana.
+\item {\bf Calibración con los DP} (menú 3). Los espectros de
+  uno, dos y tres fotoelectrones (single photoelectron, SPE) de cada canal,
+  a varios shaping times y overvoltages (tensión por encima del BV), que dan
+  la ganancia de cada canal en cuentas de ADC por fotoelectrón, y la tasa de
+  trigger frente al umbral, que da el crosstalk.
+\end{enumerate}
+
+\noindent Empezamos por peak stretch por dos razones: es lo único que el DAQ
+permite hoy, y es el modo en que se tomarán los datos con cristal, así que
+esta calibración es la que se usará entonces. Además, estos datos nos
+sirven ya para comparar con la simulación.
+
+\section*{La forma del pulso: osciloscopio}
+
+La fracción de la señal que el chip guarda depende de la forma del pulso a
+la salida del slow shaper, y esa forma es la entrada de la simulación que
+más influencia tiene en la posición y la anchura del pico de 511~keV. La A5202 saca a
+un conector la señal analógica de un canal elegido (la sonda analógica). Puede medirse con el osciloscopio (es fácil que ya lo hayas hecho).
+
+\begin{itemize}
+\item {\bf Acción:}
+  \begin{itemize}
+  \item SiPM a 5~V de overvoltage, a oscuras.
+  \item En la pestaña {\bf Acquisition}: \texttt{AnalogProbe0} = SLOW\_HG.
+  \item \texttt{ProbeChannel0} = un canal entre 0 y 31.
+  \item \texttt{DigitalProbe0} = HOLD.
+  \item \texttt{T0\_Out} = DPROBE.
+  \item Trigger PTRG.
+  \item Conectar la señal analógica, que sale por el conector MCX Probe~1
+    de la tarjeta (cable RG174 con clavija MCX macho), a un canal del
+    osciloscopio, con la entrada a 1~M$\Omega$.
+  \item Conectar la señal digital, que sale por el LEMO T0-OUT del panel
+    frontal (niveles LVTTL), a otro canal, también a 1~M$\Omega$.
+  \item Disparar el osciloscopio en la señal analógica, a la mitad de la
+    altura de un DP de un fotoelectrón.
+  \item Lanzar un run, para que la tarjeta genere el hold.
+  \end{itemize}
+\item {\bf Resultado:} los DP de un fotoelectrón en la pantalla y
+  el instante del hold.
+\item {\bf Acción:}
+  \begin{itemize}
+  \item Ventana del osciloscopio de unos 500~ns, que incluya la caída
+    completa del DP.
+  \item Para \texttt{HG\_ShapingTime} = 87,5, 50 y 25~ns: activar el
+    promedio del osciloscopio (average) sobre unos 1000 disparos y guardar
+    la waveform promediada en un fichero CSV, desde el menú de guardado del
+    osciloscopio.
+  \item En los mismos tres ajustes: con el promedio desactivado, adquirir en
+    modo single y guardar una decena de DP sueltos, un CSV por DP.
+  \item En cada fichero, guardar los dos canales: la señal analógica y la
+    del hold.
+  \item Repetir a 87,5~ns con \texttt{AnalogProbe0} = SLOW\_LG.
+  \end{itemize}
+\item {\bf Resultado:} ficheros CSV de waveforms por cada ajuste,
+  con el shaping y la sonda en el nombre.
+\item {\bf Precaución:} al terminar, volver a poner \texttt{AnalogProbe0} =
+  OFF y \texttt{T0\_Out} a su valor de partida: con la sonda conectada la
+  ganancia del canal cambia ligeramente.
+\end{itemize}
+
+\section*{Track \& hold, más adelante}
+
+Track \& hold no está disponible todavía en el DAQ. 
+
+\section*{Qué necesita el cocinero}
+
+\begin{itemize}
+\item De cada run, los ficheros \texttt{.h5} que indica cada menú, y una
+  línea en el logbook con el número de run, la nota y el paso a los que corresponde, y cualquier incidencia.
+\item {\bf El logbook:} abrir una hoja de Google, compartirla conmigo y
+  escribir en ella una fila por cada run del DAQ y por cada fichero del
+  osciloscopio, con estas columnas:
+  \begin{center}
+  \small
+  \begin{tabular}{ll}
+  \hline
+  columna & contenido \\
+  \hline
+  fecha y hora & al empezar el run o al guardar el fichero \\
+  run o fichero & número de run del DAQ, o nombre del CSV \\
+  menú y paso & por ejemplo, 1.2 (menú 1, paso 2) u osciloscopio \\
+  \texttt{HG\_ShapingTime} & en ns \\
+  \texttt{LG\_ShapingTime} & en ns \\
+  \texttt{HoldDelay} & en ns \\
+  \texttt{HV\_Vbias} & en V \\
+  temperatura & la de la tarjeta, en $^\circ$C \\
+  eventos & número de eventos del run \\
+  incidencias & cualquier cosa rara; vacío si no hay \\
+  \hline
+  \end{tabular}
+  \end{center}
+\item Los ficheros CSV de waveforms del osciloscopio, con el canal, la
+  tensión y las escalas de tiempo y de amplitud anotadas.
+\item Si algo no se comporta como espera el menú, para y grita. 
+\end{itemize}
+
+\end{document}
