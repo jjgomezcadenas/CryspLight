@@ -50,7 +50,7 @@ export SipmDevice, SipmOperation, Avalanche, physical_pulse, with_input, breakdo
        afterpulse_prob, pulse_shape, respond, total_charge, interp_clamped
 export TimeGrid, Shaper, bin_train!, shape!, device_pulse!, noise_generator, sample_index, sample_time, dark_baseline
 export CitirocSettings, CitirocChain, CitirocEvent, citiroc_event, stored_fraction, trigger_time,
-       citiroc_waves, hg_at_crossings, hold_at_peak
+       citiroc_waves, hg_at_crossings, hg_periodic, hold_at_peak
 export DigitizerSettings, DigitizerChain, DigitizerEvent, digitizer_event, pulse_cdf, window_fraction
 export RadiorocSettings, RadiorocChain, radioroc_event, radioroc_waves, with_pulse, noise_at
 export FrontendSetup, load_frontend, run_fullsim_frontend, event_trains, settings_from

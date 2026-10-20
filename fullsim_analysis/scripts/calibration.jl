@@ -28,13 +28,22 @@
 #                          isolated single cell gives its peak amplitude on average over
 #                          the sampling phases (lib/calibrate.jl); the one-photoelectron
 #                          peak is the gain, the zero level is zero by construction.
+#   Citiroc, periodic      the procedure of the bench (note 3 of the bench programme): the
+#   trigger (ptrg)         periodic trigger of the board opens windows of 200 ns at fixed
+#                          times, and the peak detector stores the maximum of the high gain
+#                          of every channel over each window (hg_periodic); the same ladder,
+#                          numbered from the pedestal (the voltage preamplifier removes no
+#                          dark level), gives the gain and the zero. The noise raises the
+#                          maximum of a small pulse more than that of a large one, so the
+#                          fitted spacing is a few per cent below the gain;
 # The fitted gains are compared with those of the simulation.
 # Writes results/<campaign>/calibration/calibration.h5 (one group per case: spectrum
 # calibrated with the fitted gain and zero, the same with the simulation's values, raw
 # spectrum of channel 1, fitted and true gains, zero levels) and calibration.csv (one row
 # per case). tp_ns replaces the high-gain peaking time of the configuration (the case is
-# then named <tag>_tp<tp>).
-#   julia --project=. --threads=8 fullsim_analysis/scripts/calibration.jl <campaign> <frontend config> [n_empty] [tp_ns]
+# then named <tag>_tp<tp>); trigger "ptrg" selects the periodic trigger of the Citiroc
+# (the case is then named <tag>_tp<tp>_ptrg), "crossings" (default) the discriminator.
+#   julia --project=. --threads=8 fullsim_analysis/scripts/calibration.jl <campaign> <frontend config> [n_empty] [tp_ns] [trigger]
 include(joinpath(@__DIR__, "..", "lib", "FullsimAnalysis.jl"))
 using .FullsimAnalysis
 using CryspLight, HDF5, Statistics, Printf
@@ -43,10 +52,15 @@ using Random: Xoshiro, seed!
 campaign, cfg = ARGS[1], ARGS[2]
 nmax = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 5000
 tp_override = length(ARGS) >= 4 ? parse(Float64, ARGS[4]) : NaN
+trigger_mode = length(ARGS) >= 5 ? ARGS[5] : "crossings"
+trigger_mode in ("crossings", "ptrg") || error("trigger must be crossings or ptrg")
+const PTRG_WINDOW_NS = 200.0               # the hold delay of the periodic-trigger calibration (bench note 3)
 r = open_pes_run(cfg)
 st, pes, op = r.setup, r.pes, r.op
 kind, s = st.frontend, st.settings
 case = isfinite(tp_override) ? "$(st.tag)_tp$(replace(string(tp_override), ".0" => ""))" : st.tag
+trigger_mode == "ptrg" && (kind == "citiroc" || error("the periodic trigger is implemented for the Citiroc only"))
+trigger_mode == "ptrg" && (case *= isfinite(tp_override) ? "_ptrg" : "_tp$(replace(string(s.tp_ns), ".0" => ""))_ptrg")
 empty = event_lists(pes; nmax = nmax).empty
 nch = length(op.gain_factor)
 vals = [Float64[] for _ in 1:nch]          # per channel, ADC counts (with the pedestal for the ASICs)
@@ -65,7 +79,9 @@ if kind == "citiroc" || kind == "radioroc"
     make = chain_maker(kind, cs, op)
     nt = Threads.maxthreadid()
     chains = [make(t) for t in 1:nt]
-    hold_delay = hold_at_peak(chains[1])
+    # the hold delay: crossing to maximum of a single avalanche, or the window of the
+    # periodic trigger
+    hold_delay = trigger_mode == "ptrg" ? PTRG_WINDOW_NS : hold_at_peak(chains[1])
     # the level removed with the mean dark current, below which the held values sit: zero
     # behind the voltage preamplifier of the Citiroc, about 1.5 cells at room temperature
     # on the Radioroc2 at 100 ns, so that its one-cell peak lies below the pedestal
@@ -78,7 +94,7 @@ if kind == "citiroc" || kind == "radioroc"
         ch = chains[Threads.threadid()]; lv = local_vals[Threads.threadid()]
         seed!(ch.rng, hash((5, k, :noise)))
         trains = event_trains(op, event_pes(pes, k), nch, Xoshiro(hash((5, k))))
-        v = hg_at_crossings(ch, trains, hold_delay)
+        v = trigger_mode == "ptrg" ? hg_periodic(ch, trains, hold_delay) : hg_at_crossings(ch, trains, hold_delay)
         for c in 1:nch
             append!(lv[c], v[c])
         end
@@ -166,7 +182,7 @@ open_results(campaign, "calibration"; mode = isfile(joinpath(results_dir(campaig
     haskey(h5, case) && delete_object(h5, case)
     gr = create_group(h5, case)
     stamp!(gr, "config" => st.cfg_text, "frontend" => kind, "unit" => unit, "n_empty" => length(empty),
-           "tp_ns" => tp_cal, "hold_delay_ns" => hold_delay)
+           "tp_ns" => tp_cal, "hold_delay_ns" => hold_delay, "trigger" => trigger_mode)
     write_hist!(gr, "spectrum_cal", histogram(allcal, -0.5, 4.5, 250)...)
     write_hist!(gr, "spectrum_norm", histogram(allnorm, -0.5, 4.5, 250)...)
     lo1 = kind == "digitizer" ? 0.0 : s.pedestal - nominal
@@ -181,7 +197,7 @@ end
         rmed, rmad, nout, dzero)
 println("written ", update_table(campaign, "calibration", "calibration",
     ["tag" => [case], "frontend" => [kind], "unit" => [unit], "n_empty" => [length(empty)],
-     "tp_ns" => [tp_cal], "hold_delay_ns" => [hold_delay],
+     "tp_ns" => [tp_cal], "hold_delay_ns" => [hold_delay], "trigger" => [trigger_mode],
      "entries_per_channel" => [median(length.(vals))], "channels_fitted" => [count(ok)],
      "channels_three_peaks" => [count(npeaks .>= 3)],
      "gain_nominal" => [nominal], "fitted_over_true_median" => [rmed], "fitted_over_true_mad" => [rmad],

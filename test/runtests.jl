@@ -911,6 +911,10 @@ end
     hv = hg_at_crossings(two, trains, d)
     @test hv[5] == [210.0] && all(isempty(hv[c]) for c in 1:64 if c != 5)
     @test only(hg_at_crossings(two, trains, d - 45)[5]) < 210
+    # with the peak detector a late hold keeps the maximum, while the track and hold has
+    # passed it
+    @test only(hg_at_crossings(two, trains, d + 45)[5]) < 210
+    @test hg_at_crossings(two, trains, d + 45; peak_detector = true)[5] == [210.0]
 end
 
 @testset "Digitizer chain on the avalanche train (fullsim 0.11b)" begin
@@ -1297,6 +1301,51 @@ using .FullsimAnalysis
     good = vcat([195.3 .+ 10k .+ 1.0 .* randn(rngx, 6000 ÷ (k + 1)) for k in 0:3]...)
     lg = photoelectron_ladder(good, 10.0; pedestal = 200.0, baseline = 1.47)
     @test lg.cells == [1, 2, 3] && isapprox(lg.gain, 10.0; atol = 0.2) && isapprox(lg.zero, 185.3; atol = 0.5)
+
+    # the periodic trigger (PTRG) with the peak detector, as in the bench calibration
+    # (note 3): windows of 200 ns at fixed times; without noise or dark counts an empty
+    # window stores the pedestal, a single avalanche whose maximum falls inside one window
+    # stores one gain, and one whose maximum falls after the window closes stores less
+    opq = nodark(SipmOperation(dev; t_k = 293.15, vov = 5.0, n_channels = 2, window_ns = (-9600.0, 6000.0)))
+    sq = CitirocSettings(tp_ns = 25.0, tp_lg_ns = 87.5, noise_pe = 0.0, fast_noise_pe = 0.0,
+                         t_start_ns = -200.0, t_end_ns = 3000.0, dt_ns = 0.5)
+    chq = CitirocChain(sq, opq, Xoshiro(3))
+    starts = CryspLight.periodic_windows(sq, 200.0, 50.0)
+    @test starts[1] == -200 && all(diff(starts) .== 250) && starts[end] + 200 <= 3000 && starts[end] + 450 > 3000
+    tq = sample_time(chq.grid, argmax(begin
+        bin_train!(chq.x, chq.grid, [Avalanche(0f0, 1f0, Int8(0))]); copyto!(chq.y, chq.x); shape!(chq.y, chq.slow); chq.y
+    end))                                          # time of the maximum of an avalanche at t = 0
+    inside = [[Avalanche(Float32(starts[3] + 100 - tq), 1f0, Int8(0))], Avalanche[]]
+    late = [[Avalanche(Float32(starts[3] + 200 + 30 - tq), 1f0, Int8(0))], Avalanche[]]
+    vi = hg_periodic(chq, inside, 200.0; gap = 50.0)
+    @test length(vi[1]) == length(starts) && all(vi[2] .== 200)
+    @test vi[1][3] == 210 && count(vi[1] .> 200) == 1
+    @test 200 < hg_periodic(chq, late, 200.0; gap = 50.0)[1][3] < 210
+    # with the dark counts at 5 V and room temperature at 25 ns, the spectrum of the windows
+    # is the ladder of the bench: a peak at the pedestal (no avalanche), then one, two and
+    # three cells, each with a sharp upper edge and a tail below it (avalanches that
+    # arrived before the window). Without noise the ladder numbered from the pedestal gives
+    # the gain; the noise of the model raises the maximum of a small pulse more than that of
+    # a large one, so that it compresses the ladder and the fitted spacing falls below the
+    # gain (5% at 25 ns): the same procedure on the bench and in the simulation
+    opd5 = SipmOperation(dev; t_k = 293.15, vov = 5.0, n_channels = 1, window_ns = (-9600.0, 6000.0))
+    function ptrg_ladder(noise)
+        ch = CitirocChain(CitirocSettings(tp_ns = 25.0, tp_lg_ns = 87.5, noise_pe = noise, t_start_ns = -200.0,
+                                          t_end_ns = 6000.0), opd5, Xoshiro(5))
+        pv = Float64[]
+        for i in 1:1500
+            Random.seed!(ch.rng, i)
+            append!(pv, hg_periodic(ch, [respond(opd5, Float32[], Float32[], Xoshiro(i))], 200.0)[1])
+        end
+        pv .+= rand(Xoshiro(9), length(pv)) .- 0.5
+        return (frac = mean(pv .> 205), lad = photoelectron_ladder(pv, 10.0; pedestal = 200.0), n = length(pv))
+    end
+    p0, pn = ptrg_ladder(0.0), ptrg_ladder(0.1)
+    println("PTRG 200 ns, 25 ns, 5 V: $(pn.n) windows, fraction above half a cell $(round(pn.frac; digits = 3)); ",
+            "gain without noise $(round(p0.lad.gain; digits = 3)), with noise $(round(pn.lad.gain; digits = 3)), zero $(round(pn.lad.zero; digits = 2))")
+    @test 0.5 < pn.frac < 0.8
+    @test p0.lad.cells == [1, 2, 3] && isapprox(p0.lad.gain, 10.0; rtol = 0.03) && abs(p0.lad.zero - 200) < 1.5
+    @test pn.lad.cells == [1, 2, 3] && 0.9 < pn.lad.gain / p0.lad.gain < 0.99 && abs(pn.lad.zero - 200) < 3.5
 
     # the matched filter of the digitiser calibration: the local maximum over the alignments
     # exceeds the amplitude of an isolated unit pulse by 4 to 6% depending on the sampling

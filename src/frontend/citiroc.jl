@@ -13,7 +13,9 @@
 #      window (N = 1 is the OR), as the FPGA builds it, or an external trigger at a fixed
 #      time (a random-trigger run, for the pedestals);
 #   3. the peak detector (the maximum of the slow signal from the trigger to the hold) or
-#      the track-and-hold (the value at the hold), per channel;
+#      the track-and-hold (the value at the hold), per channel; for the calibration on the
+#      dark counts, the trigger can also be periodic, independent of the signal
+#      (hg_periodic, the PTRG of the board);
 #   4. the conversion to ADC counts with the pedestal and the counts per avalanche of
 #      the channel (the low gain lg_ratio of the high gain), and the saturation of the
 #      input charge and of the low-gain ADC (a high gain at full scale is not a saturation:
@@ -268,18 +270,61 @@ function held_at_crossings(y::Vector{Float64}, ts::Vector{Float64}, g::TimeGrid,
 end
 
 """
-    hg_at_crossings(ch, trains, delay) -> per-channel vectors of high-gain ADC counts
+    hg_at_crossings(ch, trains, delay; peak_detector = false) -> per-channel vectors of high-gain ADC counts
 
 The self-triggered calibration of the dark counts: every crossing of the discriminator of
 a channel (threshold of the settings) holds that channel's high gain delay later (track
-and hold), converted to ADC counts with the pedestal.
+and hold), or its maximum from the crossing to then (`peak_detector = true`), converted
+to ADC counts with the pedestal.
 """
-function hg_at_crossings(ch::CitirocChain, trains::Vector{Vector{Avalanche}}, delay::Real)
+function hg_at_crossings(ch::CitirocChain, trains::Vector{Vector{Avalanche}}, delay::Real;
+                         peak_detector::Bool = false)
     s = ch.s
     crossings, hgw, _ = citiroc_waves(ch, trains)
     full = 2^s.adc_bits - 1
-    return [clamp.(round.(s.pedestal .+ s.adc_per_pe .* held_at_crossings(hgw[c], crossings[c], ch.grid, delay, false)), 0, full)
+    return [clamp.(round.(s.pedestal .+ s.adc_per_pe .* held_at_crossings(hgw[c], crossings[c], ch.grid, delay, peak_detector)), 0, full)
             for c in eachindex(trains)]
+end
+
+"""
+    periodic_windows(s, window, gap) -> start times (ns)
+
+The opening times of the windows of a periodic trigger within the record of the settings:
+from t_start_ns, one every window + gap ns, the last one closing at or before t_end_ns.
+"""
+function periodic_windows(s::CitirocSettings, window::Real, gap::Real)
+    window > 0 && gap >= 0 || error("periodic trigger: window must be positive and gap non-negative")
+    return collect(s.t_start_ns:(window + gap):(s.t_end_ns - window))
+end
+
+"""
+    hg_periodic(ch, trains, window; gap = 2 * ch.s.tp_ns) -> per-channel vectors of high-gain ADC counts
+
+The calibration of the dark counts with the periodic trigger of the board (PTRG) and the
+peak detector of the chip (peak stretch), as on the bench: windows of `window` ns (the
+hold delay) open at fixed times that do not depend on the signal (periodic_windows), and
+in each one every channel stores the maximum of its high-gain slow signal over the
+window, converted to ADC counts with the pedestal. A window with no avalanche stores the
+maximum of the noise, a little above the pedestal; a dark avalanche within the window
+stores about one gain above it, and one that arrived shortly before stores the falling
+edge of its pulse, which fills the region below each peak. The zero of the photoelectron
+ladder is the pedestal, since the voltage preamplifiers of the Citiroc remove no dark
+level (dark_baseline). The gap between windows, two peaking times by default, keeps the
+noise of consecutive windows independent.
+"""
+function hg_periodic(ch::CitirocChain, trains::Vector{Vector{Avalanche}}, window::Real;
+                     gap::Real = 2 * ch.s.tp_ns)
+    s, g = ch.s, ch.grid
+    _, hgw, _ = citiroc_waves(ch, trains)
+    full = 2^s.adc_bits - 1
+    starts = periodic_windows(s, window, gap)
+    out = [Vector{Float64}(undef, length(starts)) for _ in eachindex(trains)]
+    for c in eachindex(trains), (i, t) in enumerate(starts)
+        k0 = sample_index(g, t); k1 = min(sample_index(g, t + window), g.n)
+        v = min(maximum(view(hgw[c], k0:k1)), ch.pe_ceiling)
+        out[c][i] = clamp(round(s.pedestal + s.adc_per_pe * v), 0, full)
+    end
+    return out
 end
 
 """
