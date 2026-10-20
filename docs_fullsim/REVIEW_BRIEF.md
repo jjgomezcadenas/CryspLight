@@ -21,7 +21,7 @@ The author's own measurement of 2.72 us at 196 K is set aside (probably a temper
 
 ## Read in this order
 
-1. docs_fullsim/fullsim_design.tex: the specification of the models, their parameters and their provenance. The author is rewriting the abstract and Section 1 by hand; that text is a draft (it still says 196 K) and is not a finding. The model sections (Response of the SiPM, Electronics, Observables, Parameters) are current.
+1. docs_fullsim/fullsim_design.tex: the specification of the models, their parameters and their provenance. The whole document was updated to 250 K on 20 October. The abstract and the first part of Section 1 are a draft the author is still writing: their wording is not a finding, their numbers are.
 2. docs_fullsim/room_temperature_study.tex: the six cases at room temperature on 10 000 decays (uncertainty about 0.2 points on the resolutions). The BGO numbers were updated on 20 October to the 8000 ph/MeV inputs.
 3. fullsim_analysis/results/2026-10_bgo250k/bgo_250k/bgo_250k.csv and the case figures there: the two cases at 250 K. No note has been written for them yet.
 4. Code: src/frontend/sipm.jl (physical_pulse, with_input), src/frontend/shaping.jl (crrc_voltage!, Shaper with voltage), src/frontend/citiroc.jl, src/frontend/radioroc.jl, src/frontend/digitizer.jl, src/frontend/frontend_run.jl; data/sipm_s14160.toml; test/runtests.jl.
@@ -53,7 +53,7 @@ Tables: fullsim_analysis/results/2026-10_ambient/room_temperature/room_temperatu
 ## What is not a finding
 
 - Inputs the bench measures this week: the noise of the ASICs with the SiPMs below breakdown, the hold delay and the shape of the shaped pulse, the single-photoelectron spectra, the dark rate and crosstalk against the threshold, and, with the digitiser, the height of one photoelectron at gains 1, 4 and 8 and the pulse shape. Unmeasured is known; a finding is a conclusion the simulation does not support given its inputs, or an input whose plausible alternative would change a conclusion, with the size of the effect computed.
-- The draft abstract and Section 1 of fullsim_design.tex.
+- The wording of the draft abstract and Section 1 of fullsim_design.tex.
 - The bench instruction notes in bench/ (written for the experimenter, out of scope).
 - The spatial resolution, not yet implemented on the readout output.
 

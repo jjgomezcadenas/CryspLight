@@ -24,13 +24,13 @@
 \maketitle
 
 \begin{abstract}
-The CRYSP concept proposes the use of large monolithic crystals readout by large SiPMs connected to custom electronics. Two candidates are being evaluated, BGO and CsI ---or CsI (Tl)---. The crystals can be operated at room temperature or cooled in order to increase their light yield, but cooler temperatures imply a longer scintillation decay time. Cold operation also reduces the dark current, which improves performance but has an impact in the SPE calibration. The large SiPMs ($6 \times 6$ mm$^2$ by default) allow to reduce the number of electronic channels  typically by a factor four w.r.t. conventional pixelated detector, in exchange of larger capacitance which increases parasitic noise and complicates calibration. 
+The CRYSP concept proposes the use of large monolithic crystals read out by large SiPMs connected to custom electronics. Two candidates are being evaluated, BGO and CsI ---or CsI(Tl)---. The crystals can be operated at room temperature or cooled in order to increase their light yield, but cooler temperatures imply a longer scintillation decay time. Cold operation also reduces the dark current, which improves performance but has an impact on the SPE calibration. The large SiPMs ($6 \times 6$ mm$^2$ by default) allow to reduce the number of electronic channels typically by a factor four w.r.t. conventional pixelated detectors, in exchange for a larger capacitance which increases parasitic noise and complicates calibration. 
 
-Three readout system have been studied. A a waveform digitizer (MODEL), and two ASICS, namely 
+Three readout systems have been studied: a waveform digitizer (CAEN DT2745), and two ASICs, namely 
 the Citiroc~1A and the Radioroc2, both manufactured from CAEN. The digitizer is needed in real measurements
-to establish the scintillation lifetime. The Citiroc~1A offers less flexibility than the  Radioroc2, but its widely available, unlike the newer model. 
+to establish the scintillation lifetime. The Citiroc~1A offers less flexibility than the  Radioroc2, but it is widely available, unlike the newer model. 
 
-The room-temperature performance of BGO and CsI (Tl) are of interest and require the simulation of the two crystals with the three readouts. Cold operation of BGO at 196 K has the merit of increasing the light yields by a factor two in exchange of multiplying the lifetime by a factor 8. Cold operation of pure NA at 77 K is also important. It multiplies by two the light yield of CsI (Tl) and offers a better lifetime (a single exponential of about 1 $\mu$s, while CsI (Tl) has a long term exponential and afterglow which complicate its operation). 
+The room-temperature performance of BGO and CsI(Tl) is of interest and require the simulation of the two crystals with the three readouts. Cold operation of BGO at 250~K has the merit of increasing the light yield by a factor 1.7 in exchange for multiplying the lifetime by a factor 2.8. Cold operation of pure CsI at 77~K is also important. It multiplies by two the light yield of CsI(Tl) and offers a better lifetime (a single exponential of about 1 $\mu$s, while CsI(Tl) has a long-term exponential and afterglow which complicate its operation). 
 
 
 \end{abstract}
@@ -44,14 +44,14 @@ The baseline concept for CRYSP contemplates large monolithic scintillating cryst
 ($48 \times 48$~mm$^2$ in cross section and two radiation
 lengths thick) read out by a $8 \times 8$ array of large SiPMs ($6 \times 6$~mm$^2$).
 The crystals are polished, wrapped in Teflon and coupled through optical grease to the sensors.
-The default SiPM is the XXX from Hamamatsu.
+The default SiPM is the S14160-6050HS from Hamamatsu.
 
-. A SiPM of $6 \times 6$~mm$^2$ has a
+A SiPM of $6 \times 6$~mm$^2$ has a
 capacitance of about 2~nF, which slows its pulse and raises the noise of the
 amplifier that reads it. The typical dark rate is several MHz. A good modeling of the sensor 
 and the readout electronics is essential to understand the performance of the crystals. 
 
-CRYSP considers as potential materials BGO and CsI (or CsI (Tl). BGO is more dense and has a larger photoelectric cross section, but its light yield at room temperature is modest, about 8,000 photons/MeV. This light yield can be increased by a factor two 
+CRYSP considers as potential materials BGO and CsI (or CsI(Tl)). BGO is denser and has a larger photoelectric cross section, but its light yield at room temperature is modest, about 8000 photons/MeV. This light yield can be increased by a factor 1.7 by cooling the crystal to 250~K.
 
 The performance is studied along three axes. The first is the material of
 the crystal: BGO, dense and with a modest light yield, and \csitl, which
@@ -62,10 +62,11 @@ single Radioroc2 of 64 channels, shape the signal of every channel and store
 one value of it per event. The third is the temperature. At room
 temperature the light yield of BGO is low and the dark counts are high;
 cooling raises the yield and lengthens the decay, and lowers the dark counts
-by orders of magnitude. One cold configuration is studied for now, BGO at
-196~K, read out by the digitizer and by the Radioroc2. The Citiroc is left
-out of it: its shaping, at most 87.5~ns, keeps only 4\% of the light of a
-2.7~\us decay (Section~\ref{sec:citiroc}). Table~\ref{tab:configs} gives the
+by a factor of 2 every 9~K. One cold configuration is studied for now, BGO at
+250~K, read out by the digitizer and by the Radioroc2. The Citiroc is left
+out of it: its shaping, at most 87.5~ns, keeps only 12\% of the light of a
+0.84~\us decay, so that with 1.7 times more light it would store 28\% less
+than at room temperature (Section~\ref{sec:citiroc}). Table~\ref{tab:configs} gives the
 three configurations of crystal and temperature.
 
 The performance of the crystals is expressed in terms of the
@@ -84,13 +85,13 @@ code and the origin of every parameter.
 \small
 \begin{tabular}{p{0.27\textwidth} p{0.2\textwidth} p{0.2\textwidth} p{0.2\textwidth}}
 \toprule
- & BGO, room temperature & \csitl, room temperature & BGO, 196~K \\
+ & BGO, room temperature & \csitl, room temperature & BGO, 250~K \\
 \midrule
 crystal $x \times y \times z$ (mm) & $48\times48\times22.4$ & $48\times48\times37.2$ & $48\times48\times22.4$ \\
 thickness in $X_0$ & 2 ($X_0 = 11.2$~mm) & 2 ($X_0 = 18.6$~mm) & 2 \\
-temperature & about 295~K & about 295~K & 196~K \\
-light yield (ph/MeV) & 7000 to 8200$^{a}$ & 54\,000 & 14\,000 to 16\,000$^{a}$ \\
-decay time & 300~ns, plus a minor 60~ns component & 730~ns (64\%) and 3340~ns (36\%) & 2.7~\us$^{b}$ \\
+temperature & about 295~K & about 295~K & 250~K \\
+light yield (ph/MeV) & 8000$^{a}$ & 54\,000 & 13\,500$^{a}$ \\
+decay time & 300~ns, plus a minor 60~ns component & 730~ns (64\%) and 3340~ns (36\%) & 0.84~\us$^{b}$ \\
 emission peak & 480~nm & 550~nm & 480~nm \\
 refractive index & 2.15 & 1.79 & 2.15 \\
 intrinsic resolution, FWHM at 511~keV & 5\%$^{c}$ & 5\% & 5\%$^{c}$ \\
@@ -98,13 +99,13 @@ source & \multicolumn{3}{p{0.62\textwidth}}{\Na, on axis, 30~mm from the face op
 readouts & digitizer, Citiroc~1A, Radioroc2 & digitizer, Citiroc~1A, Radioroc2 & digitizer, Radioroc2 \\
 \bottomrule
 \end{tabular}
-\caption{The three configurations of crystal and temperature. $^{a}$ A
-range rather than a value: the yield at room temperature follows from the
-temperature dependence of the BGO light yield (Gironnet et al.) applied to
-the value at 196~K, and the cold yield lies between the 14\,000 ph/MeV of
-the calibration against the Ding et al.\ cube and the value implied by the
-longer decay time measured on the crystal of this study. $^{b}$ Measured on
-that crystal ($2.72 \pm 0.01$~\us at 196~K). $^{c}$ Less well known than for
+\caption{The three configurations of crystal and temperature. $^{a}$ The
+value at room temperature is the adopted reference; the value at 250~K
+follows from the temperature dependence of the light yield measured by
+Gironnet et al.\ (1.69 times the yield at 295~K), scaled to that reference.
+$^{b}$ From the three-level model of Gironnet et al.\ for the decay time;
+their measurement loses precision below 1~\us, and the value may be 20 to
+30\% long. $^{c}$ Less well known than for
 \csitl and taken equal to it (Section~\ref{sec:scintillation}).}
 \label{tab:configs}
 \end{table}
@@ -351,9 +352,9 @@ sum of a 730~ns component carrying 64\% of the light and a 3340~ns component
 carrying the rest. The two components of \csitl matter for the electronics,
 whose shaper is much shorter than either, because the stored signal follows
 the rate of arrival of the photons at the beginning of the pulse, which the
-fast component sets. For BGO at 196~K the decay time is the 2.7~\us measured
-on this crystal, in a material description of its own, so that the value
-measured on the Ding cube stays with the calibration it belongs to.
+fast component sets. For BGO at 250~K the decay time is the 0.84~\us of the model
+of Gironnet et al., in a material description of its own, so that the
+values of the calibration against the Ding cube stay with it.
 
 Each photon is also given a wavelength drawn from the tabulated emission
 spectrum of the material. The refractive index of the crystal, the Rayleigh
@@ -404,8 +405,8 @@ November 2024); the S14161 tiles carry the same element. The model describes
 each channel separately.
 
 \paragraph{Breakdown voltage and overvoltage.} The breakdown voltage is
-38.0~V at 25~$^\circ$C and rises by 34~mV per kelvin, so it is near 34.5~V at
-196~K; a measurement on one of our channels at that temperature gave
+38.0~V at 25~$^\circ$C and rises by 34~mV per kelvin, so it is near 36.4~V at
+250~K and 34.5~V at 196~K; a measurement on one of our channels at that temperature gave
 34.3~V. Within a tile the channels differ by 0.1~V typically and 0.2~V at
 most. The simulation draws the breakdown voltage of each channel from that
 spread, or takes it from the configuration of the run. The overvoltage of a channel is its bias minus its
@@ -449,7 +450,8 @@ grows with the overvoltage like the detection efficiency and with the
 temperature by a factor 2 every 9~K. The datasheet dark current at
 25~$^\circ$C and 2.7~V, $2.5~\mu$A, corresponds to $6 \times 10^6$
 avalanches per second per device once the crosstalk is taken out; at 196~K
-and 6.5~V a measurement on this array gave 8 to 15~kHz per channel. The model adds dark
+and 6.5~V a measurement on this array gave 8 to 15~kHz per channel, and
+the temperature law gives about 150~kHz per channel at 250~K. The model adds dark
 avalanches, with their crosstalk and afterpulses, over the whole acquisition
 window of every event. The electronics hold their output at a fixed level,
 so the mean current of the dark avalanches gives no offset: the model
@@ -602,8 +604,8 @@ the maximum of the same convolution for a single avalanche, is the fraction
 of the photoelectrons that the measurement keeps. With the peaking time at
 87.5~ns and the avalanche pulse of Section~\ref{sec:sipm} (peak at 69~ns,
 100~ns fall), the fraction is 0.29 for BGO at room temperature, 0.10 for
-\csitl, whose 730~ns component carries 64\% of the light, and 0.041 for BGO
-at 196~K with its 2.7~\us decay. For a decay time $\tau$ much longer than
+\csitl, whose 730~ns component carries 64\% of the light, and 0.12 for BGO
+at 250~K with its 0.84~\us decay. For a decay time $\tau$ much longer than
 the peaking time the fraction is the ratio of an effective window to
 $\tau$. Behind the voltage preamplifier the window is 115~ns for the pulse
 of the model, against 280~ns behind a charge-sensitive one, because the
@@ -725,11 +727,11 @@ gate of 10~\us the 64~channels gather about 2800 of them, 3500 fired cells
 with their crosstalk, against 1650 photoelectrons of signal in BGO: their
 fluctuation alone is 4\% rms. A gate of 1~\us for
 BGO at room temperature, whose decay is 300~ns, and of 4 to 5~\us for \csitl brings
-that term below 1\%. In the cold the dark rate is a thousand times lower
-and the gate can take the whole 2.7~\us decay with no penalty: the
-digitizer, with a gate of 10~\us, stores all the photoelectrons of cold
-BGO, where the Citiroc stores 0.04 of them (Section~\ref{sec:citiroc}) and
-the Radioroc2, at its longest shaping, 0.55.
+that term below 1\%. At 250~K the dark rate is about 30 times lower
+and the gate can take the whole 0.84~\us decay with no penalty: the
+digitizer, with a gate of 4~\us, stores 0.99 of the photoelectrons of cold
+BGO, where the Citiroc stores 0.12 of them (Section~\ref{sec:citiroc}) and
+the Radioroc2, at its longest shaping, 0.84.
 
 \subsection{The Radioroc2}
 \label{sec:radioroc}
@@ -750,7 +752,7 @@ differences as settings.
   by channel: 20 to 300~ns in steps of 20~ns, or, in the slow mode, 120~ns
   to 1.8~\us in steps of 120~ns. The order of the shaper is not stated; the
   simulation takes CR-RC$^2$, as for the Citiroc, as an assumption. The slow mode is the natural choice for \csitl and
-  for cold BGO, whose 2.7~\us decay through 1.8~\us of shaping stores 0.55
+  for cold BGO, whose 0.84~\us decay through 1.8~\us of shaping stores 0.84
   of the photoelectrons (Section~\ref{sec:citiroc}); at room temperature
   a long shaping also collects more dark pulses, about 14 photoelectrons
   per channel in the effective window of the longest setting, so that the
@@ -926,7 +928,7 @@ compares it with the quantities of the group \code{/mc}.
   factor of the afterpulses. The number obtained is the absolute response
   measured by the readout, and it is compared with the number of
   photoelectrons in \code{/mc}. The ratio of the photoelectrons between the
-  BGO configurations at room temperature and at 196~K gives the change of
+  BGO configurations at room temperature and at 250~K gives the change of
   the light yield with the temperature.
 \item {\bf The energy spectrum} of the equalised sum of the 64 channels: the
   511 and 1275~keV lines, the sum peak, the Compton continua and the
@@ -1027,22 +1029,22 @@ grease index & 1.42 & setup & fixed \\
 resin index, thickness & 1.57, 0.15~mm & datasheet & fixed \\
 SiPM array & centres at $\pm3.2, \pm9.4, \pm15.6, \pm21.8$~mm & setup & fixed \\
 reflectivity between channels & 0.5, diffuse & assumption & parameter \\
-BGO yield, room temperature & 7000 to 8200 ph/MeV & Gironnet curve, Moszynski & range \\
-BGO yield 196~K & 14\,000 to 16\,000 ph/MeV & Ding calibration; decay time of the crystal & range \\
-BGO decay 196~K & 2.7~\us & measurement on the crystal & fixed \\
+BGO yield, room temperature & 8000 ph/MeV & adopted reference; Gironnet curve, Moszynski & fixed \\
+BGO yield 250~K & 13\,500 ph/MeV & Gironnet curve scaled to the room-temperature value & about 1\% per kelvin \\
+BGO decay 250~K & 0.84~\us & Gironnet three-level model & possibly 20 to 30\% long \\
 BGO decay, room temperature & 300~ns & literature & fixed \\
 \csitl yield, decay & 54\,000; 730/3340~ns, 64/36\% & calibration; literature & fixed \\
 intrinsic resolution & 5\% FWHM at 511~keV, both crystals, scaling as $(511~\mathrm{keV}/E)^{1/2}$ & \csitl measurements; BGO curve from Gentile et al.; Moszynski et al.\ to check; the energy dependence is an assumption & assumption for BGO and for the exponent \\
 emission spectra & tabulated & literature & to digitise \\
 breakdown voltage & $38~\mathrm{V} + 34~\mathrm{mV/K}\,(T-298~\mathrm{K})$ & datasheet; measurement at 196~K & fixed \\
 gain, PDE, crosstalk vs overvoltage & Section~\ref{sec:sipm}; crosstalk as a branching (Borel) process & datasheet curves~\cite{hpk}; \cite{vinogradov} & fixed \\
-dark rate & $6$~MHz at 25~$^\circ$C, 2.7~V; 10~kHz at 196~K, 6.5~V & datasheet; measurement at 196~K & fixed \\
+dark rate & $6$~MHz at 25~$^\circ$C, 2.7~V; 10~kHz at 196~K, 6.5~V; factor 2 every 9~K & datasheet; measurement at 196~K & fixed \\
 afterpulsing & 1\% at 3~V, $\propto V_{\rm ov}^2$, 100~ns & literature on the same technology & parameter \\
 pulse shape & $\tau_{\rm rec} = 50$~ns filtered by $R_{\rm in} C_t = 50~\Omega \times 2000$~pF: peak at 69~ns, 100~ns fall & $C_t$ datasheet~\cite{hpk}; $\tau_{\rm rec}$ assumption~\cite{kampert,cattaneo}; $R_{\rm in}$ Citiroc datasheet, assumed for the others & $\tau_{\rm rec}$ assumption \\
 digitizer scale & 3.2 counts per photoelectron per volt of overvoltage at gain 1 (0.6 from the pulse model); area 25 times the peak & assumption; area from the pulse & uncertain by a factor of 5 \\
 digitizer noise & 4 counts rms per sample, white & datasheet; measurement with this digitizer & fixed; low-frequency and group terms not included \\
 digitizer settings & gain, record, pre-trigger, threshold, majority & study at room temperature & setting of the run \\
-gate and baseline window & 1~\us (BGO, room temperature), 4 to 5~\us (\csitl), 10~\us (196~K); 1~\us before the trigger & this document & setting of the analysis \\
+gate and baseline window & 1~\us (BGO, room temperature), 4 to 5~\us (\csitl), 4~\us (BGO, 250~K); 1~\us before the trigger & this document & setting of the analysis \\
 Citiroc shaper & CR-RC$^2$ behind voltage preamplifiers, $t_p = 25$~ns on the high gain, 87.5~ns on the low gain & datasheet~\cite{citiroc} & setting of the run \\
 Radioroc2 shaper & CR-RC$^2$ behind charge preamplifiers, $t_p = 100$~ns on the high gain, 1.8~\us on the low gain & datasheet~\cite{radioroc}; order assumed & setting of the run \\
 ASIC noise & 0.1 pe rms on the high gain at 87.5~ns (Citiroc), 100~ns (Radioroc2), $\propto t_p^{-1/2}$ & datasheets scaled to 2~nF~\cite{radioroc,spieler}, conservative & assumption \\
@@ -1111,8 +1113,10 @@ number is drawn unless the corresponding extension is on.
   when the photons arrive from the grease rather than from air.
 \item The reflectivity and the specularity of the surface of the package
   between the channels.
-\item The light yield of BGO at room temperature and at 196~K, simulated
-  over the ranges of Table~\ref{tab:configs}.
+\item The light yield and decay time of BGO at 250~K, taken from Gironnet
+  et al.: the decay time may be 20 to 30\% long, and the yield changes by
+  about 1\% per kelvin near 250~K, so that the temperature of the crystal
+  must be known to a few kelvin.
 \item The intrinsic resolution of BGO.
 \item For the Citiroc: the exact response of the shaper, the noise
   spectrum, the droop of the peak detector during the readout, and the
@@ -1122,10 +1126,9 @@ number is drawn unless the corresponding extension is on.
   the digitizer.
 \item For the Radioroc2: the order of the shaper, the noise, the impedance
   of its signal input with 2~nF, and the acquisition board and
-  ADC to be used; and whether its longest shaping, which stores 0.55 of the
-  photoelectrons of cold BGO, is enough at 196~K. Its dark-count
-  calibration spectrum shows a population at zero, crossings of the time
-  discriminator with no signal on the high gain, which is not understood.
+  ADC to be used. Its dark-count calibration spectrum at room temperature
+  shows a population at zero, crossings of the time discriminator with no
+  signal on the high gain, which is absent at 250~K and is not understood.
 \item For the digitizer: the noise below 1~MHz and its correlation within
   a group of 16 channels, and whether the gain stage lowers the noise per
   photoelectron, which decides which gain serves the cold configuration,
