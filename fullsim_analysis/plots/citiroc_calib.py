@@ -8,7 +8,11 @@ fullsim_analysis/scripts/citiroc_calib.jl:
                           the noise, the overvoltage and the window;
     citiroc_channels.png  k channel by channel (64 channels, 5% gain spread);
     citiroc_decomposition.png  the spectrum at 25 and 87.5 ns, 5 V, without and with noise,
-                          split by the arrival of the avalanches relative to the window.
+                          split by the arrival of the avalanches relative to the window;
+    citiroc_cold.png      spectra at 20, -3 and -23 C, 5 V of overvoltage, 25, 50 and 87.5 ns,
+                          with their split;
+    citiroc_cold_k.png    k (ladder and one-photoelectron peak) and the fraction of windows
+                          without an avalanche against the temperature.
 
     python3 fullsim_analysis/plots/citiroc_calib.py
 """
@@ -141,6 +145,59 @@ def decomposition(h5):
     save(fig, CAMP, STUDY, "citiroc_decomposition")
 
 
+TEMPS = (293, 270, 250)
+
+
+def cold(h5):
+    fig, axs = plt.subplots(3, 3, figsize=(14, 10), sharex=True)
+    for i, tk in enumerate(TEMPS):
+        for j, tp in enumerate(TPS):
+            ax = axs[i, j]
+            g = h5[f"E_T{tk}_tp{tp:g}"]
+            for c, col in zip(LABELS, ("0.5", "C0", "C3", "C2", "C1")):
+                e, h = read_hist(g, f"spectrum_{c}")
+                step_hist(ax, e, h, color=col, lw=0.8, label=LABELS[c])
+            e, h = read_hist(g, "spectrum_pe")
+            step_hist(ax, e, h, color="k", lw=1.2, label="all windows")
+            for k in range(1, 4):
+                ax.axvline(k, color="0.6", lw=0.5)
+            ax.set_yscale("log")
+            ax.set_ylim(1, None)
+            ax.set_title(f"{tk - 273.15:.0f} C, {tp:g} ns, 5 V: dark {g.attrs['dark_rate_hz'] / 1e3:.0f} kHz, "
+                         f"{g.attrs['records']} records")
+            if i == 2:
+                ax.set_xlabel("stored value - pedestal (true gains)")
+            if j == 0:
+                ax.set_ylabel("windows per bin")
+    axs[0, 0].legend(loc="upper right", fontsize=7)
+    save(fig, CAMP, STUDY, "citiroc_cold")
+
+
+def cold_k(df):
+    fig, axs = plt.subplots(1, 3, figsize=(14, 4))
+    tc = df.t_k - 273.15
+    for tp, col in zip(TPS, ("C0", "C1", "C2")):
+        d = df[df.tp_ns == tp].sort_values("t_k")
+        x = d.t_k - 273.15
+        axs[0].errorbar(x, d.k, d.k_err, fmt="o-", color=col, label=f"{tp:g} ns")
+        axs[1].errorbar(x, d.k1, d.k1_err, fmt="o-", color=col, label=f"{tp:g} ns")
+    d = df[df.tp_ns == 25].sort_values("t_k")
+    for c, col in zip(LABELS, ("0.5", "C0", "C3", "C2", "C1")):
+        axs[2].plot(d.t_k - 273.15, d["f_" + c], "o-", color=col, label=LABELS[c])
+    axs[0].set_ylabel("k from the ladder")
+    axs[1].set_ylabel("k from the one-photoelectron peak")
+    axs[2].set_ylabel("fraction of the windows (25 ns)")
+    axs[2].set_yscale("log")
+    for ax in axs[:2]:
+        ax.axhline(1, color="k", lw=0.6)
+        ax.legend()
+    axs[2].legend(fontsize=7)
+    for ax in axs:
+        ax.set_xlabel("temperature (C)")
+    fig.suptitle("5 V of overvoltage at each temperature, window 200 ns, noise of the model")
+    save(fig, CAMP, STUDY, "citiroc_cold_k")
+
+
 def main():
     df = read_table(CAMP, STUDY, "citiroc_A")
     with open_results(CAMP, STUDY) as h5:
@@ -148,6 +205,8 @@ def main():
         noise(h5)
         channels(h5)
         decomposition(h5)
+        cold(h5)
+    cold_k(read_table(CAMP, STUDY, "citiroc_E"))
     kfactor(df)
 
 
