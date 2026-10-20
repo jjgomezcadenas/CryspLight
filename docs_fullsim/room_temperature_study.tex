@@ -36,7 +36,7 @@ the energy resolution at 511~keV and the number of photoelectrons. The
 crystals produce 4089 (BGO) and 27\,600 (\csitl) photons per 511~keV
 deposit, of which 84\% reach the SiPMs and 49 to 50\% (BGO) or 31 to 41\%
 (\csitl) become photoelectrons. On samples of 10\,000 decays the energy
-resolution is 11.2, 8.9 and 8.3\% FWHM for BGO and 8.3, 6.2 and 6.0\% for
+resolution is 11.2, 8.9 and 8.5\% FWHM for BGO and 8.3, 6.2 and 6.1\% for
 \csitl with the Citiroc, the digitiser and the Radioroc2 respectively,
 with a statistical uncertainty of 0.2 to 0.4 points. The intrinsic resolution of the
 crystals, taken as 5\%, and the statistics of the photoelectrons account
@@ -422,15 +422,13 @@ one photoelectron, with a majority of two triggers on every 511~keV event
 and on 99.8\% of the deposits between 200 and 300~keV; no decay without
 deposit triggers in the sample, which bounds the dark trigger rate below
 0.4~kHz (Figure~\ref{fig:bgo_dig}). At gain 4 the matched filter separates
-the single-photoelectron peaks cleanly; the fitted gain is 1.031 of the
-true one with a scatter of 0.2\% between channels. Most of that excess is
-a property of the estimator, whose local maximum over the alignments of
-the template exceeds the amplitude of an isolated pulse by 5.4\% on
-average over the sampling phases, and the normalisation adopted since
-removes it; the rest, about $-2$\%, is the effect of the dark pulses on
-the baseline samples and on the window of the template. The integration window
+the single-photoelectron peaks cleanly; the fitted gain is 0.979 of the
+true one with a scatter of 0.2\% between channels. The estimator is
+normalised to give one for an isolated pulse, and the remaining $-2$\% is
+the effect of the dark pulses on the baseline samples and on the window of
+the template. The integration window
 of 1~\us records nearly the whole light pulse, so that the recorded
-charge, 2012 photoelectron equivalents, exceeds the 1720 photoelectrons by
+charge, 2121 photoelectron equivalents, exceeds the 1720 photoelectrons by
 the crosstalk (19.5\% at 5~V) and the afterpulses. The energy resolution
 is 8.9\% FWHM. Crosstalk and afterpulses contribute 2.6\% (1.5 to 3.4\%),
 and the readout 4.2\% (3.0 to 5.3\%): the integration window collects 280
@@ -456,23 +454,19 @@ deposit is sometimes below it. No decay without deposit triggers, which
 bounds the dark trigger rate below 0.3~kHz (Figure~\ref{fig:bgo_rr}). At
 the shaping of 1.8~\us no single-photoelectron peak exists, because the
 dark counts pile up within the shaping time; at 100~ns on the high gain
-the peaks of 1, 2 and 3 photoelectrons are clear, the fitted gain is 0.959
-of the true one and follows it with a scatter of 3.6\%. The spectrum of
-Figure~\ref{fig:bgo_rr} also holds a population at zero of its calibrated
-scale. It is the one-photoelectron peak: the chip removes the mean current
-of the dark counts, 1.5 photoelectrons at this shaping and temperature,
-so that an isolated avalanche is held 0.5 photoelectron below the pedestal
-of a random trigger, and the fit of the figure, which numbered the peaks
-from the pedestal, took the two-photoelectron peak for the first. The
-slope hardly changes, the zero moves by one gain, and the numbering now
-starts from the expected level, below the pedestal; at 250~K the removed
-current is 0.05 photoelectron and the population is absent. The long shaping keeps almost all the light: the recorded
-charge, 1862 photoelectron equivalents, is 1.12 times the photoelectrons.
-The zero of the low gain adds up to 156 photoelectron equivalents over the
-64 channels; the energy scale keeps an offset of 36~keV and a ratio of the
+the peaks of 1, 2 and 3 photoelectrons are clear, the fitted gain is 0.966
+of the true one and follows it with a scatter of 0.8\%. The chip removes
+the mean current of the dark counts, 1.5 photoelectrons at this shaping
+and temperature, so that an isolated avalanche is held 0.5 photoelectron
+below the pedestal of a random trigger; the peaks are numbered from the
+expected level, and the fitted zero lies 1.4 photoelectrons below the
+pedestal. At 250~K the removed current is 0.05 photoelectron. The long shaping keeps almost all the light: the recorded
+charge, 1853 photoelectron equivalents, is 1.11 times the photoelectrons.
+The zero of the low gain adds up to 155 photoelectron equivalents over the
+64 channels; the energy scale keeps an offset of 37~keV and a ratio of the
 peak positions of 2.61, which the two-point calibration absorbs. The
-energy resolution is 8.3\% FWHM, with a readout contribution of 4.0\%
-(2.3 to 5.0\%); the crosstalk term, 1.7\% as a point value, is below
+energy resolution is 8.5\% FWHM, with a readout contribution of 3.8\%
+(2.4 to 4.9\%); the crosstalk term, 1.7\% as a point value, is below
 2.6\%.
 
 \begin{figure}[htbp]
@@ -522,7 +516,7 @@ triggers on every event of the two classes; eight of the 1500 decays
 without deposit trigger, 0.5~kHz with an upper limit of 1.0~kHz
 (Figure~\ref{fig:csi_dig}). The calibration is that of BGO. The
 integration window of 3~\us holds most of both light components: the
-recorded charge is 10\,088 photoelectron equivalents, 1.06 times the 9528
+recorded charge is 10\,630 photoelectron equivalents, 1.12 times the 9528
 photoelectrons, the crosstalk compensating the light that falls after the
 window. The energy resolution is 6.2\% FWHM. The window collects 850 dark
 counts on average; the readout term, 1.6\% as a point value, is not
@@ -542,14 +536,14 @@ Figure~\ref{fig:bgo_dig}.}
 The charge trigger at 20 photoelectron equivalents triggers on every event
 of the two classes, and no decay without deposit triggers
 (Figure~\ref{fig:csi_rr}). The calibration at 100~ns gives a fitted gain
-of 0.965 of the true one, with a scatter of 3.1\%. At 2.0~V the brightest
-channel holds 970 photoelectron equivalents in one photopeak event of a
+of 0.958 of the true one, with a scatter of 0.8\%. At 2.0~V the brightest
+channel holds 980 photoelectron equivalents in one photopeak event of a
 hundred, below the ceiling of the low gain, 1075 at this SiPM gain, but
 the overvoltage yields 18\% fewer photoelectrons than 2.7~V. The shaping
-of 1.8~\us keeps 0.71 of a \csitl light pulse: the recorded charge is 5531
+of 1.8~\us keeps 0.71 of a \csitl light pulse: the recorded charge is 5567
 photoelectron equivalents, 0.77 of the photoelectrons. The energy
-resolution is 6.0\% FWHM, with a readout contribution of 2.6\% (0.3 to
-3.4\%) and a crosstalk term below 1.4\%; the ratio
+resolution is 6.1\% FWHM; the readout term, 2.5\% as a point value, is
+not resolved and lies below 3.3\%, and the crosstalk term below 1.4\%; the ratio
 of the peak positions is 2.52.
 
 \begin{figure}[htbp]
@@ -565,8 +559,8 @@ Figure~\ref{fig:bgo_rr}.}
 
 Figure~\ref{fig:resolution} and Table~\ref{tab:terms} gather the energy
 resolutions and their decomposition, with the bootstrap intervals of
-Section~\ref{sec:analysis}. For BGO the three readouts span 8.3 to 11.2\%, for \csitl
-6.0 to 8.3\%, and in every case the intrinsic resolution of the crystal
+Section~\ref{sec:analysis}. For BGO the three readouts span 8.5 to 11.2\%, for \csitl
+6.1 to 8.3\%, and in every case the intrinsic resolution of the crystal
 and the statistics of the photoelectrons account for most of the width.
 For BGO the statistical term, 5.1 to 5.7\%, is as large as the intrinsic one,
 because the crystal produces few photons; for \csitl it is half of it.
@@ -574,14 +568,13 @@ The readout term is largest for the Citiroc, whose voltage preamplifier
 and short shaping record a small and fluctuating fraction of a long light
 pulse, 8.7\% for BGO and 6.4\% for \csitl, the two readout terms that the
 samples resolve best. The digitiser and the
-Radioroc2 come close to each other: for BGO they reach 8.9 and 8.3\%,
-with readout terms of 4.2 and 4.0\% whose intervals overlap, the digitiser
+Radioroc2 come close to each other: for BGO they reach 8.9 and 8.5\%,
+with readout terms of 4.2 and 3.8\% whose intervals overlap, the digitiser
 losing to its crosstalk at 5~V most of what it gains by integrating the
-whole pulse; for \csitl the resolutions, 6.2 and 6.0\%, are equal within
+whole pulse; for \csitl the resolutions, 6.2 and 6.1\%, are equal within
 their uncertainty, and the readout terms, 1.6\% for the digitiser and
-2.6\% for the Radioroc2 as point values, are not ordered by these
-samples: the first is an upper limit of 3.0\% and the second lies between
-0.3 and 3.4\%. The crosstalk term is resolved only where the overvoltage
+2.5\% for the Radioroc2 as point values, are not resolved by these
+samples: they are upper limits of 3.0 and 3.3\%. The crosstalk term is resolved only where the overvoltage
 is 5~V or the term is large against the width, for BGO with the
 digitiser and the Citiroc; elsewhere it is an upper limit of 1.4 to
 2.6\%.
@@ -603,10 +596,10 @@ crystal & readout & resolution & statistics & crosstalk, afterpulses & readout \
 \midrule
 BGO & Citiroc~1A & $11.2 \pm 0.3$ & 5.2 (4.7 to 5.7) & 2.0 (0.9 to 3.0) & 8.7 (7.7 to 9.5) \\
 BGO & DT2745 & $8.9 \pm 0.3$ & 5.1 (4.6 to 5.6) & 2.6 (1.5 to 3.4) & 4.2 (3.0 to 5.3) \\
-BGO & Radioroc2 & $8.3 \pm 0.2$ & 5.7 (5.2 to 6.1) & $< 2.6$ & 4.0 (2.3 to 5.0) \\
+BGO & Radioroc2 & $8.5 \pm 0.2$ & 5.7 (5.2 to 6.1) & $< 2.6$ & 3.8 (2.4 to 4.9) \\
 \csitl & Citiroc~1A & $8.3 \pm 0.3$ & 2.8 (1.6 to 3.5) & $< 1.5$ & 6.4 (5.5 to 7.3) \\
 \csitl & DT2745 & $6.2 \pm 0.2$ & 2.7 (1.7 to 3.5) & $< 2.5$ & $< 3.0$ \\
-\csitl & Radioroc2 & $6.0 \pm 0.4$ & 2.9 (2.0 to 3.5) & $< 1.4$ & 2.6 (0.3 to 3.4) \\
+\csitl & Radioroc2 & $6.1 \pm 0.4$ & 2.9 (2.0 to 3.5) & $< 1.4$ & $< 3.3$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -627,7 +620,7 @@ coupling and is common to the three readouts. The detection efficiency at
 the emission wavelength is 0.49 to 0.50 for BGO and 0.31 to
 0.41 for \csitl, depending on the overvoltage. The fraction of the
 photoelectrons recorded spans an order of magnitude: 0.12 for \csitl and
-0.36 for BGO with the Citiroc, 0.77 and 1.12 with the Radioroc2 and above
+0.36 for BGO with the Citiroc, 0.77 and 1.11 with the Radioroc2 and above
 one with the digitiser, whose integral includes the crosstalk. The number
 of photoelectrons sets the statistical limit; the recorded fraction sets
 how close a readout comes to it.
@@ -645,10 +638,10 @@ Figure~\ref{fig:channels} shows the distributions of the brightest and of
 the least illuminated channel in the photopeak events, the two ends of the
 dynamic range that a position measurement needs. In BGO the brightest
 channel holds a median of 24 photoelectron equivalents with the Citiroc,
-68 with the Radioroc2 and 76 with the digitiser, and the least illuminated
-one 2 to 10; in \csitl the brightest channel reaches 1800 photoelectron
+67 with the Radioroc2 and 81 with the digitiser, and the least illuminated
+one 2 to 10; in \csitl the brightest channel reaches 1900 photoelectron
 equivalents in one event of a hundred with the digitiser, which its range
-holds, and 970 with the Radioroc2, near the limit of its low gain.
+holds, and 980 with the Radioroc2, near the limit of its low gain.
 
 \begin{figure}[htbp]
 \centering
@@ -663,11 +656,11 @@ equivalents. Solid lines BGO, dashed lines \csitl.}
 \label{sec:conclusions}
 
 At room temperature the three readouts measure the energy of a 511~keV
-deposit with resolutions of 8.3 to 11.2\% FWHM for BGO and 6.0 to 8.3\%
+deposit with resolutions of 8.5 to 11.2\% FWHM for BGO and 6.1 to 8.3\%
 for \csitl. The resolution is limited by the crystal, through its
 intrinsic resolution and, for BGO, its low light yield; the readout adds a
 term of 6 to 9\% for the Citiroc, of about 4\% for the digitiser and the
-Radioroc2 with BGO, and of less than 3.4\% with \csitl, where samples of
+Radioroc2 with BGO, and of less than 3.3\% with \csitl, where samples of
 10\,000 decays do not resolve it. The dark counts of the SiPMs, about 4~MHz per channel, shape the
 operation of every readout: they set the trigger thresholds at 8 to 11
 photoelectrons, add to the width through the integration window of the
