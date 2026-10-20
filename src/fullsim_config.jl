@@ -15,6 +15,18 @@
 #            SiPMs)
 # [binning]  bin_ns, window_ns (for the integrated maps of the optical stage)
 
+"""
+    FullsimSetup
+
+A full-simulation optical configuration resolved into the objects of the transport, as
+returned by load_fullsim: the tag, the parsed configuration (cfg), its text and path, the
+crystal Box, OpticalParams, Readout and TimeBinning, the gamma volume pv of the vendored
+core, the light yield in photons per MeV, the scintillation times (tau_ns, tau2_ns, frac1
+in ns), the intrinsic resolution (intrinsic_fwhm, a relative FWHM at 511 keV, and
+intrinsic_exponent), the emission wavelength lambda_nm, the source position source_mm
+(mm, crystal frame), the run sizes (n_decays, seed, chunk_decays, batch_photons,
+max_bounces) and the output directory.
+"""
 struct FullsimSetup
     tag::String
     cfg::Dict{String,Any}
@@ -38,6 +50,16 @@ struct FullsimSetup
     outdir::String
 end
 
+"""
+    load_fullsim(cfg_path) -> FullsimSetup
+
+Read a full-simulation optical configuration (fullsim_runs/<campaign>/<tag>.toml, the
+tables listed at the top of this file) and the material files it names, and build the
+transport objects: the crystal box (size_mm), the optical parameters (PDE from [readout],
+default 1), the full-face or tiled readout, the time binning, and the gamma volume from
+the XCOM table and density of the crystal. Only the Na-22 source is supported. The
+output directory is <repository>/<run.output_dir, default output>/<tag>.
+"""
 function load_fullsim(cfg_path::AbstractString)
     cfg_text = read(cfg_path, String)
     cfg = TOML.parse(cfg_text)
@@ -88,10 +110,13 @@ function load_fullsim(cfg_path::AbstractString)
 end
 
 """
-    run_fullsim_optical(cfg_path; ArrayT, verbose) -> path of the photoelectron file
+    run_fullsim_optical(cfg_path; ArrayT = Array, verbose = true) -> String
 
-Run the optical stage of a full-simulation configuration chunk by chunk and stream the
-result to output/<tag>/pes.h5, with a copy of the configuration beside it.
+Run the optical stage of a full-simulation configuration (load_fullsim) in chunks of
+chunk_decays decays with run_decays!, and stream the result to <output dir>/<tag>/pes.h5
+(open_pes, append_pes!), with a copy of the configuration beside it. ArrayT selects the
+backend of the optical transport (Array = CPU, Metal.MtlArray = GPU); verbose prints the
+progress per chunk. Returns the path of the photoelectron file.
 """
 function run_fullsim_optical(cfg_path::AbstractString; ArrayT = Array, verbose::Bool = true)
     st = load_fullsim(cfg_path)

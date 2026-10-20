@@ -3,8 +3,10 @@
 """
     fit_gauss_linear(xc, c, mu0, sigma0) -> (A, mu, sigma, b0, b1) or nothing
 
-Gauss-Newton with Levenberg damping and Poisson weights on the bin counts c at centres xc.
-The background is b0 + b1 (x - mu0).
+Fit of A exp(-(x - mu)^2 / 2 sigma^2) + b0 + b1 (x - mu0) to the bin counts c at the
+centres xc, by Gauss-Newton with Levenberg damping and Poisson weights, starting from mu0
+and sigma0. mu and sigma are in the unit of xc, A, b0 and b1 in counts per bin (b1 per
+unit of xc). nothing when the fit does not converge to a positive peak.
 """
 function fit_gauss_linear(xc::AbstractVector, c::AbstractVector, mu0::Real, sigma0::Real)
     x0 = mu0
@@ -46,8 +48,9 @@ end
 Mean and sigma of the most populated peak of x within [lo, hi]: the mode of a histogram
 starts a Gaussian plus linear fit in ±4 initial sigmas (5% of the mode), repeated with the
 fitted width. The range only locates the mode: the fit window takes all of x, so a peak
-near an edge of the range is not cut. n is the number of entries within ±2 sigma. NaN
-when the fit fails.
+near an edge of the range is not cut. mean and sigma are in the unit of x, n is the
+number of entries within ±2 sigma. NaN (and n = 0) when there are fewer than 100 entries
+in [lo, hi] or the fit fails.
 """
 function peak_fit(x::AbstractVector, lo::Real, hi::Real; nbins::Int = 100)
     sel = x[(x .>= lo) .& (x .<= hi)]
@@ -72,8 +75,9 @@ end
 
 The most populated peak of x within [lo, hi], fitted with a Gaussian plus a linear
 background in a window of ±w around the mode of the histogram (nbins bins over [lo, hi]),
-then again in ±2.5 fitted sigmas (at least ±w/2). n is the number of entries within ±2
-sigma. NaN when there are fewer than 100 entries in [lo, hi] or the fit fails.
+then again in ±2.5 fitted sigmas (at least ±w/2). mean, sigma and w are in the unit of
+x, n is the number of entries within ±2 sigma. NaN when there are fewer than 100 entries
+in [lo, hi], the fit fails or its mean moves out of the fit window.
 """
 function peak_fit_window(x::AbstractVector, lo::Real, hi::Real, w::Real; nbins::Int = 40)
     sel = x[(x .>= lo) .& (x .<= hi)]
@@ -95,9 +99,10 @@ end
 """
     photoelectron_ladder(x, nominal; pedestal, baseline) -> (gain, zero, peaks, cells)
 
-Gain and zero level of a self-triggered dark-count spectrum x (ADC counts). The peaks
-are located as the minima of the second derivative of the histogram (bins of a
-fiftieth of the nominal gain), smoothed with a Gaussian of 0.12 nominal gains, which
+Gain (ADC counts per cell) and zero level (ADC counts) of a self-triggered dark-count
+spectrum x in ADC counts, given the nominal gain and the pedestal in ADC counts and the
+baseline in gains. The peaks are located as the minima of the second derivative of the
+histogram (bins of a fiftieth of the nominal gain), smoothed with a Gaussian of 0.12 nominal gains, which
 resolves a peak that is only a shoulder on the tail of the previous one; each minimum is
 refined by a parabola. Starting from the most prominent peak, the chain of peaks spaced
 by 0.6 to 1.4 times the nominal gain (then the running spacing) is kept, up and down.

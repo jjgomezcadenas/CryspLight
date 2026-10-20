@@ -12,6 +12,22 @@
 # Charges are in count-samples (as in the analysis of the measured records) with the
 # single-avalanche area of the run as calibration.
 
+"""
+    DigitizerSettings(; gain = 1.0, threshold_counts = 60.0, gate_ns = 1000.0, ...)
+
+The settings of the DT2745 digitizer emulation, a keyword struct (settings_from builds it
+from the [frontend] table of a configuration). Amplitudes are in ADC counts: the peak of
+one avalanche is counts_per_pe_per_volt x overvoltage x gain, the white noise has
+noise_counts rms per sample, and each channel's leading-edge discriminator fires at
+threshold_counts above the baseline (0 or less selects the external trigger at
+external_trigger_ns). Times are in ns: the sampling period sample_ns, the coincidence
+window of the majority trigger (majority channels), the gate (from gate_start_ns
+relative to the trigger, gate_ns long) and the baseline window (baseline_ns, ending at
+the gate start), and the synthesis grid dt_ns from t_start_ns to t_end_ns relative to
+the decay. A channel whose sampled peak reaches 2^(bits - 1) counts is flagged
+saturated. pretrigger_ns and fullscale_v (V) describe the acquisition and are written to
+the event file, but the emulation does not use them.
+"""
 Base.@kwdef struct DigitizerSettings
     gain::Float64 = 1.0                    # digitizer gain setting (x1 ... x100)
     counts_per_pe_per_volt::Float64 = 3.2  # peak counts of one avalanche per volt of overvoltage, gain 1
@@ -34,7 +50,18 @@ Base.@kwdef struct DigitizerSettings
     t_end_ns::Float64 = 12_000.0
 end
 
-"One event as the analysis of the digitizer records would produce it."
+"""
+    DigitizerEvent
+
+One event as the analysis of the digitizer records would produce it, one entry per
+channel: charge, the gate integral minus the scaled baseline integral in count-samples
+(Int32), charge_pe the same in avalanches with the calibration of the run, hits the
+channels whose discriminator fired within the coincidence window around the trigger,
+saturated the channels whose sampled peak reached half the ADC range, and peak_counts
+the largest sampled amplitude in ADC counts above the baseline (computed even without
+trigger). t_trigger is the trigger time in ns from the decay (NaN without trigger) and
+triggered whether there was one; without trigger the charges are zero.
+"""
 struct DigitizerEvent
     charge::Vector{Int32}       # count-samples, baseline subtracted
     charge_pe::Vector{Float32}  # the same in avalanches, with the calibration of the run
@@ -45,6 +72,16 @@ struct DigitizerEvent
     peak_counts::Vector{Float32}  # largest sampled amplitude of the channel (diagnostic)
 end
 
+"""
+    DigitizerChain(s::DigitizerSettings, op::SipmOperation, rng::AbstractRNG)
+
+The emulation of one digitizer set-up: the grid with its warm-up, the device pulse, the
+peak amplitude (ADC counts) and area (count-samples) of one avalanche at the operating
+point op, the rms of the integrated noise of the charge (count-samples), the gate and
+baseline lengths in samples, the work buffers and the noise stream rng. Built once per
+run (one per thread); apply with digitizer_event, reseeding rng per event for
+reproducibility.
+"""
 struct DigitizerChain
     s::DigitizerSettings
     op::SipmOperation
@@ -87,8 +124,11 @@ function pulse_area_over_peak(pulse::Shaper, sample_ns::Real)
 end
 
 """
-Fraction of the area of the avalanche pulse emitted before time t after the avalanche
-(the pulse is exp(-t/tf) - exp(-t/t2), t2 the combined rise constant).
+    pulse_cdf(dev::SipmDevice, t) -> Float64
+
+Fraction of the area of the avalanche pulse emitted before the time t [ns] after the
+avalanche (the pulse is exp(-t/tf) - exp(-t/t2), t2 the combined rise constant): 0 for
+t <= 0, rising to 1.
 """
 function pulse_cdf(dev::SipmDevice, t::Real)
     t <= 0 && return 0.0
@@ -97,14 +137,24 @@ function pulse_cdf(dev::SipmDevice, t::Real)
     return (tf * (1 - exp(-t / tf)) - t2 * (1 - exp(-t / t2))) / (tf - t2)
 end
 
-"Fraction of the pulse of an avalanche at time ta that falls in the window [w0, w1]."
+"""
+    window_fraction(dev::SipmDevice, ta, w0, w1) -> Float64
+
+Fraction of the area of the pulse of an avalanche at time ta that falls in the window
+[w0, w1] (all times in ns).
+"""
 @inline window_fraction(dev::SipmDevice, ta::Real, w0::Real, w1::Real) =
     pulse_cdf(dev, w1 - ta) - pulse_cdf(dev, w0 - ta)
 
 """
     digitizer_event(ch, trains) -> DigitizerEvent
 
-Apply the digitizer to the avalanche trains of the channels of one event.
+Apply the digitizer to the avalanche trains of the channels of one event (one train per
+channel, in avalanche units, scaled by the gain factors of the operating point). The
+sampled amplitude of each channel, with its noise, feeds the leading-edge discriminators
+and the majority (or external) trigger; the charge of each channel is the sum over its
+avalanches of their area times the weight of the gate minus the scaled baseline window,
+plus one Gaussian for the integrated noise, in count-samples.
 """
 function digitizer_event(ch::DigitizerChain, trains::Vector{Vector{Avalanche}})
     s, g, dev = ch.s, ch.grid, ch.op.dev

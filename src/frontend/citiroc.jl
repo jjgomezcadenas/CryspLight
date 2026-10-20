@@ -26,6 +26,25 @@ using Random: AbstractRNG
 
 const E_CHARGE_PC = 1.602176634e-7      # pC per electron
 
+"""
+    CitirocSettings(; tp_ns = 87.5, hold_ns = 300.0, threshold_pe = 0.5, ...)
+
+The settings of the Citiroc 1A emulation, a keyword struct (settings_from builds it from
+the [frontend] table of a configuration). Times are in ns relative to the decay or the
+trigger: the peaking times of the slow shapers (tp_ns for the high gain, tp_lg_ns for
+the low gain, 0 = the same) and of the fast shaper (fast_tp_ns), the delay from the
+trigger to the hold (hold_ns), the coincidence window (coincidence_ns), the external
+trigger time (external_trigger_ns), and the emulation grid (dt_ns from t_start_ns to
+t_end_ns). Amplitudes are in avalanches: the discriminator threshold threshold_pe and
+the noise rms of the slow high-gain path noise_pe (given at noise_tp_ns and scaled as
+(noise_tp_ns / tp)^noise_exponent), of the low-gain path lg_noise_pe (0 = noise_pe /
+lg_ratio) and of the fast path fast_noise_pe. The conversion has adc_bits bits,
+adc_per_pe ADC counts per avalanche on the high gain, a pedestal in ADC counts and a
+low-gain ratio lg_ratio; the input saturates at ceiling_pc (pC). The trigger is
+"majority" (majority channels within coincidence_ns; 1 is the OR) or "external";
+peak_detector = false selects the track and hold, voltage_preamp = false a
+charge-sensitive preamplifier, and order is the n of the CR-RC^n shapers.
+"""
 Base.@kwdef struct CitirocSettings
     tp_ns::Float64 = 87.5               # slow shaper peaking time, high-gain path
     tp_lg_ns::Float64 = 0.0             # low-gain path; 0 = same as tp_ns
@@ -55,7 +74,19 @@ Base.@kwdef struct CitirocSettings
     t_end_ns::Float64 = 2000.0          # grid end
 end
 
-"One event as the Citiroc acquisition records it, plus the emulation flags."
+"""
+    CitirocEvent
+
+One event as the Citiroc (or Radioroc2) acquisition records it, plus the emulation
+flags, one entry per channel: hg and lg are the high- and low-gain ADC counts (UInt16,
+pedestal included), hits marks the channels whose discriminator fired within the
+coincidence window around the trigger, saturated the saturated channels (for the
+Citiroc, low gain beyond the input-charge ceiling or at the full scale of its ADC; for
+the Radioroc2, see radioroc_event), and stored_pe the stored value before the ADC
+in avalanches (the dual-gain value: the high gain below its limit, its ADC full scale on
+the Citiroc and its ceiling on the Radioroc2, the low gain above it). t_trigger is the trigger time in ns from the decay (NaN without trigger) and
+triggered whether there was one; without trigger the per-channel values are zero.
+"""
 struct CitirocEvent
     hg::Vector{UInt16}
     lg::Vector{UInt16}
@@ -67,8 +98,13 @@ struct CitirocEvent
 end
 
 """
-The emulation of one chip set-up: the two shapers, their noise generators, the grid and
-the work buffers. Built once per run; apply with citiroc_event.
+    CitirocChain(s::CitirocSettings, op::SipmOperation, rng::AbstractRNG)
+
+The emulation of one chip set-up: the slow high- and low-gain shapers and the fast
+shaper, their noise generators (drawing from rng), the grid with its warm-up and the
+work buffers, and the input-charge ceiling in avalanches at the gain of op. Built once
+per run (one per thread); apply with citiroc_event, reseeding rng per event for
+reproducibility.
 """
 struct CitirocChain
     s::CitirocSettings
@@ -89,6 +125,12 @@ struct CitirocChain
 end
 
 tp_lg(s::CitirocSettings) = s.tp_lg_ns > 0 ? s.tp_lg_ns : s.tp_ns
+"""
+    noise_at(s::CitirocSettings, tp) -> Float64
+
+The rms noise of the slow high-gain path, in avalanches, at the peaking time tp [ns]:
+noise_pe scaled by (noise_tp_ns / tp)^noise_exponent.
+"""
 noise_at(s::CitirocSettings, tp::Real) = s.noise_pe * (s.noise_tp_ns / tp)^s.noise_exponent
 lg_noise(s::CitirocSettings) = (s.lg_noise_pe > 0 ? s.lg_noise_pe : s.noise_pe / s.lg_ratio) *
                                (s.noise_tp_ns / tp_lg(s))^s.noise_exponent
@@ -137,9 +179,11 @@ function crossing_times(y::Vector{Float64}, thr::Float64, g::TimeGrid; tmin::Rea
 end
 
 """
-Trigger time from the crossing times of the channels (one vector of times per channel):
-the earliest crossing at which `majority` distinct channels have crossed within the
-preceding `coincidence`; NaN when none.
+    trigger_time(crossings::Vector{Vector{Float64}}, majority, coincidence) -> Float64
+
+Trigger time [ns] from the crossing times of the channels (one vector of times in ns per
+channel): the earliest crossing at which `majority` distinct channels have crossed within
+the preceding `coincidence` ns (majority <= 1: the earliest crossing); NaN when none.
 """
 function trigger_time(crossings::Vector{Vector{Float64}}, majority::Int, coincidence::Float64)
     ev = sort!([(t, c) for c in eachindex(crossings) for t in crossings[c] if isfinite(t)])
@@ -156,7 +200,11 @@ function trigger_time(crossings::Vector{Vector{Float64}}, majority::Int, coincid
     return NaN
 end
 
-"The same with one crossing time per channel (NaN when the channel did not cross)."
+"""
+    trigger_time(crossings::Vector{Float64}, majority, coincidence) -> Float64
+
+The same with one crossing time in ns per channel (NaN when the channel did not cross).
+"""
 trigger_time(crossings::Vector{Float64}, majority::Int, coincidence::Float64) =
     trigger_time([isfinite(t) ? [t] : Float64[] for t in crossings], majority, coincidence)
 
@@ -167,8 +215,11 @@ in_trigger_window(ts::Vector{Float64}, ttrig::Real, coincidence::Real) =
 """
     citiroc_waves(ch, trains) -> (crossings, hg_wave, lg_wave)
 
-The discriminator crossing times of each channel and its two slow signals (high and low
-gain, in avalanches, with their noise) on the grid of the chain.
+The discriminator crossing times of each channel (ns, from the fast path with its noise,
+crossings in the warm-up dropped) and its two slow signals (high and low gain, in
+avalanches, with their noise) on the grid of the chain, for the avalanche trains of the
+channels (one per channel). The charges are scaled by the gain factors of the operating
+point and the mean dark level is removed.
 """
 function citiroc_waves(ch::CitirocChain, trains::Vector{Vector{Avalanche}})
     s, g = ch.s, ch.grid
@@ -206,7 +257,11 @@ end
 
 Apply the chain to the avalanche trains of the channels of one event (a vector of
 trains, one per channel, in avalanche units; the per-channel gain factors of the
-operating point scale the charge).
+operating point scale the charge). The trigger (majority of the discriminators, or
+external) opens the hold window; each channel stores the maximum of its slow signals
+from the trigger to the hold (peak detector) or their value at the hold (track and
+hold), clipped at the input-charge ceiling, and converts them to ADC counts with the
+pedestal and adc_per_pe (times lg_ratio on the low gain).
 """
 function citiroc_event(ch::CitirocChain, trains::Vector{Vector{Avalanche}})
     s, g = ch.s, ch.grid
@@ -273,9 +328,10 @@ end
     hg_at_crossings(ch, trains, delay; peak_detector = false) -> per-channel vectors of high-gain ADC counts
 
 The self-triggered calibration of the dark counts: every crossing of the discriminator of
-a channel (threshold of the settings) holds that channel's high gain delay later (track
-and hold), or its maximum from the crossing to then (`peak_detector = true`), converted
-to ADC counts with the pedestal.
+a channel (threshold of the settings) holds that channel's high gain delay ns later
+(track and hold), or its maximum from the crossing to then (`peak_detector = true`),
+converted to ADC counts with the pedestal (Float64 values, rounded and clipped to the
+ADC range). A crossing during the hold of the previous one is skipped.
 """
 function hg_at_crossings(ch::CitirocChain, trains::Vector{Vector{Avalanche}}, delay::Real;
                          peak_detector::Bool = false)
@@ -310,7 +366,8 @@ stores about one gain above it, and one that arrived shortly before stores the f
 edge of its pulse, which fills the region below each peak. The zero of the photoelectron
 ladder is the pedestal, since the voltage preamplifiers of the Citiroc remove no dark
 level (dark_baseline). The gap between windows, two peaking times by default, keeps the
-noise of consecutive windows independent.
+noise of consecutive windows independent. Returns one Float64 vector of ADC counts per
+channel, one value per window.
 """
 function hg_periodic(ch::CitirocChain, trains::Vector{Vector{Avalanche}}, window::Real;
                      gap::Real = 2 * ch.s.tp_ns)
@@ -328,7 +385,9 @@ function hg_periodic(ch::CitirocChain, trains::Vector{Vector{Avalanche}}, window
 end
 
 """
-Delay from the discriminator crossing of a single avalanche to the maximum of its
+    hold_at_peak(ch::CitirocChain) -> Float64
+
+Delay in ns from the discriminator crossing of a single avalanche to the maximum of its
 high-gain slow signal, without noise: the hold delay that a scan of the delay on the
 bench would choose.
 """
@@ -341,9 +400,12 @@ function hold_at_peak(ch::CitirocChain)
 end
 
 """
-Fraction of the avalanches of an exponential train (decay tau, optional second component)
-that the stored value keeps: the peak of the shaped signal of the train divided by that
-of one avalanche, computed on the chain's grid without noise.
+    stored_fraction(ch::CitirocChain, tau_ns; tau2_ns = 0, frac1 = 1) -> Float64
+
+Fraction of the avalanches of an exponential train starting at t = 0 (decay constant
+tau_ns in ns, optional second component tau2_ns of weight 1 - frac1) that the stored
+value keeps: the peak of the high-gain shaped signal of a train of unit total charge,
+in units of the peak of one avalanche, computed on the chain's grid without noise.
 """
 function stored_fraction(ch::CitirocChain, tau_ns::Real; tau2_ns::Real = 0, frac1::Real = 1,
                          n::Int = 200_000)
@@ -361,5 +423,10 @@ function stored_fraction(ch::CitirocChain, tau_ns::Real; tau2_ns::Real = 0, frac
     return maximum(ch.y)
 end
 
-"The level removed with the mean dark current on the high-gain slow path (dark_baseline), in avalanches."
+"""
+    dark_baseline(ch::CitirocChain) -> Float64
+
+The level removed with the mean dark current on the high-gain slow path (dark_baseline of
+its shaper), in avalanches.
+"""
 dark_baseline(ch::CitirocChain) = dark_baseline(ch.slow, ch.op)

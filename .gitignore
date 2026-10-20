@@ -13,3 +13,6 @@ __pycache__/
 # raw bench data (only the README is tracked)
 benchdata/*
 !benchdata/README.md
+
+# Documenter build output
+docs/build/

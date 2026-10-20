@@ -18,7 +18,12 @@ struct RunSetup
     cfg_path::String
 end
 
-"Validate a configured surface finish and return true for an air-gap back-painted wrap."
+"""
+    surface_has_gap(finish::AbstractString) -> Bool
+
+Validate a configured surface finish: true for "backpainted" (wrap behind an air gap),
+false for "frontpainted" (wrap in optical contact), an error for any other string.
+"""
 function surface_has_gap(finish::AbstractString)::Bool
     finish in ("backpainted", "frontpainted") || error("unknown finish: $finish")
     return finish == "backpainted"
@@ -68,7 +73,17 @@ function load_setup(cfg_path::AbstractString)
              Int(get(run, "max_bounces", 100_000)), outdir, abspath(cfg_path))
 end
 
-"Run a config end to end: transport, write output/<tag>/, print and return the summary."
+"""
+    run_from_config(cfg_path) -> Dict{String,Any}
+
+Run a point-source configuration (a TOML file in runs/) end to end: transport with
+run_photons!, then write the directory <output.dir, default output>/<tag>/ next to the
+directory that holds the configuration, with light.h5 (the photoelectron counts per
+channel and time bin of [binning], the first-photoelectron times in ns and the counters)
+and a copy of the configuration. Prints and returns the summary: the fractions of photons detected and
+absorbed, the mean number of bounces of the detected photons, the 8-fold symmetry
+residual of the map and the elapsed time in s.
+"""
 function run_from_config(cfg_path::AbstractString)
     st = load_setup(cfg_path)
     elapsed = @elapsed acc = run_photons!(st.box, st.op, st.grid, st.tb;

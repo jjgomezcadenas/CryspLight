@@ -335,9 +335,23 @@ end
 end
 
 """
-KernelAbstractions twin of run_photons!: same interface, one extra argument ArrayT
-selecting the backend by array type (Array = CPU threads, Metal.MtlArray = GPU).
-Returns the same Accumulator, reduced on the host from per-photon records.
+    run_photons_ka!(box, op, ro::Readout, tb; n_photons, seed, pos | positions, tau_ns,
+                    tau2_ns = 0, frac1 = 1, max_bounces = 100_000, t0s = nothing,
+                    pid_offset = 0, ArrayT = Array, return_records = false)
+        -> Accumulator, or (Accumulator, records) when return_records = true
+
+KernelAbstractions twin of run_photons! with the keywords of the Readout method of
+run_photons! (there is no SipmGrid method), one work item per photon and the same random
+draws, so that on the CPU backend the result is bit-identical. ArrayT selects the backend
+by array type (Array = CPU threads, Metal.MtlArray = GPU). Three keywords are added: t0s
+gives one emission-time offset in ns per position (the deposit times of the event
+pipelines), added to the scintillation delay; pid_offset shifts the photon ids, so that
+successive batches draw from disjoint Philox streams; return_records = true also returns
+the per-photon records as a NamedTuple of host vectors, status (UInt8 status codes), idx
+(Int16 linear channel (j - 1) nx + i of a detection, negative on the z = 0 face of a
+two-sided readout, 0 otherwise), t (Float32 detection or termination time in ns) and
+bounces (Int32). The Accumulator is reduced on the host from those records; its nscat
+counter is not filled on this path.
 """
 function run_photons_ka!(box::Box, op::OpticalParams, ro::Readout, tb::TimeBinning;
                          n_photons::Int, seed::Integer,

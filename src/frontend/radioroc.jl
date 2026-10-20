@@ -16,6 +16,24 @@
 # its stored_pe is the dual-gain value, the high gain below its ceiling and the low gain
 # above it, in avalanches.
 
+"""
+    RadiorocSettings(; tp_ns = fill(300.0, 64), hold_ns = 500.0, trigger = "tq", ...)
+
+The settings of the Radioroc2 emulation, a keyword struct (settings_from builds it from
+the [frontend] table of a configuration). Times are in ns: the peaking time of each
+channel on the high-gain path (tp_ns, 64 values) and on the low-gain path (tp_lg_ns,
+empty = the same), the delay from the trigger to the hold (hold_ns), the coincidence
+window, the external trigger time, the rise and fall of the pulse seen by the time
+preamplifier, the emulation grid (dt_ns from t_start_ns to t_end_ns relative to the
+decay) and the multiplexed readout time readout_ns (recorded, not used by the emulation).
+Amplitudes are in avalanches: the thresholds of the triggers T1 and T2 (on the time
+preamplifier) and TQ (on the low-gain shaped signal), the rms noise of the time
+preamplifier and of the high-gain path at 100 ns of peaking time (noise_pe_100ns, scaled
+as (100 ns / tp)^noise_exponent), and the low-gain ceiling lg_ceiling_pe at a gain of
+1e6. The conversion has adc_bits bits, adc_per_pe ADC counts per avalanche on the high
+gain, a pedestal in ADC counts and a low-gain ratio lg_ratio. trigger is "tq", "t1",
+"t2", "majority" (of the T1 crossings, majority channels) or "external".
+"""
 Base.@kwdef struct RadiorocSettings
     tp_ns::Vector{Float64} = fill(300.0, 64)   # peaking time per channel, high-gain path
     tp_lg_ns::Vector{Float64} = Float64[]      # low-gain path; empty = same as tp_ns
@@ -45,7 +63,12 @@ Base.@kwdef struct RadiorocSettings
     readout_ns::Float64 = 12_800.0             # multiplexed readout of 64 channels (recorded)
 end
 
-"A copy of a device with another avalanche pulse (the pulse of the time preamplifier)."
+"""
+    with_pulse(dev::SipmDevice, rise_ns, fall_ns) -> SipmDevice
+
+A copy of a device with another avalanche pulse, of time to peak rise_ns and fall
+constant fall_ns (ns): the pulse of the time preamplifier.
+"""
 function with_pulse(dev::SipmDevice, rise_ns::Real, fall_ns::Real)
     SipmDevice(dev.name, dev.vbr_25c, dev.dvbr_dt, dev.gain_per_volt, dev.pde_vov,
                dev.pde_val, dev.pde_lambda, dev.pde_spectral, dev.ct_vov, dev.ct_val,
@@ -55,6 +78,15 @@ function with_pulse(dev::SipmDevice, rise_ns::Real, fall_ns::Real)
                rise_constant(Float64(rise_ns), Float64(fall_ns)), dev.ct_pf, dev.input_ohm)
 end
 
+"""
+    RadiorocChain(s::RadiorocSettings, op::SipmOperation, rng::AbstractRNG)
+
+The emulation of one Radioroc2 set-up: the grid with its warm-up, one calibrated shaper
+and one noise generator (drawing from rng) per distinct peaking time, the time
+preamplifier pulse, the work buffers, and the low- and high-gain ceilings in avalanches
+at the gain of op. Built once per run (one per thread); apply with radioroc_event,
+reseeding rng per event for reproducibility.
+"""
 struct RadiorocChain
     s::RadiorocSettings
     op::SipmOperation
@@ -72,6 +104,12 @@ struct RadiorocChain
     rng::AbstractRNG
 end
 
+"""
+    noise_at(s::RadiorocSettings, tp) -> Float64
+
+The rms noise of the high-gain path, in avalanches, at the peaking time tp [ns]:
+noise_pe_100ns scaled by (100 ns / tp)^noise_exponent.
+"""
 noise_at(s::RadiorocSettings, tp::Real) = s.noise_pe_100ns * (100.0 / tp)^s.noise_exponent
 
 function RadiorocChain(s::RadiorocSettings, op::SipmOperation, rng::AbstractRNG)
@@ -95,8 +133,10 @@ tp_lg(ch::RadiorocChain, c::Int) = isempty(ch.s.tp_lg_ns) ? ch.s.tp_ns[c] : ch.s
 """
     radioroc_waves(ch, trains) -> (t1, t2, tq, hg_wave, lg_wave)
 
-The crossing times of the three triggers of each channel and its two shaped signals
-(high and low gain, in avalanches, with their noise) on the grid of the chain.
+The crossing times (ns) of the three triggers of each channel and its two shaped signals
+(high and low gain, in avalanches, with their noise) on the grid of the chain, for the
+avalanche trains of the channels (one per channel). The charges are scaled by the gain
+factors of the operating point and the mean dark level is removed.
 """
 function radioroc_waves(ch::RadiorocChain, trains::Vector{Vector{Avalanche}})
     s, g = ch.s, ch.grid
@@ -134,8 +174,14 @@ end
 """
     radioroc_event(ch, trains) -> CitirocEvent
 
-Apply the Radioroc2 to the avalanche trains of one event. hits marks the channels whose
-T1 fired within the coincidence window of the acquisition trigger.
+Apply the Radioroc2 to the avalanche trains of one event (one per channel, in avalanche
+units). The trigger of the settings opens the hold window; each channel stores the
+maximum of its two shaped signals from the trigger to the hold (peak detector) or their
+value at the hold, clipped at their ceilings, and converts them to ADC counts with the
+pedestal and adc_per_pe (times lg_ratio on the low gain). A channel is flagged saturated
+when its low gain reaches the low-gain ceiling or its high-gain count reaches the ADC full
+scale. hits marks the channels whose T1 fired within the coincidence window of the
+acquisition trigger.
 """
 function radioroc_event(ch::RadiorocChain, trains::Vector{Vector{Avalanche}})
     s, g = ch.s, ch.grid
@@ -157,7 +203,8 @@ function radioroc_event(ch::RadiorocChain, trains::Vector{Vector{Avalanche}})
             vh = s.peak_detector ? maximum(view(hg_wave[c], k0:k1)) : hg_wave[c][k1]
             vl = s.peak_detector ? maximum(view(lg_wave[c], k0:k1)) : lg_wave[c][k1]
             # dual gain: the high-gain path measures the channel below its ceiling, the
-            # low-gain path above it; the event is saturated only when the low gain is
+            # low-gain path above it; the channel is flagged saturated when the low gain
+            # reaches its ceiling or when the high-gain ADC count reaches full scale
             hg_sat = vh > ch.hg_ceiling
             hg_sat && (vh = ch.hg_ceiling)
             vl > ch.lg_ceiling && (sat[c] = true; vl = ch.lg_ceiling)
@@ -176,8 +223,11 @@ end
 """
     hg_at_crossings(ch, trains, delay) -> per-channel vectors of high-gain ADC counts
 
-The self-triggered calibration of the dark counts: every T1 crossing of a channel starts
-its high-gain peak detector, held delay later, converted to ADC counts with the pedestal.
+The self-triggered calibration of the dark counts: every T1 crossing of a channel holds
+its high-gain signal delay ns later, as the maximum since the crossing (peak_detector of
+the settings) or as the value at the hold, converted to ADC counts with the pedestal
+(Float64 values, rounded and clipped to the ADC range). A crossing during the hold of the
+previous one is skipped.
 """
 function hg_at_crossings(ch::RadiorocChain, trains::Vector{Vector{Avalanche}}, delay::Real)
     s = ch.s
@@ -188,8 +238,10 @@ function hg_at_crossings(ch::RadiorocChain, trains::Vector{Vector{Avalanche}}, d
 end
 
 """
-Delay from the T1 crossing of a single avalanche to the maximum of its high-gain signal
-(channel 1), without noise: the hold delay that a scan on the bench would choose.
+    hold_at_peak(ch::RadiorocChain) -> Float64
+
+Delay in ns from the T1 crossing of a single avalanche to the maximum of its high-gain
+signal (channel 1), without noise: the hold delay that a scan on the bench would choose.
 """
 function hold_at_peak(ch::RadiorocChain)
     g = ch.grid
@@ -199,7 +251,12 @@ function hold_at_peak(ch::RadiorocChain)
     return sample_time(g, argmax(ch.y)) - sample_time(g, first_crossing(ch.yt, ch.s.t1_threshold_pe))
 end
 
-"Stored fraction of an exponential train on the high-gain path of channel c (no noise)."
+"""
+    stored_fraction(ch::RadiorocChain, tau_ns; tau2_ns = 0, frac1 = 1, channel = 1) -> Float64
+
+Stored fraction of an exponential train (times in ns) on the high-gain path of the
+given channel, without noise: as stored_fraction of the Citiroc chain.
+"""
 function stored_fraction(ch::RadiorocChain, tau_ns::Real; tau2_ns::Real = 0, frac1::Real = 1,
                          channel::Int = 1)
     g = ch.grid
@@ -215,5 +272,10 @@ function stored_fraction(ch::RadiorocChain, tau_ns::Real; tau2_ns::Real = 0, fra
     return maximum(ch.y)
 end
 
-"The level removed with the mean dark current on the high-gain path of channel c (dark_baseline), in avalanches."
+"""
+    dark_baseline(ch::RadiorocChain; channel = 1) -> Float64
+
+The level removed with the mean dark current on the high-gain path of the given channel
+(dark_baseline of its shaper), in avalanches.
+"""
 dark_baseline(ch::RadiorocChain; channel::Int = 1) = dark_baseline(ch.shapers[tp_hg(ch, channel)], ch.op)

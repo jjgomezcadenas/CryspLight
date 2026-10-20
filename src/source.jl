@@ -13,13 +13,24 @@ const NA22_POSITRON_FRACTION = 0.903
 const GAMMA_511 = Int8(1)
 const GAMMA_1275 = Int8(2)
 
+"""
+    GammaRay(e_mev, dir, kind)
+
+One gamma of a decay: its energy e_mev in MeV, its unit direction dir (Float64) and its
+kind, GAMMA_511 = 1 for an annihilation gamma or GAMMA_1275 = 2 for the nuclear gamma.
+"""
 struct GammaRay
     e_mev::Float64
     dir::NTuple{3,Float64}
     kind::Int8                  # GAMMA_511 or GAMMA_1275
 end
 
-"Isotropic unit vector in Float64 from a Random RNG."
+"""
+    isotropic_dir64(rng::AbstractRNG) -> NTuple{3,Float64}
+
+Isotropic unit vector in Float64, from two draws of rng (cosine of the polar angle, then
+azimuth).
+"""
 @inline function isotropic_dir64(rng::AbstractRNG)
     uz = 1.0 - 2.0 * rand(rng)
     r = sqrt(max(0.0, 1.0 - uz * uz))
@@ -30,8 +41,9 @@ end
 """
     na22_decay(rng) -> Vector{GammaRay}
 
-The gammas of one Na-22 decay: the 1275 keV gamma, then the two 511 keV gammas when the
-decay goes through the positron (opposite directions).
+The gammas of one Na-22 decay, drawn from rng: the 1275 keV gamma in an isotropic
+direction, then, in the 90.3% of the decays that go through the positron, the two 511
+keV gammas in opposite directions, isotropic as a pair.
 """
 function na22_decay(rng::AbstractRNG)
     out = GammaRay[GammaRay(E_1275_MEV, isotropic_dir64(rng), GAMMA_1275)]
@@ -46,8 +58,10 @@ end
 """
     entry_point(source_mm, dir, L) -> (entry_mm, path_mm) or nothing
 
-Where the ray from source_mm (crystal frame, outside the box [0, L]) along dir first meets
-the box, and the distance to that point. nothing when the ray misses the crystal.
+Where the ray from source_mm (mm, crystal frame, outside the box [0, L] with L in mm)
+along the unit direction dir first meets the box: the entry point as a Float32 triple in
+mm, clamped onto the box, and the distance to it in mm (Float64). nothing when the ray
+misses the crystal or the source is not outside it.
 """
 function entry_point(source_mm, dir, L)
     t_near = -Inf
@@ -72,9 +86,11 @@ function entry_point(source_mm, dir, L)
 end
 
 """
+    face_acceptance(a, b, d) -> Float64
+
 Fraction of the sphere, seen from a point on the axis at distance d from the centre of a
-rectangular face of sides a x b, covered by that face (the geometric acceptance of one
-gamma).
+rectangular face of sides a x b (all three in the same length unit), covered by that face:
+the geometric acceptance of one isotropic gamma, between 0 and 1/2.
 """
 face_acceptance(a::Real, b::Real, d::Real) =
     4 * atan(a * b / (4 * d * sqrt((a / 2)^2 + (b / 2)^2 + d^2))) / (4pi)
