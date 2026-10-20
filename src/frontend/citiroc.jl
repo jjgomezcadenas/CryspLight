@@ -315,3 +315,6 @@ function stored_fraction(ch::CitirocChain, tau_ns::Real; tau2_ns::Real = 0, frac
     shape!(ch.y, ch.slow)
     return maximum(ch.y)
 end
+
+"The level removed with the mean dark current on the high-gain slow path (dark_baseline), in avalanches."
+dark_baseline(ch::CitirocChain) = dark_baseline(ch.slow, ch.op)

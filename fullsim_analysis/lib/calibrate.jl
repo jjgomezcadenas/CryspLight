@@ -9,6 +9,71 @@
 #                          amplitude of one photoelectron times the area over peak height
 #                          of the averaged pulse.
 
+"""
+    matched_filter_template(ch::DigitizerChain; length = 10, baseline_samples = 4)
+        -> (tpl, nrm, norm, responses)
+
+The matched filter of the digitiser calibration on the sampled waveform: `tpl` is the
+pulse of one cell sampled from the sample of the avalanche, `length` samples long and
+normalised to a peak of one, `nrm` its sum of squares, so that the correlation of the
+template with the waveform (after subtracting the mean of the `baseline_samples`
+preceding samples) divided by `nrm` equals the pulse amplitude when the template is
+aligned with the avalanche. The estimator takes the local maxima of that correlation over
+all alignments, and for the long pulse of the device the maximum lies one or two samples
+after the avalanche and above the amplitude, by 4 to 6% depending on where the avalanche
+falls between two samples. `norm` is the mean over the sampling phases (0 to one sample
+in steps of the synthesis grid) of the local maximum for a noiseless isolated unit pulse,
+and `responses` the value at each phase: divided by `norm`, the estimator gives one on
+average for an isolated single cell.
+"""
+function matched_filter_template(ch::DigitizerChain; length::Int = 10, baseline_samples::Int = 4)
+    s, g = ch.s, ch.grid
+    step = max(1, round(Int, s.sample_ns / g.dt))
+    x = zeros(Float64, g.n)
+    k0 = 1 + step * cld(g.n, 4step)              # a sampling time well inside the record
+    x[k0] = 1.0; device_pulse!(x, ch.pulse)
+    tpl = x[k0:step:k0 + (length - 1) * step]; tpl ./= maximum(tpl)
+    nrm = sum(abs2, tpl)
+    responses = Float64[]
+    for phase in 0:step-1
+        fill!(x, 0.0); x[k0 + phase] = 1.0; device_pulse!(x, ch.pulse)
+        y = matched_filter(x[1:step:end], tpl, nrm, 1.0; baseline_samples = baseline_samples)
+        push!(responses, maximum(y))
+    end
+    return (tpl = tpl, nrm = nrm, norm = mean(responses), responses = responses)
+end
+
+"""
+    matched_filter(v, tpl, nrm, norm; baseline_samples = 4) -> y
+
+The filtered waveform: at each sample j, the template correlated with the samples from j
+on, after subtracting the mean of the `baseline_samples` samples before j, divided by
+`nrm` and by `norm` (matched_filter_template). Zero where the window does not fit.
+"""
+function matched_filter(v::AbstractVector, tpl::AbstractVector, nrm::Real, norm::Real;
+                        baseline_samples::Int = 4)
+    L, nb, n = length(tpl), baseline_samples, length(v)
+    y = zeros(Float64, n)
+    @inbounds for j in (nb + 1):(n - L)
+        b = sum(view(v, (j - nb):(j - 1))) / nb
+        acc = 0.0
+        for m in 1:L
+            acc += tpl[m] * (v[j + m - 1] - b)
+        end
+        y[j] = acc / (nrm * norm)
+    end
+    return y
+end
+
+"Local maxima of a filtered waveform above `floor`: the pulse amplitudes of the calibration."
+function filter_amplitudes(y::AbstractVector, floor::Real)
+    out = Float64[]
+    @inbounds for j in 2:length(y)-1
+        y[j] > y[j - 1] && y[j] >= y[j + 1] && y[j] > floor && push!(out, y[j])
+    end
+    return out
+end
+
 "Per-channel vector of a case in an HDF5 results file."
 read_case(campaign, study, file, case, name) =
     h5open(f -> Float64.(read(f[case][name])), joinpath(results_dir(campaign, study), file))

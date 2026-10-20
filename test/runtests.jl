@@ -1166,6 +1166,165 @@ end
     @test isapprox(std(early), std(late); rtol = 0.2)
 end
 
+# the analysis library (fullsim_analysis/lib), for the calibration on the dark counts
+include(joinpath(dirname(@__DIR__), "fullsim_analysis", "lib", "FullsimAnalysis.jl"))
+using .FullsimAnalysis
+
+@testset "Dark-count calibration: ladder, dark baseline, matched filter (fullsim 0.16)" begin
+    dev = SipmDevice()
+    # the level removed with the mean dark current: zero behind the voltage preamplifier of
+    # the Citiroc, the dark charge per sample times the area over peak of the shaped single
+    # avalanche behind the charge preamplifier of the Radioroc2 (1.47 cells at room
+    # temperature and 100 ns, 0.05 at 250 K), and 2.0 cells with the 100 ohm input
+    opw = SipmOperation(dev; t_k = 293.15, vov = 3.0, n_channels = 1, window_ns = (-9600.0, 6000.0))
+    opc = SipmOperation(dev; t_k = 250.0, vov = 3.0, n_channels = 1, window_ns = (-9600.0, 6000.0))
+    rr(op; kw...) = RadiorocChain(RadiorocSettings(; tp_ns = [100.0], tp_lg_ns = [1800.0], noise_pe_100ns = 0.0,
+                                                   time_noise_pe = 0.0, t_end_ns = 6000.0, kw...), op, Xoshiro(1))
+    chw, chc = rr(opw), rr(opc)
+    @test isapprox(dark_baseline(chw), 1.4736; atol = 0.002)
+    @test isapprox(dark_baseline(chc), 0.0531; atol = 0.001)
+    @test abs(dark_baseline(CitirocChain(CitirocSettings(tp_ns = 25.0, tp_lg_ns = 87.5, t_end_ns = 3000.0), opw, Xoshiro(1)))) < 1e-4
+    sh = chw.shapers[100.0]
+    y = ones(20_000); shape!(y, sh)
+    @test isapprox(dark_baseline(sh, opw), y[end] * CryspLight.dark_charge_per_ns(opw) * sh.dt; rtol = 1e-9)
+    # the input resistance is a setting of the run ([sipm] input_ohm): 100 ohm doubles the
+    # fall of the pulse, moves the hold of the calibration from 229 to 268 ns and the
+    # removed level to 2.0 cells, and leaves the cold stored fraction at 1.8 us almost unchanged
+    tmp = mktempdir()
+    repo = dirname(@__DIR__)
+    cfg = read(joinpath(repo, "fullsim_runs", "2026-10_bgo250k", "frontend_bgo_250k_radioroc.toml"), String)
+    write(joinpath(tmp, "r100.toml"), replace(cfg, "device = \"sipm_s14160\"" => "device = \"sipm_s14160\"\ninput_ohm = 100.0"))
+    st100 = load_frontend(joinpath(tmp, "r100.toml"))
+    @test st100.op.dev.input_ohm == 100 && st100.op.dev.pulse_fall_ns == 200 && isapprox(st100.op.dev.pulse_rise_ns, 92.4; atol = 0.1)
+    @test load_frontend(joinpath(repo, "fullsim_runs", "2026-10_bgo250k", "frontend_bgo_250k_radioroc.toml")).op.dev.input_ohm == 50
+    op100 = SipmOperation(st100.op.dev; t_k = 293.15, vov = 3.0, n_channels = 1, window_ns = (-9600.0, 6000.0))
+    ch100 = rr(op100)
+    @test hold_at_peak(chw) == 229 && hold_at_peak(ch100) == 268
+    @test isapprox(dark_baseline(ch100), 2.0095; atol = 0.002)
+    slow(ch) = stored_fraction(RadiorocChain(RadiorocSettings(tp_ns = [1800.0], noise_pe_100ns = 0.0, time_noise_pe = 0.0,
+                                                              t_end_ns = 12000.0), ch.op, Xoshiro(1)), 840.0)
+    opw12 = SipmOperation(dev; t_k = 293.15, vov = 3.0, n_channels = 1, window_ns = (-15000.0, 12000.0))
+    op100_12 = SipmOperation(st100.op.dev; t_k = 293.15, vov = 3.0, n_channels = 1, window_ns = (-15000.0, 12000.0))
+    f50 = stored_fraction(RadiorocChain(RadiorocSettings(tp_ns = [1800.0], noise_pe_100ns = 0.0, time_noise_pe = 0.0, t_end_ns = 12000.0), opw12, Xoshiro(1)), 840.0)
+    f100 = stored_fraction(RadiorocChain(RadiorocSettings(tp_ns = [1800.0], noise_pe_100ns = 0.0, time_noise_pe = 0.0, t_end_ns = 12000.0), op100_12, Xoshiro(1)), 840.0)
+    @test isapprox(f50, 0.843; atol = 0.002) && isapprox(f100, 0.846; atol = 0.002)
+    # the stored fractions quoted in the notes: Citiroc at 87.5 ns with the BGO mixture
+    # (90% of 300 ns, 10% of 60 ns) 0.33, CsI(Tl) 0.10, cold BGO 0.12; Radioroc2 at 1.8 us
+    # 0.97, 0.71, 0.84
+    cit = CitirocChain(CitirocSettings(tp_ns = 87.5, noise_pe = 0.0, fast_noise_pe = 0.0, t_end_ns = 8000.0), opw12, Xoshiro(1))
+    @test isapprox(stored_fraction(cit, 300.0; tau2_ns = 60.0, frac1 = 0.9), 0.326; atol = 0.005)
+    @test isapprox(stored_fraction(cit, 730.0; tau2_ns = 3340.0, frac1 = 0.64), 0.101; atol = 0.005)
+    @test isapprox(stored_fraction(cit, 840.0), 0.123; atol = 0.005)
+    r18 = RadiorocChain(RadiorocSettings(tp_ns = [1800.0], noise_pe_100ns = 0.0, time_noise_pe = 0.0, t_end_ns = 12000.0), opw12, Xoshiro(1))
+    @test isapprox(stored_fraction(r18, 300.0; tau2_ns = 60.0, frac1 = 0.9), 0.971; atol = 0.005)
+    @test isapprox(stored_fraction(r18, 730.0; tau2_ns = 3340.0, frac1 = 0.64), 0.708; atol = 0.005)
+
+    # the controlled example: isolated clusters of 1, 2 and 3 cells, no noise, no dark
+    # avalanche in the record, hold at the peak; the held value is n minus the removed
+    # level, so the one-cell pulse sits below the pedestal at room temperature
+    held(ch, n) = begin
+        t1, _, _, hg, _ = CryspLight.radioroc_waves(ch, [[Avalanche(0f0, Float32(n), Int8(3))]])
+        only(CryspLight.held_at_crossings(hg[1], t1[1], ch.grid, hold_at_peak(ch), true))
+    end
+    hw = [held(chw, n) for n in 1:3]; hc = [held(chc, n) for n in 1:3]
+    @test all(isapprox.(hw, (1:3) .- dark_baseline(chw); atol = 1e-6))
+    @test all(isapprox.(hc, (1:3) .- dark_baseline(chc); atol = 1e-6))
+    @test isapprox(200 + 10hw[1], 195.26; atol = 0.01) && isapprox(200 + 10hc[1], 209.47; atol = 0.01)
+
+    # the same clusters embedded in stationary dark histories (noise 0.1 pe, grid 2 ns):
+    # the ladder fitted on the self-triggered spectrum numbers its peaks from the expected
+    # zero, pedestal - gain x baseline, and the fitted gain and zero follow; the three
+    # isolated held values above receive their number of cells, and so do the embedded
+    # clusters with no other avalanche within 300 ns, in the median and mostly one by one
+    function dark_spectrum(op, nrec)
+        s = RadiorocSettings(tp_ns = [100.0], tp_lg_ns = [1800.0], noise_pe_100ns = 0.1, time_noise_pe = 0.1,
+                             t_end_ns = 6000.0, dt_ns = 2.0)
+        ch = RadiorocChain(s, op, Xoshiro(1))
+        delay = hold_at_peak(ch)
+        vals = Float64[]; lab = Int[]; labval = Float64[]
+        for i in 1:nrec
+            Random.seed!(ch.rng, i)
+            tr = respond(op, Float32[], Float32[], Xoshiro(i))
+            n = 1 + i % 3
+            isolated = all(a -> abs(a.t_ns) > 300, tr)
+            push!(tr, Avalanche(0f0, Float32(n), Int8(0))); sort!(tr; by = a -> a.t_ns)
+            t1, _, _, hg, _ = CryspLight.radioroc_waves(ch, [tr])
+            append!(vals, CryspLight.held_at_crossings(hg[1], t1[1], ch.grid, delay, true))
+            j = findfirst(t -> abs(t) <= 10, t1[1])
+            if isolated && j !== nothing
+                k0 = sample_index(ch.grid, t1[1][j]); k1 = sample_index(ch.grid, t1[1][j] + delay)
+                push!(lab, n); push!(labval, maximum(view(hg[1], k0:k1)))
+            end
+        end
+        rng = Xoshiro(9)
+        adc = clamp.(round.(200 .+ 10 .* vals), 0, 4095) .+ rand(rng, length(vals)) .- 0.5
+        return (adc = adc, baseline = dark_baseline(ch), lab = lab, labadc = 200 .+ 10 .* labval)
+    end
+    opw2 = SipmOperation(dev; t_k = 293.15, vov = 3.0, n_channels = 1, window_ns = (-8600.0, 6000.0))
+    opc2 = SipmOperation(dev; t_k = 250.0, vov = 3.0, n_channels = 1, window_ns = (-8600.0, 6000.0))
+    for (op, nrec, hiso, fmin) in ((opw2, 2000, hw, 0.5), (opc2, 1500, hc, 0.9))
+        d = dark_spectrum(op, nrec)
+        lad = photoelectron_ladder(d.adc, 10.0; pedestal = 200.0, baseline = d.baseline)
+        @test isfinite(lad.gain) && lad.cells == [1, 2, 3]
+        @test isapprox(lad.gain, 10.0; rtol = 0.1)
+        @test abs((lad.zero - 200) / lad.gain + d.baseline) < 0.3
+        cells(v) = round.(Int, (v .- lad.zero) ./ lad.gain)
+        @test cells(200 .+ 10 .* hiso) == [1, 2, 3]
+        for n in 1:3
+            sel = d.lab .== n
+            @test count(sel) > 20
+            @test cells(median(d.labadc[sel])) == n
+            @test mean(cells(d.labadc[sel]) .== n) > fmin
+        end
+        println("T $(op.t_k): N $(length(d.adc)) gain $(lad.gain) zero $(lad.zero) expected $(200 - 10d.baseline); isolated labelled ", [count(d.lab .== n) for n in 1:3],
+                " right ", [round(mean(cells(d.labadc[d.lab .== n]) .== n); digits = 2) for n in 1:3])
+        # numbered from the pedestal instead (baseline 0), the room-temperature spectrum
+        # would put the two-cell peak first, 0.4 gain from the pedestal: it is rejected,
+        # not fitted with a zero one gain too high; at 250 K the two agree
+        lad0 = photoelectron_ladder(d.adc, 10.0; pedestal = 200.0)
+        if op.t_k > 280
+            @test isnan(lad0.gain)
+        else
+            @test isapprox(lad0.zero, lad.zero; atol = 0.1lad.gain) && isapprox(lad0.gain, lad.gain; rtol = 0.02)
+        end
+    end
+    # a spectrum with peaks at the wrong spacing (the ladder of the noise-0.7 case of the
+    # review: 5.9 counts apart) is rejected rather than fitted
+    rngx = Xoshiro(21)
+    fake = vcat([205.9 .+ 5.9k .+ 1.2 .* randn(rngx, 4000 ÷ (k + 1)) for k in 0:3]...)
+    @test isnan(photoelectron_ladder(fake, 10.0; pedestal = 200.0, baseline = 1.47).gain)
+    # and a clean ladder at the nominal spacing from the expected zero is fitted
+    good = vcat([195.3 .+ 10k .+ 1.0 .* randn(rngx, 6000 ÷ (k + 1)) for k in 0:3]...)
+    lg = photoelectron_ladder(good, 10.0; pedestal = 200.0, baseline = 1.47)
+    @test lg.cells == [1, 2, 3] && isapprox(lg.gain, 10.0; atol = 0.2) && isapprox(lg.zero, 185.3; atol = 0.5)
+
+    # the matched filter of the digitiser calibration: the local maximum over the alignments
+    # exceeds the amplitude of an isolated unit pulse by 4 to 6% depending on the sampling
+    # phase; normalised, it gives 1.00 on average over the phases
+    opd = nodark(SipmOperation(dev; t_k = 250.0, vov = 5.0, n_channels = 1, window_ns = (-10000.0, 20000.0)))
+    chd = DigitizerChain(DigitizerSettings(gain = 4.0, noise_counts = 0.0), opd, Xoshiro(1))
+    mf = matched_filter_template(chd)
+    @test length(mf.tpl) == 10 && maximum(mf.tpl) == 1.0 && abs(mf.tpl[1]) < 1e-9
+    @test length(mf.responses) == 4 && all(1.03 .< mf.responses .< 1.08)
+    @test isapprox(mf.norm, 1.0536; atol = 0.002)
+    g, step = chd.grid, 4
+    resp = Float64[]
+    for phase in 0:step-1
+        bin_train!(chd.x, g, [Avalanche(Float32(2phase), 1f0, Int8(0))]); device_pulse!(chd.x, chd.pulse)
+        yf = matched_filter(chd.x[1:step:end], mf.tpl, mf.nrm, mf.norm)
+        amps = filter_amplitudes(yf, 0.3)
+        @test length(amps) == 1
+        push!(resp, amps[1])
+    end
+    @test isapprox(mean(resp), 1.0; atol = 0.005)
+    @test maximum(resp) - minimum(resp) < 0.03
+    println("matched filter: responses ", round.(mf.responses; digits = 4), " norm ", round(mf.norm; digits = 4),
+            "; normalised ", round.(resp; digits = 4), " mean ", round(mean(resp); digits = 4), " spread ", round(maximum(resp) - minimum(resp); digits = 4))
+    # two cells give two, and the amplitude scales with the gain of the channel
+    bin_train!(chd.x, g, [Avalanche(0f0, 2f0, Int8(0))]); device_pulse!(chd.x, chd.pulse)
+    @test isapprox(only(filter_amplitudes(matched_filter(chd.x[1:step:end], mf.tpl, mf.nrm, mf.norm), 0.3)), 2resp[1]; rtol = 1e-9)
+end
+
 include("frozen.jl")
 
 @testset "Frozen output of the pedagogical path" begin

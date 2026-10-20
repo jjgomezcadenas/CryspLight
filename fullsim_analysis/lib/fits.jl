@@ -93,7 +93,7 @@ function peak_fit_window(x::AbstractVector, lo::Real, hi::Real, w::Real; nbins::
 end
 
 """
-    photoelectron_ladder(x, nominal; pedestal) -> (gain, zero, peaks)
+    photoelectron_ladder(x, nominal; pedestal, baseline) -> (gain, zero, peaks, cells)
 
 Gain and zero level of a self-triggered dark-count spectrum x (ADC counts). The peaks
 are located as the minima of the second derivative of the histogram (bins of a
@@ -101,15 +101,26 @@ fiftieth of the nominal gain), smoothed with a Gaussian of 0.12 nominal gains, w
 resolves a peak that is only a shoulder on the tail of the previous one; each minimum is
 refined by a parabola. Starting from the most prominent peak, the chain of peaks spaced
 by 0.6 to 1.4 times the nominal gain (then the running spacing) is kept, up and down.
-The one-photoelectron peak is the first of the chain more than 0.3 spacings above the
-pedestal (the random-trigger value), which excludes a peak at the pedestal itself; it
-and the next two, the 2 and 3 photoelectron peaks, give the gain and the zero as the
-slope and the intercept of the straight line through their positions against their
-numbers (the higher structures are compressed by the pile-up and left out). NaN with
-fewer than two peaks.
+
+The number of cells of each peak is not counted from the pedestal: the chain removes the
+mean current of the dark counts before shaping, so a held signal with no avalanche sits
+`baseline` gains below the pedestal of the random trigger (dark_baseline of the chain;
+zero behind a voltage-sensitive preamplifier, about 1.5 cells on the Radioroc2 at 100 ns
+and room temperature), and the one-cell peak of such a chain lies below the pedestal.
+Each peak of the chain is given the number of cells nearest to its distance from that
+expected zero in units of the spacing of the chain; the peaks of one cell or more, the
+first three of them (the higher structures are compressed by the pile-up and left out),
+give the gain and the zero as the slope and the intercept of the straight line through
+their positions against their numbers. The ladder is rejected (NaN) when it has fewer
+than two such peaks, when the gain is outside 0.7 to 1.3 times the nominal, when the
+intercept differs from the expected zero by more than 0.35 gains, when a peak is more
+than 0.15 gains from the line, or when two peaks receive the same number: a spectrum in
+which the peaks are not equally spaced at the expected positions gives no gain rather
+than a wrong one. `cells` holds the numbers assigned to `peaks`.
 """
-function photoelectron_ladder(x::AbstractVector, nominal::Real; pedestal::Real = 0.0)
-    nan = (gain = NaN, zero = NaN, peaks = Float64[])
+function photoelectron_ladder(x::AbstractVector, nominal::Real; pedestal::Real = 0.0,
+                              baseline::Real = 0.0)
+    nan = (gain = NaN, zero = NaN, peaks = Float64[], cells = Int[])
     lo, hi = quantile(x, 0.001), quantile(x, 0.999)
     w = nominal / 50
     nb = ceil(Int, (hi - lo) / w) + 1
@@ -144,12 +155,20 @@ function photoelectron_ladder(x::AbstractVector, nominal::Real; pedestal::Real =
     end
     length(chain) < 2 && return nan
     g0 = median(diff(chain))
-    i1 = findfirst(p -> p - pedestal > 0.3g0, chain)
-    i1 === nothing && return nan
-    chain = chain[i1:min(i1 + 2, end)]
-    length(chain) < 2 && return nan
-    n = collect(1.0:length(chain))
+    # cells of each peak from the expected zero, pedestal - baseline x spacing; the first
+    # three peaks of one cell or more
+    cells = [round(Int, (p - pedestal) / g0 + baseline) for p in chain]
+    keep = findall(>=(1), cells)
+    length(keep) < 2 && return nan
+    keep = keep[1:min(3, end)]
+    chain, cells = chain[keep], cells[keep]
+    allunique(cells) || return nan
+    n = Float64.(cells)
     nm, pm = sum(n) / length(n), sum(chain) / length(chain)
     gain = sum((n .- nm) .* (chain .- pm)) / sum(abs2, n .- nm)
-    return (gain = gain, zero = pm - gain * nm, peaks = chain)
+    zero = pm - gain * nm
+    0.7nominal <= gain <= 1.3nominal || return nan
+    abs((zero - pedestal) / gain + baseline) <= 0.35 || return nan
+    maximum(abs.(chain .- (zero .+ gain .* n))) <= 0.15gain || return nan
+    return (gain = gain, zero = zero, peaks = chain, cells = cells)
 end

@@ -25,6 +25,6 @@ export equalised_sum, histogram, find_peak511, find_peak1275, peak_window, brigh
 export occupancy_map, mean_map, seed_peak_map, channel_grid
 export results_dir, write_table, update_table, write_hist!, write_vector!, write_matrix!, open_results, stamp!
 export open_pes_run, emulate, chain_maker, event_lists, with, with_window
-export measured_charge, fitted_gains
+export measured_charge, fitted_gains, matched_filter_template, matched_filter, filter_amplitudes
 
 end

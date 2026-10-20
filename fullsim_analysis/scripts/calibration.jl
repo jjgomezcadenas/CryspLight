@@ -9,9 +9,13 @@
 #                          on the bench would choose (crossing to maximum of a single
 #                          avalanche). Per channel, the photoelectron peaks of the
 #                          spectrum (minima of its smoothed second derivative, numbered
-#                          from the random-trigger pedestal) give the gain (slope of the
-#                          line through them) and the zero level of the high gain (its
-#                          intercept). The zero level
+#                          from the expected zero: the random-trigger pedestal minus the
+#                          level of the mean dark current that the chain removes, which
+#                          puts the one-cell peak of the Radioroc2 below the pedestal at
+#                          room temperature) give the gain (slope of the line through
+#                          them) and the zero level of the high gain (its intercept);
+#                          ladders whose peaks are not equally spaced at the expected
+#                          positions are reported as failed. The zero level
 #                          of the low gain (the energy path, production settings) is the
 #                          mean low-gain value of the channels whose discriminator did not
 #                          fire, on self-triggered dark-count events. The low-gain gain is
@@ -20,8 +24,10 @@
 #   digitiser              the sampled waveform of every channel with its noise, filtered
 #                          with the sampled pulse of one cell (matched filter) after
 #                          subtracting the mean of the 4 samples before, and the local
-#                          maxima of the filtered waveform; the one-photoelectron peak is
-#                          the gain, the zero level is zero by construction.
+#                          maxima of the filtered waveform, normalised so that an
+#                          isolated single cell gives its peak amplitude on average over
+#                          the sampling phases (lib/calibrate.jl); the one-photoelectron
+#                          peak is the gain, the zero level is zero by construction.
 # The fitted gains are compared with those of the simulation.
 # Writes results/<campaign>/calibration/calibration.h5 (one group per case: spectrum
 # calibrated with the fitted gain and zero, the same with the simulation's values, raw
@@ -60,6 +66,12 @@ if kind == "citiroc" || kind == "radioroc"
     nt = Threads.maxthreadid()
     chains = [make(t) for t in 1:nt]
     hold_delay = hold_at_peak(chains[1])
+    # the level removed with the mean dark current, below which the held values sit: zero
+    # behind the voltage preamplifier of the Citiroc, about 1.5 cells at room temperature
+    # on the Radioroc2 at 100 ns, so that its one-cell peak lies below the pedestal
+    baseline = dark_baseline(chains[1])
+    @printf("hold delay %.0f ns; dark baseline removed before shaping %.3f cells: held values sit %.1f counts below the pedestal\n",
+            hold_delay, baseline, baseline * s.adc_per_pe)
     local_vals = [[Float64[] for _ in 1:nch] for _ in 1:nt]
     Threads.@threads :static for i in eachindex(empty)
         k = empty[i]
@@ -96,11 +108,12 @@ else
     nt = Threads.maxthreadid()
     chains = [DigitizerChain(s, op, Xoshiro(t)) for t in 1:nt]
     local_vals = [[Float64[] for _ in 1:nch] for _ in 1:nt]
-    # template: the sampled pulse of one cell, peak 1; matched filter normalised so that a
-    # single cell gives its peak amplitude
-    fill!(ch0.x, 0.0); ch0.x[100] = 1.0; device_pulse!(ch0.x, ch0.pulse)
-    tpl = ch0.x[100:step:100 + 9step]; tpl ./= maximum(tpl)
-    L, nb, nrm = length(tpl), 4, sum(abs2, tpl)
+    # template: the sampled pulse of one cell, peak 1, and the normalisation of the complete
+    # estimator (local maximum over the alignments, after the baseline subtraction), the
+    # mean of its response to an isolated unit pulse over the sampling phases
+    mf = matched_filter_template(ch0)
+    @printf("matched filter: isolated unit pulse gives %s over the sampling phases, mean %.4f, normalised to one\n",
+            join((@sprintf("%.4f", r) for r in mf.responses), " "), mf.norm)
     Threads.@threads :static for i in eachindex(empty)
         k = empty[i]
         ch = chains[Threads.threadid()]; lv = local_vals[Threads.threadid()]
@@ -111,15 +124,8 @@ else
             device_pulse!(ch.x, ch.pulse)
             amp = ch.peak_counts_per_pe * op.gain_factor[c]
             v = [amp * ch.x[j] + s.noise_counts * randn(ch.rng) for j in 1:step:g.n]
-            n = length(v)
-            y = zeros(n)
-            for j in (nb + 1):(n - L)
-                b = sum(view(v, (j - nb):(j - 1))) / nb
-                y[j] = sum(tpl[m] * (v[j + m - 1] - b) for m in 1:L) / nrm
-            end
-            for j in (nb + 2):(n - L - 1)
-                y[j] > y[j - 1] && y[j] >= y[j + 1] && y[j] > 0.3 * ch.peak_counts_per_pe && push!(lv[c], y[j])
-            end
+            y = matched_filter(v, mf.tpl, mf.nrm, mf.norm)
+            append!(lv[c], filter_amplitudes(y, 0.3 * ch.peak_counts_per_pe))
         end
     end
     for t in 1:nt, c in 1:nch
@@ -139,7 +145,7 @@ for c in 1:nch
         p1 = peak_fit(vals[c], 0.6nominal, 1.25nominal; nbins = 60)
         fitted[c] = p1.mean; zero_fit[c] = 0.0; npeaks[c] = isfinite(p1.mean)
     else
-        lad = photoelectron_ladder(vals[c], nominal; pedestal = s.pedestal)
+        lad = photoelectron_ladder(vals[c], nominal; pedestal = s.pedestal, baseline = baseline)
         fitted[c] = lad.gain; zero_fit[c] = lad.zero; npeaks[c] = length(lad.peaks)
     end
 end

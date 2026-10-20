@@ -48,7 +48,7 @@ export open_pes, append_pes!, close_pes, read_pes, event_pes, code_version
 export FullsimSetup, load_fullsim, run_fullsim_optical
 export SipmDevice, SipmOperation, Avalanche, physical_pulse, with_input, breakdown_voltage, gain, pde, crosstalk, dark_rate,
        afterpulse_prob, pulse_shape, respond, total_charge, interp_clamped
-export TimeGrid, Shaper, bin_train!, shape!, device_pulse!, noise_generator, sample_index, sample_time
+export TimeGrid, Shaper, bin_train!, shape!, device_pulse!, noise_generator, sample_index, sample_time, dark_baseline
 export CitirocSettings, CitirocChain, CitirocEvent, citiroc_event, stored_fraction, trigger_time,
        citiroc_waves, hg_at_crossings, hold_at_peak
 export DigitizerSettings, DigitizerChain, DigitizerEvent, digitizer_event, pulse_cdf, window_fraction

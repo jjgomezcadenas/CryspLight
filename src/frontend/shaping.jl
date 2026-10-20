@@ -219,3 +219,23 @@ function noise_generator(sh::Shaper, rms_out::Real, n::Int, rng::AbstractRNG)
         return out
     end
 end
+
+"""
+    dark_baseline(sh::Shaper, op::SipmOperation) -> level in avalanche units
+
+The steady level that the mean current of the dark avalanches would hold at the output of
+the chain if it were not removed (remove_dark_level!): the settled response of the chain to
+one unit of charge per sample, times the mean dark charge per sample of the operating point.
+Behind a voltage-sensitive preamplifier it is zero, since the differentiating stage passes
+no constant; behind a charge-sensitive one it is the dark charge per sample times the area
+of the single-avalanche response over its peak. A signal held with no avalanche therefore
+sits this far below the pedestal of the random trigger, and an isolated avalanche at one
+minus this level; at room temperature on the Radioroc2 at 100 ns of shaping it is about 1.5
+avalanches, at 250 K 0.05.
+"""
+function dark_baseline(sh::Shaper, op::SipmOperation)
+    n = ceil(Int, (20 * sh.tp_ns + 20 * sh.dev.pulse_fall_ns) / sh.dt)
+    y = ones(Float64, n)
+    shape!(y, sh)
+    return y[end] * dark_charge_per_ns(op) * sh.dt
+end

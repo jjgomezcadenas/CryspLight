@@ -214,3 +214,6 @@ function stored_fraction(ch::RadiorocChain, tau_ns::Real; tau2_ns::Real = 0, fra
     shape!(ch.y, ch.shapers[tp_hg(ch, channel)])
     return maximum(ch.y)
 end
+
+"The level removed with the mean dark current on the high-gain path of channel c (dark_baseline), in avalanches."
+dark_baseline(ch::RadiorocChain; channel::Int = 1) = dark_baseline(ch.shapers[tp_hg(ch, channel)], ch.op)
