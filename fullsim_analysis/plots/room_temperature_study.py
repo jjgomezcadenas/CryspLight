@@ -1,4 +1,4 @@
-"""Figures of the study at room temperature (docs_fullsim/room_temperature_study.tex) from
+"""Figures of the study at room temperature (docs_fullsim/na22/room_temperature_study.tex) from
 results/<campaign>/room_temperature/ (room_temperature.csv, room_temperature.h5), .../trigger_scan/trigger_scan.csv and
 .../calibration/ (calibration.csv, calibration.h5):
 

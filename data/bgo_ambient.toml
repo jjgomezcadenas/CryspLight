@@ -1,5 +1,5 @@
 # BGO at laboratory temperature (about 295 K), 480 nm emission. Full-simulation file
-# (docs_fullsim/fullsim_design.tex, Table 1); the pedagogical runs keep bgo.toml.
+# (docs_fullsim/model/fullsim_design.tex, Table 1); the pedagogical runs keep bgo.toml.
 # Yield: 8000 ph/MeV at room temperature, adopted on 20 Oct 2026 as the robust reference
 # value; it anchors the temperature dependence of Gironnet et al., NIM A 594 (2008) 358
 # (data/bgo_gironnet_T.csv, scripts/bgo_gironnet_table.py), which sets the cold yields.

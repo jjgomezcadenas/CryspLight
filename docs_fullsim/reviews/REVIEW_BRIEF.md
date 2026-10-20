@@ -1,6 +1,6 @@
 # Independent review of the CryspLight full simulation (brief of 20 October 2026)
 
-You are reviewing a simulation built by another model with the author (J.J. Gómez-Cadenas, CRYSP group). Your job is to find what is wrong, unjustified or untested, not to confirm it. Assume nothing in the documents is correct until you have checked it against the code, the datasheets, the papers or a calculation of your own. A previous review (docs_fullsim/review_gpt-6_2026-10-18.md) covered the state of 18 October; most of what it examined has since been rewritten, so do not rely on it except as a record of what was found then.
+You are reviewing a simulation built by another model with the author (J.J. Gómez-Cadenas, CRYSP group). Your job is to find what is wrong, unjustified or untested, not to confirm it. Assume nothing in the documents is correct until you have checked it against the code, the datasheets, the papers or a calculation of your own. A previous review (docs_fullsim/reviews/review_gpt-6_2026-10-18.md) covered the state of 18 October; most of what it examined has since been rewritten, so do not rely on it except as a record of what was found then.
 
 ## What the simulation is
 
@@ -21,8 +21,8 @@ The author's own measurement of 2.72 us at 196 K is set aside (probably a temper
 
 ## Read in this order
 
-1. docs_fullsim/fullsim_design.tex: the specification of the models, their parameters and their provenance. The whole document was updated to 250 K on 20 October. The abstract and the first part of Section 1 are a draft the author is still writing: their wording is not a finding, their numbers are.
-2. docs_fullsim/room_temperature_study.tex: the six cases at room temperature on 10 000 decays (uncertainty about 0.2 points on the resolutions). The BGO numbers were updated on 20 October to the 8000 ph/MeV inputs.
+1. docs_fullsim/model/fullsim_design.tex: the specification of the models, their parameters and their provenance. The whole document was updated to 250 K on 20 October. The abstract and the first part of Section 1 are a draft the author is still writing: their wording is not a finding, their numbers are.
+2. docs_fullsim/na22/room_temperature_study.tex: the six cases at room temperature on 10 000 decays (uncertainty about 0.2 points on the resolutions). The BGO numbers were updated on 20 October to the 8000 ph/MeV inputs.
 3. fullsim_analysis/results/2026-10_bgo250k/bgo_250k/bgo_250k.csv and the case figures there: the two cases at 250 K. No note has been written for them yet.
 4. Code: src/frontend/sipm.jl (physical_pulse, with_input), src/frontend/shaping.jl (crrc_voltage!, Shaper with voltage), src/frontend/citiroc.jl, src/frontend/radioroc.jl, src/frontend/digitizer.jl, src/frontend/frontend_run.jl; data/sipm_s14160.toml; test/runtests.jl.
 5. Analysis: fullsim_analysis/lib/fits.jl (photoelectron_ladder, peak_fit_window), lib/calibrate.jl, scripts/calibration.jl, scripts/trigger_scan.jl, scripts/room_temperature_study.jl, tools/pick_threshold.py, and the configurations in fullsim_runs/2026-10_ambient, 2026-xx_radioroc and 2026-10_bgo250k.
@@ -72,4 +72,4 @@ Tables: fullsim_analysis/results/2026-10_ambient/room_temperature/room_temperatu
 
 ## How to report
 
-Write docs_fullsim/review_<model>_2026-10-2x.md: a few lines of summary, then one section per finding with where (file and line), what is wrong, the evidence (calculation, code reading, datasheet line), the consequence for a stated number or setting, and a proposed fix. Separate verified defects from plausible alternatives. Do not edit any other file in the repository; put scratch calculations outside it and say where.
+Write docs_fullsim/reviews/review_<model>_2026-10-2x.md: a few lines of summary, then one section per finding with where (file and line), what is wrong, the evidence (calculation, code reading, datasheet line), the consequence for a stated number or setting, and a proposed fix. Separate verified defects from plausible alternatives. Do not edit any other file in the repository; put scratch calculations outside it and say where.

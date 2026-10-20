@@ -1,5 +1,5 @@
 # Optical stage, BGO at laboratory temperature, campaign 2026-10_ambient
-# (docs_fullsim/fullsim_design.tex, Table 1; the bench setup of the week of 20 Oct 2026).
+# (docs_fullsim/model/fullsim_design.tex, Table 1; the bench setup of the week of 20 Oct 2026).
 # Records every photon reaching an active area (pde = 1); the detection efficiency, which
 # depends on the overvoltage, is applied by the SiPM stage by thinning the records.
 [run]

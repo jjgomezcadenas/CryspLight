@@ -1,5 +1,5 @@
 # Optical stage, BGO at 196 K, campaign 2026-xx_digitizer_cold (read out with the DT2745
-# digitizer; docs_fullsim/fullsim_design.tex, Table 1). Records every photon reaching an
+# digitizer; docs_fullsim/model/fullsim_design.tex, Table 1). Records every photon reaching an
 # active area (pde = 1); the detection efficiency is applied by the SiPM stage by thinning.
 [run]
 n_decays = 400000

@@ -1,4 +1,4 @@
-# Numbers and distributions of the study at room temperature (docs_fullsim/room_temperature_study.tex):
+# Numbers and distributions of the study at room temperature (docs_fullsim/na22/room_temperature_study.tex):
 # BGO and CsI(Tl) read by the Citiroc 1A, the DT2745 digitiser (gain 4, 5 V) and the
 # Radioroc2, six cases on the same decays of the two optical runs. For each case:
 #   energy      the sum of the 64 channels in photoelectrons by the route of the

@@ -4,7 +4,7 @@
 Usage:
     python3 latex/compile_tex.py crysplight_e2e.tex
     python3 latex/compile_tex.py latex/crysplight_e2e
-    python3 latex/compile_tex.py docs_fullsim/working_plan.tex
+    python3 latex/compile_tex.py docs_fullsim/plan/working_plan.tex
     python3 latex/compile_tex.py --clean crysplight_e2e.tex
 
 Sources may live in any directory of the repository (latex/, docs_fullsim/, ...);

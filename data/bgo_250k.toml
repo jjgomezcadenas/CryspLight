@@ -1,5 +1,5 @@
 # BGO at 250 K (-23 C), 480 nm emission: the cold configuration of the full simulation from
-# 20 Oct 2026 (docs_fullsim/fullsim_design.tex, Table 1). Yield and decay from Gironnet et
+# 20 Oct 2026 (docs_fullsim/model/fullsim_design.tex, Table 1). Yield and decay from Gironnet et
 # al., NIM A 594 (2008) 358 (data/bgo_gironnet_T.csv, scripts/bgo_gironnet_table.py):
 # light 1.69 times that at 295 K, scaled to the 8000 ph/MeV of bgo_ambient.toml; decay
 # 0.84 us from their three-level model, single exponential above 150 K. The decay is at the

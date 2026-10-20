@@ -6,7 +6,7 @@ nx = 8
 ny = 8
 pde = 0.5
 
-# Device model of the full simulation (docs_fullsim/fullsim_design.tex, Section "Response
+# Device model of the full simulation (docs_fullsim/model/fullsim_design.tex, Section "Response
 # of the SiPM" and Table "Parameters"). Datasheet KAPD1064E (November 2024) unless noted.
 [device]
 vbr_25c_v = 38.0                 # breakdown at 25 C
