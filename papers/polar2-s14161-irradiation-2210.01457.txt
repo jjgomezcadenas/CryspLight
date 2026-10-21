@@ -1,0 +1,1443 @@
+                                                              Springer Nature 2021 LATEX template
+
+
+
+
+arXiv:2210.01457v2 [astro-ph.IM] 5 Oct 2022
+                                                  Proton Irradiation of SiPM arrays for
+                                                               POLAR-2
+                                                Slawomir Mianowski1*, Nicolas De Angelis2*, Johannes
+                                                Hulsman2*, Merlin Kole2 , Tomasz Kowalski3 , Sebastian
+                                                 Kusyk3 , Hancheng Li4 , Zuzanna Mianowska1 , Jerzy
+                                               Mietelski3 , Agnieszka Pollo1,6 , Dominik Rybka1 , Jianchao
+                                                  Sun5 , Jan Swakon3 , Damian Wrobel3 and Xin Wu2
+                                               1* National Centre for Nuclear Research, A. Soltana 7 Street,
+
+                                                                   Otwock, PL-05400, Poland.
+                                                2* DPNC, University of Geneva, 24 Quai Ernest-Ansermet,
+
+                                                                Geneva, CH-1205, Switzerland.
+                                                3 Institute of Nuclear Physics, Polish Academy of Sciences,
+
+                                                  Radzikowskiego 152 Street, Krakow, PL-31342, Poland.
+                                              4 Geneva Observatory, ISDC, University of Geneva, 16 Chemin
+
+                                                          d’Ecogia, Versoix, CH-1290, Switzerland.
+                                              5 Institute of High Energy Physics, Chinese Academy of Sciences
+
+                                                      CN, 19B Yuquan Road, Beijing, 100049, China.
+                                              6 Astronomical Observatory of the Jagiellonian University, Orla
+
+                                                           171 Street, Krakow, PL-30244, Poland.
+
+
+                                                          *Corresponding author(s). E-mail(s):
+                                               slawomir.mianowski@ncbj.gov.pl; nicolas.deangelis@unige.ch;
+                                                              johannes.hulsman@unige.ch;
+
+
+                                                                              Abstract
+                                               POLAR-2 is a space-borne polarimeter, built to investigate the polar-
+                                               ization of Gamma-Ray Bursts and help elucidate their mechanisms.
+                                               The instrument is targeted for launch in 2024 or 2025 aboard the
+                                               China Space Station and is being developed by a collaboration
+                                               between institutes from Switzerland, Germany, Poland and China.
+                                               The instrument will orbit at altitudes between 340 km and 450 km with
+                                               an inclination of 42 ◦ and will be subjected to background radiation from
+
+
+
+                                                                                  1
+                    Springer Nature 2021 LATEX template
+
+
+2    Proton Irradiation of SiPM arrays for POLAR-2
+
+     cosmic rays and solar events. It is therefore pertinent to better under-
+     stand the performance of sensitive devices under space-like conditions.
+     In this paper we focus on the radiation damage of the silicon photo-
+     multiplier arrays S13361-6075NE-04 and S14161-6050HS-04 from Hama-
+     matsu. The S13361 are irradiated with 58 MeV protons at several
+     doses up to 4.96 Gy, whereas the newer series S14161 are irradi-
+     ated at doses of 0.254 Gy and 2.31 Gy. Their respective performance
+     degradation due to radiation damage are discussed. The equivalent
+     exposure time in space for silicon photomultipliers inside POLAR-
+     2 with a dose of 4.96 Gy is 62.9 years (or 1.78 years when disre-
+     garding the shielding from the instrument). Primary characteristics
+     of the I-V curves are an increase in the dark current and dark
+     counts, mostly through cross-talk events. Annealing processes at 25 ◦ C
+     were observed but not studied in further detail. Biasing channels
+     while being irradiated have not resulted in any significant impact.
+     Activation analyses showed a dominant contribution of β + particles
+     around 511 keV. These resulted primarily from copper and carbon,
+     mostly with decay times shorter than the orbital period.
+
+
+     Keywords: POLAR-2, SiPM, radiation, protons, cosmic rays
+
+
+
+
+1 Motivation
+Gamma-Ray Bursts (GRBs) are the most energetic astrophysical events in the
+Universe known to man, emitting energies up to 1053 erg. They have a short
+prompt emission which is followed by a longer lived afterglow with wavelengths
+ranging from radio waves to TeV energies. Mergers of compact binaries were
+long thought to generate short GRBs, which was experimentally confirmed
+by the joint detection of GRB170817A by LIGO, VIRGO, INTEGRAL and
+Fermi -GBM [1]. Regarding long GRBs, growing evidence indicates that they
+are accompanied by supernovae events [2].
+    Benefits of gamma-ray polarization studies have spawned numerous
+polarimetry missions [3–6], the most dedicated of which are GAP (50-300 keV)
+[3] and POLAR (50-500 keV) [7], which is the predecessor to POLAR-2 [8].
+Extensive polarization analyses by POLAR are discussed in their catalogue
+paper [9]. Despite the scientific advances in GRB polarimetry, no analysis
+can compensate for the need of higher precision measurements. A mission
+with improved instrumentation and longer lifetime, amongst which finer time
+and/or energy resolved polarization analyses can be carried out, will obtain
+larger GRB samples. POLAR-2 is dedicated to that cause, accounting for the
+experiences gained from its predecessor. It will be launched towards the China
+Space Station (CSS) in 2024 or 2025 for a mission of at least 2 years. The CSS
+                     Springer Nature 2021 LATEX template
+
+
+                       Proton Irradiation of SiPM arrays for POLAR-2             3
+
+(and hence POLAR-2) is orbiting at a typical altitude of 383 km at an inclina-
+tion of 42◦ . As a result, it is exposed to radiation from cosmic rays of galactic,
+solar and trapped origin (more to it in section 3).
+    Silicon photomultipliers (SiPMs) are chosen as photodetectors for POLAR-
+2. They are photon counting devices wherein multiple avalanche photodiode
+pixels operating in Geiger mode. Generally, SiPMs provide a high gain (105
+to 107 ) comparable with classical photomultiplier tubes, have a fast response
+time, are compact, require a low bias voltage (below 100 V) and are insensi-
+tive to a magnetic field. However, when exposed to radiation, they can suffer
+from either bulk damage (primarily due to non-ionizing energy loss - NIEL)
+or surface damage (primarily due to ionizing energy loss - IEL) [10], resulting
+in a decreased scientific performance of the instrument. These effects are min-
+imized (yet not prevented) through shielding of the mechanical structure of
+the instrument. Regardless, dedicated measurements are necessary to estimate
+the long term performance of such components like SiPM arrays and how this
+affects the science case of POLAR-2. These will be discussed in this paper.
+                       Springer Nature 2021 LATEX template
+
+
+4     Proton Irradiation of SiPM arrays for POLAR-2
+
+2 Instrument Design
+Polarization measurements of γ-rays can be achieved through Compton
+scattering, whose differential cross section is described by the Klein-Nishina
+formula [11]. Its azimuthal scattering angle is linked to the least populated
+scattering angle in the distribution (referred to as the polarization angle) as
+the photon preferentially scatters orthogonal to the polarization vector. This
+phenomenon can be exploited by developing an instrument with segmented
+(low-Z) scintillator bars, where a γ photon scatters in the first bar and is
+absorbed/scattered by a second; as illustrated in Figure 1c. The relative posi-
+tion between these bars allows one to derive the scattering angle. Numerous
+photons from a GRB will lead to a scattering angle distribution, also referred
+to as a modulation curve, whose shape is used to determine the polarization
+angle, which is related to the phase of a 180◦ modulation, and the polarization
+degree which is related to the amplitude of this modulation.
+
+
+
+                                                                      z
+
+                                                                     E
+                                                                                  →
+                                                                                  −
+                                                                                  p
+
+
+
+
+                                                                          θ
+                                                                              φ              y
+
+                                                                              η         E’
+                                                               x
+
+
+
+
+              (a)                           (b)                                   (c)
+
+Fig. 1 a) A preliminary CAD model of POLAR-2 and b) the polarimeter module [8]. c) A
+schematic of a photon scattering between two scintillator bars. These bars do not necessarily
+need to be inside the same module.
+
+
+    POLAR-2, the successor to POLAR [4], applies the aforementioned tech-
+nique into its polarimetry instrument. The full instrument, as shown in
+Figure 1a, encompasses a total volume of about 60 cm×60 cm×70 cm. The
+polarimeter consists of 100 modules facing deep space with a half-sky field of
+view. Each detector module, seen in Figure 1b, consists of a target of 64 plas-
+tic scintillators with dimensions 5.9 mm×5.9 mm×125 mm. Each scintillator is
+read out on the bottom side by its own SiPM channel. The 64 SiPMs in turn
+are readout using the module front-end electronics which handles the trigger
+logic and communication of the detector module with the back-end electron-
+ics. The top of the scintillators is covered by a sorbothane damper system and
+the full module is covered in a carbon fibre socket. Additionally, all modules
+                          Springer Nature 2021 LATEX template
+
+
+                             Proton Irradiation of SiPM arrays for POLAR-2                          5
+
+together are covered by one large carbon fibre shield as shown in Figure 21 .
+Below the detector modules POLAR-2 consists of a large aluminium structure
+which houses the back-end and power supplies as well as the communication
+system with the CSS.
+
+
+
+
+Fig. 2 Top left shows a 3D rendering of the CSS. Top right provides a simplified version of
+the experimental module, whereas in the bottom you can see the full POLAR-2 instrument
+in GEANT4 [12].
+
+
+     Contrary to its predecessor POLAR, where the scintillators were read-out
+using a multi-anode Photomultiplier Tubes (MAPMT), the 6400 plastic scin-
+tillators are read out by 400 16-channel SiPM arrays, also called Muli-Pixel
+Photon Counter (MPPC), from Hamamatsu Photonics (S13361-6075NE-04,
+referred to as S13361 in this paper). This change serves three main purposes.
+First, it allows for a more robust mechanical design, as unlike PMTs, SiPMs
+do not have a glass window. Second, using SiPMs (instead of PMTs) removes
+the need for a high voltage power supply which is complex to design and
+operate in space. Finally, the SiPM readout increases the sensitivity. By
+
+   1
+     The amount of shielding in the zenith direction is therefore 125 mm of plastic scintillator, 1 mm
+of sorbothane dampers, and 4 mm of carbon fiber housing.
+                              Springer Nature 2021 LATEX template
+
+
+6          Proton Irradiation of SiPM arrays for POLAR-2
+
+using SiPMs the number of photo-electrons (p.e.) per deposited keV in the
+scintillators can be increased from 0.3 p.e./keV (in the case of POLAR) to
+1.6 p.e./keV. As a result, we achieve a lower energy detection threshold.
+
+    The typical downside of SiPM use over standard PMTs is the dark noise.
+The dark noise rate is proportional to the SiPM temperature. As such, great
+care was taken in the POLAR-2 design to minimize the temperature of the
+SiPM arrays. Based on current thermal simulations the mean temperature,
+as measured on in the centre of each SiPM array, is predicted to be −10◦ C.
+This is achieved by both providing a good thermal contact to the radiators of
+the POLAR-2 instrument, through copper pipes, as well as by using a Peltier
+element directly connected to the SiPM. The Peltier element not only cools
+the SiPM array by several degrees, it also allows to stabilize the temperature
+of the SiPMs, during an orbit, to within several degrees through an active
+control system. This system is based on a PT100 sensor placed on the SiPMs,
+readout by an FPGA on the front-end electronics which in turn controls the
+current to the Peltier element. In addition, the bias voltage of the SiPM is
+controlled by the FPGA in a similar fashion using the input from the PT100
+sensor.This allows for a constant gain the SiPM during the mission.
+    Apart from the temperature the dark noise also increases significantly
+for high radiation dose. This effect must be studied carefully for better low
+threshold energy determination. Additionally, the main challenge in polariza-
+tion measurements is to achieve a high level of detection uniformity, including
+SiPM single channel and scintillator response. For POLAR-2 this implies a
+uniform response over the 6400 detector channels in order to allow to distin-
+guish between the non-uniformity induced by a potential polarization signal
+and that induced by a non-uniform detector response. The scheme of the pro-
+posed polarimeter shows that one would expect the outside of the instrument
+to suffer more from cosmic radiation than the centre, the induced damage
+will therefore not be uniform, resulting potentially in a higher noise level for
+channels on the outside of the instrument compared to those in the centre.
+It is therefore important to understand in detail the deterioration of SiPMs
+performance in order to allow to mitigate when possible or model noise effect
+in detector simulations.
+
+   A dedicated POLAR-2 Monte Carlo simulation framework was
+developed for detector science analyses. Here, the GEANT4 frame-
+work [12], v4.10.07.p02, is used to characterize the instrument as well
+as its response2 . The following physics lists have been used for subse-
+quent background radiation simulations: G4EmLivermorePolarizedPhysics,
+G4EmExtraPhysics,        G4DecayPhysics,       G4RadioactiveDecayPhysics,
+G4HadronElasticPhysicsHP,       G4StoppingPhysics,    G4IonQMDPhysics,
+
+    2
+        This will be outlined in more details in a future publication.
+                          Springer Nature 2021 LATEX template
+
+
+                             Proton Irradiation of SiPM arrays for POLAR-2                        7
+
+G4IonElasticPhysics, G4HadronPhysicsQGSP BERT HP,                              GammaNucle-
+arPhysics and G4EmStandardPhysics.
+
+    The design illustrated in Figure 2 reflects the most up-to-date design at
+the time of this writing. A 3D rendering of the CSS can also be seen there.
+As encircled, POLAR-2 is situated on one of the experimental modules of
+the space station (on the Wentian module which was launched on July 24th
+2022). A simplified version of the experimental module was characterized in
+GEANT4 to account for the shadow cast by it3 . Its wall thickness is 10 mm
+and is composed of aluminium (alloy 2219). 8 neighbouring instrument are
+also included. Their design is unknown and are therefore represented by 600 ×
+600×500 mm3 solid aluminium (same alloy as the space station) boxes. At
+the bottom of the figure the implementation of the POLAR-2 instrument in
+Geant4 can be recognized. It is nearly identical to that in Figure 1a (with the
+exception of the missing carbon fiber shielding). For clarity, each single SiPM
+channel is modelled by a 100 µm epoxy resin and 450 µm of silicon 4 .
+
+3 LEO Background & Anticipated Radiation
+  Doses
+As mentioned in the motivation part, it is pertinent to obtain a good estimate
+on radiation damage from background radiation. Therefore, the POLAR-2
+simulation framework was enhanced to allow for background information to
+be taken from LEOBackground [13] or SPENVIS [14]. The former is a sum-
+mary of collected data and analyses performed by various experiments; such
+as Fermi -LAT [15], AMS-02 [16], etc. It provides information on neutrons,
+photons, protons and electrons. Figures 3a and 3b show the expected flux for
+these particles. It is generated by setting the orbital altitude and inclination
+to 383 km and 42 ◦ respectively. The solar modulation potential is set to
+650 MV. SPENVIS only provides information on trapped proton and electron
+fluxes. However, it is more comprehensive when accounting for solar activity,
+natural radiation belts, plasmas and gases. Protons are among the most
+penetrating particles (with neutrons and gammas), whereas electrons are
+significantly more abundant but easily stopped by the carbon fiber shielding
+before reaching sensitive components. Considering penetration depth, energy
+spectrum and deposition it is expected for protons to be the most contribut-
+ing factor to deposit energy in the SiPM array and other electronics. The
+South Atlantic Anomaly (SAA) [17] is a region at Earth’s surface, where the
+intensity of the magnetic field is particularly low. In this region solar energetic
+particles penetrate Earth’s atmosphere more deeply causing problems includ-
+ing spacecraft electronic systems. Flux of trapped particles in the SAA is at
+least two orders of magnitudes higher than that of primary and secondary
+protons (see Figures 3b and 3c, where the proton spectrum is that from [18]
+
+ 3
+     A more detailed version will be presented in the future when the CSS’ design is completed.
+ 4
+     Exact specification was not delivered by Hamamatsu.
+                                                             Springer Nature 2021 LATEX template
+
+
+8                                 Proton Irradiation of SiPM arrays for POLAR-2
+                                      Background spectrum in a low Earth orbit (LEO)                                                      Background spectrum in a low Earth orbit (LEO)
+                                                                          Primary Positrons                                                                                    Atmospheric Neutrons
+                          106                                             Secondary Electrons                                   106                                            Cosmic Photons
+                                                                          Secondary Positrons                                                                                  Primary Protons
+                                                                          Albedo Photons                                                                                       Secondary Protons
+                          104                                             Galactic Center Photons                               104                                            Primary Alphas
+
+
+
+
+Flux (m 2s 1MeV 1sr 1)                                                                                Flux (m 2s 1MeV 1sr 1)
+                                                                          Galactic Disk Photons                                                                                Primary Electrons
+                          102                                                                                                   102
+
+                          100                                                                                                   100
+
+                         10 2                                                                                                  10 2
+
+                         10 4                                                                                                  10 4
+
+                         10 6                                                                                                  10 6 2
+                           10 2     10 1     100       101      102      103        104         105                               10    10 1     100       101      102      103       104        105
+                                                      Energy (MeV)                                                                                        Energy (MeV)
+
+                                                      (a)                                                                                                 (b)
+
+
+
+
+                                                                                                    (c)
+
+
+Fig. 3 a) and b) The spectrum of various background particles [13] expected to be seen
+at an altitude of 383 km and an inclination of 42◦ (typical POLAR-2 orbit). c) Comparison
+between the proton energy spectrum from LEOBackground [13] and SPENVIS [14].
+
+
+
+(used by SPENVIS) and [16] (used by LEOBackground). We therefore decide
+to use SPENVIS data to simulate the expected radiation dose 5 .
+
+    Figure 4 shows, the dose (normalized with respect to the dose in the less
+exposed detector module) in each module. As anticipated, the dose is highest
+for modules closest to the edge of the instrument. For simplicity, in this paper,
+the ’dose’ refers to the average dose expected for all POLAR-2 modules6 . In
+other words, the dose is defined as
+                                          i
+                                     Σi ESiPM−channel             POLAR−2
+                                                      ,       doseSiPM
+                                                                     (1)  =
+                                     Nmod · Nch · mch
+where Nmod , Nch and mch refer to the number of modules (100), number of
+SiPM channels (64) and silicon mass of each SiPM channel.
+
+
+                    5
+                         Energy deposit per mass of sensitive volume.
+                    6
+                         Note that there are 100 modules, each with a 64 channel SiPM.
+                                     Springer Nature 2021 LATEX template
+
+
+                                       Proton Irradiation of SiPM arrays for POLAR-2                 9
+
+                               300
+                                                                                 2.2
+                               200
+                                                                                 2.0
+                               100
+
+
+             Y Position (mm)                                                       Normalized dose
+                                                                                 1.8
+                                 0
+                                                                                 1.6
+                               100
+                                                                                 1.4
+                               200                                               1.2
+                               300                                               1.0
+                                     300   200   100 0         100   200   300
+                                                  X Position (mm)
+Fig. 4 Normalized dose distribution per detector module in the POLAR-2 instrument (seen
+from the top) due to background radiation. The asymmetry is due to shielding from neighbor
+instruments on the payload platform and from the robotic arm adapter piece. The bottom
+right corner is not facing any neighbor payload, and the adapter is installed on the bottom
+side.
+
+
+    We use the AP-8 proton model [18] during a solar maximum for protons
+with energies ranging from 100 keV to 400 MeV. Other particles (such as elec-
+trons) are excluded as they are primarily blocked by the carbon fiber shielding.
+The proton flux is then used to set the primary proton energy (interpreting it
+as an ’energy distribution’). These primaries are then randomly placed on a
+sphere with an isotropic distribution. Their angular distribution follows Lam-
+bert’s cosine-law. To obtain the doses, 35 × 106 particles were injected. Their
+anticipated doses are listed in the Table 1 below for 4 different scenarios. The
+bare SiPM reflects the scenario where the component is not shielded by neigh-
+bouring detector components and serves as the ’worst case’ scenario, which is
+considered by us in this paper. The full instrument reflects the full POLAR-2
+instrument as shown in Figure 2. The addition of CSS implies that the simpli-
+fied description of the China Space Station is included (top right in Figure 2).
+This allows us to understand how much the shadow of the space station affects
+the anticipated radiation dose. As can be seen in Table 1, the annual doses at
+three different altitudes are shown. These reflect the extremities of the altitude
+of the CSS (340 km and 450 km) and its expected typical altitude (383 km).
+When converting the dose to ”space equivalent year”, the dose rate expected
+at 383 km is used.
+
+4 Experimental setup
+All planned irradiation sessions were performed at the proton radiotherapy
+facility at Institute of Nuclear Physics Polish Academy of Sciences (IFJ PAN)
+                       Springer Nature 2021 LATEX template
+
+
+10      Proton Irradiation of SiPM arrays for POLAR-2
+
+        Simulation Setup          SiPM dose           SiPM dose            SiPM dose
+                                  per year at        per year at          per year at
+                               340 km (Gy/yr)     383 km (Gy/yr)       450 km (Gy/yr)
+            Bare SiPM                1.29                2.79                 8.86
+        Bare SiPM + CSS              1.13                2.46                 7.75
+          Full instrument        4.10 × 10−2         8.24 × 10−2          1.82 × 10−1
+     Full instrument + CSS       3.89 × 10−2         7.89 × 10−2          1.74 × 10−1
+Table 1 Radiation doses of a SiPM for four different scenarios. The most pessimistic
+scenario is the ’Bare SiPM’, whereas the most realistic one is the ’Full Instrument + CSS’.
+
+
+
+in Krakow. The radiation campaign was supposed to reproduce the inte-
+grated dose the POLAR-2 instrument faces during its lifetime in orbit (which
+includes cosmic radiation when it passes through the SAA or if there are any
+solar events). The total dose, activation and performance of the SiPM array is
+of interest. For comparison, the newer series S14161-6050HS-04 (from here on
+referred to as S14161) from Hamamatsu was also irradiated with doses later
+listed in Table 2.
+
+    To generate the proton beam, the particles were accelerated by the AIC-
+144 isochronous cyclotron facility at an energy of 58 MeV. They were then
+transported from the facility to the sample by a system consisting of bending
+and correction magnets, measuring boxes and quadrupole doublets. It then
+passes through a tantalum-aluminum collimator where it scatters on a 25 µm
+tantalum proton scattering foil [19]. A schematic of this facility and a photo
+of the exit of the beam line and setup for the samples are respectively shown
+in figures 5a and 5b.
+
+
+
+
+                                                                  (b)
+                    (a)
+
+
+Fig. 5 a) A schematic of the proton radiation therapy facility at IFJ. b) A photo of the
+exit of proton beam line.
+
+
+    In Figure 6 we show the beam profile of the 58 MeV protons exiting the
+collimator (i.e. the profile which would arrive to the sample). It can be seen
+                                          Springer Nature 2021 LATEX template
+
+
+                                           Proton Irradiation of SiPM arrays for POLAR-2                11
+
+                                                                                       X beam profile
+                                    1.0                                                Y beam profile
+
+                                    0.8
+
+
+
+
+             Normalized Amplitude
+                                    0.6
+
+
+                                    0.4
+
+
+                                    0.2
+
+
+                                    0.0
+                                           30   20    10         0         10     20   30       40
+                                                           Radial position (mm)
+
+Fig. 6 Scaled beam profile (to its average) of 58 MeV protons along the x-axis and y-axis.
+
+
+that the beam profile is mostly stable within the 5% level, consistent with
+recent work with the facility [19]. Depending on the sample, a 10 mm thick
+donut-shaped brass disk is placed to exclude neighbouring components from
+being irradiated. To simulate the expected dose from the aforementioned
+beam specification, we inject 1 × 106 protons perpendicular to the SiPM, as
+modelled in the POLAR-2 simulation framework, surface (pointing first into
+the resin). This yields the average dose per proton, later combined with the
+proton fluence to obtain the total irradiated dose. A simple cross-sectional
+schematic is shown in Figure 7. The simulations are also performed with
+GEANT4.
+
+
+
+
+Fig. 7 The model of SiPM single channel used for different dose calculations. The first
+layer corresponds to 100 µm of epoxy resin, the second layer to 450 µm of silicon.
+
+
+    A single SiPM array was divided into two sections, noted by ’A’ and ’B’
+as shown in Figure 8, to irradiate them with different fluences. Each section
+consists of a subarray of 2×4 channels, corresponding to half of the SiPM array.
+                                  Springer Nature 2021 LATEX template
+
+
+       12         Proton Irradiation of SiPM arrays for POLAR-2
+
+       The arrays are mounted on a PCB, allowing us to bias and read the output
+       signals from a chosen single channel or whole subarray. For arrays S13361-1,
+       S13361-2 and S14161-1, during each subarray irradiation, the second half was
+       shielded by a 7 mm thick lead cover, fully stopping the incoming protons. The
+       whole S14161-2 array was irradiated with the same dose, while section ’A’ was
+       biased by 1 V of overvoltage7 . Table 2 lists how the samples are irradiated,their
+       proton fluences, calculated doses and space equivalent exposure time for a
+       ’Full Instrument + CSS’ and ’Bare SiPM’ scenarios. The dose in the SiPM is
+       computed the same way as shown in Equation 1 (where Nmodules = 1).
+
+       MPPC                Fluence     Total Dose    NIEL Dose    Equivalent Years in Space for POLAR-2
+        Type              ( protons
+                              cm2
+                                    )     (Gy)         (mGy)      ’Full Instr. + CSS’     ’Bare SiPM’
+   S13361-1 sec. A       2.00 × 108       0.267         0.174             3.38             9.57 × 10−2
+   S13361-1 sec. B       6.10 × 108       0.815         0.532             10.3             2.92 × 10−1
+   S13361-2 sec. A       1.64 × 109        2.19         1.43              27.8             7.85 × 10−1
+   S13361-2 sec. B       3.73 × 109        4.96         3.24              62.9                 1.78
+   S14161-1 sec. A       1.90 × 108       0.254         0.166             3.22             9.10 × 10−2
+   S14161-1 sec. B       1.73 × 109        2.31         1.51              29.3             8.28 × 10−1
+S14161-2 sec. A and B    1.73 × 109        2.31         1.51              29.3             8.28 × 10−1
+       Table 2 An overview of SiPM elements irradiated, their corresponding dose and
+       equivalent time in space for a ’Full Instrument + CSS’ and ’Bare SiPM’ scenarios (as
+       described in section 3).
+
+
+
+
+       Fig. 8 The Hamamatsu MPPC S13361-6075NE-04 array mounted on PCB plate. Yellow
+       line divide the array to two sections ’A’ and ’B’. Single channel J4J20 is also marked with
+       orange line.
+
+
+
+         7
+             The excess bias voltage over the breakdown voltage, Vbd , is called overvoltage (Vov ).
+                    Springer Nature 2021 LATEX template
+
+
+                     Proton Irradiation of SiPM arrays for POLAR-2           13
+
+5 Experimental results
+In order to fully characterise the behavior of SiPMs to radiation damage, the
+current-voltage characteristics and dark count spectra have been analysed
+before and after its exposure to the proton beam. Their activation products
+have also been studied to understand any long-term effects.
+
+
+5.1 Current-voltage characteristics
+All current-voltage (I-V) characteristics were measured before and after each
+successive irradiation session using the Keysight 2900B Source Measurement
+Unit. The voltage scale was chosen over the range of 40-60 V for the S13361
+series and 30-50 V for the S14161 series in order to cover a wide range of Vov .
+The current readout was limited to 100 µA before irradiation and increased to
+200 µA for cases after irradiation. Based on the Keysight 2900B specification
+and chosen current range the current resolution was limited to about 60 nA.
+
+    I-V curve measurements were taken 2 h, 26 h, 8 days and 2 months after
+irradiation to study potential annealing effects. The only exception to this is,
+SiPM S13361-2, where I-V characteristics were not measured 2 h after irradia-
+tion. It was first taken to a HPGe detector to measure its activation (see later
+section 5.3). The former two I-V curves were taken at the IFJ experimental
+hall where the room temperature is 27±0.8 ◦ C. After completion of the radi-
+ation campaign, the SiPMs were placed inside a climate chamber where the
+temperature is set to 25 ◦ C. The 2 ◦ C temperature difference corresponds to
+a bias voltage (or overvoltage) change of about 0.11 V for the S13361 series
+and 0.07 V for the S14161 series (based on Hamamatsu specification: 54 mV    ◦C
+
+and 34 mV◦C  respectively). The breakdown  voltage describes  the minimum   bias
+voltage required (in reverse direction) which leads to self-sustaining avalanche
+multiplication. In other words, it is the minimum bias for which the pulses
+stay visible at the SiPM output. Our studies show, that the standard deviation
+of Vbd between different channels for a single array is in the range of 0.12 V.
+As the change in bias voltage is within 1σ, we conclude that the temperature
+difference is small enough for a direct comparison of the I-V characteristics.
+
+    Figure 9 shows the obtained I-V characteristics for the S13361 SiPM series
+for different doses and time before and after irradiation. The I-V characteris-
+tics for the S14161 MPPC series are presented in Figure 10. It is evident, when
+exposed to the same dose, that the current rate increase is higher for S14161
+than for the S13361 series. This already implies that the S13361 type is more
+beneficial for POLAR-2 purposes. For both SiPM types we also observed
+self-annealing processes, manifesting itself through a decreasing current with
+respect to time after its irradiation. Further details on the annealing process
+of SiPM arrays will be discussed in another paper.
+                       Springer Nature 2021 LATEX template
+
+
+14      Proton Irradiation of SiPM arrays for POLAR-2
+
+    To discern contributions of the bias voltage on the radiation damage
+(through a change in the I-V characteristics or dark count rates), the S14161-
+2 array was irradiated with a single dose of 2.31 Gy, where only subarray ’A’
+was biased with an overvoltage of 1 V (while subarray ’B’ remained unbiased).
+Figure 11 presents the obtained I-Vs for different times after irradiation. The
+inset in Figure 11a also shows the breakdown voltage region in logarithmic
+scale. Taking into account differences between the breakdown voltages for
+single channels, we did not observe any significant bias-dependent features.
+Furthermore, applying a bias voltage did not affect the self-annealing process
+at room temperature.
+
+
+
+
+                         (a)                                   (b)
+
+
+
+
+                          (c)                                  (d)
+
+Fig. 9 Current-voltage S13361 single channel characteristics before and after its irradiation
+for a dose of a) 0.267 Gy, b) 0.815 Gy, c) 2.19 Gy and d) 4.96 Gy.
+                       Springer Nature 2021 LATEX template
+
+
+                         Proton Irradiation of SiPM arrays for POLAR-2                    15
+
+
+
+
+                         (a)                                   (b)
+
+Fig. 10 Current-voltage MPPC S14161 single channel characteristics before and after its
+irradiation for a dose of a) 0.254 Gy and b) 2.31 Gy.
+
+
+
+
+                         (a)                                   (b)
+
+Fig. 11 Current-voltage single channel characteristics for biased (channel: J4J20) and unbi-
+ased (channel: J16J32) S14161 subarray irradiated with dose 2.31 Gy for different times after
+irradiation. The inset in figure a) shows the breakdown voltage region in y-log scale. Figure
+b) compares also two S14161 arrays (two single channels unbiased, one biased) two months
+after irradiation.
+
+
+
+5.2 Dark Counts analysis
+Changes in the I-V characteristics registered after proton irradiation are also
+reflected in the number of dark counts (DC) and the spectral shape of the
+output signal. To determine these parameters we adopted a method based
+on raw pulses analysis, originally presented by [20] and later applied by [21].
+The chosen procedure eliminates the problem of high dead time for analogue
+and even digital data acquisition systems (like digitizers), where a few million
+pulses per second are expected. In our case, the direct signal from a single
+SiPM channel was additionally amplified by a transimpedance amplifier
+and then sent to a digital oscilloscope of type Keysight DSOS104-A (which
+has a sampling rate of 1 GSamples/s and a bandwidth of 500 MHz), where
+10 ms waveforms with many single raw pulses were saved on a hard drive. In
+                    Springer Nature 2021 LATEX template
+
+
+16     Proton Irradiation of SiPM arrays for POLAR-2
+
+this case, each waveform was triggered based on a 0.5 p.e. threshold. Five
+waveforms were saved for each overvoltage and temperature, giving us an
+estimation of statistical uncertainties for a chosen 10 ms period time.
+
+   For the clarity, we listed below the main steps made during the off-line
+analysis:
+• The Savitzky-Golay filter [22] was applied twice to each registered wave-
+  form. This filter allows to extract p.e. peaks in a DC spectrum for lower
+  temperature ranges. Its implementation has proven to be especially useful
+  for the S14161, which is characterized by a smaller amplitude of 1 p.e. and
+  a longer tail;
+• A copy of 10 ms waveform was created, delayed and subtracted from the
+  original one;
+• The peaks above certain thresholds (12.5 mV for S13361, 1.6 mV for S14161)
+  were taken into account;
+• The amplitude of each peak and the time difference between two consecutive
+  pulses were determined.
+   The python tool find peak from the scipy 1.3.3-3 library [23] was used for
+the last two items. The advantage of this procedure is its speed and pile-up
+sensitivity, which can be controlled by find peak input parameters.
+
+    An example of the aforementioned analysis steps for a non-irradiated
+S13361 single channel is presented in Figure 12a. Measurements were per-
+formed at 25 ◦ C at a voltage of 55.5 V (Vov =3.5 V). The first two upper plots
+show a fraction of the 10 ms waveform with many p.e. peaks and the result of
+the delayed waveform subtraction. Orange dots and crosses show identified
+peaks. The pile-up cases are also visible. The third subplot (scatter plot)
+presents the multiplicity of amplitudes in the unit of volts (or number of p.e.)
+on the y-axis and the time difference between two subsequent events on the
+x-axis. Finally, the bottom subplot shows the resulting DC spectrum when the
+amplitude and time thresholds have been applied. The structure of p.e. peaks
+is clearly visible in this case. A fitted multi-Gaussian function is also shown
+(red line), where the parametrisation was chosen to keep constant distance
+(gain) between the ’n’th and ’n-1’th peak. Based on the discussion presented
+in [20], only the cases from the first p.e. peak (blue area) are classified as a
+primary counts. Similar data for the S14161 are presented in Figure 12b. Con-
+trary to S13361, the p.e. peaks are not visible in the DC spectrum at 25 ◦ C.
+                        Springer Nature 2021 LATEX template
+
+
+                         Proton Irradiation of SiPM arrays for POLAR-2                     17
+
+
+
+
+                                             (a)
+
+
+
+
+                                             (b)
+
+Fig. 12 An example of a single channel waveform analysis of a) S13361 b) S14161, measured
+at temperature 25 ◦ C before proton irradiation. A - a part of 10 ms waveform, B - transformed
+waveform with peak identification, C - 3D distribution of dark pulse amplitudes as a function
+of time difference between two subsequent events, where the Z-axis is represented by a colour
+scale. D - projection of the dark counts with amplitude and time cut conditions. Blue color
+describes 1 p.e. position and primary counts (not visible in the S14161 case).
+
+
+
+5.2.1 Dark Counts before irradiation
+Data taken before SiPM irradiation for both series are presented below. All
+10 ms waveforms were collected in controlled temperature conditions inside a
+                       Springer Nature 2021 LATEX template
+
+
+18      Proton Irradiation of SiPM arrays for POLAR-2
+
+climate chamber at temperatures: 25 ◦ C, 10 ◦ C, −5 ◦ C and −20 ◦ C. Figure 13
+shows the typical DC spectra collected for S13361 with Vov =3.5 V. For
+comparison, Figure 14 shows the case of S14161 with the same overvoltage
+and temperature range. The number of total counts, primary counts and
+cross-talks per 10 ms interval are also presented. As was mentioned before,
+the primary counts (blue area) were filtered using the same amplitude and
+time thresholds (about 0.5 p.e and 120 ns respectively). For the cross-talk
+it was assumed that they correspond to the total number of counts minus
+primary counts. No after-pulses could be distinguished, suggesting that its
+contributions is negligible from a statistical point of view (in this work).
+
+
+
+
+                       (a)                                       (b)
+
+
+
+
+                       (c)                                       (d)
+
+Fig. 13 S13361 single channel DC spectra measured before proton irradiation for various
+temperatures and the same Vov =3.5 V: a) 25◦ C, b) 10◦ C, c) -5◦ C, d) -20◦ C. The Z-axis is
+represented here by a colour scale.
+
+
+
+
+    Summarized data for both series and chosen overvoltage ranges before pro-
+ton irradiation are presented in Figure 15. To stress the differences between
+these series, the same y-axis scale was kept. The figure shows that the DC
+rate is about 60% higher at 25 ◦ C for S14161. This difference increases by a
+factor of 4.9 for −20 ◦ C. The separation between p.e. peaks is also better for
+                       Springer Nature 2021 LATEX template
+
+
+                         Proton Irradiation of SiPM arrays for POLAR-2                    19
+
+the S13361 for all temperature ranges. The extraction of single p.e. peak for
+S14161 at 25 ◦ C is practically impossible.
+
+
+
+
+                       (a)                                        (b)
+
+
+
+
+                       (c)                                        (d)
+
+Fig. 14 S14161 single channel DC spectra measured before proton irradiation for various
+temperatures and the same Vov =3.5 V: a) 25 ◦ C, b) 10 ◦ C, c) −5 ◦ C, d) −20 ◦ C. The Z-axis
+is represented here by a colour scale.
+                     Springer Nature 2021 LATEX template
+
+
+20     Proton Irradiation of SiPM arrays for POLAR-2
+
+
+
+
+                    (a)                                    (b)
+
+Fig. 15 The number of dark counts measured for a single channel of a) S13361 and b)
+S14161 array for chosen overvoltage ranges at different temperatures.
+
+
+
+5.2.2 Dark Counts after irradiation
+After the proton irradiation, as in section 5.2.1, the 10 ms waveforms were
+also collected at temperatures between 25 ◦ C and −20 ◦ C. Figure 16 shows the
+3D plots and their projections to the y-axis (with the same cuts as before) of
+a S13361 single channel irradiated for different doses and measured at 27 ◦ C.
+Due to the significantly higher number of counts the lower overvoltage region
+was explored. Vov was set to 2.8 V in this particular case. As can be seen, it is
+impossible to extract any single p.e. structure in the DC spectrum. DC rate
+also increases.
+
+    The same studies were repeated two months after the proton irradiation
+(at the same temperatures). For compactness, we only present the data
+for near opposite temperatures (−20 ◦ C vs. 25 ◦ C) at a dose of 0.267 Gy
+(Figure 17) and 0.815 Gy (Figure 18). For higher doses of 2.19 Gy and 4.96 Gy
+we only present the DC spectra at −20 ◦ C (Figure 19). It should be noted
+that when irradiated with a dose of 4.96 Gy, contrary to 25 ◦ C, the p.e. peaks
+are still visible at −20 ◦ C.
+
+    Figure 20a summarizes the DC rate measured 26 h and two months after
+the proton irradiation for different doses for S13361 at room temperature. The
+uniformity of two different channels (e.g. J4J20 and J9J25 here) of the S13361
+is also studied and shown in Figure 20b. These channels have been exposed
+to a dose of 0.267 Gy at 27 ◦ C. The number of counts between channel are
+consistent within a few percent.
+
+   Finally, Figure 21 shows the number of dark counts measured for different
+doses at different temperatures. In each case the decreasing number of counts
+with respect to temperature decrease is clearly visible. The direct correlation
+                        Springer Nature 2021 LATEX template
+
+
+                         Proton Irradiation of SiPM arrays for POLAR-2                     21
+
+
+
+
+                       (a)                                        (b)
+
+
+
+
+                       (c)                                        (d)
+
+Fig. 16 An example of waveform analysis for data taken for S13361 single channel mea-
+sured at 27◦ C for doses: a) 0.267 Gy, b) 0.815 Gy, c) 2.19 Gy and d) 4.96 Gy. The Z-axis is
+represented here by a colour scale. The overvoltage was set to 2.8 V in each case.
+
+
+
+
+                       (a)                                        (b)
+
+Fig. 17 An example of waveform analysis for data taken two months after irradiation with
+dose 0.267 Gy for S13361 single channel at a) 25 ◦ C and b) −20 ◦ C. The Z-axis is represented
+here by a colour scale. The overvoltage was set to 2.8 V.
+
+
+
+between DC and temperature is expected and stresses the importance of tem-
+perature control of SiPMs for POLAR-2, thus (also) minimizing the impact
+                        Springer Nature 2021 LATEX template
+
+
+22      Proton Irradiation of SiPM arrays for POLAR-2
+
+
+
+
+                       (a)                                        (b)
+
+Fig. 18 An example of waveform analysis for data taken two months after irradiation with
+dose 0.815 Gy for S13361 single channel at a) 25 ◦ C and b) −20 ◦ C. The Z-axis is represented
+here by a colour scale. The overvoltage was set to 2.8 V.
+
+
+
+
+                       (a)                                        (b)
+
+Fig. 19 An example of waveform analysis for data taken two months after S13361 irradia-
+tion with doses a) 2.19 Gy and b) 4.96 Gy at temperature −20 ◦ C. The Z-axis is represented
+here by a colour scale. The overvoltage was set to 2.8 V.
+
+
+
+of radiation damage.
+
+    Similarly to Figure 21, Figure 22 summarizes the obtained data for the
+S14161 array. The selected irradiation scenarios are those with dose of 0.254
+and 2.31 Gy. Again, the figure shows the number of counts determined for a
+10 ms interval time. In general, the data signifies a good SiPM single channel
+uniformity. Also, considering the I-V characteristics, no bias-dependent effect
+during proton irradiation was observed. Finally, the number of counts is also
+self-consistent between different single channels (exposed to the same dose).
+
+    Figure 23 shows our estimation of DC rates (based on a simple interpola-
+tion) for ∼1 and ∼2 years in space, assuming the ’Full Instrument + CSS’
+                      Springer Nature 2021 LATEX template
+
+
+                        Proton Irradiation of SiPM arrays for POLAR-2                 23
+
+
+
+
+                      (a)                                       (b)
+
+Fig. 20 The number of dark counts per 10 ms interval time measured at room temperature
+for S13361 a) before irradiation, 26 h and two months after b) for two different channels
+before and 26 h after irradiated. Different doses are presented.
+
+
+
+
+Fig. 21 The number of dark counts per 10 ms interval time measured before irradiation
+and two months after for S13361 for different doses and temperatures.
+
+
+
+scenario at room temperature (Vov =2.8 V). The presented numbers corre-
+spond to 26 h after proton irradiation. At the stage, the annealing effect and
+consequently the DC decreasing are negligible. We therefore conclude, that
+numbers of about 5.0 × 106 counts/second (cps) and 7.2 × 106 cps (one and
+two years equivalent, respectively) should not influence the SiPM single chan-
+nel operation. Nevertheless, at the same conditions, the maximum dark pulse
+amplitudes increased from about 110 mV for the cases before irradiation, to
+about 150 mV when irradiated with a dose of 0.267 Gy. This implies that, for
+POLAR-2, the threshold must be carefully selected.
+                       Springer Nature 2021 LATEX template
+
+
+24      Proton Irradiation of SiPM arrays for POLAR-2
+
+
+
+
+                      (a)                                           (b)
+
+Fig. 22 The number of dark counts per 10 ms interval time measured for S14161 a) before
+irradiation, 26 h and 2 months after at room temperature b) for two different channels
+irradiated with the same dose 26 h after proton irradiation. As it is shown in a) the bias-
+dependent effect is not visible.
+
+
+
+
+Fig. 23 The number of DC measured at room temperature and Vov =2.8 V, when ’Full
+Instrument + CSS’ scenario is assumed (more details in the text). The inset shows expected
+DC rate after one and two years equivalent in cosmic space.
+
+
+5.3 Activation analysis
+The high energy resolution of High Purity Germanium detectors (HPGe)
+provide a way to identify characteristic gamma rays from proton activation
+products within the SiPM(+PCB) array. In the case of S13361, immediately
+after it was irradiated with a dose of 4.96 Gy , the SiPM array was moved to
+the HPGe detector to measure the most prominent gamma lines. The HPGe
+was placed inside a low-background lead protected chamber to decrease back-
+ground radiation.
+
+    The signal readout from the HPGe detector was based on analogue NIM
+electronics, where the signal from the HPGe preamplifier was shaped and
+                     Springer Nature 2021 LATEX template
+
+
+                      Proton Irradiation of SiPM arrays for POLAR-2             25
+
+amplified by an ORTEC spectroscopy amplifier. Finally, the signal was regis-
+tered by a multichannel analyzer which writes the energy spectrum to file in
+100 s intervals.
+
+    10 min was required to move the irradiated sample from the experimental
+hall and position it into the HPGe setup, introducing a non-negligible time
+delay between the irradiation process and the start of data acquisition. This
+limits our detection ability of decay products with decay times shorter than
+2-3 minutes.
+
+    Many of the radioisotopes in reaction with 58 MeV protons have multiple
+modes of decay, where daughter nuclei mostly decay into β + . This explains
+the strong population of counts at the 511 keV line. To limit the number of
+decay modes, the isotopes are identified through a full-energy peak fitting
+of the measured HPGe spectrum. This facilitated the determination of the
+centroid/energy of the gamma transition inside the isotope.
+    The TALYS [24] software was used to simulate the nuclear reactions
+from 58 MeV protons. By knowing the energy of incoming protons and the
+main components of the SiPM array and PCB plate, such as: carbon, silicon,
+oxygen, potassium, etc., the tables of possible decay channels with total
+cross-sections were generated. Based on the highest cross-section criterion, we
+listed in Table 3 the most prominent decay modes and corresponding decay
+times [25]. The absence of silicon and oxygen in the Table 3 may be surpris-
+ing. However, for silicon, the decay time is in the range of a few seconds.
+For oxygen, the most prominent decay channel has a decay time of 122 s. Its
+gamma-ray contribution is only to the 511 keV peak. As a result, to a first
+order, these components are neglected.
+
+
+  Mother    Abundance   Daughter   Reaction     Total cross T1/2         Dominant
+   nuclei       (%)      nuclei       type     section (mb)  (s)       energies (keV)
+  Sn-120        32.6     Sb-115      (p,6n)        223.6    1926            511
+  Cu-63         69.0     Cu-60      (p,p3n)         27.8    1422    511, 826, 1333, 1792
+  Cu-63         69.0     Cu-61      (p,p2n)         92.8    12010           511
+  Cu-63         69.0     Cu-62       (p,pn)         167      580            511
+  Cu-65         31.0     Cu-64       (p,pn)         167     45724           511
+  Cu-65         31.0     Cu-62      (p,p3n)         117      580            511
+   C-12         99.0      C-11       (p,pn)         167     1222            511
+   K-39         93.0      K-38       (p,pn)         67.3     459         511, 2168
+Table 3 Dominant reactions of 58 MeV protons on SiPM(+PCB) based elements
+calculated using TALYS.
+
+
+
+   Figure 24 shows a typical gamma-ray energy spectrum from the HPGe
+detector. The spectrum shown in Figure 24a accounts for the full energy
+range, whereas Figure 24b highlights the spectral structure near 511 keV. We
+                     Springer Nature 2021 LATEX template
+
+
+26     Proton Irradiation of SiPM arrays for POLAR-2
+
+observe five strong gamma lines, corresponding primarily to copper and potas-
+sium activation products. It can be also seen that to the left of the 511 keV
+line, some additional small contributions are present. The TALYS calculations
+show that the sources of these lines are copper and zinc but emitted with
+much lower intensities. We would like to note that background contribution is
+negligible in the presented spectrum. Our long-time background measurement
+showed, that the highest contribution in energy spectrum for energies starting
+from 400 keV, was below 0.2 counts per 100 s.
+
+
+
+
+                    (a)                                      (b)
+
+Fig. 24 The example of gamma-ray energy spectrum measured with HPGe detector after
+SiPM proton irradiation. Black line shows experimental data. Dashed colour lines show
+identified peaks.
+
+
+
+
+    To confirm our peak’s identification the decay times for certain energies
+were determined experimentally. Figure 25 shows the obtained results. Due
+to limited count statistics, the obtained uncertainties are relatively high; over
+50% in some cases. For this reason we decided to focus on two scenarios.
+In the first one, the decay time and amplitude were free fitting parameters
+(red dashed line). In the second scenario, a certain fixed decay time was
+taken from the Table 3 (blue dashed line) and only the amplitude was fitted.
+Generally, fitted curves in the second scenario are in good agreement with
+the experimental data. The obtained decay times are also in good agreement
+(within 3σ) for the lines produced by Sn-120, CU-63, Cu-65, C-12 and K-39,
+confirming our identification.
+
+    As is shown in Table 3, there are many potential sources for the 511 keV
+line. This is reflected in the shape of the decay time distribution in Figure 26
+(black points), where at least two (fast and long tail) components are
+clearly visible. To describe the experimental data the sum of N exponential
+components were tested:
+                      Springer Nature 2021 LATEX template
+
+
+                        Proton Irradiation of SiPM arrays for POLAR-2                 27
+
+
+
+
+                      (a)                                           (b)
+
+
+
+
+                      (c)                                           (d)
+
+Fig. 25 Decay time distributions (black points) measured for 58 MeV proton irradiated
+SiPM. Subfigures corresponds to different energy gated lines a) 826 keV, b) 1333 keV, c)
+1792 keV and d) 2167 keV. Red dashed lines correspond to fitting procedure, where ampli-
+tudes and decay times were set as a free parameters. Blue dashed lines describe the cases
+with fixed decay times (see details in text).
+
+
+
+
+                                 N
+                                                            !
+                                 X              t · ln(2)
+                            y=       Ai · exp −      i
+                                                                ,                    (2)
+                                 i
+                                                  T1/2
+                    i
+     where Ai and T1/2 refer to the amplitude and the decay time of the com-
+ponent respectively. To obtain a good description of the experimental data, 4
+components (N=4) were used, resulting in 8 free parameters. The decay times
+obtained during the fitting procedure, presented in Figure 26a, are relatively
+far away from the expected values presented in Table 3 (over 3σ) for the
+most dominant nuclei and does not match to other potential candidates from
+other nuclei. This could be attributed to low statistics in the tail component,
+biasing towards shorter time bases, or the incorrect estimation of the number
+of element contributions in the 511 keV peak. The simplest approach N>4
+increased the number of free parameters and significantly complicates the
+fitting procedure causing even higher uncertainties (overfitting and/or corre-
+lated parameters).
+                            Springer Nature 2021 LATEX template
+
+
+28         Proton Irradiation of SiPM arrays for POLAR-2
+
+    In the second approach, it was decided to use the decay times listed in
+Table 3 as fixed parameters while only varying the amplitudes. Cu-63 and Cu-
+65 have the same daughter nuclei, Cu-62, reducing the number of components
+in Equation 2 by one. Next, it was assumed that the contributions of Cu-60
+and K-39, which have the smallest total cross section from those presented in
+Table 3, are also negligible, despite seeing other gamma lines from this chan-
+nel. This means that for 5 components (N=5) we only fit 5 free parameters
+(as opposed to 10). The result of this fitting procedure is shown in Figure 26b.
+It can be seen, that based on TALYS calculations, we are in good agreement
+with experimental data even with a smaller number of free parameters. This
+allows us to conclude, that our assumption about basic SiPM(+PCB) element
+composition is correct and we can accurately modeling the setup.
+
+    POLAR-2 will orbit with a period of 90 min, frequently passing through
+the SAA8 . From the figures 26a and 26b we see that most elements have
+already decayed, reducing the count number by at least one order of mag-
+nitude. As the SiPM (used to derive the activation studies) was irradiated
+with 4.96 Gy, equating to 1.78 years of equivalent space time for the ’bare’
+scenario (see Table 1), we see that the number of counts already drop by more
+than three orders of magnitude after a day. For POLAR-2, the dose equates
+to 62.9 years of equivalent time in space. Furthermore, we see that the most
+dominating components (irrespective of fitting procedure) have decay times
+shorter than the orbital period. As a result, we do not expect a significant
+contribution of the activation of the SiPMs and the PCB to the dose to which
+the sensors are exposed.
+
+
+
+
+                           (a)                                           (b)
+
+Fig. 26 Decay time distribution of 511 keV line (black points) measured for 58 MeV proton
+irradiated SiPM. Red lines show the results of fitting procedure for a) N=4 (8 free parame-
+ters) and b) N=5 (5 free parameters - only amplitudes). Dashed lines show each component
+contribution (see more details in text).
+
+
+
+
+  8
+      Due to the orbital configuration it will pass the SAA at different regions.
+                    Springer Nature 2021 LATEX template
+
+
+                     Proton Irradiation of SiPM arrays for POLAR-2           29
+
+6 Summary and outlook
+We have presented here the results of the irradiation of the S13361-6075NE-04
+and S14161-6050HS-04 SiPM arrays from Hamamatsu. The campaign was
+performed for the POLAR-2 mission which is planned for launch on the CSS
+in late 2024 or early 2025. Two scenarios were studied: i) the ’Full Instrument
++ CSS’ for POLAR-2 purposes and ii) the ’Bare SiPM’ scenario for other
+instruments which may be more exposed to the background radiation.
+
+    After an exposure of 4.96 Gy, it was found that the S13361 SiPM array
+is still operational. For the ’Full Instrument + CSS’ scenario, this equates
+to 62.9 years in space, whereas it equates to 1.78 years for the ’Bare SiPM’
+scenario. The most prominent effects after proton irradiation are the increase
+in dark current and dark counts, mostly by cross-talk events. The observed
+changes in the dark count rate, compared to data taken before irradiation,
+are about 4 times higher with respect to the lowest dose. Furthermore, the
+maximum dark pulse amplitudes for Vov =2.8 V increased from about 110 mV
+(the last p.e. peak at 25 ◦ C, before irradiation) to about 350 mV (left edge of
+DC spectrum, 27 ◦ C, 4.96 Gy), showing the necessity of a well-thought thresh-
+old determination. These effects can be reduced significantly by lowering the
+SiPM temperature. The maximum dark pulse amplitude for the dose 4.96 Gy
+and the temperature −20 ◦ C is about 150 mV, that is close to a value before
+the irradiation (at room temperature).
+
+    Annealing processes were observed for DC spectra taken after 2 hours,
+26 hours and 2 months. Although not the emphasis of this paper, they are later
+specified through a dedicated study and will be published hereafter. Neither
+SiPM type showed a change in performance when a single channel was biased
+(or unbiased) during proton irradiation as the measured I-V characteristics
+and DC rates did not expose significant differences in this case. Nevertheless,
+it is recommended, despite not affecting the radiation damage, to reduce the
+bias voltage in the SAA region to avoid issues with the SiPM current as well
+as the produced data volume.
+
+    Finally, we discussed the SiPM(+PCB) proton activation analysis. The
+results show a dominant contribution of the 511 keV line in the energy
+spectrum measured with the HPGe detector, corresponding to β + decay of
+daughter nuclei populated in proton reaction. Excluding life times in the range
+of seconds (due to practical limitations), the main contribution in the gamma
+spectrum comes from copper and carbon activation which mostly have a decay
+time shorter than the orbital period. As a result, we do not anticipate the
+activation products from SiPMs to provide a significant contribution in the
+polarimeter response.
+    In conclusion, due to the shielding in the ’Full Instrument + CSS’ sce-
+nario, we do not expect POLAR-2 to greatly suffer from a rapidly degrading
+                  Springer Nature 2021 LATEX template
+
+
+30    Proton Irradiation of SiPM arrays for POLAR-2
+
+SiPM through background radiation.
+                   Springer Nature 2021 LATEX template
+
+
+                     Proton Irradiation of SiPM arrays for POLAR-2        31
+
+Acknowledgments. We gratefully acknowledge the Swiss Space Office
+of the State Secretariat for Education, Research and Innovation (ESA
+PRODEX Programme) which supported the development and production of
+the POLAR-2 detector. M.K. and N.D.A. acknowledge the support of the
+Swiss National Science Foundation. National Centre for Nuclear Research
+acknowledges support from Polish National Science Center under the grant
+UMO-2018/30/M/ST9/00757. We gratefully acknowledge the support from
+the National Natural Science Foundation of China (Grant No. 11961141013,
+11503028), the Xie Jialin Foundation of the Institute of High Energy Physics,
+Chinese Academy of Sciences (Grant No. 2019IHEPZZBS111), the Joint
+Research Fund in Astronomy under the cooperative agreement between the
+National Natural Science Foundation of China and the Chinese Academy of
+Sciences (Grant No. U1631242), the National Basic Research Program (973
+Program) of China (Grant No. 2014CB845800), the Strategic Priority Research
+Program of the Chinese Academy of Sciences (Grant No. XDB23040400), and
+the Youth Innovation Promotion Association of Chinese Academy of Sciences.
+We would like to thank T. Horwacik, T. Nowak and L. Malinowski for their
+support during the irradiation campaign at IFJ.
+                   Springer Nature 2021 LATEX template
+
+
+32    Proton Irradiation of SiPM arrays for POLAR-2
+
+Declarations
+Funding
+The (co-)authors are funded by the funding the agencies described in the
+acknowledgment section.
+
+Conflicts of Interest
+The authors declare that the research was conducted in the absence of any
+commercial or financial relationships that could be construed as a potential
+conflict of interest.
+
+Consent to participate
+Not applicable.
+
+Consent for publication
+Not applicable.
+
+Code availability
+Not applicable.
+
+Author’s Contribution
+The main three authors are Slawomir Mianowski, Nicolas De Angelis and
+Johannes Hulsman. Slawomir Mianowski is considered the primary of the three.
+The first draft of the manuscript was written by Slawomir Mianowski, Nico-
+las De Angelis and Johannes Hulsman and all authors commented on previous
+versions of the manuscript.
+                   Springer Nature 2021 LATEX template
+
+
+                     Proton Irradiation of SiPM arrays for POLAR-2           33
+
+References
+[1] et al., B.P.A.: Gravitational waves and gamma-rays from a binary neutron
+    star merger: GW170817 and GRB 170817a. The Astrophysical Journal
+    848, 13 (2017). https://doi.org/10.3847/2041-8213/aa920c
+
+[2] Woosley, S.E., Bloom, J.S.: The supernova–gamma-ray burst connection.
+    Annual Review of Astronomy and Astrophysics 44, 507–556 (2006). https:
+    //doi.org/10.1146/annurev.astro.43.072103.150558
+
+[3] Yonetoku, D., Murakami, T., Gunji, S., Mihara, T., Sakashita, T., Mori-
+    hara, Y., Kikuchi, Y., Takahashi, T., Fujimoto, H., Toukairin, N., et al.:
+    Gamma-ray burst polarimeter (gap) aboard the small solar power sail
+    demonstrator ikaros. Publications of the Astronomical Society of Japan
+    63, 625–638 (2011). https://doi.org/10.1093/pasj/63.3.625
+
+[4] Produit, N., Bao, T.W., Batsch, T., Bernasconi, T., Britvich, I., Cadoux,
+    F., Cernuda, I., Chai, J.Y., Dong, Y.W., Gauvin, N., et al.: Design and
+    construction of the polar detector. Nuclear Instruments and Methods in
+    Physics Research Section A: Accelerators, Spectrometers, Detectors and
+    Associated Equipment 877, 259–268 (2018). https://doi.org/10.1016/j.
+    nima.2017.09.053
+
+[5] Lowell, A.W., Boggs, S.E., Chiu, C.L., Kierans, C.A., Sleator, C., Tom-
+    sick, J.A., Zoglauer, A.C., Chang, H.-K., Tseng, C.-H., Yang, C.-Y., et al.:
+    Polarimetric analysis of the long duration gamma-ray burst grb 160530a
+    with the balloon borne compton spectrometer and imager. The Astro-
+    physical Journal 848, 119 (2017). https://doi.org/10.3847/1538-4357/
+    aa8ccb
+
+[6] Chattopadhyay, T., Vadawale, S.V., Aarthy, E., Mithun, N.P.S., Chand,
+    V., Ratheesh, A., Basak, R., Rao, A.R., Bhalerao, V., Mate, S., B., A.,
+    Sharma, V., Bhattacharya, D.: Prompt emission polarimetry of gamma-
+    ray bursts with the AstroSat czt imager. The Astrophysical Journal 884,
+    123 (2019). https://doi.org/10.3847/1538-4357/ab40b7
+
+[7] Zhang, S.-N., Kole, M., Bao, T.-W., Batsch, T., Bernasconi, T., Cadoux,
+    F., Chai, J.-Y., Dai, Z.-G., Dong, Y.-W., Gauvin, N., Hajdas, W., Lan,
+    M.-X., Li, H.-C., Li, L., Li, Z.-H., Liu, J.-T., Liu, X., Marcinkowski, R.,
+    Produit, N., Orsi, S., Pohl, M., Rybka, D., Shi, H.-L., Song, L.-M., Sun,
+    J.-C., Szabelski, J., Tymieniecka, T., Wang, R.-J., Wang, Y.-H., Wen,
+    X., Wu, B.-B., Wu, X., Wu, X.-F., Xiao, H.-L., Xiong, S.-L., Zhang,
+    L.-Y., Zhang, L., Zhang, X.-F., Zhang, Y.-J., Zwolinska, A.: Detailed
+    polarization measurements of the prompt emission of five gamma-ray
+    bursts. Nature Astronomy 3, 258–264 (2019). https://doi.org/10.1038/
+    s41550-018-0664-0
+                    Springer Nature 2021 LATEX template
+
+
+34     Proton Irradiation of SiPM arrays for POLAR-2
+
+ [8] De Angelis, N., et al.: Development and science perspectives of the
+     POLAR-2 instrument: a large scale GRB polarimeter. PoS ICRC2021,
+     580 (2021). https://doi.org/10.22323/1.395.0580
+
+ [9] Kole, M., Angelis, N.D., Berlato, F., Burgess, J.M., Gauvin, N., Greiner,
+     J., Hajdas, W., Li, H.-C., Li, Z.-H., Produit, N., Rybka, D., Song, L.-M.,
+     Sun, J.-C., Szabelski, J., Tymieniecka, T., Wang, Y.-H., Wu, B.-B., Wu,
+     X., Xiong, S.-L., Zhang, S.-N., Zhang, Y.-J.: The POLAR Gamma-Ray
+     Burst Polarization Catalog (2020)
+
+[10] Garutti, E., Musienko, Y.: Radiation damage of sipms. Nuclear Instru-
+     ments and Methods in Physics Research Section A: Accelerators, Spec-
+     trometers, Detectors and Associated Equipment 926, 69–84 (2019). https:
+     //doi.org/10.1016/j.nima.2018.10.191
+
+[11] Klein, O., Nishina, T.: Über die Streuung von Strahlung durch freie
+     Elektronen nach der neuen relativistischen Quantendynamik von Dirac.
+     Zeitschrift fur Physik 52 (1929). https://doi.org/10.1007/BF01366453
+
+[12] Agostinelli, S., Allison, J., Amako, K., Apostolakis, J., Araujo, H., Arce,
+     P., Asai, M., Axen, D., Banerjee, S., Barrand, G., Behner, F., Bellagamba,
+     L., Boudreau, J., Broglia, L., Brunengo, A., Burkhardt, H., Chauvie, S.,
+     Chuma, J., Chytracek, R., Cooperman, G., Cosmo, G., Degtyarenko, P.,
+     Dell’Acqua, A., Depaola, G., Dietrich, D., Enami, R., Feliciello, A., Fer-
+     guson, C., Fesefeldt, H., Folger, G., Foppiano, F., Forti, A., Garelli, S.,
+     Giani, S., Giannitrapani, R., Gibin, D., Gómez Cadenas, J.J., González,
+     I., Gracia Abril, G., Greeniaus, G., Greiner, W., Grichine, V., Grossheim,
+     A., Guatelli, S., Gumplinger, P., Hamatsu, R., Hashimoto, K., Hasui, H.,
+     Heikkinen, A., Howard, A., Ivanchenko, V., Johnson, A., Jones, F.W.,
+     Kallenbach, J., Kanaya, N., Kawabata, M., Kawabata, Y., Kawaguti, M.,
+     Kelner, S., Kent, P., Kimura, A., Kodama, T., Kokoulin, R., Kossov, M.,
+     Kurashige, H., Lamanna, E., Lampén, T., Lara, V., Lefebure, V., Lei,
+     F., Liendl, M., Lockman, W., Longo, F., Magni, S., Maire, M., Meder-
+     nach, E., Minamimoto, K., Mora de Freitas, P., Morita, Y., Murakami,
+     K., Nagamatu, M., Nartallo, R., Nieminen, P., Nishimura, T., Ohtsubo,
+     K., Okamura, M., O’Neale, S., Oohata, Y., Paech, K., Perl, J., Pfeiffer,
+     A., Pia, M.G., Ranjard, F., Rybin, A., Sadilov, S., Di Salvo, E., Santin,
+     G., Sasaki, T., Savvas, N., Sawada, Y., Scherer, S., Sei, S., Sirotenko,
+     V., Smith, D., Starkov, N., Stoecker, H., Sulkimo, J., Takahata, M.,
+     Tanaka, S., Tcherniaev, E., Safai Tehrani, E., Tropeano, M., Truscott,
+     P., Uno, H., Urban, L., Urban, P., Verderi, M., Walkden, A., Wander,
+     W., Weber, H., Wellisch, J.P., Wenaus, T., Williams, D.C., Wright, D.,
+     Yamada, T., Yoshida, H., Zschiesche, D.: Geant4—a simulation toolkit.
+     Nuclear Instruments and Methods in Physics Research Section A: Acceler-
+     ators, Spectrometers, Detectors and Associated Equipment 506, 250–303
+     (2003). https://doi.org/10.1016/S0168-9002(03)01368-8
+                     Springer Nature 2021 LATEX template
+
+
+                      Proton Irradiation of SiPM arrays for POLAR-2             35
+
+[13] Cumani, P., Hernanz, M., Kiener, J., Tatischeff, V., Zoglauer, A.:
+     Background for a gamma-ray satellite on a low-earth orbit. Exper-
+     imental Astronomy 47(3), 273–302 (2019). https://doi.org/10.1007/
+     s10686-019-09624-0
+
+[14] Daly, E.: Radiation environment evaluation for esa projects. In: C., J.R.A.,
+     Trombka, J.I. (eds.) High-Energy Radiation Background in Space, vol.
+     186, pp. 483–499 (1989)
+
+[15] Sadrozinski, H.F.-W.: GLAST, a Gamma-Ray Large Area Space Tele-
+     scope. Nuclear Instruments and Methods in Physics Research A 466,
+     292–299 (2001). https://doi.org/10.1016/S0168-9002(01)00540-X
+
+[16] Ting, S.: The alpha magnetic spectrometer on the international space
+     station. Nuclear Physics B - Proceedings Supplements 243-244, 12–24
+     (2013). https://doi.org/10.1016/j.nuclphysbps.2013.09.028
+
+[17] Amit, H., Terra-Nova, F., Lézin, M., et al.: Non-monotonic growth and
+     motion of the south atlantic anomaly. Earth Planets Space 73, 38 (2021).
+     https://doi.org/10.1186/s40623-021-01356-w
+
+[18] Sawyer, D.M., Vette, J.I.: Ap-8 trapped proton environment for solar
+     maximum and solar minimum. [ap8max and ap8min] (1976)
+
+[19] Michalec, B., Swakoń, J., Sowa, U., Ptaszkiewicz, M., Cywicka-Jakiel, T.,
+     Olko, P.: Proton radiotherapy facility for ocular tumors at the ifj pan
+     in kraków poland. Applied Radiation and Isotopes 68, 738–742 (2010).
+     https://doi.org/10.1016/j.apradiso.2009.11.001
+
+[20] Piemonte, C., Ferri, A., Gola, A., Picciotto, A., Pro, T., Serra, N., Tarolli,
+     A., Zorzi, N.: Development of an automatic procedure for the char-
+     acterization of silicon photomultipliers. In: 2012 IEEE Nuclear Science
+     Symposium and Medical Imaging Conference Record (NSS/MIC), pp.
+     428–432 (2012)
+
+[21] Otte, A.N., Garcia, D., Nguyen, T., Purushotham, D.: Characteriza-
+     tion of three high efficiency and blue sensitive silicon photomultipliers.
+     Nuclear Instruments and Methods in Physics Research Section A: Acceler-
+     ators, Spectrometers, Detectors and Associated Equipment 846, 106–125
+     (2017). https://doi.org/10.1016/j.nima.2016.09.053
+
+[22] Schafer, R.W.: What is a savitzky-golay filter? IEEE Signal Processing
+     Magazine, 111–117 (2011)
+
+[23] Jones, E., Oliphant, T., Peterson, P., et al.: SciPy: Open source scientific
+     tools for Python (2001). http://www.scipy.org/
+                   Springer Nature 2021 LATEX template
+
+
+36    Proton Irradiation of SiPM arrays for POLAR-2
+
+[24] Koning, A., Hilaire, S., Goriely, S.: TALYS-1.96. https://tendl.web.psi.
+     ch/tendl 2021/talys.html
+
+[25] National Nuclear Data Center, information extracted from the NuDat 2
+     database. https://www.nndc.bnl.gov/nudat3/
+

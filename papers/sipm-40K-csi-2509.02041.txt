@@ -1,0 +1,726 @@
+                                                         Characterization of SiPMs at 40 K for
+
+
+
+
+arXiv:2509.02041v2 [physics.ins-det] 28 Oct 2025
+                                                      neutrino coherent detection based on pure CsI
+                                                       Tao Liu1,2,3 , Xilei Sun3,4*, Fengjiao Luo1,2*, Jingbo Ye3,4 , Bo
+                                                       Zheng1,2 , Cong Guo3 , Zhilong Hou3 , Rongbin Zhou3 , Aiqin
+                                                              Gao1 , Lei Cao3 , Bo Zhang1,2 and Sijia Han1,2
+                                                        1 School of nuclear science and technology, University of South
+
+                                                                     China, Hengyang, 421001, Hunan, China.
+                                                      2 Key Laboratory of Advanced Nuclear Energy Design and Safety,
+
+                                                           Ministry of Education, Hengyang, 421001, Hunan, China.
+                                                      3 Institute of High Energy Physics, Chinese Academy of Sciences,
+
+                                                                                Beijing, 100049, China.
+                                                        4 State Key Laboratory of Particle Detection and Electronics,
+
+                                                                                Beijing, 100049, China.
+
+
+                                                            *Corresponding author(s). E-mail(s): sunxl@ihep.ac.cn;
+                                                                          luofengjiao@usc.edu.cn;
+
+
+                                                                                          Abstract
+                                                         Silicon photomultiplier (SiPM), as the core photoelectric sensor for coher-
+                                                         ent neutrino detection in low-temperature pure CsI, its working perfor-
+                                                         mance directly determines the measurement accuracy of the scintillator
+                                                         light yield. Our previous research has fully demonstrated the performance
+                                                         of pure CsI at liquid nitrogen temperature. More intriguingly, its perfor-
+                                                         mance is expected to be even better at 40 K. However, the performance
+                                                         characteristics of SiPM in the 40 K temperature range still remain to
+                                                         be explored. In this study, a self-developed adjustable temperature con-
+                                                         trol system ranging from 30 K to 293 K was built to investigate the key
+                                                         performance parameters of SiPM at different temperatures, such as sin-
+                                                         gle photoelectron spectrum, gain, breakdown voltage, dark count rate,
+                                                         after-pulse, internal crosstalk, and single photoelectron resolution. Spe-
+                                                         cial emphasis was placed on examining the key performance parameters
+                                                         of SiPM in the 40 K temperature range to evaluate its feasibility for light
+                                                         yield measurement in this temperature range. The results show that this
+
+
+
+                                                   Accepted by RDTM. https://doi.org/10.1007/s41605-025-00599-5
+                                                                                              1
+2
+
+      study obtained the parameter variation trends and optimal working con-
+      ditions of 3 types of SiPM at different temperatures, thereby improving
+      the sensitivity of the detector. This research provides important technical
+      support for low-temperature detection in neutrino physics experiments.
+
+      Keywords: SiPM, Pure CsI crystal, 40 K, Gain, Breakdown voltage, Dark
+      count rate, After-pulse, Internal crosstalk, Single photoelectron resolution.
+
+
+
+
+1 Introduction
+Coherent Elastic Neutrino-Nucleus Scattering (CEνNS) is a new type of low-
+energy neutrino detection method. It was first experimentally confirmed by the
+COHERENT collaboration in 2017 [1], and this discovery came more than 40
+years after the theoretical prediction [2]. The coherent scattering cross-section
+is the largest among the known neutrino detection cross-sections, which is pro-
+portional to the square of the number of neutrons in the atomic nucleus [3]. Its
+cross-section is more than two orders of magnitude higher than that of inverse
+beta decay (IBD) [1]. The high cross-section means that the miniaturization of
+detectors can be realized, so coherent scattering experiments have become an
+emerging direction in neutrino experiments. As a weak neutral current, CEνNS
+has become a new tool for studying neutrino properties and nuclear physics.
+It is of great significance for the research on neutrino magnetic moments [4, 5],
+non-standard neutrino interactions (NSI) [6–9], as well as probes of nuclear
+structure [10–12].
+     The COHERENT experiment uses CsI(Na) crystals with a Na concentra-
+tion of 0.114 mol% [1, 13], which is about an order of magnitude higher than
+that of conventional CsI(Na) crystals. This can shorten the distance between
+the luminescent centers of Na ions in the crystal and increase the light yield
+of nuclear recoil luminescence. Even so, the photoelectron output level and
+quenching factor are still limited [1, 14, 15], and most excitons do not emit
+light due to thermal quenching. We propose a new detector scheme based on
+pure CsI at 77 K and SiPM readout, and the preliminary experiment has ver-
+ified its feasibility [16]. Low temperature effectively reduces the probability
+of exciton thermal quenching in CsI crystals and increases the probability of
+electrons being captured by holes to form excitons and emit light [17, 18]. At
+40 K, the light yield is further increased, and the α excitation light yield is
+higher than that of γ excitation [19–22].
+     The study uses SiPM with high photon detection efficiency as the pho-
+toelectric readout device, and the SiPM is coupled with the crystal through
+silicone oil. SiPMs need to operate at low temperatures of 40 K, but most
+of the test data provided by manufacturers is concentrated in the room tem-
+perature and above temperature range [23], and the performance data at
+low temperatures is still incomplete, which makes it difficult to design and
+
+
+Accepted by RDTM. https://doi.org/10.1007/s41605-025-00599-5
+                                                                              3
+
+optimize low-temperature detectors. Therefore, systematic research on the
+low-temperature performance of SiPMs is of great practical significance.
+    This study conducted performance tests on SiPMs from three manufactur-
+ers, namely Hamamatsu, New Device Laboratory (NDL), and Broadcom, over
+the temperature range from 30 K to 293 K, and systematically evaluated their
+application potential in low-temperature detectors. The experiment focused
+on the key performance indicators of SiPMs in a 40 K environment, includ-
+ing the variation trends of parameters such as gain, breakdown voltage (Vbd ),
+dark count rate (DCR), after-pulse, internal crosstalk (iCT), and single pho-
+toelectron (SPE) resolution. This study recorded and analyzed the variation
+laws of the key parameters of these three types of SiPMs within the range of
+30 K to 293 K, laying a data foundation for the device selection and technical
+improvement of subsequent low-temperature detectors. The test results show
+that all three types of SiPMs can work normally in a low-temperature environ-
+ment, but there are obvious differences in the performance of products from
+different manufacturers.
+
+2 Experimental setup
+2.1 Cryogenic system
+This study developed a set of low-temperature equipment to address the issue
+that existing devices cannot directly meet the requirements for researching the
+low-temperature performance of SiPMs. The system employs a cryostat with
+a vacuum insulation structure (fig. 1). Through optimized design based on
+heat leakage simulation calculations, insulation materials are partially used to
+reduce heat loss. The coupling structure between the cold plate and the SiPM
+ensures uniform and efficient cooling of the detector within the temperature
+range of 30 K to 293 K. The system integrates a Sumitomo CH-104 refrigerator
+and a 100 W precision heating rod, and uses two PT-100 temperature probes
+for measurement, thus constructing a reliable basic platform for temperature
+control.
+    The temperature control system adopts a Lake Shore 336 temperature
+controller as the core control unit. It dynamically adjusts the heating power
+through a high-precision PID algorithm (a control algorithm that combines
+proportional, integral, and differential links), achieving a temperature sta-
+bility of ±1 K. The system is designed with a low-heat-load cable lead-out
+scheme, through which signal lines and cables are led out via vacuum electrode
+feedthrough. This ensures the stability of the low-temperature environment
+while guaranteeing the reliability of signal transmission. The successful devel-
+opment of the system not only solves the current experimental needs but also
+lays a solid foundation for subsequent research on low-temperature detectors.
+
+
+
+
+Accepted by RDTM. https://doi.org/10.1007/s41605-025-00599-5
+4
+
+
+
+
+Fig. 1 The left figure is a physical diagram. The right figure annotates the placement
+methods of the cold head, cold plate, and SiPM. Apiezon N-type vacuum grease is applied
+between the SiPM and the cold plate to ensure more uniform heat distribution. SiPMs of
+the same model are symmetrically installed on both sides of the cold plate. Through dual-
+channel data comparison, the accuracy of experimental results is improved, and single-point
+measurement errors are reduced.
+
+
+
+
+Fig. 2 Schematic diagram of SiPM low-temperature readout.
+
+
+2.2 Test system
+The experiment established a comprehensive cryogenic test platform (fig. 2) to
+investigate the performance characteristics of SiPMs under low-temperature
+conditions. The system employs a vacuum-insulated cryogenic chamber, where
+the SiPM samples under test (fig. 3, including Hamamatsu S14161-6050HS-04,
+Broadcom AFBR-S4N66P024M 2 × 1 array, and NDL EOR20 11-6060-E-P
+models) are mounted on the cold plate. By setting distinct temperature set
+
+
+
+Accepted by RDTM. https://doi.org/10.1007/s41605-025-00599-5
+                                                                                         5
+
+points, the platform systematically investigates the temperature-dependent
+variations of their key operational parameters.
+
+
+
+
+Fig. 3 SiPM and preamplifier. The top-left image shows the preamplifier with a gain of 10×.
+The top-right image shows the 4 × 4 array SiPM developed by Hamamatsu, with each chip
+measuring 6 mm × 6 mm. The bottom-left image shows the 2 × 1 dual-chip SiPM developed
+by Broadcom, with each chip measuring 6.14 mm × 6.14 mm. The bottom-right image shows
+the monolithic SiPM developed by NDL, with dimensions of 6.24 mm × 6.24 mm.
+
+
+    The test system is equipped with two independent power supplies: a RIGOL
+DP821 unit provides adjustable bias voltage (up to 60 V) for the SiPMs,
+while a RIGOL DP831A supplies ±2.5 V operating voltage to the preamplifier.
+For signal acquisition, the SiPM output signals are amplified 10-fold by the
+preamplifier and recorded via an oscilloscope, with simultaneous dark count
+measurements performed using a DT5751 data acquisition module. The system
+also integrates a Keithley 6517B electrometer to characterize the I-V curves of
+the SiPMs. The measured breakdown voltages are cross-verified against values
+derived from gain calculations, ensuring the accuracy of experimental data.
+
+3 Results and discussion
+Based on raw waveform data acquired from the oscilloscope, this study devel-
+oped a data processing framework using the CERN ROOT software [24]. By
+
+Accepted by RDTM. https://doi.org/10.1007/s41605-025-00599-5
+6
+
+performing peak detection and signal interval integration on each individual
+waveform (fig. 4), the program generates photoelectron spectra of the SiPMs,
+clearly resolving single- and multi-photoelectron peaks (fig. 5). Such charac-
+teristic spectra not only provide an intuitive assessment of SiPM operational
+performance but also enable a quantitative evaluation of their background
+noise characteristics.
+
+
+
+
+Fig. 4 The figure above shows the single-photon, two-photon, and after-pulse waveforms
+of Hamamatsu SiPM at 40 K and a voltage of 36.5 V.
+
+
+
+
+Fig. 5 The figure above shows the energy spectrum of Hamamatsu SiPM at 40 K and a
+voltage of 36.5 V.
+
+
+
+
+3.1 Gain
+The gain of a SiPM characterizes its single-photon signal amplification capa-
+bility, which fundamentally originates from the avalanche multiplication effect
+in avalanche photodiode (APD) microcells. When the bias voltage exceeds the
+breakdown voltage, photon-generated electron-hole pairs undergo impact ion-
+ization under a high electric field (105 V/cm), triggering an avalanche chain
+reaction. This process ultimately produces a large number of secondary charge
+
+
+Accepted by RDTM. https://doi.org/10.1007/s41605-025-00599-5
+                                                                                       7
+
+carriers within the microcell, with the total count corresponding to the gain.
+The calculation formula is expressed as follows:
+
+                          Cpixel × (Vbias − Vbd )     Q
+                      Gain =                      =                      (1)
+                                     e              A×e
+   Let Cpixel denote the microcell junction capacitance, Vbias the bias volt-
+age, Vbd the breakdown voltage, e the elementary charge, Q the charge per
+photoelectron, and A the amplification factor of the preamplifier.
+
+
+
+
+Fig. 6 The upper left graph shows the relationship between gain and operating voltage of
+Hamamatsu SiPM under the temperature condition from 30 K to 220 K. The upper right
+graph shows the relationship between gain and operating voltage of Broadcom SiPM under
+the temperature condition from 30 K to 240 K. The lower left graph shows the relationship
+between gain and operating voltage of NDL SiPM under the temperature condition from 30 K
+to 240 K. The lower right graph shows the gain variation with temperature of Hamamatsu
+SiPM at 37 V, Broadcom SiPM at 35 V, and NDL SiPM at 28.5 V.
+
+
+    The operating environment temperature of the SiPM was precisely regu-
+lated by a temperature controller, and the relationship between the gain of the
+SiPM and the operating voltage under different temperature conditions was
+systematically investigated (fig. 6). The experimental results show that the
+gain of the SiPM has an obvious linear relationship with the operating volt-
+age at the same temperature. Within a certain temperature range, the gain
+of the SiPM increases as the ambient temperature decreases. Since the light
+yield of the crystal adopts a relative measurement method, to maintain the
+Accepted by RDTM. https://doi.org/10.1007/s41605-025-00599-5
+8
+
+consistency of signal readout, the impedance of the SiPM is configured as 50 Ω
+by default. Through the linear fitting analysis of the gain, it is not only possi-
+ble to calculate the breakdown voltage of the SiPM at different temperatures
+but also to deeply reveal the influence law of temperature changes on the gain
+characteristics of the SiPM.
+
+3.2 Breakdown voltage
+The breakdown voltage (Vbd ) of an SiPM is a critical parameter determining its
+operational performance. This study employed two complementary methods
+to determine Vbd : on the one hand, by identifying the inflection point voltage
+in the I-V characteristic curve where the current exhibits a steep surge. On the
+other hand, by measuring gain characteristics under different bias voltages and
+linearly extrapolating to the voltage value at zero gain. The mutual validation
+of results from both methods enhances the reliability of Vbd measurements.
+    The Vbd is determined through I-V curve testing (fig. 7): By applying a
+reverse bias voltage to the SiPM and precisely measuring its dark current
+characteristics.
+
+
+
+
+Fig. 7 The left √ figure shows the I-V curve of the Broadcom SiPM at 293 K, and the right
+figure shows the I-V curve of the Broadcom SiPM at 293 K. The Vbd of the SiPM is
+                         √
+obtained by fitting the I-V curve, which is 32.1 V, basically consistent with the Vbd tested
+by the manufacturer.
+
+
+    During the testing process, as the bias voltage approaches the Vbd , the
+device current exhibits an exponential increase due to the triggering of the
+avalanche effect. The inflection point voltage in this curve is identified as the
+Vbd . A high-precision electrometer, Keithley 6517B, is employed for scanning
+with a step size of 0.1 V, while maintaining a stable test environment tem-
+perature (±1 K). At room temperature, the current increases from 10−8 A in
+the non-breakdown state to 10−6 A in the breakdown state. Due to the fact
+that the step size is set within a certain range, accurate measurement of the
+Vbd cannot be achieved. The precise value of the Vbd can be obtained through
+                  √
+the fitting of the I-V curve [25], and the intercept of the linear fitting on the
+horizontal axis is the Vbd .
+
+Accepted by RDTM. https://doi.org/10.1007/s41605-025-00599-5
+                                                                                         9
+
+    Through gain fitting (fig. 8): The Vbd variation was experimentally mea-
+sured within the temperature range of 30 K to 293 K. The results indicate
+that for Hamamatsu SiPM and NDL SiPM, the Vbd exhibits a nearly linear
+relationship with temperature above 77 K, with temperature coefficients of
+25.8 mV/K and 20.2 mV/K, respectively. In contrast, Broadcom SiPM demon-
+strates a linear characteristic only when the temperature exceeds 130 K, with a
+temperature coefficient of 34.3 mV/K. In the temperature range from 77 K to
+293 K, the Vbd decreases as the temperature decreases. This is mainly because
+the vibration of semiconductor lattice atoms decreases with the decrease of
+temperature, which leads to the widening of the potential barrier layer in the
+P-N junction and the increase of the average free path of carriers [26]. Thus,
+avalanche breakdown can occur with a lower electric field.
+
+
+
+
+Fig. 8 The Vbd is determined through gain fitting, with the voltage value corresponding
+to zero gain taken as the Vbd . The Vbd of the Hamamatsu SiPM varies with temperature in
+the range of 30 K to 220 K, while that of the Broadcom SiPM and NDL SiPM changes with
+temperature between 30 K and 240 K. Due to the 4 × 4 array structure of the Hamamatsu
+SiPM, which results in a relatively large area, the photon pile-up effect is significant at
+240 K, leading to poor waveform integration results. The errors displayed on the Y-axis
+originate from the fitting of the gain. The Vbd was also tested via I-V curve measurements,
+examining the temperature-dependent characteristics of the Vbd for the Hamamatsu SiPM
+in the temperature range of 100 K to 293 K and for the Broadcom SiPM in the range of
+130 K to 293 K.
+
+
+    During the testing process, no external light source was employed, and
+the measurements relied solely on the intrinsic dark noise of the SiPM. The
+research revealed that when the temperature is excessively low, the dark cur-
+rent decreases significantly, making it impossible to accurately determine the
+Vbd through the I-V curve. Furthermore, due to the adoption of an epitaxial
+resistance structure in the NDL SiPM, its Vbd cannot be measured using the
+I-V curve testing method. Within a certain temperature range where both test
+methods are applicable, the measured Vbd results are basically consistent.
+    When the temperature drops below 77 K, the Vbd of SiPM deviates from
+the linear variation trend and even shows an increasing phenomenon, which
+is mainly attributed to the changes in the low-temperature characteristics of
+semiconductor materials [26]. The carrier concentration becomes extremely
+
+Accepted by RDTM. https://doi.org/10.1007/s41605-025-00599-5
+10
+
+low, requiring a stronger electric field to trigger the avalanche. Meanwhile, the
+weakening of carrier-phonon scattering will enhance the avalanche efficiency.
+These effects collectively lead to a special temperature-dependent characteris-
+tic of the Vbd in the range of 30 K to 77 K, and even a slight upward abnormal
+phenomenon is observed.
+
+3.3 Dark counts
+The dark count rate (DCR) of SiPMs, as a critical performance metric, directly
+reflects the background noise characteristics of the device under dark con-
+ditions [27]. Its physical essence lies in the probability of thermally excited
+carriers triggering the avalanche process.
+    This study systematically investigates the variation laws of DCR in the
+dual-parameter space of temperatures from 30 K to 293 K and overvoltage.
+It is worth noting that when the operating temperature drops from 293 K to
+130 K, the DCR sharply decreases from 105 Hz/mm2 to 10−1 - 100 Hz/mm2 , a
+reduction of 6 orders of magnitude (fig. 9). This result clearly demonstrates the
+significant effect of low-temperature operation on suppressing thermal noise.
+
+
+
+
+Fig. 9 The left graph illustrates the variation of DCR with temperature. The overvoltage
+settings are 4 V for Hamamatsu SiPM, 9 V for Broadcom SiPM, and 2.5 V for NDL SiPM.
+Different models of SiPMs are set with different bias voltages primarily because each model
+has a specific optimal operating voltage range. In low-temperature environments, applying
+an excessively high bias voltage may lead to secondary breakdown in the SiPM. The right
+panel presents the DCR dependence of the SiPM on operating voltage at 40 K. The error
+on the X-axis is induced by temperature fluctuations (±1 K) during testing.
+
+
+    At a fixed temperature of 40 K, increasing the overvoltage of the Hama-
+matsu SiPM from 3.6 V to 6.6 V causes the DCR to rise from 0.24 Hz/mm2
+to 2.41 Hz/mm2 . Similarly, increasing the overvoltage of the Broadcom SiPM
+from 7.5 V to 12.5 V results in a DCR increase from 0.006 Hz/mm2 to
+0.15 Hz/mm2 , while raising the overvoltage of the NDL SiPM from 0.8 V to
+2.5 V leads to a DCR increase from 0.02 Hz/mm2 to 0.15 Hz/mm2 . This non-
+linear growth relationship can be attributed to two factors: on one hand, the
+enhanced electric field increases the probability of avalanche triggering. On
+
+Accepted by RDTM. https://doi.org/10.1007/s41605-025-00599-5
+                                                                                            11
+
+the other hand, excessively high bias voltages may contribute to secondary
+processes such as tunneling effects.
+   By establishing a comprehensive DCR parameter response map, this study
+not only deepens the understanding of the noise mechanisms in SiPMs but also
+provides critical experimental insights for device selection and system design.
+
+3.4 After-pulse
+The measurement of after-pulse is also based on SPE spectra [27–29]. After-
+pulse arises from secondary pulses formed by the delayed release of charge
+carriers trapped during the avalanche process. These pulses typically exhibit
+smaller amplitudes than the original signals (fig. 4), manifesting as ”small
+pulses” that are difficult to distinguish from genuine SPE signals, thereby
+degrading photon-counting resolution. Therefore, it is crucial to study the
+influence of bias voltage on the after-pulse rate at 40 K, so as to reduce its
+interference with real signals. The charge-amplitude two-dimensional distri-
+bution scatter plot shown below (fig. 10) clearly demonstrates the response
+characteristics of the Hamamatsu SiPM operating at 40 K with a working
+voltage of 36.5 V.
+
+
+
+
+Fig. 10 Charge-amplitude scatter distribution of SiPM. Herein, the red dashed box corre-
+sponds to the single-photon (1 P.E.) signal, the green dashed box contains after-pulse events,
+the orange dashed box marks direct crosstalk (DiCT) events, and the black dashed box
+marks delayed crosstalk (DeCT) events. Only the after-pulse generated after single-photon
+signals are considered. Firstly, in terms of timing, they occur after the initial single-photon
+avalanche event. Secondly, the amplitude of the after-pulse signal is slightly smaller than
+that of the single-photon signal. In the scatter plot, due to the integration characteristic
+of the signal acquisition system, after-pulse events and single-photon signals are recorded
+simultaneously within the same integration time window. This causes the charge exhibited
+by after-pulses to be between 1 P.E. and 2 P.E., while their signal amplitude is the same as
+that of single-photon events.
+
+
+   Through analysis of after-pulse probabilities in three SiPM models under
+varying overvoltage (fig. 11), it is observed that within a specific bias volt-
+age range, the after-pulse probability increases with higher overvoltage. This
+analytical method provides reliable quantitative insights into SiPM perfor-
+mance characteristics. Further improvements in measurement accuracy can
+
+
+Accepted by RDTM. https://doi.org/10.1007/s41605-025-00599-5
+12
+
+
+
+
+Fig. 11 The probability of after-pulse for three SiPMs at 40 K as a function of overvoltage.
+The error bars on the Y-axis represent statistical errors generated when calculating the
+probability of after-pulse.
+
+
+be achieved by optimizing parameters such as peak detection algorithms and
+integration time windows.
+
+3.5 Internal crosstalk
+Internal crosstalk (iCT) [30] is a phenomenon where secondary photons are
+absorbed by adjacent single-photon avalanche diode (SPAD) and trigger addi-
+tional avalanches within the same SiPM. Depending on whether electrons
+are generated in the depletion region, iCT can be further divided into direct
+crosstalk (DiCT) and delayed crosstalk (DeCT).
+    DiCT [31] is the secondary signal generated when secondary photons escape
+to the depletion layer of a nearby second SPAD unit and induce a secondary
+avalanche. DeCT [32] occurs when secondary photons are absorbed by the
+substrate in the non-depletion layer of the second SPAD unit. This process can
+also generate electrons. However, since the electrons are in the non-depletion
+layer at this time, an avalanche cannot occur. Instead, the electrons will drift
+toward the depletion layer under the action of an electric field and may trigger
+an avalanche after entering the depletion layer.
+    The iCT ratio [33] P (iCT ) of a SiPM can be roughly calculated by the
+following formula:
+
+                                          N (1.5P.E)
+                                P (iCT ) =                                     (2)
+                                          N (0.5P.E)
+    N (1.5P.E.) is the count exceeding the 1.5 P.E. threshold in the dark noise
+energy spectrum, and N (0.5P.E.) is the count exceeding the 0.5 P.E. threshold
+in the dark noise energy spectrum, with both charge and amplitude being less
+than 2 P.E..
+    Through probability analysis of iCT for three SiPMs under different over-
+voltage conditions (fig. 12), within a certain bias voltage range, the probability
+of iCT increases as overvoltage increases.
+
+
+Accepted by RDTM. https://doi.org/10.1007/s41605-025-00599-5
+                                                                                            13
+
+
+
+
+Fig. 12 The probability of iCT occurring at 40 K for three SiPMs as a function of overvolt-
+age. The error bars on the Y-axis represent statistical errors generated during the calculation
+of iCT probability.
+
+
+3.6 SPE resolution
+Against the background of SiPM’s dark noise, the σ/mean ratio [34] of the
+single-photon energy spectrum can effectively characterize the SPE resolution
+(fig. 13), which intuitively reflects the device’s ability to detect single pho-
+tons. The SPE resolution under different temperature conditions was measured
+experimentally, and the results showed that temperature changes significantly
+affect the resolution characteristics.
+    Under constant temperature conditions, there is an obvious positive corre-
+lation between SPE resolution and overvoltage in the low overvoltage ranges:
+3 V to 4.5 V for Hamamatsu SiPM, 6 V to 8.3 V for Broadcom SiPM, and
+0.8 V to 2.2 V for NDL SiPM. The small test overvoltage range of NDL SiPM
+is mainly because, at 40 K, when the overvoltage is slightly too high, the SiPM
+is prone to secondary breakdown and cannot work normally.
+    As the bias voltage increases, the combined effects of enhanced avalanche
+gain and improved signal-to-noise ratio lead to a rapid improvement in
+SPE resolution. However, when the overvoltage exceeds a critical value, the
+improvement in resolution tends to saturate and may even slightly deteriorate,
+constrained by factors such as intensified baseline noise and increased opti-
+cal crosstalk. This regularity provides important guidance for optimizing the
+operating parameters of SiPMs. By precisely regulating the operating temper-
+ature and optimizing the overvoltage settings, the single-photon resolution of
+SiPMs can be enhanced.
+    When the SiPM is combined with a surface-coated TPB (tetraphenyl buta-
+diene) wavelength conversion layer, it shifts the 340 nm [35] photons emitted
+by the pure-CsI crystal to 420 nm. This wavelength band exactly matches
+the PDE peak response range of the SiPMs, providing an optimal detection
+scheme for subsequent light yield experiments.
+
+
+
+
+Accepted by RDTM. https://doi.org/10.1007/s41605-025-00599-5
+14
+
+
+
+
+Fig. 13 The SPE resolution of three SiPMs at different temperatures (30 K, 40 K, 77 K,
+and 200 K) under varying overvoltage is presented. The upper left figure corresponds to
+the Hamamatsu SiPM, the upper right figure to the Broadcom SiPM, and the lower left
+figure to the NDL SiPM. The lower right figure shows the variation of SPE resolution with
+temperature for the Hamamatsu SiPM, Broadcom SiPM, and NDL SiPM at overvoltage of
+4.5 V, 8.3 V, and 2.2 V, respectively. For all three SiPMs, within the low overvoltage range,
+the SPE resolution improves significantly as the overvoltage increases.
+
+
+4 Conclusion
+This study systematically characterized the key performance parameters of
+three SiPMs under different temperature conditions by constructing a low-
+temperature testing system. The research shows that in a low-temperature
+operating environment, the gain of SiPMs is improved, the SPE resolution is
+optimized, and the DCR is reduced by 7 orders of magnitude. All three SiPMs
+can work normally within the temperature range of 30 K to 293 K. When
+the Hamamatsu SiPM, Broadcom SiPM, and NDL SiPM operate at 40 K
+with overvoltages of approximately 4.5 V, 8.3 V, and 2.2 V respectively, the
+devices exhibit the optimal combination of performance, and the single-photon
+detection resolution is significantly improved.
+    Studies have shown that in terms of gain, the Broadcom SiPM exhibits
+excellent characteristics. The photon signal broadening of the Broadcom SiPM
+in a low-temperature environment reaches the microsecond level, an order of
+magnitude higher than that of the other two devices. In terms of SPE reso-
+lution, the Hamamatsu SiPM and NDL SiPM perform better. The Broadcom
+
+Accepted by RDTM. https://doi.org/10.1007/s41605-025-00599-5
+                                                                            15
+
+SiPM and NDL SiPM have more advantages in dark noise control, among
+which the Broadcom SiPM can achieve a DCR of 0.006 Hz/mm2 under
+40 K. The NDL SiPM, due to its small operating voltage range at 40 K,
+is prone to secondary breakdown, which interferes with the stability of the
+test. In the normal-temperature operating mode, the Broadcom SiPM shows a
+higher photon detection efficiency (PDE = 63% vs. Hamamatsu’s 50%). Based
+on multi-dimensional performance evaluation, it is recommended to use the
+Broadcom SiPM to build the array.
+    The testing method established in this study and the obtained optimal
+parameter range of SiPM will ensure the reliability and accuracy of the
+research on the light yield of pure CsI crystals at low temperatures. It is of
+great significance for promoting the development of low-temperature detector
+technology.
+
+5 Acknowledgement
+This work is supported by the State Key Laboratory of Particle Detec-
+tion and Electronics (SKLPDE-ZZ-202116), the Natural Science Foundation
+of Hunan Province (Contract Nos. 2025JJ60063 and 2024JJ2044) and the
+Research Foundation of Education Bureau of Hunan Province, China (Grant
+No. 22A0286).
+
+6 Conflict of interest
+The authors declare that they have no conflict of interest.
+
+References
+ [1] D. Akimov et al. (COHERENT Collaboration), Observation of Coherent
+     Elastic Neutrino-Nucleus Scattering, Science 357, 1123–1126 (2017).
+
+ [2] D. Z. Freedman, Coherent Neutrino Nucleus Scattering as a Probe of the
+     Weak Neutral Current, Phys. Rev. D 9, 1389–1392 (1974).
+
+ [3] A. Drukier and L. Stodolsky, Principles and Applications of a Neutral
+     Current Detector for Neutrino Physics and Astronomy, Phys. Rev. D 30,
+     2295 (1984).
+
+ [4] A. C. Dodd et al., The Effect of a neutrino magnetic moment on nuclear
+     excitation processes, Phys. Lett. B 266, 434–438 (1991).
+
+ [5] T. S. Kosmas et al., Probing neutrino magnetic moments at the Spallation
+     Neutron Source facility, Phys. Rev. D 92, 013011 (2015).
+
+ [6] J. Barranco et al., Low energy neutrino experiments sensitivity to physics
+     beyond the Standard Model, Phys. Rev. D 76, 073008 (2007).
+
+Accepted by RDTM. https://doi.org/10.1007/s41605-025-00599-5
+16
+
+ [7] P. deNiverville et al., Light new physics in coherent neutrino-nucleus
+     scattering experiments, Phys. Rev. D 92, 095005 (2015).
+
+ [8] B. Dutta et al., Sensitivity to Z-prime and nonstandard neutrino interac-
+     tions from ultralow threshold neutrino-nucleus coherent scattering, Phys.
+     Rev. D 93, 013015 (2016).
+
+ [9] J. Liao and D. Marfatia, COHERENT constraints on nonstandard
+     neutrino interactions, Phys. Lett. B 775, 54–57 (2017).
+
+[10] K. Patton et al., Neutrino-nucleus coherent scattering as a probe of
+     neutron density distributions, Phys. Rev. C 86, 024612 (2012).
+
+[11] M. Cadeddu et al., Average CsI neutron density distribution from
+     COHERENT data, Phys. Rev. Lett. 120, 072501 (2018).
+
+[12] E. Ciuffoli et al., Extracting nuclear form factors with coherent neutrino
+     scattering, Phys. Rev. D 97, 113003 (2018).
+
+[13] V. I. Goriletsky et al., Kinetic and scintillation characteristics of CsI(Na)
+     crystals grown under melt mixing, Nucl. Instrum. Meth. B 159, 111–115
+     (1999).
+
+[14] G. C. Rich, Measurement of Low-Energy Nuclear-Recoil Quenching
+     Factors in CsI[Na] and Statistical Analysis of the First Observation
+     of Coherent, Elastic Neutrino-Nucleus Scattering, Ph.D. thesis, North
+     Carolina U. (2017).
+
+[15] X. Sun et al., Neutron-gamma discrimination of CsI(Na) crystals for dark
+     matter searches, Nucl. Instrum. Meth. A 642, 52–58 (2011).
+
+[16] L. Wang et al., Reactor neutrino physics potentials of cryogenic pure-CsI
+     crystal, Eur. Phys. J. C 84, 440 (2024).
+
+[17] S. A. Payne et al., Nonproportionality of Scintillator Detectors: Theory
+     and Experiment. II, IEEE Trans. Nucl. Sci. 58, 3392–3402 (2011).
+
+[18] V. B. Mikhailik et al., Luminescence and scintillation properties of CsI –
+     a potential cryogenic scintillator, Phys. Status Solidi B 252, 804 (2015).
+
+[19] P. S. Barbeau et al. (COHERENT Collaboration), Accessing new physics
+     with an undoped, cryogenic CsI CEvNS detector for COHERENT at the
+     SNS, Phys. Rev. D 109, 092005 (2024).
+
+[20] S. Park et al., Characterization of a Pure CsI Crystal at Low Temperature
+     for a Dark-Matter Search, New Phys. Sae Mulli 71, 469–475 (2021).
+
+
+
+Accepted by RDTM. https://doi.org/10.1007/s41605-025-00599-5
+                                                                                17
+
+[21] H. Nishimura et al., Origin of the 4.1-eV luminescence in pure CsI
+     scintillator, Phys. Rev. B 51, 2167–2172 (1995).
+
+[22] C. Sailer et al., Low temperature light yield measurements in NaI and
+     NaI(Tl), Eur. Phys. J. C 72, 2061 (2012).
+
+[23] https://docs.broadcom.com/doc/AFBR-S4N66P024M-DS.
+
+[24] https://root.cern.ch/.
+
+[25] F. Liu et al., Characterization of a Mass-Produced SiPM at Liquid Nitro-
+     gen Temperature for CsI Neutrino Coherent Detectors, Sensors 22, 1099
+     (2022).
+
+[26] C. R. Crowell and S. M. Sze, Temperature dependence of avalanche mul-
+     tiplication in semiconductors, IEEE Trans. Electron Devices ED-13, 677
+     (1966).
+
+[27] P. Eckert et al., Characterisation Studies of Silicon Photomultipliers,
+     Nucl. Instrum. Meth. A 620, 217–226 (2010).
+
+[28] S. Vinogradov et al., Probability distribution and noise factor of solid state
+     photomultiplier signals with cross-talk and afterpulsing, in 2009 IEEE
+     Nuclear Science Symposium Conference Record (NSS/MIC), 1496–1500
+     (2009).
+
+[29] L. Wang et al., Characterization of VUV4 SiPM for liquid argon detector,
+     JINST 16, P07021 (2021).
+
+[30] C. Piemonte and A. Gola, Overview on the main parameters and tech-
+     nology of modern Silicon Photomultipliers, Nucl. Instrum. Meth. A 926,
+     2–15 (2019).
+
+[31] S. Gundacker and A. Heering, The silicon-photomultiplier: fundamentals
+     and applications of a modern solid-state photon detector, Phys. Med. Biol.
+     65, 17TR01 (2020).
+
+[32] A. Gola et al., SiPM cross-talk amplification due to scintillator crystal:
+     Effects on timing performance, in 2012 IEEE Nuclear Science Symposium
+     and Medical Imaging Conference Record (NSS/MIC), 421–423 (2012).
+
+[33] G. Li et al., A novel measurement method for SiPM external crosstalk
+     probability at low temperature, IEEE Trans. Nucl. Sci. 71, 1357–1364
+     (2024).
+
+[34] C. Zhong et al., Study on SiPM performance at low temperatures between
+     -60°C and -20°C, JINST 17, T11003 (2022).
+
+
+Accepted by RDTM. https://doi.org/10.1007/s41605-025-00599-5
+18
+
+[35] C. Amsler et al., Temperature dependence of pure CsI: scintillation light
+     yield and decay time, Nucl. Instrum. Methods Phys. Res., Sect. A 480,
+     494–500 (2002).
+
+
+
+
+Accepted by RDTM. https://doi.org/10.1007/s41605-025-00599-5
+

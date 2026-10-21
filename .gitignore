@@ -16,3 +16,6 @@ benchdata/*
 
 # Documenter build output
 docs/build/
+
+# PDFs are not tracked: our notes regenerate with LaTeX, papers keep only their .txt
+*.pdf

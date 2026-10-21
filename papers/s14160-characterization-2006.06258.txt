@@ -1,0 +1,254 @@
+                                                   Prepared for submission to JINST
+
+
+
+
+                                                   Characterization of Hamamatsu 14160 series of Silicon
+                                                   Photo-Multipliers
+
+
+
+
+arXiv:2006.06258v2 [physics.ins-det] 26 Jun 2020
+                                                   P.W. Cattaneo,a,1 A. Menegolli,a,b M.C. Prata,a G.L. Raselli,a M. Rossella,a
+                                                   a INFN Sezione di Pavia, Pavia, Italy
+
+                                                   b Dipartimento di Fisica, University of Pavia, Pavia, Italy
+
+
+                                                    E-mail: paolo.cattaneo@pv.infn.it
+
+                                                   Abstract: Silicon Photo-Multipliers (SiPMs) are semiconductor-based photo-detectors with per-
+                                                   formances similar to the traditional Photo-Multiplier Tubes (PMTs). An increasing number of
+                                                   experiments dedicated to particle detection in colliders, accelerators, astrophysics, neutrino and
+                                                   rare-event physics involving scintillators are using SiPMs as photodetectors. They are gradually
+                                                   substituting PMTs in many applications, especially where low voltages are required and high mag-
+                                                   netic field is present. Hamamatsu Photonics K.K., one of leading producers of photo-detectors, in
+                                                   the last year introduced the S14160 series of SiPMs with improved performances. In this work, a
+                                                   characterization of these devices will be presented in terms of breakdown voltages, pulse shape,
+                                                   dark current and gain. Particular attention has been dedicated to the analysis of the parameters as
+                                                   function of temperature.
+
+
+
+
+                                                     1Corresponding author.
+Contents
+
+1   Introduction                                                                                       1
+
+2   Experimental apparatus                                                                             1
+
+3   Results                                                                                            3
+
+4   Conclusions                                                                                        5
+
+
+
+
+1   Introduction
+
+In latest years, solid state photo-detectors have become a staple for many experiments in high energy
+physics, either at the accelerators or devoted to neutrino and rare-event physics. In particular, Silicon
+Photo-Multipliers (SiPMs) are semiconductor-based photo-detectors adopting the avalanche photo-
+diode approach to get performance similar to the traditional Photo-Multiplier Tubes (PMTs). A
+number of neutrino and Dark Matter experiments [1] [2] plan to use SiPM also at cryogenic
+temperatures as scintillation light detectors. Despite the smaller window surface with respect to
+traditional large area PMTs, SiPMs operating at cryogenic temperature have the advantage of a
+thermal component of the noise decreasing with the reduction of the temperature, thus allowing
+the use of these devices at higher overvoltage [3] [4]. Hamamatsu Photonics K.K., one of leading
+producers of photo-detectors, in the last year introduced the S14160 series of SiPMs with improved
+performances. The aim of this work is the test these new devices in terms of breakdown voltages,
+pulse shape, dark current and gain, and compare them with previous series. An experimental
+apparatus based on a climatic chamber allowed to carry out the measurements in a temperature
+range from -40◦ C to +40◦ C.
+
+2   Experimental apparatus
+
+The adopted experimental setup is based on a climatic chamber (F.lli Galli model Genviro-030LC)
+with a temperature range from −60◦ C to +60◦ C that can house the SiPM to be tested. The inner
+part of the chamber can be connected to the external world by means of electrical and optical
+(optical fiber) feed-throughs. Fig. 1 shows a picture of the chamber. A Keithly 6487 model
+picoAmmeter/Source-generator is used both to apply the voltage to the SiPM and to measure the
+current. An Hamamatsu optical pulser, model PLP10-040, with an emission wavelength λ = 405
+nm, pulse width of 60 ps (FWHM) and peak power of 200 mW, is used to illuminate the device.
+About 107 photons per pulse are directly injected in a FC optical fiber followed by an optical fiber
+attenuator that can reduce the number of photons from 107 to zero. The optical pulser can pulse
+up to 100MHz, but all the measurements of this work have been carried out at 10Hz. Signals are
+acquired by means of a LeCroy digital Oscilloscope model Waverunner 610Zi, with 8-bit vertical
+
+
+
+
+                                                 –1–
+resolution, 1 GHz bandwidth, and 20 GSa/s sampling rate. The complete set-up is shown in Fig. 2.
+Several Hamamatsu devices from 14160 series have been selected to be tested (see Fig. 3):
+
+    • S14160-3050HS: 3×3 mm2 active area, 50 µm cell, 3531 pixels, 74% fill factor, silicon
+      window.
+    • S14160-4050HS: 4×4 mm2 active area, 50 µm cell, 6331 pixels, 74% fill factor, silicon
+      window.
+    • S14160-6050HS: 6×6 mm2 active area, 50 µm cell, 14331 pixels, 74% fill factor, silicon
+      window.
+    • S14160-1310PS: 1.3×1.3 mm2 active area, 10 µm cell, 16675 pixels, 31% fill factor, silicon
+      window.
+    • S14160-1315PS: 1.3×1.3 mm2 active area, 15 µm cell, 7296 pixels, 49% fill factor, silicon
+      window.
+
+      Hamamatsu S14160 series are innovative surface mount SiPMs with an higher PDE, a lower
+temperature coefficient and a lower operation (breakdown) voltage in comparison to previous
+Hamamatsu devices. They are immune to effects of magnetic fields, are poorly affected by cross-
+talk and after-pulses, operate at a typical breakdown voltage of 38V and have an excellent time
+resolution. The 3×3 mm2 , 4×4 mm2 and 6×6 mm2 version have 50µm cells, a PDE up to 50%
+(at the peak wavelength and at 2.7V overvoltage) and a typical gain of 106 . They are suited for
+scintillation detectors and for industrial applications such as for PET, radiation monitor etc.. The
+higher PDE is due to the HWB (Hole Wire bonding) technology allowing for small dead space in
+the photosensitive area. The 1.3×1.3 mm2 versions have smaller pixel size (10µm and 15µm), high
+fill factor and wide dynamic range; they show low cross-talk and after-pulses and a typical gain
+of 105 . They are suggested for high energy physics experiments, fluorescence measurement, flow
+cytometry, DNA sequencers and environmental analysis.
+
+
+
+
+         Figure 1. Experimental set-up used for the characterization of the S14160 SiPM series.
+
+
+
+
+                                                 –2–
+                            Figure 2. Scheme of the experimental set-up.
+
+
+
+
+                             Figure 3. Picture of the devices under test.
+
+
+3   Results
+
+Considering that all the devices under test are surface-mount technology, we decided to solder them
+on electronic boards each equipped with a coaxial MCX connector, as shown in Fig. 4. Soldering
+was performed after a vacuum baking of 48 hours at 60◦ C, by means of Vapor Phase Reflow
+Soldering process that guarantees a uniform and well controlled temperature of the process and
+consequently no damage on the plastic window of the devices.
+     Preliminary results have been obtained from tests on the devices described above. Some of
+them are here reported in terms of:
+
+    • I-V curve of S14160-3050HS for various temperatures plotting dark current versus bias
+      voltage (Fig. 5 left); the breakdown voltage is defined as the voltage where the second
+      derivative of the curves peaks,
+    • breakdown voltage as function of temperature with temperature coefficient displayed for the
+      three 50 µm cell SiPMs (Fig. 5 right): all models show a linear behaviour, with similar
+      temperature coefficients ∼30 mV/◦ C. The same measurement performed in the past with
+      previous S12572 series SiPMs (3×3 mm2 area, 50 µm cell) gave a temperature coefficient of
+      ∼ 60 mV/◦ C [5], thus showing the larger stability of the new series;
+
+
+
+
+                                                –3–
+Figure 4. Left: 3D rendering of our custom board for SiPM mounting. Right: the electronic boards housing
+the SiPM models under test.
+
+
+    • Direct I-V curve for S14160-3050HS at several temperatures (Fig. 6 left);
+    • quenching resistor for S14160-6050HS and 4050HS as function of temperature (Fig. 6 right).
+
+
+
+
+Figure 5. Left: I-V curve at different temperatures for S14160-3050HS. Right: Breakdown voltage as a
+function of temperature.
+
+     A further comparison with the S12572 series has been carried out first of all in terms of leading
+edge and decay time of SiPM signals under illumination provided by the Hamamatsu optical pulser
+(see Fig. 2): the typical pulse shapes of all devices under test are shown in Fig. 7-left, while in
+Fig. 7-right the rise time of the S14160-3050HS as function of the overvoltage is shown.
+     Fig. 8 shows the results on the leading edge (left) and on the decay time (right) of the SiPM
+signal for the S14160 and S12572 series. The leading edge of the S14160-6050HS SiPM is about
+the half of the one of the S12572 SiPM series. It can be noted that for both series the leading edge
+is poorly affected by the temperature change, being stable in the range from -40◦ C to +40◦ C defined
+within the climatic chamber. The decay time is instead similar for the S14160 and S21572 series
+when the SiPMs have the same 3×3 mm2 area. The S14160-6050HS, with a 6×6 mm2 area, is
+affected by a longer decay time, as expected due to the higher quenching resistor.
+
+
+
+
+                                                 –4–
+Figure 6. Left: Direct I-V curve for S14160-3050HS at several temperatures. Right: quenching resistor as
+function of temperature for S14160-4050HS and S14160-6050HS.
+
+
+     In order to characterize the devices in terms of noise, we measured the dark current of S14160-
+6050HS as a function of the overvoltage for several temperatures, as shown in Fig. 9-left. Comparing
+the new series with the S12572, a large reduction of the noise for a same overvoltage value is seen,
+as shown in Fig. 9-right for a temperature of 30◦ C. Both SiPMs are 3×3 mm2 area, 50 µm cell.
+     Finally, a preliminary study was performed on the signal amplitude of several SiPMs, illumi-
+nated by the Hamamatsu optical pulser with a fixed number of photons per pulse, by evaluating
+the peak directly from the oscilloscope output and varying the overvoltage. Results are shown in
+Fig. 10 in terms of pulse peak normalized to the value measured for an overvoltage of 3 Volts. In
+the figure, the quantity displayed in the vertical axis is proportional to the product PDE × Gain. If
+we consider a constant PDE as a function of the overvoltage, the curve slope corresponds to the
+                   ∆V of the gain with respect to the supplied voltage. S14160-6050HS SiPM has
+relative variation ∆G
+an almost linear behaviour from -40◦ C to room temperature (Fig. 10-left). The relative variation
+of the peak amplitude is the same for all the temperatures, being the slopes of all curves identical.
+In Fig. 10-right the S14160 and S12572 series are compared at room temperature: while the two
+S14160 models have the same relative variation, the slope of the S12572 curve (red dots) is slightly
+larger.
+
+
+4   Conclusions
+
+The Hamamatsu S14160 series Silicon PM has been widely tested in terms of I-V curve, voltage
+breakdown temperature coefficient, quenching resistor and pulse response as a function of temper-
+ature, from -40◦ C to +40◦ C. The performance on the most significant parameters of the S14160
+series of SiPM is largely improved with respect to preceding series, in particular in terms of a lower
+temperature coefficient, a lower breakdown voltage, better noise and higher PDE and gain.
+
+
+
+
+                                                 –5–
+Figure 7. Left: typical pulse shape for all devices under test with the indication of the decay time. Right:
+leading edge of S14160-3050HS as a function of the overvoltage.
+
+
+
+
+Figure 8. Comparison between S14160 and S12572 leading edge (left) and decay time (right) as a function
+of the temperature.
+
+
+References
+
+ [1] B. Abi et al. (DUNE Collaboration), âĂĲThe DUNE Far Detector Interim Design Report, Volume 2:
+     Single-Phase ModuleâĂİ, arXiv:1807.10327v1.
+ [2] C.E. Aalseth et al. (Darkside Collaboration), âĂĲDarkSide-20k: A 20 tonne two-phase LAr TPC for
+     direct dark matter detection at LNGSâĂİ, Eur. Phys. Journ. Plus 133 (2018) 131.
+ [3] T. Cervi et al., Nucl. Instr. Meth A824 (2016) 89-91.
+ [4] T. Cervi et al., JINST 12 (2017) C03007.
+ [5] https://www.hamamatsu.com/resources/pdf/ssd/s12572-010_etc_kapd1045e.pdf
+
+
+
+
+                                                   –6–
+Figure 9. Left: dark current of S14160-6050HS as a function of the overvoltage, for several temperatures.
+Right: comparison between S14160-3050HS and S12572-050P in terms of Dark Current as a function of
+the overvoltage.
+
+
+
+
+Figure 10. Left: peak amplitude of S14160-3050HS as a function of the applied voltage, measured at several
+temperature. Right: peak amplitude of S14160 and S12572 series as a function of the overvoltage, measured
+at room temperature.
+
+
+
+
+                                                  –7–
+

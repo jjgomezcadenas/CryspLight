@@ -1,0 +1,516 @@
+                                                                                                                                                                                            1
+
+
+
+
+                                                                     Cryogenic Characterization of FBK
+                                                                       HD Near-UV Sensitive SiPMs
+                                                    Fabio Acerbi, Stefano Davini, Alessandro Ferri, Cristiano Galbiati, Graham Giovanetti, Alberto Gola,
+                                                       George Korga, Andrea Mandarano, Marco Marcante, Giovanni Paternoster, Claudio Piemonte,
+                                                       Alessandro Razeto, Veronica Regazzoni, Davide Sablone, Claudio Savarese, Gaetano Zappalá,
+                                                                                         and Nicola Zorzi
+
+
+
+
+arXiv:1610.01915v2 [physics.ins-det] 29 Jun 2017
+                                                      Abstract—We report on the characterization of near-                     with increasing interest from a wide range of scientific
+                                                   ultraviolet high density silicon photomultiplier (SiPM)                    fields. SiPM operation at cryogenic temperatures offers
+                                                   developed at Fondazione Bruno Kessler (FBK) at cryogenic                   an interesting option for future particle detectors, where
+                                                   temperature. A dedicated setup was built to measure the
+                                                   primary dark noise and correlated noise of the SiPMs                       the detection efficiency of scintillation light is of primary
+                                                   between 40 and 300 K. Moreover, an analysis program                        importance.
+                                                   and data acquisition system were developed to allow the                       Building on its strong line of SiPM development [1],
+                                                   precise characterization of these parameters, some of which                FBK recently introduced a new generation of near-
+                                                   can vary up to 7 orders of magnitude between room                          ultraviolet high density (NUV-HD) SiPMs. The perfor-
+                                                   temperature and 40 K. We demonstrate that it is possible
+                                                   to operate the FBK near-ultraviolet high density SiPMs at                  mance of NUV-HD SiPMs detailed in [2], makes them
+                                                   temperatures lower than 100 K with a dark rate below                       a promising candidate for use in future, multi-ton dark-
+                                                   0.01 cps/mm2 and total correlated noise probability below                  matter detectors. One such detector is DarkSide-20k,
+                                                   35% at an over-voltage of 6 V. These results are relevant                  a 20 tonne dual phase argon time projection chamber
+                                                   for the development of future cryogenic particle detectors                 that will require about 14 m2 of near-UV sensitive pho-
+                                                   using SiPMs as photosensors.
+                                                                                                                              todetectors operating at 87 K with very low noise. In
+                                                      Index Terms—Afterpulsing, avalanche photodiode,                         this paper, we present measurements of the cryogenic
+                                                   crosstalk, cryogenics, dark noise, silicon photomultiplier                 performance of NUV-HD SiPMs including the dark
+                                                   (SiPM).
+                                                                                                                              count rate (DCR) and the correlated noise.
+                                                                                                                                 We characterized two variants of the NUV-HD SiPMs,
+                                                                          I. I NTRODUCTION                                    the NUV-HD standard-field (NUV-HD-SF) and the
+                                                                                                                              NUV-HD low-field (NUV-HD-LF), which differ by the
+                                                   T     HE use of silicon photomultipliers (SiPMs) at cryo-
+                                                         genic temperatures is a new line of development
+                                                                                                                              field strength in the avalanche region [3]. All the
+                                                                                                                              NUV-HD SiPMs tested were 4 × 4 mm2 with a cell pitch
+                                                      Manuscript revisioned on November 16, 2016.                             of 25 × 25 µm2 .
+                                                      The development of the NUV-HD and NUV-HD-LF SiPM technolo-                 To perform these measurements, we developed a cryo-
+                                                   gies was funded by the EU FP7 project SUBLIMA, Grant 241711.               genic test setup equipped with a flexible data acquisition
+                                                   We acknowledge support from NSF (US, Grant PHY-1314507 for
+                                                   Princeton University), the Istituto Nazionale di Fisica Nucleare (Italy)   system and an ad-hoc analysis tool, capable of charac-
+                                                   and Laboratori Nazionali del Gran Sasso (Italy).                           terizing SiPMs and SiPM assemblies in the temperature
+                                                      S. Davini, A. Mandarano, and C. Savarese are with Gran Sasso            range from 40 K to 300 K.
+                                                   Science Institute, L’Aquila 67100, Italy and INFN Laboratori Nazionali
+                                                   del Gran Sasso, Assergi (AQ) 67100, Italy.                                    Section II is devoted to the cryogenic experimental
+                                                      F. Acerbi, A. Ferri, A. Gola, C. Piemonte and N. Zorzi are with         setup, Sections III and IV show the data acquisition
+                                                   Fondazione Bruno Kessler, Povo 38123, Italy and Trento Institute for       system and the analysis tool. In Section V, we detail
+                                                   Fundamental Physics and Applications, Povo 38123, Italy.
+                                                      M. Marcante, V. Regazzoni, G. Zappalá are with Fondazione Bruno        the results obtained for the NUV-HD SiPMs.
+                                                   Kessler, Povo 38123, Italy, Trento Institute for Fundamental Physics
+                                                   and Applications, Povo 38123, Italy and Physics Department, Univer-                         II. C RYOGENIC S ETUP
+                                                   sità degli Studi di Trento, Povo 38123, Italy.
+                                                      C. Galbiati is with Physics Department, Princeton University, Prince-      The cryogenic setup is contained in a stainless steel
+                                                   ton, NJ 08544, USA.                                                        vacuum chamber made of a 500 mm cylindrical tube
+                                                      G. Korga is with Department of Physics, University of Houston,
+                                                   Houston, TX 77204, USA and INFN Laboratori Nazionali del Gran              closed by two DN 320 ISO-K flanges. Inside the vac-
+                                                   Sasso, Assergi (AQ) 67100, Italy.                                          uum chamber sits a thin PTFE (Polytetrafluoroethylene)
+                                                      G. Giovanetti, A. Razeto and D. Sablone are with INFN Laboratori        cylinder shielded by a layer of superinsulator that serves
+                                                   Nazionali del Gran Sasso, Assergi (AQ) 67100, Italy and Physics
+                                                   Department, Princeton University, Princeton, NJ 08544, USA.                as a thermal shield. The cryostat is equipped with a
+                                                      Corresponding Author: sarlabb7@lngs.infn.it                             set of vacuum bulkhead feedthroughs. Several coaxial
+
+                                                   ©2017 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission. See http://www.ieee.org/publications
+                                                   standards/publications/rights/index.html for more information. DOI: 10.1109/TED.2016.2641586
+                                                                                                                                           2
+
+
+
+                            Helium
+                          Compressor
+                                                                           Frame 0              Frame 1                     Frame 2
+  Temperature                               Digitizer      DAQ       T0                   T1                           T2
+   Controller
+                                            Warm Amp
+
+                                                        SiPM Bias
+    Pressure                                                                                     Digitizer Threshold
+     Gauge                Cryocooler
+                                                         Waveform
+                                        LED
+                                                        Generator
+     Vacuum
+                                Cold
+      Pump                                                Laser                   Δt0          Δt1          Δt2             Δt3
+                              Pre-Amp    SiPM
+
+                             Cold Finger
+                                                                    Fig. 2. Schematic representation of the capture of SiPM waveforms
+                           Heater
+                                                                    in different frames. Each frame can capture one or more SiPM pulses.
+                                                                    See the text for details on calculation of the inter-arrival time between
+                           PTFE vessel                              pulses in different frames.
+                            Stainless
+                          Steel Vessel                              by a screw, with a thin layer of cryogenic grease ensuring
+                                                                    a good thermal contact between the copper and the
+Fig. 1. Sketch of the experimental setup.                           aluminum board. A cryogenic pre-amplifier specifically
+                                                                    designed for this application is connected to the SiPM
+SMA connections are used for the SiPM signal. A
+                                                                    and is in thermal equilibrium with the cold finger.
+set of hermetic, high density connectors are used for
+temperature readout, heater power, pre-amplifier power
+and SiPM bias. A hermetic optical fiber feedthrough is                    III. R EADOUT C HAIN AND DATA ACQUISITION
+installed so that the device under test can be illuminated                                  S YSTEM
+by an external laser source; a blue LED is installed in                The readout chain is composed of:
+the cryostat and can also be used to illuminate the SiPM.               • a SiPM bias source;
+To minimize light leaks, which could spoil the dark rate                • a cryogenic pre-amplifier directly connected to the
+measurements, a small dark box was built to contain the                   device under test and the bias supply;
+SiPM, as described later in this section. Furthermore,                  • a low noise warm amplifier that receives the signal
+opaque fabric is wrapped around the cryostat to further                   from the pre-amplifier;
+reduce the light entering the chamber. An overview                      • and a high speed digitizer.
+sketch of the system is shown in Fig. 1.                               A Keithley 2450 SourceMeter is used to provide the
+   During operations, the chamber reaches a vacuum                  bias voltage to the SiPM. This unit can directly measure
+level of about 10−2 mbar thanks to a Pfeiffer ACP15                 the current-voltage (I-V ) curves of the SiPM useful to
+multi-stage roots evacuation pump. A Cryomech PT90                  measure both the breakdown voltage and the value of
+pulse tube cryocooler, capable of delivering 90 W of                the quenching resistor.
+cooling capacity at 77 K, is mounted on the top of the                 The cryogenic pre-amplifier is a high speed, low noise
+flange. The cold head of the cryocooler is equipped with            operational amplifier configured as a trans-impedance
+a cold finger, which holds the SiPM assembly under test.            amplifier (TIA) with a feedback resistor of 500 Ω result-
+This arrangement allows for fast thermal cycling: the               ing in a gain of 0.5 mV/µA. This configuration allows
+cold finger can be thermalized from room temperature                a reasonable sensitivity despite the very large SiPM
+to 40 K in about 40 minutes. The cold finger also hosts a           input capacitance of 50 pF/mm2 . The pre-amplifier has
+platinum surface mount RTD soldered to a printed circuit            a 20 Ω resistor between the SiPM and the TIA to reduce
+board (PCB) and connected via low thermal conductance               the noise gain of the amplifier at high frequencies and
+phosphor bronze wires to a Lakeshore 335 temperature                to better match the signal from the SiPM with the
+controller, which regulates the temperature by driving              amplifier, thus avoiding undershoots [4]. The design and
+a set of high power metal film resistors mounted on                 the implementation of the cryogenic pre-amplifier will
+the cold finger. This system has proven to reach a                  be discussed in a future publication.
+temperature stability of about 0.1 K and an accuracy of                The warm amplifier consists of a single stage non-
+about 3 K in the range of interest from 40 K to 300 K. A            inverting amplifier with input noise equivalent of 11 µV,
+Lakeshore 218 meter measures the temperature of other               significantly smaller than the output noise from the
+platinum RTD sensors installed in the cryostat.                     cryogenic pre-amplifier. The device is configured for a
+   To minimize unwanted thermal gradients, SiPMs are                gain of 28.8 V/V with a rise time of 7 ns.
+mounted on 1.6 mm-thick aluminum PCBs that use insu-                   The amplified signal is fed into a CAEN V1751
+lated metallic substrate (IMS) technology with the silver-          1 GS/s 10 bit digitizer configured for interleaved acqui-
+loaded conductive epoxy MasterBond EP21TDCS-LO.                     sition and operating in auto-trigger mode. Each time the
+The mounted SiPM is firmly connected to the cold finger             digitizer signal crosses a fixed threshold the waveform
+                                                                                                                                                                       3
+
+
+
+
+                   5                                                                                     34
+                                                                                                                   Breakdown Voltage
+
+                                                                                                         32                     Low Field
+                   4                                                                                                            Std Field
+
+
+
+
+  Amplitude [PE]
+                                                                             DiCT                        30
+
+
+                                                                                              V BD [V]
+                   3
+                                                                                                         28
+
+
+                   2                                                                                     26
+
+                           DeCT               After-pulse                                                24
+                   1
+                                                                                                         22
+                                                                        Primary DCR
+                   0                                                                                     20
+                   10-9     -8
+                           10      -7
+                                  10     -6
+                                        10     10-5     -4
+                                                       10    -3
+                                                            10    -2
+                                                                 10     -1
+                                                                       10     1     10    2
+                                                                                         10                   50          100          150           200   250   300
+                                                    Delay Time [s]
+                                                                                                                                             T [K]
+
+
+Fig. 3. Distribution of delay time versus amplitude for run at 77 K and                       Fig. 4. Breakdown voltage of NUV-HD-LF and NUV-HD-SF SiPMs
+in absence of light stimulation. A few components of the noise response                       as measured with a linear fit to DLED single cell response amplitudes.
+of the SiPM can be clearly identified: primary dark count (part of the
+Dark Count Rate, DCR), Direct CrossTalk (DiCT), Delayed CrossTalk                             are strongly enhanced by the addition of the time tagging
+(DeCT), and AfterPulsing (AP).
+                                                                                              of frames previously described in Sec. III, which is
+is recorded for a fixed time duration (i.e. frame). Each                                      mandated by the several order of magnitude variation
+saved frame is set to contain a sufficient number of points                                   in SiPM dark pulse rates as a function of temperature.
+before the trigger time position to enable an estimation                                      The time tagging of frames allows the time difference
+of the baseline level. A custom C++ program handles                                           between consecutive pulses to be calculated from the
+the configuration and the readout of the digitizer. Data                                      nanosecond scale, using pulses within the same frame,
+are saved in a custom file format, with each frame in the                                     to thousands of seconds, using different frames, with
+file including the digitized waveform and a header that                                       the only practical limit set by the time available for
+contains accurate timing information – see Fig. 2.                                            measurement. This allows a seamless determination of
+Two time stamps, a fine and a coarse counter, are saved                                       the temperature-dependent SiPM pulse rate, a detailed
+for each frame. The first is obtained directly by the                                         study of their correlation, and the extraction of the
+digitizer and represents the starting time of each frame                                      secondary noise probabilities.
+counting from the beginning of the measurement. It has                                           For data collected near room temperature, the frame
+a resolution of 8 ns and an overflow time of roughly                                          time tag is not helpful, as each frame may already
+37 s. In order to recover the time information when the                                       contain several hundreds of events and the dead time
+acquisition time exceeds the overflow, which can easily                                       required by the digitizer to store the data becomes
+be the case with the low event rate expected at cryogenic                                     comparable with the inverse of the dark rate. Except for
+temperature, an additional coarse counter is extracted                                        this difference in the utilization of data, the analysis is
+by the operating system of the computer with a lower                                          uniform for all dataset: each event is tagged with an
+precision (on the order of 10 ms).                                                            ordered pair of values, i.e. the time distance from the
+The trigger threshold value is set by the user depending                                      previous pulse and the amplitude. A typical scatter plot
+on the device under test, the noise level and the signal                                      with 5000 ordered pairs recorded for a run at 77 K and
+gain. It is typically set to be half of the value of the                                      in absence of light stimulation is shown in Fig. 3. The
+amplitude of a single cell response. The length of the                                        plot allows the identification of the different kinds of
+acquisition gate depends on the pulse rate from the                                           pulses that compose the noise response of the SiPM.
+SiPM. At cryogenic temperatures, the low rate enables                                            DCR: The main group of events is due to primary,
+the use of a short, 10 µs gate, with each frame typically                                     Poisson-distributed, dark counts that make up the DCR.
+recording a single SiPM pulse. Near room temperature,                                         The amplitude is centered at around 1 PE (Photo-
+the gate is set to 2 ms, resulting in many pulses being                                       Electron), and the distribution in time is exponential with
+recorded in the same frame. In this case, time differences                                    a decay time corresponding to the inverse of the DCR.
+between consecutive pulses are evaluated by analyzing                                            DiCT: Direct CrossTalk (DiCT) events occur a very
+the waveform only.                                                                            short time after the preceding pulse, given by the travel
+                                                                                              time needed for the crosstalk photon to reach a neigh-
+                          IV. T HE DATA A NALYSIS S OFTWARE                                   boring cell and trigger an independent avalanche. The
+   The data analysis software was developed at FBK                                            time required is on the picosecond time scale, nearly
+following the procedure described in [5]. It reads the                                        impossible to be resolved with the readout electronics.
+data stored in the data frames and performs a detailed                                        As a result, DiCT pulses are superimposed on the DCR
+analysis of the SiPMs response, with special emphasis on                                      pulses and have a similar time distribution but are
+the time correlation of pulses. The analysis capabilities                                     characterized by greater amplitudes corresponding to the
+                                                                                                                                                                              4
+
+
+                       10                                                                                            10
+                                                                               Temperature                                                                OV
+                                                                                     40 K                                                                       3   V
+                                                                                     120 K                                                                      4   V
+                                                                                     200 K                                                                      5   V
+                                                                                     240 K                                                                      6   V
+
+
+
+
+  Amplitude [µA]
+                        1                                                            300 K
+
+
+
+                                                                                                        Time [µs]
+                                                                                                                      1
+
+
+
+                      10-1
+
+
+
+                                                                                                                    10-1
+
+                      10-2
+                             0   200     400     600   800 1000 1200        1400   1600   1800   2000                      50   100   150           200   250           300
+                                                          Time [ns]                                                                         T [K]
+
+
+
+Fig. 5. Left: average of NUV-HD-LF SCR at different temperatures and at the same over-voltage. The presence of two components at all
+temperatures is evident, as well as the increase of the SPAD recharge time with decreasing temperatures. A similar behavior is observed
+with NUV-HD-SF SiPMs. Right: SPAD recharge time constant for NUV-HD-LF SiPMs as a function of over-voltage and temperature. The
+NUV-HD-SF devices present the same trend but with slightly higher values.
+
+                       10                                                                               groups with the same time distribution.
+                                       Over-Voltage
+                         9
+                                                 3 V                                                    That analysis software saves the following parame-
+                         8                       4 V
+                                                 5 V
+                                                 6 V
+                                                                                                        ters: primary DCR, correlated noise probabilities (DiCT,
+                         7
+
+
+
+
+     Amplitude [µA]
+                         6
+                                                                                                        DeCT and AP), and single cell signal features (ampli-
+                         5                                                                              tude, recovery time, and charge delivered in a fixed time
+                         4                                                                              gate). Also stored is the waveform amplitude resulting
+                         3                                                                              from the application of the differential leading edge
+                         2
+                                                                                                        discriminator (DLED) algorithm, as defined in [6], which
+                         1
+                                                                                                        is useful for evaluating the breakdown voltage since the
+                         0
+                                 50            100      150
+                                                              T [K]
+                                                                      200          250       300
+                                                                                                        resulting peak amplitude is linear with the applied over-
+                                                                                                        voltage. Measuring the DLED amplitude as a function of
+Fig. 6. Amplitude of the average SPAD response as function of over-                                     over-voltage typically allows for a more precise determi-
+voltage and temperature for NUV-HD-LF SiPMs. A similar trend is
+found for NUV-HD-SF SiPMs.                                                                              nation of VBD (Fig. 4) than what can be derived from the
+                                                                                                        I-V curve. This method allows a precise determination
+detection of 2 or more PE.                                                                              of the over-voltage as a function of temperature. In order
+   DeCT: The less populated groups with characteristic                                                  to compare the SiPM DCR as a function of temperature,
+delay times of few to tens of nanoseconds are due to                                                    it is important that each point is taken at the same over-
+Delayed CrossTalk (DeCT). These events are caused by                                                    voltage. Therefore, any plot of DCR vs. over-voltage is
+crosstalk photons absorbed in the non-depleted region                                                   re-corrected in the analysis stage by performing a linear
+of a neighboring cell. The carriers diffuse for a short                                                 interpolation of the data to extract the correct DCR at
+time before reaching the high-field region and finally                                                  the exact value of over-voltage as determined with this
+triggering an avalanche. The resulting pulse has the                                                    procedure. The same consideration applies for all the
+single cell amplitude but is delayed with respect to the                                                other SiPM features.
+previous by the characteristic diffusion time, typically on                                                The SCRis defined as the signal generated at the
+the order of few to tens of nanoseconds. Such delayed                                                   output of the amplifier when a single microcell of the
+pulses can further trigger DiCT pulses, yielding events                                                 SiPM fires. All the single photon avalanche diodes
+with the same time distribution but higher amplitudes.                                                  (SPADs) contained in the SiPMs under test are passively
+   AP: Finally, the group of events with intermediate                                                   quenched with a polysilicon resistor, whose quenching
+delay times and amplitude of 1 PE or lower are identified                                               resistance is denoted with Rq . The impedance of this
+as AfterPulsing (AP). Afterpulsing occurs when, during                                                  material depends strongly on temperature, increasing
+an avalanche, an electron is trapped by some impurity                                                   with decreasing temperature, and affects various signal
+in the silicon lattice and is then released after a char-                                               features. The typical SiPM pulse is made up of two
+acteristic time, generating a second avalanche. Since the                                               components, a fast one, whose time constant τf is of the
+afterpulsing event and its primary avalanche occur in the                                               order of few nanoseconds, and a slow component, whose
+same cell, the time distribution is determined by both the                                              time constant τs can extend to several microseconds and
+traps time constants and the recharge time constant of the                                              corresponds to the SPAD recharge time. The electric
+microcell. When the time distance is lower than the full                                                model proposed in [7] is well suited to describe the
+micro-cell recharge, the resulting pulse has a reduced                                                  SiPM behaviour. The slow time constant is expected
+amplitude. As with the other types of events, they can                                                  to be proportional to the quenching resistance, as in
+trigger DiCT pulses, explaining the higher amplitude                                                    τs = Rq · (CSPAD + Cq ), where Cq is the parasitic
+                                                                                                                                                          5
+
+
+
+                   106                                                             see Fig. 7. An Arrhenius plot of the DCR over the
+
+  DCR [cps/mm 2]
+                   105                          Over-Voltage
+                                        4 V, Low Field          4 V, Std Field     entire temperature range of interest clearly seperates
+                   104                  5 V, Low Field
+                                        6 V, Low Field
+                                                                5 V, Std Field
+                                                                6 V, Std Field     the two different mechanisms responsible for the dark
+                   103
+                                                                                   rate generation. Thermal generation dominates at high
+                   102
+                                                                                   temperatures [8], [9], while at low temperature the main
+                    10
+
+                     1
+                                                                                   contribution originates from tunneling [10]. Due to the
+                   10−1
+                                                                                   lower electric field value, the magnitude of the latter
+                   10−2                                                            component is highly suppressed in NUV-HD-LF SiPMs.
+                   10−3
+                          5        10           15             20          25         The NUV-HD-LF SiPMs present lower correlated
+                                                                    1000/T [K-1]
+                                                                                   noise than the NUV-HD-SF SiPMs at the same OV, see
+Fig. 7. DCR for NUV-HD-SF (triangular markers) and NUV-HD-LF                       Fig. 9, 10. This is explained with the overall lower gain
+(circular markers) devices as function of function of 1/T and over-                and avalanche triggering probability in the NUV-HD-LF
+voltage.                                                                           devices. The DiCT exhibits only a weak dependence on
+capacitance of the polysilicon resistor. With decreasing                           the temperature, while it is linear in over-voltage, see
+temperature, the increase in Rq translates to higher                               Fig. 9. The difference between the two technologies AP
+values of τs . This effect is clearly seen in Fig. 5.                              probability cannot be ascribed only to the lower gain of
+                                                                                   the devices but probably also to a suppression of some
+                                                                                   field effects contributing to this noise component. The
+                              V. E XPERIMENTAL R ESULTS                            AP probability reaches a maximum in the temperature
+   The analysis program described in Sec. IV fits the                              range from 60 K to 80 K and then decreases to zero in the
+recharge (recovery) time for the individual SPAD wave-                             high temperature region. This peculiar dependence can
+form as a function of over-voltage and temperature. The                            be explained by the interplay of two different phenomena
+result is shown in Fig. 5: NUV-HD-SF and NUV-HD-LF                                 having opposite effects on the noise probability. At
+SiPMs exhibit the same exponential trend, with a slight                            low temperatures, the trapping time constants increase,
+difference in overall results.                                                     enhancing the probability of a carrier to be released when
+   The peak amplitude of the SCR is mainly determined                              the cell is at least partially recharged, producing an AP
+by the fast peak. Its amplitude increases linearly with                            event. On the other hand, the quenching resistance grows
+over-voltage and only very slowly with temperature (see                            exponentially (see Fig. 5), thus suppressing the avalanche
+Fig. 6).                                                                           triggering probability during the recharge. The DeCT
+   For each pulse, the overall charge released (or gain) is                        probability is very low in both technologies, having a
+measured by comparing the result of the integration of                             maximum value of 0.01, and it is not shown.
+the signal in two fixed and equal gates, one containing
+the pulse and one the baseline. By measuring the distance                                                 VI. C ONCLUSIONS
+between the peaks of the resulting distributions and
+considering the amplification factors of the front-end                                We developed a cryogenic setup equipped with a
+electronics, it is possible to calculate the number of                             robust data acquisition system that is suitable for a broad
+carriers generated in the SPAD. Again, the two variants                            variety of tests on SiPMs as a function of temperature
+of the NUV-HD technology show similar results, see                                 in the interval from 40 K to 300 K. This system is
+Fig. 8. The variation with temperature is due to the fact                          complemented by a comprehensive analysis software
+that with decreasing temperature and longer pulses, an                             based on a set of tools used at FBK and optimized to
+increasingly larger fraction of the total pulse sits out                           work in a wide range of count rates. The NUV-HD-LF
+of the 500 ns integration gate. Near room temperature,                             SiPMs performance at cryogenic temperature is impres-
+when the signal duration becomes shorter than the inte-                            sive, with a DCR as low as 0.01 cps/mm2 . Further
+gration time, the gain is expected to saturate to a plateau.                       design work for the optimization of the value of the
+The residual dependence on temperature observed is due                             quenching resistor as well as for the further reduction
+to the variation with temperature of the depletion width                           of the field in the avalanche region (and consequently of
+of each SPAD for a given over-voltage. This happens                                the DCR) is ongoing at FBK. Measurements of the PDE
+because the breakdown voltage changes with temperature                             of the NUV-HD are ongoing as well as a full cryogenic
+as well. Therefore, we also observe a variation of the                             characterization of the FBK RGB-HD family of SiPMs.
+SPAD junction capacitance and thus of its gain.
+   The NUV-HD-LF SiPMs are optimized to achieve                                                               R EFERENCES
+a significant noise reduction at low temperature and
+                                                                                    [1] C. Piemonte, “A new Silicon Photomultiplier structure for blue
+exhibit a DCR that is one to two orders of magnitude                                    light detection,” Nucl. Inst. Meth. A, vol. 568, no. 1, pp. 224–232,
+lower than the NUV-HD-SF at the same over-voltage,                                      Nov. 2006.
+                                                                                                                                                                                                  6
+
+
+                     2500 × 10                                                                                         2500 × 10
+                             3                                                                                                 3
+
+
+
+                                      Over-Voltage                                                                                      Over-Voltage
+                                                3 V                                                                                               3 V
+                     2000                       4 V                                                                    2000                       4 V
+                                                5 V                                                                                               5 V
+                                                6 V                                                                                               6 V
+
+                     1500                                                                                              1500
+
+    Gain                                                                                              Gain
+                     1000                                                                                              1000
+
+
+
+                      500                                                                                               500
+
+
+
+                        0                                                                                                 0
+                                 50              100            150            200            250                                  50        100        150           200       250         300
+                                                             T [K]                                                                                            T [K]
+
+
+
+Fig. 8. Gain of the NUV-HD-SF (left) and NUV-HD-LF (right) SiPMs in a fixed gate of 500 ns as a function of over-voltage and temperature.
+                      0.4                                                                                               0.4
+                                                                            Over-Voltage                                                                                    Over-Voltage
+                     0.35                                                             3 V                              0.35                                                           3 V
+                                                                                      4 V                                                                                             4 V
+                      0.3                                                             5 V                               0.3                                                           5 V
+                                                                                      6 V                                                                                             6 V
+
+
+
+
+  DiCT Probability                                                                                  DiCT Probability
+                     0.25                                                                                              0.25
+
+                      0.2                                                                                               0.2
+
+                     0.15                                                                                              0.15
+
+                      0.1                                                                                               0.1
+
+                     0.05                                                                                              0.05
+
+                        0                                                                                                 0
+                                 50        100         150            200       250         300                                    50        100        150           200       250         300
+                                                             T [K]                                                                                            T [K]
+
+
+
+Fig. 9. DiCT probability as function of temperature for different over-voltage for for NUV-HD-SF (left panel) and NUV-HD-LF (right panel)
+SiPMs. DiCT values are similar for the two technologies and exhibit a weak dependence on temperature.
+                      0.4                                                                                               0.4
+                                                                            Over-Voltage                                                                                    Over-Voltage
+                     0.35                                                             3 V                              0.35                                                           3 V
+                                                                                      4 V                                                                                             4 V
+                      0.3                                                             5 V                               0.3                                                           5 V
+                                                                                      6 V                                                                                             6 V
+
+
+
+
+  AP Probability                                                                                    AP Probability
+                     0.25                                                                                              0.25
+
+                      0.2                                                                                               0.2
+
+                     0.15                                                                                              0.15
+
+                      0.1                                                                                               0.1
+
+                     0.05                                                                                              0.05
+
+                        0                                                                                                 0
+                                 50        100         150            200       250         300                                    50        100        150           200       250         300
+                                                             T [K]                                                                                            T [K]
+
+
+
+Fig. 10. AP probability as function of temperature for different over-voltage for NUV-HD-SF (left panel) and NUV-HD-LF (right panel) SiPMs.
+AP is significantly lower for NUV-HD-LF SiPMs.
+
+ [2] C. Piemonte, F. Acerbi, A. Ferri, A. Gola, G. Paternoster,                                          N. Dinu, C. Piemonte, M. Boscardin, and G. F. Dalla Betta,
+     V. Regazzoni, G. Zappala, and N. Zorzi, “Performance of NUV-                                        “Modelling a silicon photomultiplier (SiPM) as a signal source
+     HD Silicon Photomultiplier Technology,” IEEE Trans. Elec. Dev.,                                     for optimum front-end design,” Nucl. Inst. Meth. A, vol. 572,
+     vol. 63, no. 3, pp. 1111–1116, 2016.                                                                no. 1, pp. 416–418, Mar. 2007.
+ [3] A. Ferri, F. Acerbi, A. Gola, G. Paternoster, C. Piemonte, and                                  [8] R. N. Hall, “Electron-Hole Recombination in Germanium,” Phys.
+     N. Zorzi, “Performance of FBK low-afterpulse NUV silicon                                            Rev., vol. 87, no. 2, pp. 387–387, Jul. 1952.
+     photomultipliers for PET application,” JINST, vol. 11, no. 03,                                  [9] W. Shockley and W. T. Read, “Statistics of the Recombinations
+     pp. P03 023–P03 023, Mar. 2016.                                                                     of Holes and Electrons,” Phys. Rev., vol. 87, no. 5, pp. 835–842,
+ [4] A. Gola, C. Piemonte, and A. Tarolli, “Analog Circuit for                                           Sep. 1952.
+     Timing Measurements With Large Area SiPMs Coupled to LYSO                                      [10] M. Ghioni, A. Gulinatti, I. Rech, P. Maccagnani, and S. Cova,
+     Crystals,” IEEE Trans. Nucl. Sci., vol. 60, no. 2, pp. 1296–1302,                                   “Large-area low-jitter silicon single photon avalanche diodes,”
+     2013.                                                                                               Proc. SPIE, vol. 6900, pp. 69 001D–69 001D–13, Jan. 2008.
+ [5] C. Piemonte, A. Ferri, A. Gola, A. Picciotto, T. Pro, N. Serra,
+     A. Tarolli, and N. Zorzi, “Development of an automatic procedure
+     for the characterization of silicon photomultipliers,” IEEE Conf.
+     Pub., pp. 428–432, 2012.
+ [6] A. Gola, C. Piemonte, and A. Tarolli, “The DLED Algorithm
+     for Timing Measurements on Large Area SiPMs Coupled to
+     Scintillators,” IEEE Trans. Nucl. Sci., vol. 59, no. 2, pp. 358–
+     365, Apr. 2012.
+ [7] F. Corsi, A. Dragone, C. Marzocca, A. Del Guerra, P. Delizia,
+

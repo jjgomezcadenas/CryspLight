@@ -12,7 +12,10 @@ fullsim_analysis/scripts/citiroc_calib.jl:
     citiroc_cold.png      spectra at 20, -3 and -23 C, 5 V of overvoltage, 25, 50 and 87.5 ns,
                           with their split;
     citiroc_cold_k.png    k (ladder and one-photoelectron peak) and the fraction of windows
-                          without an avalanche against the temperature.
+                          without an avalanche against the temperature;
+    citiroc_scenarios.png the three operating scenarios with 64 channels (20 C at 25 ns, -3 C
+                          and -23 C at 87.5 ns): the spectrum of all channels in true gains
+                          and k channel by channel.
 
     python3 fullsim_analysis/plots/citiroc_calib.py
 """
@@ -198,6 +201,36 @@ def cold_k(df):
     save(fig, CAMP, STUDY, "citiroc_cold_k")
 
 
+SCEN = (("F_T293_tp25", "20 C, 25 ns"), ("F_T270_tp87.5", "-3 C, 87.5 ns"), ("F_T250_tp87.5", "-23 C, 87.5 ns"))
+
+
+def scenarios(h5):
+    fig, axs = plt.subplots(1, 3, figsize=(15, 4.2))
+    for (gn, lab), col in zip(SCEN, ("C3", "C0", "C2")):
+        g = h5[gn]
+        e, c = read_hist(g, "spectrum_pe_all")
+        step_hist(axs[0], e, c / c.sum(), color=col, label=lab)
+        for key, ax in (("k", axs[1]), ("k1", axs[2])):
+            k = g[key][...]
+            ok = np.isfinite(k)
+            ax.hist(k[ok], bins=np.linspace(0.6, 1.2, 61), histtype="step", color=col,
+                    label=f"{lab}: {ok.sum()}/64, median {np.median(k[ok]):.3f}, rms {np.std(k[ok]):.3f}")
+    for k in range(1, 5):
+        axs[0].axvline(k, color="0.6", lw=0.5)
+    axs[0].set_yscale("log")
+    axs[0].set_xlabel("stored value - pedestal (true gains of each channel)")
+    axs[0].set_ylabel("fraction of the windows per bin")
+    axs[0].legend()
+    axs[1].set_xlabel("k from the ladder")
+    axs[2].set_xlabel("k from the one-photoelectron peak")
+    for ax in axs[1:]:
+        ax.set_ylabel("channels")
+        ax.axvline(1, color="k", lw=0.6)
+        ax.legend(fontsize=7, loc="upper left")
+    fig.suptitle("64 channels, 5% gain spread, 5 V of overvoltage, window 200 ns, noise of the model")
+    save(fig, CAMP, STUDY, "citiroc_scenarios")
+
+
 def main():
     df = read_table(CAMP, STUDY, "citiroc_A")
     with open_results(CAMP, STUDY) as h5:
@@ -206,6 +239,7 @@ def main():
         channels(h5)
         decomposition(h5)
         cold(h5)
+        scenarios(h5)
     cold_k(read_table(CAMP, STUDY, "citiroc_E"))
     kfactor(df)
 

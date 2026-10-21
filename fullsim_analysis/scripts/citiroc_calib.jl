@@ -17,6 +17,9 @@
 #          200 ns, noise of the model; the records are scaled with the dark rate to give about
 #          40 000 windows with a dark avalanche per configuration; spectrum, k and the split
 #          of set D;
+#   set F  64 channels with a 5% gain spread in the three operating scenarios: 20 C at 25 ns,
+#          -3 C and -23 C at 87.5 ns, 5 V of overvoltage, window 200 ns; records for about
+#          20 000 windows with a dark avalanche per channel; k channel by channel;
 #   set D  the spectrum of one channel split by the arrival of its avalanches relative to
 #          the window (none within 400 ns before it or in it; only before it; only in it
 #          with time to reach their maximum before it closes; only in it but too late for
@@ -125,10 +128,13 @@ configs_D = [(tp = tp, vov = 5.0, noise_scale = n, window = 200.0) for tp in (25
 
 # set E: records for about 40 000 windows with a dark avalanche (windows per record: the
 # record of 6200 ns over window + gap)
-function nrec_E(t_k, tp)
+function nrec_E(t_k, tp; target = 40_000)
     r = SipmOperation(SipmDevice(); t_k = t_k, vov = 5.0, n_channels = 1).dark_hz
-    return ceil(Int, 40_000 / ((1 - exp(-r * 200e-9)) * floor(6200 / (200 + 2tp))))
+    return ceil(Int, target / ((1 - exp(-r * 200e-9)) * floor(6200 / (200 + 2tp))))
 end
+configs_F = [(tp = 25.0, vov = 5.0, noise_scale = 1.0, window = 200.0, t_k = 293.15),
+             (tp = 87.5, vov = 5.0, noise_scale = 1.0, window = 200.0, t_k = 270.15),
+             (tp = 87.5, vov = 5.0, noise_scale = 1.0, window = 200.0, t_k = 250.15)]
 configs_E = [(tp = tp, vov = 5.0, noise_scale = 1.0, window = 200.0, t_k = tk)
              for tk in (293.15, 270.15, 250.15) for tp in (25.0, 50.0, 87.5)]
 nameE(c) = @sprintf("T%.0f_tp%g", c.t_k, c.tp)
@@ -169,11 +175,29 @@ Threads.@threads :dynamic for i in eachindex(configs_E)
     d = ptrg_decomposed(; cfg..., nrec = n, seed = 4)
     res_E[i] = (cfg = cfg, nrec = n, r = r, fit = ladder_k(r.vals[1], r.true_gain[1]), d = d)
 end
+# set F: 64 channels, the records of each scenario split in 16 chunks over the threads
+nchunk = 16
+chunksF = [(i, j) for i in eachindex(configs_F) for j in 1:nchunk]
+partsF = Vector{Any}(undef, length(chunksF))
+Threads.@threads :dynamic for m in eachindex(chunksF)
+    i, j = chunksF[m]
+    n = nrec_E(configs_F[i].t_k, configs_F[i].tp; target = 20_000)
+    lo = div((j - 1) * n, nchunk) + 1; hi = div(j * n, nchunk)
+    partsF[m] = ptrg_values(; configs_F[i]..., nrec = n, nch = 64, gain_spread = 0.05, seed = 5, records = lo:hi)
+end
+res_F = map(eachindex(configs_F)) do i
+    ps = [partsF[m] for m in eachindex(chunksF) if chunksF[m][1] == i]
+    vals = [reduce(vcat, [p.vals[c] for p in ps]) for c in 1:64]
+    r = (ps[1]..., vals = vals)
+    (cfg = configs_F[i], nrec = nrec_E(configs_F[i].t_k, configs_F[i].tp; target = 20_000), r = r,
+     fits = [ladder_k(r.vals[c], r.true_gain[c]) for c in 1:64])
+end
+partsF = nothing
 res_D = Vector{Any}(undef, length(configs_D))
 Threads.@threads :dynamic for i in eachindex(configs_D)
     res_D[i] = (cfg = configs_D[i], r = ptrg_decomposed(; configs_D[i]..., nrec = NREC))
 end
-@printf("%d configurations in %.0f s\n", length(configs_A) + length(configs_B) + length(configs_D) + length(configs_E), time() - t0)
+@printf("%d configurations in %.0f s\n", length(configs_A) + length(configs_B) + length(configs_D) + length(configs_E) + length(configs_F), time() - t0)
 
 open_results("calib", "citiroc") do h5
     stamp!(h5, "n_records" => NREC, "pedestal" => PEDESTAL, "adc_per_pe" => ADC_PER_PE,
@@ -195,6 +219,17 @@ open_results("calib", "citiroc") do h5
         write_vector!(g, "k1", [f.k1 for f in x.fits])
         write_vector!(g, "k1_err", [f.k1_err for f in x.fits])
         write_vector!(g, "zero_pe", [f.zero_pe for f in x.fits])
+        allpe = reduce(vcat, [(x.r.vals[c] .- PEDESTAL) ./ x.r.true_gain[c] for c in 1:64])
+        write_hist!(g, "spectrum_pe_all", histogram(allpe, -0.5, 4.5, 500)...)
+    end
+    for x in res_F
+        g = create_group(h5, "F_" * nameE(x.cfg))
+        stamp!(g, "tp_ns" => x.cfg.tp, "vov" => x.cfg.vov, "t_k" => x.cfg.t_k, "window_ns" => x.cfg.window,
+               "records" => x.nrec, "gain_spread" => 0.05, "dark_rate_hz" => x.r.dark_rate)
+        write_vector!(g, "true_gain", x.r.true_gain)
+        for f in (:k, :k_err, :k1, :k1_err, :zero_pe)
+            write_vector!(g, String(f), [getfield(y, f) for y in x.fits])
+        end
         allpe = reduce(vcat, [(x.r.vals[c] .- PEDESTAL) ./ x.r.true_gain[c] for c in 1:64])
         write_hist!(g, "spectrum_pe_all", histogram(allpe, -0.5, 4.5, 500)...)
     end
@@ -240,6 +275,24 @@ println("written ", write_table("calib", "citiroc", "citiroc_B", [
     "k1_median" => col(x -> median(filter(isfinite, [f.k1 for f in x.fits])), res_B),
     "k1_rms" => col(x -> std(filter(isfinite, [f.k1 for f in x.fits])), res_B),
     "k1_err_median" => col(x -> median(filter(isfinite, [f.k1_err for f in x.fits])), res_B)]))
+fin(v) = filter(isfinite, v)
+println("written ", write_table("calib", "citiroc", "citiroc_F", [
+    "t_k" => col(x -> x.cfg.t_k, res_F), "tp_ns" => col(x -> x.cfg.tp, res_F),
+    "records" => col(x -> x.nrec, res_F), "dark_rate_hz" => col(x -> x.r.dark_rate, res_F),
+    "windows_per_channel" => col(x -> length(x.r.vals[1]), res_F),
+    "k_fitted" => col(x -> count(y -> isfinite(y.k), x.fits), res_F),
+    "k_median" => col(x -> median(fin([y.k for y in x.fits])), res_F),
+    "k_rms" => col(x -> std(fin([y.k for y in x.fits])), res_F),
+    "k_err_median" => col(x -> median(fin([y.k_err for y in x.fits])), res_F),
+    "k1_fitted" => col(x -> count(y -> isfinite(y.k1), x.fits), res_F),
+    "k1_median" => col(x -> median(fin([y.k1 for y in x.fits])), res_F),
+    "k1_rms" => col(x -> std(fin([y.k1 for y in x.fits])), res_F),
+    "k1_err_median" => col(x -> median(fin([y.k1_err for y in x.fits])), res_F)]))
+for x in res_F
+    k = fin([y.k for y in x.fits]); k1 = fin([y.k1 for y in x.fits])
+    @printf("F %-12s %6d records: ladder in %d channels, k %.3f rms %.3f; 1-pe peak in %d channels, k1 %.3f rms %.3f\n",
+            nameE(x.cfg), x.nrec, length(k), median(k), std(k), length(k1), median(k1), std(k1))
+end
 frac(x, c) = length(x.d.vals[c]) / sum(length(v) for v in values(x.d.vals))
 println("written ", write_table("calib", "citiroc", "citiroc_E", [
     "t_k" => col(x -> x.cfg.t_k, res_E), "tp_ns" => col(x -> x.cfg.tp, res_E),

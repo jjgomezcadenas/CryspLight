@@ -1,0 +1,615 @@
+                                                  Prepared for submission to JINST
+
+
+
+
+                                                  Scintillation characteristics of a NaI(Tl) crystal at
+                                                  low-temperature with silicon photomultiplier
+
+
+
+
+arXiv:2110.03306v1 [physics.ins-det] 7 Oct 2021
+                                                  H. Y. Lee𝑎 J. A. Jeon𝑎 K. W. Kim𝑎 W. K. Kim𝑏,𝑎 H. S. Lee𝑎,𝑏 M. H. Lee𝑎,𝑏
+                                                  𝑎 Center for Underground Physics, Institute for Basic Science (IBS),
+
+                                                   Daejeon 34126, South Korea
+                                                  𝑏 University of Science and Technology (UST),
+
+                                                   Daejeon 34113, South Korea
+
+                                                   E-mail: kwkim@ibs.re.kr, hyunsulee@ibs.re.kr
+
+                                                  Abstract: Scintillation characteristics of a thallium doped sodium iodide (NaI(Tl)) crystal with a
+                                                  dimension of 0.6 × 0.6 × 2 𝑐𝑚 3 are studied by attaching a silicon photomultiplier (SiPM) direct to
+                                                  the crystal over a temperature range from 93 to 300 K. The scintillation light output and decay time
+                                                  are measured by irradiating 59.54 keV 𝛾-rays from a 241 Am source. We observed approximately
+                                                  20% increase in light yield at 230 K compared to that at the room temperature. At this condition,
+                                                  the NaI(Tl) crystal coupled with the SiPM can be a good candidate for future dark matter search
+                                                  detector.
+Contents
+
+1   Introduction                                                                                     1
+
+2   Experimental setup                                                                               2
+
+3   SiPM only measurements                                                                           3
+
+4   NaI(Tl)-SiPM measurements                                                                        5
+
+5   Conclusions                                                                                      9
+
+
+
+
+1   Introduction
+
+Due to excellent scintillation properties, NaI(Tl) crystals are widely used to measure energies of
+gammas from environmental radioactivities [1] and from interactions of new physics particles [2–7].
+In particular, a direct detection of dark matter particles using NaI(Tl) crystal detectors is currently
+being conducted in several experiments [8–11]. The low-background NaI(Tl) crystals have been
+developed for a success of the dark matter detection at low energies by reducing internal radioactive
+contaminants in the crystal [12–15].
+     Conventional NaI(Tl) detectors are operating at the room temperature with photomultiplier
+tubes (PMTs) attached at each end of the crystal [8, 16]. On the other hands, PMTs are bulky and
+contain relatively large amount of radioisotopes [17, 18]. The photodetection efficiency (PDE) of
+the recently developed PMT, R12669SEL from Hamamatsu photonics, has the maximum value of
+40% at around 420 nm corresponding to the emission peak of scintillation lights from the NaI(Tl)
+crystals. Silicon photomultipliers (SiPMs) could be good replacements of the PMTs because of their
+high PDEs for a broad range of wavelength and compact size with less radioactive materials [19].
+A high dark count rate (DCR) of the SiPM was a contemporary problem for the application of
+the low-energy dark matter search experiment. However, DCR of the SiPM rapidly decrease at
+low temperatures [20]. A few experiments are conducting rare event searches using the SiPM
+already [21, 22].
+     Nonlinear temperature dependence of the NaI(Tl) crystals’ scintillation light yield had been
+observed by a few measurements with PMT readout [23, 24]. Especially, increased light yields at
+temperatures around 150 and 250 K compared to that at the room temperature were reported [24].
+In this case, the NaI(Tl) crystal coupled with the SiPM photosensor at the low temperatures can be
+an ideal combination for the dark matter search experiments. In this paper, we report responses of
+the NaI(Tl) crystal coupled with the SiPM sensor in a temperature range of 93 − 300 K and explore
+a possibility for the future dark matter search experiment.
+
+
+
+
+                                                –1–
+2   Experimental setup
+
+We use a NaI(Tl) crystal with a dimension of 0.6 cm × 0.6 cm × 2 cm that was cut from a crystal
+ingot grown in a program for the low-background NaI(Tl) development reported as NaI-036 in
+Ref. [14]. Several layers of soft polytetrafluoroethylene (PTFE) sheets were wrapped on side five
+faces of the crystal. The SiPMs from Hamamatsu photonics, model number S13360-6075CS with
+an active area of 0.6 cm × 0.6 cm, were attached to one side of the crystal. A micropixel size of
+75 𝜇m × 75 𝜇m, a total of 6,400 micropixels, and a 50% PDE at 450 nm were provided in the
+specification by the company.
+
+                         Body                             Lid                   NaI(Tl)-SiPM detector
+
+                                                                                                1.8 cm
+
+
+                                +                                       =
+       NaI(Tl)                        SiPM                                                      3 cm
+
+                                                0.6 cm
+              2 cm
+                0.6 cm
+                                                   m
+                                                                                      1.8 cm
+         0.6 cm                              0.6 c
+
+                                                         (a)
+                                    Readout Board        Preamp     DAQ        PC
+
+
+
+
+                                                                SiPM
+                                                                Temp. sensor
+
+                                                                Cold finger
+
+        LS331
+
+
+
+                                                                 Liquid He
+           Vacuum pump
+                                                                Compressor
+
+
+
+                                                         (b)
+
+Figure 1.    (a) NaI(Tl)-SiPM prototype assembly photos (b) Experimental setup for low-temperature
+measurements
+
+      The NaI(Tl) crystal was encapsulated in a copper housing to avoid moisture in the air due to
+its highly hygroscopic nature. The SiPM was coupled to the front face of the crystal in the housing
+named as "NaI(Tl)-SiPM prototype" as shown in Fig. 1 (a). The crystal was inserted into the housing
+and the SiPM was attached to the lid of the housing. The crystal and the SiPM had approximately
+2 mm gap to maintain the same optical coupling condition. A Viton o-ring between the lid and the
+box was pressed with screws for an air tighteness of the NaI(Tl) crystal. All assembly processes
+
+
+
+
+                                                     –2–
+were done inside a glove box in which the humidity level was maintained to be less than a few tens
+of ppm using N2 gas and a molecular sieve trap. The dimension of the NaI(Tl)-SiPM prototype was
+1.8 cm × 1.8 cm × 3 cm (W, D, H) as shown in Fig. 1 (a). A 241 Am source was placed above the
+copper housing to irradiate 59.54 keV 𝛾-rays to the crystal.
+     The NaI(Tl)-SiPM setup was installed in a cryostat that could control the temperature from 4 K
+to the room temperature [25]. The schematic diagram of the cryostat is shown in Fig. 1 (b). A cold
+finger was cooled by a liquid helium compressor. The temperature of the cold finger was monitored
+by a silicon diode sensor and controlled through the Lakeshore LS331 temperature controller. The
+vacuum was maintained at approximately 10−2 Torr by a rotary pump. The NaI(Tl)-SiPM prototype
+was placed inside the thermal shield and directly attached to the cold finger. On the top of the
+NaI(Tl)-SiPM prototype, we installed one another temperature sensor. The detector was tested
+in a temperature range between 93 and 300 K of the cold finger. The experiment was performed
+at each temperature point after a few hours of waiting on the demanded temperature considering
+heat transfer to the crystal. Temperatures of the cold finger and the top of the NaI(Tl)-SiPM
+prototype were continuously measured and found about 3-5 K differences between two points that
+were accounted as a systematic uncertainty. The SiPM readout board was installed outside the
+cryostat. An amplified signal from the SiPM readout was digitized by a 125 MHz, 12-bit flash-
+analog-to-digital-converter (FADC). A 32 𝜇s-long waveform was stored for each triggered event.
+Three different window types of resin, quartz, and windowless were tested for this measurement.
+
+
+3   SiPM only measurements
+
+A SiPM is a pixelated device where each micropixel is a series of an avalanche photodiode (APD)
+and a quenching resistor. The SiPM is externally biased with bias voltage 𝑉𝑏𝑖𝑎𝑠 so that the voltage on
+each APD is above its breakdown voltage 𝑉𝐵𝐷 . The difference 𝑉𝑏𝑖𝑎𝑠 −𝑉𝐵𝐷 is known as overvoltage
+ΔV which is one of the most important parameters affecting the performance of the SiPM.
+     To understand the characteristics of the SiPM, we first tested the SiPM without NaI(Tl) crystal
+in the cryostat. The 𝑉𝐵𝐷 was decreased at low temperatures [19, 26] because of ionization rate
+increase [27]. The results of increasing gain in the low temperature with the same 𝑉𝑏𝑖𝑎𝑠 are shown
+in Fig. 2. To avoid an impact caused by large gain changes from the temperature variation, we
+maintain ΔV equal to 3 V in the following measurements. Typically a single photoelectron (SPE)
+signal has a height of 12 mV and a width of 100 ns in this condition.
+     The SiPM exhibits several noise characteristics such as thermally generated DCR and pixel
+correlated cross talks. By maintaining ΔV equal to 3 V, we measure the DCR in a temperature range
+90–300 K and an example charge distribution for that at the room temperature is shown in Fig. 3. A
+dramatic decrease of the DCR at low temperatures due to lower thermal generation probabilities [28]
+is shown in Fig. 4. From 300 to 140 K, the DCR decreases six orders of magnitude almost following
+an exponential function predicted by the Shockley-Read-Hall model [29]. DCR is about the same
+below 140 K that may be caused by band to band tunneling generation reported in Ref. [30].
+     Above 1.5 SPE charge accounts the rate of cross talks that generate multi-photoelectrons events
+as one can see in Fig. 3. When we evaluate the light yield of the NaI(Tl) crystal, the cross-talk
+rate is corrected to calculate proper number of photoelectrons. The cross-talk rate is known to be
+independent from the temperature with the same Δ𝑉 [19, 20], and we also observe a similar result.
+
+
+
+
+                                                –3–
+                              500
+
+
+                              400
+
+
+
+
+                 Gain (ADC)
+                              300
+
+
+                              200
+
+
+                              100
+
+
+                                    200    220       240       260       280       300
+                                             Temperature (K)
+
+              Figure 2. The SPE gain as a function of temperature with same 𝑉𝑏𝑖𝑎𝑠 of 54 V.
+
+
+
+
+                              1
+
+
+
+
+                   0.5
+
+
+
+
+                          0
+                           0          2          4             6               8          10
+                                            charge/chargeSPE
+
+Figure 3. Charge distribution of the dark count events at the room temperature is presented. The typical
+dark current events provide a clear peak at single photoelectron but there are multi-photoelectrons events
+above 1.5 single photoelectron charge caused by cross talks.
+
+
+
+
+                                                  –4–
+                                         104
+
+                                         103
+
+
+
+
+                 Dark Count Rate (kHz)
+                                          10
+
+
+
+                                         10−1
+
+
+
+                                         10−3
+
+
+
+                                         10−5     100           150          200           250             300
+                                                                  Temperature (K)
+
+    Figure 4. Dark count rates (DCR) in a temperature range 90–300 K while maintaining ΔV = 3 V.
+
+
+4   NaI(Tl)-SiPM measurements
+
+After a characterization of the SiPM, we configured the NaI(Tl)-SiPM setup to measure light yields
+of the NaI(Tl) crystals at low temperatures. We irradiated 59.54 keV 𝛾-rays from a 241 Am source
+and estimate a measured numbers of photoelectrons (NPE). The measured single photoelectron
+charge distribution in Fig. 3 is used to evaluate the light yield per keV together with the correction
+of the cross-talk rate. A contribution from DCR is also corrected by the temperature dependence
+measurement shown in Fig. 4. The distribution of NPE at the room temperature from the 241 Am
+source is shown in Fig 5. The root-mean-square resolution (𝜎/𝑚) is obtained to 6.08±0.06 %.
+     Figure 6 shows NPE as a function of the temperature relative to that of the room temperature
+(NPEroom ). Three different SiPM windows are used for the measurements and show similar de-
+pendence of the light yield on temperature. Similar results using the PMT readout were reported
+previously [24]. The increased light yields of about 10–20 % at 220–250 K are consistent with
+Refs. [23, 24]. However, about 10% increased light yield at around 150 K using the PMT readout in
+Ref. [24] is not observed in the NaI(Tl)-SiPM setup although slightly increased light yield at around
+120 K is presented in Fig. 6. A multiple diffierent effects may be involed in this deviation including
+characteristics of different NaI(Tl) crystals, integration time window of each analysis [23], SiPM’s
+PDE depending on the temperature, and optical interfaces affected by temperature. Further study
+including PMT measurements and different crystals will help to understand this issue.
+     We have studied scintillation characteristics of the NaI(Tl) crystal as a function of temperature.
+Increased decay time of the NaI(Tl) crystal at low temperatures was already reported [23, 24].
+Accumulated waveforms in different temperature measurements are modeled by two exponential
+functions as follows,
+
+                                            𝐹 (𝑡) = 𝑏 1 𝜏 𝑓 exp−(𝑡−𝑡0 )/𝜏 𝑓 +𝑏 2 𝜏𝑠 exp−(𝑡−𝑡0 )/𝜏𝑠 +𝑏𝑘𝑔,         (4.1)
+
+
+
+
+                                                                       –5–
+                          400     σ/m (%): 6.08 ± 0.06
+
+
+
+
+             count/bin
+                          300
+
+
+                          200
+
+
+                          100
+
+
+                           0
+                                      200       300           400       500           600
+                                            Number of Photoelectrons
+
+Figure 5. The measured NPE with the 241 Am source irradiating NaI(Tl) at room temperature is presented.
+The peak corresponding to 59.54 keV 𝛾 is fitted with a Gaussian function (blue solid line).
+
+
+
+
+                          1.5
+                                      resin
+                                      quartz
+                                      windowless
+
+
+
+            NPE/NPEroom
+                            1
+
+
+
+
+                          0.5
+
+
+
+                                100           150           200       250            300
+                                                Temperature (K)
+
+Figure 6. The measured NPEs as a function of temperature normalized to that at the room temperature
+(NPEroom ) are presented for three SiPMs with different widow types.
+
+
+
+
+                                                      –6–
+where 𝜏 𝑓 and 𝜏𝑠 are decay constants for fast and slow decaying components, and 𝑡0 is the rising
+edge position. 𝑏 1 and 𝑏 2 are normalization factors and 𝑏𝑘𝑔 represents continum background from
+DCR. Figure 7 shows the accumulated waveforms of 59.54 keV gamma events for four selected
+temperatures of 293, 213, 173, and 113 K. Each waveform is fitted with Eq. 4.1 and fit results are
+overlaided.
+
+
+                                               total
+               103                                                          103
+                                               τf
+                                               τs
+
+
+
+   ADC value                                                    ADC value
+               102                             bkg                          102
+
+
+               10                                                           10
+
+
+                    1
+                                                                              1
+
+
+                        10000          20000           30000                      10000          20000    30000
+                                  Time (ns)                                                 Time (ns)
+
+                                (a) 293 K                                                 (b) 213 K
+
+               103
+
+                                                                            102
+                 2
+
+
+
+
+   ADC value                                                    ADC value
+               10
+
+
+                                                                            10
+               10
+
+
+
+                    1                                                         1
+
+
+
+                        10000          20000           30000                      10000          20000    30000
+                                  Time (ns)                                                 Time (ns)
+
+                                (c) 173 K                                                 (d) 113 K
+
+Figure 7. The accumulated waveforms of 59.54 keV gamma rays for four selected temperatures are presented.
+The red solid line shows the fitted results using two exponentials and a constant background. Each exponential
+and the constant background are separately overlaided in the plot.
+
+     The fast decay component at room temperature is approximately 240 ns that is consistent with
+previous measurements of about 220 ns [24, 31]. Slightly longer decay constants is expected due to
+about 100 ns width of the SPE pulse from SiPM. The decay constants for the fast component (𝜏 𝑓 )
+and the slow component (𝜏𝑠 ) are measured for a temperature range 93 − 300 K as shown in Fig. 8
+(a). The relative amounts of the fast and slow components are shown in Fig. 8 (b).
+     As shown in Figs. 7 and 8, 𝜏𝑠 is getting slower below the room temperature down to 170 K.
+The relative ratio of the fast decay components are 87.8 ± 4.6%, 38.6 ± 3.2%, 87.3 ± 4.2%, and
+67.5 ± 1.9% for the temperatures of 293, 213, 173, and 113 K, respectively. The room temperature
+measurement with SiPM is consistent with previous measurements using PMTs [23, 31]. The
+reversed ratios of the fast and slow components around 240 K were observed in Ref. [32].
+
+
+
+
+                                                          –7–
+     Maximum increase of the slow component at 230 K is observed as shown in Fig. 8 (b).
+Interestingly, this temperature has the maximum light yield of the NaI(Tl)-SiPM measurements
+as shown in Fig. 6. The two decay components correspond to the two different scintillation
+processes. The fast components are caused by the prompt capture of self-trapped excitons by the Tl
+level [23, 33]. Two competing processes to reach the activation centers of exciton by hopping and
+binary diffusion may cause the slow components [23, 33]. These process are highly depending on
+the temperature and therefore temperature dependent light yield of the NaI(Tl) crystals [23, 32, 33].
+
+
+                    102                                                               1.5
+
+                                                          τf
+                                                          τs
+                                                                                        1
+
+
+
+
+  Decay time (µs)
+                                                                       NPE/NPEroom
+                     10
+
+                                                                                      0.5
+
+
+                      1
+                                                                                       0
+
+
+
+                    10−1                                                             −0.5
+                           100   150         200    250        300                          100   150         200   250      300
+                                 Temparature (K)                                                  Temparature (K)
+
+                                       (a)                                                              (b)
+
+Figure 8. Decay time (a) and the fraction in the signal (b) of fast (yellow circle, 𝜏 𝑓 ), slow (green rectangular,
+𝜏𝑠 ) decay time in different temperatures.
+
+
+     We evaluate mean decay times of scintillation pulses in different temperatures defined as
+follows,
+                                                              Í𝑛
+                                                                   ℎ𝑖 𝑡 𝑖
+                                                   Meantime ≡ Í𝑖=0
+                                                                𝑛         − 𝑡0 ,                                          (4.2)
+                                                                𝑖=0 ℎ𝑖
+
+
+
+where ℎ𝑖 and 𝑡𝑖 is the height and time of the 𝑖 𝑡 ℎ pulse, and 𝑡0 is the time of the first pulse above the
+threshold. The meantime variables were open used to discriminate nulear recoil events, which can
+be induced by dark matter interactions, from electron recoil backgrounds [5, 34]. Figure 9 shows
+the meantime as a function of temperature. Increased decay time from 0.3 to 4 𝜇s is observed from
+room temperature to 210 K. Below this temperature, decreased decay time as low as 1 𝜇s until 160 K
+is observed. This behavior may related with the observed light yields in Fig. 6. Increased light
+yields at around 220–250 K and decreased light yields at around 150–170 K are indeed correlated
+with amounts of the long-decay components as shown in Fig. 8. Because different nuclear recoil
+and electron recoil result in different ratios of the fast and slow decay components from different
+scintillation processes [35], the increased rate of the slow component from the electron recoil
+events at around 220 K may indicate improved pulse shape discrimination for the nuclear recoil
+events. Further investigation of the pulse shape discrimination using neutron irradiation at the low
+temperature is desired.
+
+
+
+
+                                                                 –8–
+                              4
+
+
+
+
+              Meantime (µs)
+                              3
+
+
+                              2
+
+
+                              1
+
+
+
+                                     100           150           200          250         300
+                                                    Temparature (K)
+
+                                  Figure 9. Mean time as a function of the temperature.
+
+
+5     Conclusions
+
+We have investigated characteristics of a few SiPMs at various temperature points from 300 down
+to 93 K. Significant decrease of dark count rate at low temperatures indicates that SiPM is a good
+photosensor for the dark matter search experiment at low temperatures. A NaI(Tl)-SiPM detector
+is also measured with the same temperature range to characterize the NaI(Tl) crystal’s light yields
+and decay times. The light yield increased from 300 to 230 K with a maximal 20% relative to
+that of room temperature. In a similar temperature range, the ratio of the slow decay component
+is significantly increased. Considering increased light yield and decreased DCR, the NaI(Tl)-
+SiPM detector can be a good candidate detector for the future dark matter search experiment at
+low-temperatures.
+
+Acknowledgments
+
+This work is supported by the Institute for Basic Science (IBS) under project code IBS-R016-A1.
+
+References
+
+    [1] D. S. McGregor, Materials for gamma-ray spectrometers: Inorganic scintillators, Ann. Rev. of Mater.
+        Res. 48 (2018) 245 [https://doi.org/10.1146/annurev-matsci-070616-124247].
+    [2] S. Kim, H. Kim and Y. Kim, Scintillator-based detectors for dark matter searches i, New J. Phys. 12
+        (2010) 075003.
+    [3] COSINE-100 collaboration, An experiment to search for dark-matter interactions using sodium iodide
+        detectors, Nature 564 (2018) 83 [1906.01791].
+
+
+
+
+                                                          –9–
+ [4] COSINE-100 collaboration, Search for a dark matter-induced annual modulation signal in NaI(Tl)
+     with the COSINE-100 experiment, Phys. Rev. Lett. 123 (2019) 031302 [1903.10098].
+ [5] KIMS collaboration, Limits on Interactions between Weakly Interacting Massive Particles and
+     Nucleons Obtained with NaI(Tl) crystal Detectors, JHEP 03 (2019) 194 [1806.06499].
+ [6] J. Amare et al., First results on dark matter annual modulation from ANAIS-112 experiment, Phys.
+     Rev. Lett. 123 (2019) 031301 [1903.03973].
+ [7] J. Amare et al., Annual Modulation Results from Three Years Exposure of ANAIS-112, Phys. Rev. D
+     103 (2021) 102005 [2103.01175].
+ [8] COSINE-100 collaboration, Initial Performance of the COSINE-100 Experiment, Eur. Phys. J. C 78
+     (2018) 107 [1710.05299].
+ [9] J. Amare et al., Performance of ANAIS-112 experiment after the first year of data taking, Eur. Phys. J.
+     C 79 (2019) 228 [1812.01472].
+[10] SABRE collaboration, The SABRE project and the SABRE Proof-of-Principle, Eur. Phys. J. C 79
+     (2019) 363 [1806.09340].
+[11] R. Bernabei et al., The DAMA project: Achievements, implications and perspectives, Prog. Part. Nucl.
+     Phys. 114 (2020) 103810.
+[12] K. Shin, O. Gileva, Y. Kim, H. S. Lee and H. Park, Reduction of the radioactivity in sodium iodide
+     (NaI) powder by recrystallization method, J. Radioanal. Nucl. Chem. 317 (2018) 1329.
+[13] B. Suerfu, M. Wada, W. Peloso, M. Souza, F. Calaprice, J. Tower et al., Growth of Ultra-high Purity
+     NaI(Tl) Crystal for Dark Matter Searches, Phys. Rev. Research 2 (2020) 013223 [1910.03782].
+[14] COSINE collaboration, Development of ultra-pure NaI(Tl) detectors for the COSINE-200 experiment,
+     Eur. Phys. J. C 80 (2020) 814 [2004.06287].
+[15] K. Fushimi et al., Development of highly radiopure NaI(Tl) scintillator for PICOLON dark matter
+     search project, PTEP 2021 (2021) 043F01 [2101.00759].
+[16] DAMA/LIBRA collaboration, Performances of the new high quantum efficiency PMTs in
+     DAMA/LIBRA, JINST 7 (2012) P03009.
+[17] COSINE-100 collaboration, Background model for the NaI(Tl) crystals in COSINE-100, Eur. Phys. J.
+     C 78 (2018) 490.
+[18] G. Adhikari et al., Background modeling for dark matter search with 1.7 years of COSINE-100 data,
+     2101.11377.
+[19] L. Baudis, M. Galloway, A. Kish, C. Marentini and J. Wulf, Characterisation of Silicon
+     Photomultipliers for Liquid Xenon Detectors, JINST 13 (2018) P10022 [1808.06827].
+[20] P. K. Lightfoot, G. J. Barker, K. Mavrokoridis, Y. A. Ramachers and N. J. C. Spooner,
+     Characterisation of a silicon photomultiplier device for applications in liquid argon based neutrino
+     physics and dark matter searches, JINST 3 (2008) P10001 [0807.3220].
+[21] nEXO collaboration, Sensitivity and Discovery Potential of nEXO to Neutrinoless Double Beta Decay,
+     Phys. Rev. C 97 (2018) 065503 [1710.05075].
+[22] DarkSide-20k collaboration, DarkSide-20k: A 20 tonne two-phase LAr TPC for direct dark matter
+     detection at LNGS, Eur. Phys. J. Plus 133 (2018) 131 [1707.08145].
+[23] K. Ianakiev, B. Alexandrov, P. Littlewood and M. Browne, Temperature behavior of nai(tl)
+     scintillation detectors, Nucl. Instrum. Meth. A 607 (2009) 432.
+
+
+
+
+                                                  – 10 –
+[24] C. Sailer, B. Lubsandozhiev, C. Strandhagen and J. Jochum, Low temperature light yield
+     measurements in NaI and NaI(Tl), Eur. Phys. J. C 72 (2012) 2061 [1203.1172].
+[25] I. R. Pandey, J. Cheon, D. J. Daniel, M. Kim, Y. Kim, M. H. Lee et al., A cryogenic setup for
+     multifunctional characterization of luminescence and scintillation properties of single crystals, Rev.
+     Sci. Instrum. 91 (2020) 103108.
+[26] G. Collazuol et al., Studies of silicon photomultipliers at cryogenic temperatures, Nuclear Instruments
+     and Methods in Physics Research Section A: Accelerators, Spectrometers, Detectors and Associated
+     Equipment 628 (2011) 389.
+[27] S. M. Sze, Y. Li and K. K. Ng, Physics of semiconductor devices. John wiley & sons, 2021.
+[28] A. Nepomuk Otte, D. Garcia, T. Nguyen and D. Purushotham, Characterization of Three High
+     Efficiency and Blue Sensitive Silicon Photomultipliers, Nucl. Instrum. Meth. A 846 (2017) 106
+     [1606.05186].
+[29] W. Shockley and W. T. Read, Statistics of the recombinations of holes and electrons, Phys. Rev. 87
+     (1952) 835.
+[30] F. Acerbi, G. Paternoster, M. Capasso, M. Marcante, A. Mazzi, V. Regazzoni et al., Silicon
+     photomultipliers: Technology optimizations for ultraviolet, visible and near-infrared range,
+     Instruments 3 (2019) 15.
+[31] K. W. Kim et al., Tests on NaI(Tl) crystals for WIMP search at the Yangyang Underground
+     Laboratory, Astropart. Phys. 62 (2015) 249 [1407.1586].
+[32] M. Moszynski, A. Nassalski, A. Syntfeld-Kazuch, T. Szczesniak, W. Czarnacki, D. Wolski et al.,
+     Temperature dependences of labr3 (ce), lacl3 (ce) and nai(tl) scintillators, Nucl. Instrum. Meth. A 568
+     (2006) 739.
+[33] H. Dietrich, A. Purdy, R. Murray and R. Williams, Kinetics of self-trapped holes in alkali-halide
+     crystals: Experiments in nai(tl) and ki(tl), Physical Review B 8 (1973) 5894.
+[34] KIMS collaboration, Pulse-shape discrimination between electron and nuclear recoils in a NaI(Tl)
+     crystal, JHEP 08 (2015) 093.
+[35] G. F. Knoll, Radiation detection and measurement. John Wiley and Sons, 2010.
+
+
+
+
+                                                  – 11 –
+
