@@ -48,24 +48,16 @@ Run & Step & HG shaping & HoldDelay & $T$ detector & $T$ board & HV current \\
 
 No trigger was lost and all 64 channels are present in every event. \textbf{But every
 measurement of every channel, in the high and the low gain, is 8191}, the full scale of the
-13-bit ADC, in all nine runs and at all 32 points of the hold scan. The value does not change
-with the shaping, the hold delay or the gain. The noise of the electronics therefore cannot be
-measured from these files.
+13-bit ADC, in all nine runs and at all 32 points of the hold scan. 
 
-This does not look like a property of the SiPMs: the HV current is 0.3~$\mu$A (64 SiPMs above
-breakdown would draw tens of $\mu$A), and the charge discriminator is never set. 8191 is all 13
-bits at one, the value one expects when the ADC does not convert, or when a decoder writes a
-default.
-
-Nor does it come from a setting recorded in the files. The DAQ stores the configuration that
+The setup appears to be correct. The DAQ stores the configuration that
 was requested and the one the board applied, parameter by parameter; the audit marks every
 parameter as applied, and all of them agree with the settings table of bench note 1 except
 \texttt{HV\_Vbias}. The only parameter the note did not fix is \texttt{Pedestal}, which is 0.
-If something went wrong, it is in what the files do not record: the state of the board or the
-cabling, the actions in the Hardware tab, or what changed between the runs (16:35) and the
-scans (23:41 and 00:52, local time).
 
-Two differences with the logbook:
+Whatever went wrong it not recorded in the files.
+
+There are differences between the content of the files and the logbook:
 \begin{itemize}
 \item The files record \texttt{HV\_Vbias} = 40.7~V (\texttt{HV\_IndivAdj} = 0,
   \texttt{HV\_Adjust\_Range} = 4.5~V); the logbook says 36.5~V. If the individual adjustment
@@ -116,34 +108,33 @@ ones are even channels 0--10, which suggests a connector or a mapping rather tha
 \section{Questions}
 
 \begin{enumerate}
-\item \textbf{(JMB)} Why is every value 8191, in both gains and in the hold scan? Does the ADC
+\item \textbf{(JMB?)} Why is every value 8191, in both gains and in the hold scan? Does the ADC
   not convert with this configuration (\texttt{PEAK\_STRETCH}, \texttt{Pedestal} = 0, periodic
-  trigger), or does the decoder write a default? The same configuration in Janus would tell
-  which.
-\item \textbf{(JMB)} Scan 11 contains \texttt{0xDEADBEEF} as the count of channel 61 at
+  trigger), or does the decoder write a default? 
+  \item \textbf{(JMB?)} Scan 11 contains \texttt{0xDEADBEEF} as the count of channel 61 at
   threshold 490: where does it come from?
-\item \textbf{(Laura)} What was the exact sequence of that afternoon and evening: what was done
+\item \textbf{(Laura)} review the sequence of data taking: what was done
   on the board and in the DAQ before the runs, what was changed before the scans (in
-  particular the HV), and was anything odd seen on the screen? The histograms of the DAQ already
-  showed every channel in the last bin.
+  particular the HV), etc.
 \item \textbf{(Laura)} What voltage does each SiPM see with \texttt{HV\_Vbias} = 40.7~V and
   \texttt{HV\_IndivAdj} = 0: about 36.2~V?
 \item \textbf{(Laura)} Are SiPMs connected to channels 15, 55, 57, 59, 61 and 63? Is anything
   different about 0, 2, 8 and 10 (connector, position in the array)?
-\item \textbf{(Laura)} Could the logbook get rows for scans 10, 11 and 12 (time, settings, HV),
-  with the temperature of the detector rather than the board? And could the
-  \path{staircase.h5} artifacts be copied?
+\item \textbf{(Laura)} The logbook needs rows for scans 10, 11 and 12 (time, settings, HV),
+  with the temperature of the detector rather than the board? And the
+  \path{staircase.h5} artifacts need to be copied. Not important for this round, since we need
+  to repeat the data taking anyway.
 \end{enumerate}
 
-\section{Tools}
-
-\begin{itemize}
-\item \sloppy\path{julia --project=. fullsim_analysis/scripts/bench/inspect_run.jl}\\
-  \path{benchdata/2026-10-21} writes \path{runs.csv}, \path{channels.csv} and \path{hold_scan.csv} beside this report and
-  prints the warnings.
-\item \path{python3 fullsim_analysis/plots/staircase.py benchdata/2026-10-21}\\ writes
-  \path{staircase_N.csv}, \path{staircase_N_channels.csv} and \path{staircase_N.png} beside
-  this report.
-\end{itemize}
+%\section{Tools}
+%
+%\begin{itemize}
+%\item \sloppy\path{julia --project=. fullsim_analysis/scripts/bench/inspect_run.jl}\\
+%  \path{benchdata/2026-10-21} writes \path{runs.csv}, \path{channels.csv} and \path{hold_scan.csv} beside this report and
+%  prints the warnings.
+%\item \path{python3 fullsim_analysis/plots/staircase.py benchdata/2026-10-21}\\ writes
+%  \path{staircase_N.csv}, \path{staircase_N_channels.csv} and \path{staircase_N.png} beside
+%  this report.
+%\end{itemize}
 
 \end{document}
