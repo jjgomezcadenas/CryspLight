@@ -3,17 +3,23 @@ discriminator of each channel against its coarse threshold (TD_CoarseThreshold, 
 units). The day folder is benchdata/<YYYY-MM-DD>/ with one subdirectory scan-N per
 staircase; each holds points.jsonl (one JSON line per threshold, written by the DAQ during
 the scan: threshold, elapsed in ns, counts and rates of the 64 channels, counts and rates
-of the T-OR and Q-OR). The staircase.h5 artifact carries the same numbers; it is not read
+of the T-OR and Q-OR). Points with a channel rate above MAX_HZ are not measurements (the
+DAQ has written 0xDEADBEEF as a count): they are listed, kept in the CSV with valid = 0, and
+left out of the figure and the summary. The staircase.h5 artifact carries the same numbers; it is not read
 yet, since none has been downloaded.
 
 Writes fullsim_analysis/results/bench/<day>/:
     staircase_N.csv  one row per threshold and channel: threshold, channel, counts,
-                     elapsed_s, rate_cps, and the T-OR and Q-OR rates of that threshold;
+                     elapsed_s, rate_cps, valid, and the T-OR and Q-OR rates of that threshold;
     staircase_N.png  rate against threshold, one curve per channel, the T-OR on top;
                      channels with zero rate over the whole scan are listed, not drawn.
-and prints, per channel, the threshold below which the rate exceeds 1 kHz, scanning down
-from the highest threshold: a first measure of where the baseline noise of the fast
-shaper sits in each channel.
+    staircase_N_channels.csv  one row per channel: the plateau rate (the largest rate of the
+                     scan, set by the baseline noise of the fast shaper), the edge of the
+                     plateau (scanning down from the highest threshold, the first one where
+                     the rate reaches half the plateau rate) and the rate EDGE_STEP DAC
+                     above the edge, where a channel that sees avalanches still counts
+                     dark pulses and one that sees only noise has fallen to near zero;
+and prints the edges and the channels without avalanches.
 
     python3 fullsim_analysis/plots/staircase.py benchdata/<YYYY-MM-DD>
 """
@@ -26,7 +32,9 @@ import pandas as pd
 
 from common import plt, results_dir, save
 
-RATE_EDGE = 1e3  # Hz
+EDGE_STEP = 30  # DAC above the plateau edge where the dark rate is read
+QUIET_HZ = 1e3   # below this rate there, the channel is listed as seeing no avalanches
+MAX_HZ = 1e8     # a channel rate above this is not a measurement (e.g. counts 0xDEADBEEF)
 
 
 def read_points(path: Path) -> pd.DataFrame:
@@ -39,14 +47,20 @@ def read_points(path: Path) -> pd.DataFrame:
             rows.append({"threshold": p["threshold"], "channel": ch, "counts": n,
                          "elapsed_s": p["elapsed"] * 1e-9, "rate_cps": r,
                          "t_or_rate_cps": p["t_or_rate_cps"], "q_or_rate_cps": p["q_or_rate_cps"]})
-    return pd.DataFrame(rows).sort_values(["channel", "threshold"]).reset_index(drop=True)
+    df = pd.DataFrame(rows).sort_values(["channel", "threshold"]).reset_index(drop=True)
+    df["valid"] = (df.rate_cps <= MAX_HZ).astype(int)
+    return df
 
 
-def edge_threshold(df_ch: pd.DataFrame) -> float:
-    """Scanning down from the highest threshold, the first one with rate >= RATE_EDGE."""
+def channel_summary(df_ch: pd.DataFrame) -> pd.Series:
+    """Plateau rate, plateau edge and the rate EDGE_STEP DAC above the edge of one channel."""
     d = df_ch.sort_values("threshold", ascending=False)
-    hit = d[d.rate_cps >= RATE_EDGE]
-    return float(hit.threshold.iloc[0]) if len(hit) else np.nan
+    plateau = d.rate_cps.max()
+    hit = d[d.rate_cps >= plateau / 2]
+    edge = float(hit.threshold.iloc[0]) if plateau > 0 else np.nan
+    above = d[d.threshold >= edge + EDGE_STEP]
+    r = float(above.sort_values("threshold").rate_cps.iloc[0]) if len(above) else np.nan
+    return pd.Series({"plateau_rate_cps": plateau, "edge": edge, f"rate_edge_plus_{EDGE_STEP}": r})
 
 
 def plot(df: pd.DataFrame, title: str, day: str, name: str):
@@ -76,19 +90,29 @@ def main(day_dir: Path):
     for d in scans:
         n = d.name.split("-")[-1]
         df = read_points(d / "points.jsonl")
+        bad = df[df.valid == 0]
+        for _, b in bad.iterrows():
+            print(f"scan {n}: invalid point, channel {b.channel} threshold {b.threshold}: "
+                  f"counts {b.counts} (0x{int(b.counts):X})")
         csv = out / f"staircase_{n}.csv"
         df.to_csv(csv, index=False)
         print(csv)
+        df = df[df.valid == 1]
         th = df.threshold
         dead = plot(df, f"{day} scan {n}: thresholds {th.min()}-{th.max()}", day, f"staircase_{n}")
-        edges = df.groupby("channel").apply(edge_threshold, include_groups=False)
-        e = edges.dropna()
+        summ = df.groupby("channel").apply(channel_summary, include_groups=False)
+        csv = out / f"staircase_{n}_channels.csv"
+        summ.to_csv(csv)
+        print(csv)
+        e, rq = summ.edge.dropna(), summ[f"rate_edge_plus_{EDGE_STEP}"]
+        quiet = list(summ.index[rq < QUIET_HZ])
         print(f"scan {n}: {df.threshold.nunique()} thresholds {th.min()}-{th.max()}, "
               f"zero rate in channels {dead}")
-        if len(e):
-            print(f"  rate >= 1 kHz below threshold: median {e.median():.0f}, "
-                  f"range {e.min():.0f}-{e.max():.0f}, in {len(e)} channels")
-            print("  per channel: " + " ".join(f"{c}:{v:.0f}" for c, v in e.items()))
+        print(f"  plateau edge: median {e.median():.0f}, range {e.min():.0f}-{e.max():.0f}")
+        print(f"  rate {EDGE_STEP} DAC above the edge: median {rq.median():.3g} Hz; "
+              f"below {QUIET_HZ:.0f} Hz (no avalanches) in channels {quiet}")
+        low = summ[(rq >= QUIET_HZ) & (rq < rq.median() / 3)]
+        print(f"  below a third of the median there: channels {list(low.index)}")
 
 
 if __name__ == "__main__":
