@@ -56,22 +56,22 @@ Part of the noise may be shared by all the channels of a chip, and it can be sep
 they are read at the same trigger. For one chip and one run, with $x_i(e)$ the value of
 channel $i$ in event $e$:
 \begin{enumerate}
-\item \textbf{Deviations from the pedestal.}
+\item \textbf{Deviations from the pedestal.} The pedestal of channel $i$, $p_i$, is the median
+  of $x_i$ over the events of the run, which the jumps and outliers found in the next steps
+  cannot drag. The deviation from it is
   \begin{equation*}
-  d_i(e) = x_i(e) - \operatorname{median}_e\, x_i .
+  d_i(e) = x_i(e) - p_i .
   \end{equation*}
 \item \textbf{Outliers of a channel.} A channel may depart from the rest of its chip in a
   single event, a fault of that channel rather than noise. In each event the reference of the
-  chip is the median of the deviations,
+  chip, $r(e)$, is the median of the deviations of its 32 channels in that event, which one
+  channel cannot move. The pull of channel $i$ in event $e$ is
   \begin{equation*}
-  r(e) = \operatorname{median}_i\, d_i(e) ,
+  z_i(e) = \frac{d_i(e) - r(e)}{s_i} ,
   \end{equation*}
-  which one channel cannot move, and channel $i$ is an outlier in event $e$ if
-  \begin{equation*}
-  |d_i(e) - r(e)| > 5\, s_i , \qquad s_i = 1.4826\, \operatorname{MAD}_e\big(d_i - r\big) ,
-  \end{equation*}
-  where $s_i$, the median absolute deviation scaled to the rms of a Gaussian, is the noise of
-  the channel itself, measured without being affected by the outliers. With Gaussian noise a
+  where $s_i$, 1.4826 times the median absolute deviation of $d_i - r$ over the events (the rms
+  of a Gaussian, measured without being affected by the outliers), is the noise of the channel
+  itself. The channel is an outlier in that event if $|z_i(e)| > 5$. With Gaussian noise a
   channel passes $5 s_i$ with a probability of $6\times10^{-7}$ per event, about 0.2 times in
   a run of 32 channels and 10\,000 events. The outliers are left out of the common mode and of
   the widths, and counted for each channel: a channel that is often an outlier is faulty.
@@ -92,26 +92,31 @@ channel $i$ in event $e$:
   channel takes in full, the correlation between any two channels is the fraction of the
   variance it carries, $\sigma_\mathrm{coh}^2/\sigma_\mathrm{tot}^2$ (step 7).
 \item \textbf{Jumps of the chip.} If the whole chip moves in an event, the common mode of that
-  event falls out of its own distribution. With $\sigma_\mathrm{CM} = 1.4826\,
-  \operatorname{MAD}_e \mathrm{CM}$ its robust width, an event is a jump if
+  event falls out of its own distribution. With $c$ the centre of that distribution over the
+  run (its median) and $\sigma_\mathrm{CM}$ its robust width (1.4826 times its median absolute
+  deviation), an event is a jump if
   \begin{equation*}
-  |\mathrm{CM}(e) - \operatorname{median}_e \mathrm{CM}| > 6\, \sigma_\mathrm{CM} ,
+  |\mathrm{CM}(e) - c| > 6\, \sigma_\mathrm{CM} ,
   \end{equation*}
   which a Gaussian common mode does with a probability of $2\times10^{-9}$ per event. The jumps
   are counted and the events set aside.
 \item \textbf{Coupling of each channel.} The separation assumes that every channel receives the
   same common mode. This is checked with the slope of each channel against it,
   \begin{equation*}
-  b_i = \frac{\mathrm{cov}_e(d_i, \mathrm{CM})}{\mathrm{var}_e\, \mathrm{CM}} ,
+  b_i = \frac{\mathrm{cov}(d_i, \mathrm{CM})}{\mathrm{var}(\mathrm{CM})} ,
   \end{equation*}
-  which is 1 for a channel that takes the full common mode. A channel with a slope far from 1
+  with the covariance and the variance taken over the events. The slope
+  is 1 for a channel that takes the full common mode. A channel with a slope far from 1
   is coupled differently from the others, and the slope says how.
 \item \textbf{Total, coherent and incoherent noise.}
-  \begin{align*}
-  \sigma_\mathrm{tot} &= \operatorname{median}_i\, \mathrm{rms}_e\, d_i , \\
-  \sigma_\mathrm{inc} &= \operatorname{median}_i\, \mathrm{rms}_e \big(d_i - \mathrm{CM}\big)\,\sqrt{32/31} , \\
-  \sigma_\mathrm{coh}^2 &= \mathrm{var}_e\, \mathrm{CM} - \sigma_\mathrm{inc}^2/32 .
-  \end{align*}
+  Let $\sigma_i$ be the rms of $d_i$ over the events and $\sigma'_i$ that of $d_i - \mathrm{CM}$.
+  The total noise of the chip, $\sigma_\mathrm{tot}$, is the median of the $\sigma_i$ over its
+  channels; the incoherent noise, $\sigma_\mathrm{inc}$, is the median of the $\sigma'_i$
+  multiplied by $\sqrt{32/31}$; and the coherent noise follows from the variance of the common
+  mode over the events,
+  \begin{equation*}
+  \sigma_\mathrm{coh}^2 = \mathrm{var}(\mathrm{CM}) - \sigma_\mathrm{inc}^2/32 .
+  \end{equation*}
   The two corrections come from the mean itself: subtracting it removes from each channel 1/32
   of its own noise, and it keeps $1/\sqrt{32}$ of the incoherent noise of the channels, which
   is not common. The check is $\sigma_\mathrm{tot}^2 = \sigma_\mathrm{coh}^2 +

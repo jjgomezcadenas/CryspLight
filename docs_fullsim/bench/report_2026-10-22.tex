@@ -6,7 +6,7 @@
 \usepackage{float}
 \graphicspath{{../../fullsim_analysis/results/bench/2026-10-22/}{../../fullsim_analysis/results/bench/2026-10-21/}}
 \title{Bench data of 22 October 2026: menu 1 with five boards}
-\author{JJ with help from CaLibrated AUtomatic Document Entity (CLAUDE)}
+\author{JJ}
 \date{23 October 2026}
 \begin{document}
 \maketitle
@@ -79,14 +79,15 @@ Part of this noise is shared by all the channels of a chip, and it can be separa
 32 channels of a Citiroc are read at the same trigger. The steps are shown below on one chip
 that works normally (board 2, channels 32--63, run 26), high gain.
 
-\subsection{Deviations from the pedestal}\label{sec:dev}
-
-For channel $i$ in event $e$, with $x_i(e)$ the value read,
-\begin{equation*}
-d_i(e) = x_i(e) - \operatorname{median}_e\, x_i .
-\end{equation*}
 
 \subsection{Outliers of a channel}\label{sec:outliers}
+
+For channel $i$ in event $e$, $x_i(e)$ is the value read. The pedestal of the channel, $p_i$,
+is the median of $x_i$ over the events of the run: the jumps and outliers found below, which
+are not yet known at this step, cannot drag it. The deviation from the pedestal is
+\begin{equation*}
+d_i(e) = x_i(e) - p_i .
+\end{equation*}
 
 \begin{figure}[H]
 \centering
@@ -100,7 +101,7 @@ on the right come from the integer ADC values.}
 
 A single channel may depart from the rest of its chip in one event, a fault of that channel
 rather than noise, and it must not be taken for common mode. In each event the reference of the
-chip is the median of the 32 deviations, $r(e) = \operatorname{median}_i d_i(e)$, which one
+chip, $r(e)$, is the median of the deviations of the 32 channels in that event, which one
 channel cannot move. The pull of channel $i$ in event $e$ is its distance from that reference
 in units of its own noise,
 \begin{equation*}
@@ -170,9 +171,10 @@ HoldDelay 0; the channels below 0.75 do not see their SiPM.}
 The separation assumes that every channel receives the same common mode. This is checked with
 the slope of each channel against it,
 \begin{equation*}
-b_i = \frac{\mathrm{cov}_e(d_i, \mathrm{CM})}{\mathrm{var}_e\, \mathrm{CM}} ,
+b_i = \frac{\mathrm{cov}(d_i, \mathrm{CM})}{\mathrm{var}(\mathrm{CM})} ,
 \end{equation*}
-which is 1 for a channel that takes the full common mode (Figure~\ref{fig:stepC}). It is 0.96
+with the covariance and the variance taken over the events. The slope
+is 1 for a channel that takes the full common mode (Figure~\ref{fig:stepC}). It is 0.96
 for the channel of the middle panel, and between 0.85 and 1.2 (median 1.04) for all the
 channels of all chips but 15, which take much less (right panel). These 15 channels are those
 whose SiPM is not seen (Section~\ref{sec:sipm}).
@@ -190,10 +192,11 @@ at $\pm40$ counts).}
 \end{figure}
 
 If the whole chip moves in an event, the common mode of that event falls out of its own
-distribution. With $\sigma_\mathrm{CM}$ the robust width of the common mode over the run (1.4826
-times its median absolute deviation), an event is a jump if
+distribution. With $c$ the centre of that distribution over the run (its median) and
+$\sigma_\mathrm{CM}$ its robust width (1.4826 times its median absolute deviation), an event is
+a jump if
 \begin{equation*}
-|\mathrm{CM}(e) - \operatorname{median}_e \mathrm{CM}| > 6\, \sigma_\mathrm{CM} ,
+|\mathrm{CM}(e) - c| > 6\, \sigma_\mathrm{CM} ,
 \end{equation*}
 which a Gaussian common mode does with a probability of $2\times10^{-9}$ per event; jumps are
 counted and set aside (F10). Figure~\ref{fig:stepB} shows the common mode of every event of
@@ -212,11 +215,14 @@ the common mode of each event.}
 \label{fig:stepD}
 \end{figure}
 
-\begin{align*}
-\sigma_\mathrm{tot} &= \operatorname{median}_i\, \mathrm{rms}_e\, d_i , \\
-\sigma_\mathrm{inc} &= \operatorname{median}_i\, \mathrm{rms}_e \big(d_i - \mathrm{CM}\big)\,\sqrt{32/31} , \\
-\sigma_\mathrm{coh}^2 &= \mathrm{var}_e\, \mathrm{CM} - \sigma_\mathrm{inc}^2/32 .
-\end{align*}
+Let $\sigma_i$ be the rms of $d_i$ over the events and $\sigma'_i$ that of $d_i - \mathrm{CM}$.
+The total noise of the chip, $\sigma_\mathrm{tot}$, is the median of the $\sigma_i$ over its
+channels; the incoherent noise, $\sigma_\mathrm{inc}$, is the median of the $\sigma'_i$
+multiplied by $\sqrt{32/31}$; and the coherent noise follows from the variance of the common
+mode over the events,
+\begin{equation*}
+\sigma_\mathrm{coh}^2 = \mathrm{var}(\mathrm{CM}) - \sigma_\mathrm{inc}^2/32 .
+\end{equation*}
 The two corrections come from the mean itself: subtracting the mean removes from each channel
 1/32 of its own noise, and the mean keeps $1/\sqrt{32}$ of the incoherent noise of the
 channels, which is not common. On the example chip $\sigma_\mathrm{tot} = 11.9$,
