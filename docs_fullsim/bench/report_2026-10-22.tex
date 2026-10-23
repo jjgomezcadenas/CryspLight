@@ -106,7 +106,7 @@ deviations of its 32 channels in that event:
 r(e) = \mathrm{median}_{\,i}\big(d_i(e)\big) = \mathrm{median}_{\,i}\big(x_i(e) - p_i\big) ,
 \end{equation*}
 where the median is taken over the channels $i$, so that there is one value of $r$ per
-event. A single channel far from the others cannot move it.
+event. The median is robust again outliers, that is, one or few channels with values fram from the others cannot move it.
 
 The MAD of a set of values $v_k$ is obtained in two steps:
 \begin{enumerate}
@@ -121,15 +121,15 @@ Gaussian and its MAD, $M$, is known, its width is $\sigma = 1.4826\, M$.
 
 Now, for channel $i$, consider the set of values
 \begin{equation*}
-v_e = d_i(e) - r(e) ,
+v_i^e = d_i(e) - r(e) ,
 \end{equation*}
 one per event $e$ of the run, which measures how far the channel strays from the rest of
-its chip in each event. Following the definition of the MAD, $m$ is the median of the
-$v_e$ over the events (close to zero, since both the pedestal and the reference of the
-event have been subtracted), and $M = \mathrm{median}_{\,e}\big(|v_e - m|\big)$. Assuming that
-the distribution of the $v_e$ is Gaussian, its width is
+its chip in each event. Following the definition of the MAD, $m_i$ is the median of the
+$v_i^e$ over the events (close to zero, since both the pedestal and the reference of the
+event have been subtracted), and $M_i = \mathrm{median}_{\,e}\big(|v_i^e - m_i|\big)$. Assuming
+that the distribution of the $v_i^e$ is Gaussian, its width is
 \begin{equation*}
-s_i = 1.4826\, M ,
+s_i = 1.4826\, M_i ,
 \end{equation*}
 one value per channel: the noise of channel $i$ relative to its chip. Unlike the rms, the
 MAD is not changed by a few extreme values, so $s_i$ is not inflated by the outliers it is
