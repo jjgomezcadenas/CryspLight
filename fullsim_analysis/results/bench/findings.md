@@ -16,7 +16,7 @@ channels 0-63.
 | F1 | All values at full scale (8191) | 21 Oct, runs 1-9, hold scan 12 | solved (JMB) |
 | F2 | HV_Vbias 40.7 V in the files, 36.5 V in the logbook | 21 Oct | explained |
 | F3 | Logbook temperature was the board's | 21 Oct | solved |
-| F4 | Board 0: no signal from the SiPM in channels 15, 55, 57, 59, 61, 63 | 21 Oct, scans 10-11 | open |
+| F4 | SiPM not seen: board 0 channels 15, 55, 57, 59, 61, 63 (staircases); 9 more predicted on boards 1, 3, 4 (common mode) | 21-22 Oct | open |
 | F5 | Board 0: low dark rate in channels 0, 2, 8, 10 | 21 Oct, scans 10-11 | open |
 | F6 | 0xDEADBEEF as a staircase count | 21 Oct, scan 11 | open |
 | F7 | Boards 1 and 4: channels 0-31 read 0 in every event | 22 Oct, runs 26-34 | open |
@@ -51,21 +51,25 @@ channels 0-63.
 
 ## F4. Channels that do not see their SiPM
 
-- **Seen:** 21 Oct, scans 10 and 11, board 0 (the only board scanned so far), SiPMs above
-  breakdown. Channels 15, 55, 57, 59, 61 and 63 fall from the noise plateau (edge at 180-185
-  DAC) to zero within 10 DAC; 30 DAC above the edge they count 0-4 Hz, against a median of
-  6e5 Hz. Evidence: 2026-10-21/staircase_11.png, staircase_11_channels.csv.
+- **Seen:** 21 Oct, scans 10 and 11, board 0, SiPMs above breakdown. Channels 15, 55, 57, 59,
+  61 and 63 fall from the noise plateau (edge at 180-185 DAC) to zero within 10 DAC; 30 DAC
+  above the edge they count 0-4 Hz, against a median of 6e5 Hz. Evidence:
+  2026-10-21/staircase_11.png, staircase_11_channels.csv.
 - **Cause:** the SiPMs are connected (known), so the signal is lost between SiPM and Citiroc:
-  a bad contact or a fault in the connector. Five of the six are the odd channels 55-63.
-- **Pedestal noise as a hint, not a test:** a SiPM at the input adds capacitance and raises
-  the noise of the preamplifier. In run 28 (22 Oct, 87.5 ns, below breakdown) the six channels
-  are at 0.82-0.87 of the board-0 median rms, but channels with avalanches reach 0.81-0.89 on
-  boards 0, 1, 3 and 4, so the noise does not separate them; at 25 ns they sit at 0.97-1.05.
-  Histograms: 2026-10-22/bench_noise.png (fullsim_analysis/plots/bench_noise.py).
-  inspect_run.jl flags only channels below 0.6 of the board median (a dead input); none on
-  22 Oct.
-- **Action:** staircases of all five boards; check the contacts and connector of these
-  channels on board 0.
+  a bad contact or a fault in the connector or the adapter board.
+- **Found also in the pedestal runs (22 Oct):** the common mode of a chip enters through the
+  SiPMs, so a channel that does not see its SiPM does not receive it. The slope of each
+  channel against the common mode of its chip (noise_components.jl, channel_slopes.csv) is
+  0.02-0.6 for the six channels in every run, and above 0.85 for every channel of board 0
+  with avalanches. With a cut at 0.75 the same criterion finds, on the other boards:
+  board 1: 61, 63; board 3: 45, 47, 49, 60; board 4: 59, 61, 63; board 2: none. These are
+  predictions for the staircases of the five boards. The odd channels 55-63 recur on boards
+  0, 1 and 4. The pedestal rms alone does not separate them (0.82-0.87 of the board median
+  against 0.81-0.89 for others). Evidence: 2026-10-22/bench_slopes.png, bench_noise.png.
+  noise_components.jl prints the channels below the cut ("SiPM not seen"); inspect_run.jl
+  no longer cuts on the rms.
+- **Action:** staircases of all five boards (menu 2) to test the predictions; check the
+  contacts, connectors and adapter boards of these channels.
 - **Consequence:** these channels cannot be calibrated with the periodic trigger and will not
   record the crystal light.
 

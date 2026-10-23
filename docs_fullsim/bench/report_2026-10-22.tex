@@ -4,7 +4,7 @@
 \usepackage[hidelinks]{hyperref}
 \graphicspath{{../../fullsim_analysis/results/bench/2026-10-22/}{../../fullsim_analysis/results/bench/2026-10-21/}}
 \title{Bench data of 22 October 2026: menu 1 with five boards}
-\author{CaLibrated AUtomatic DocumEnt (CLAUDE), supervised by J. J. G\'omez-Cadenas}
+\author{CaLibrated AUtomatic Document Entity (CLAUDE), supervised by J. J. G\'omez-Cadenas}
 \date{23 October 2026}
 \begin{document}
 \maketitle
@@ -39,7 +39,7 @@ has one row per run and board and agrees with the files. The DAQ now records
 \texttt{PeakDetectorMode} (PEAK\_STRETCH, applied on all boards), which shows that it includes
 the pull requests merged on 20 October.
 
-\section{What works}
+\section{Summary}
 
 \begin{itemize}
 \item \textbf{The saturation is gone} (F1). No value of any channel is at 8191.
@@ -62,32 +62,124 @@ board 0 without avalanches in the staircases of 21 October (F4).}
 \section{Noise}
 
 The rms of the high gain is 12--13 ADC counts at the three shapings, and that of the low gain
-about 6 counts, the same on all boards. Because the 32 channels of a chip are read at the same
-trigger, the noise can be split into a \textbf{coherent} part, the event-by-event shift shared
-by the whole chip (the mean of the deviations of its 32 channels), and an \textbf{incoherent}
-part, that of each channel after subtracting this shift. Figure~\ref{fig:shaping} shows both
-against the shaping time.
+about 6 counts, the same on all boards. Part of this noise is shared by all the channels of a
+chip, and it can be separated because the 32 channels of a Citiroc are read at the same
+trigger. The steps are shown here on one chip that works normally (board 2, channels 32--63,
+run 26), high gain.
 
+\paragraph{1. Deviations from the pedestal.} For channel $i$ in event $e$, with $x_i(e)$ the
+value read,
+\begin{equation*}
+d_i(e) = x_i(e) - \operatorname{median}_e\, x_i .
+\end{equation*}
+Figure~\ref{fig:stepA} shows $d_i$ for 100 consecutive events. Besides the fluctuations of each
+channel there are vertical stripes, events in which most channels are above or below their
+pedestal together (events 67--68, 78, 82--83, 88).
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{noise_steps_A.png}
+\caption{Board 2, channels 32--63, run 26: deviation of each channel from its pedestal in 100
+consecutive events (below), and the mean of the 32 deviations in each event (above).}
+\label{fig:stepA}
+\end{figure}
+
+\paragraph{2. Jumps of the whole chip.} In each event we count the channels far from their
+pedestal,
+\begin{equation*}
+N(e) = \#\{\, i : |d_i(e)| > 60 \text{ counts} \,\},
+\end{equation*}
+60 counts being five times the rms. Events with $N(e) \ge 10$ are jumps of the whole chip and
+are set aside (F10). On the example chip $N$ is 0 in every event; on board 0
+(Figure~\ref{fig:stepB}) normal events have $N \le 6$ and the jumps $N = 24$--32, with a
+single event at 10.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{noise_steps_B.png}
+\caption{Left: board 0, channels 32--63, run 26, around a jump (colour saturated at $\pm40$
+counts). Right: distribution of $N(e)$ on board 0 and on the example chip, with the cut.}
+\label{fig:stepB}
+\end{figure}
+
+\paragraph{3. Common mode.} The common mode of an event is the mean of the deviations,
+\begin{equation*}
+\mathrm{CM}(e) = \frac{1}{32}\sum_{i=1}^{32} d_i(e) ,
+\end{equation*}
+drawn above the map of Figure~\ref{fig:stepA}. Its rms is 6.2 counts on the example chip
+(Figure~\ref{fig:stepC}, left). The separation assumes that every channel receives the same
+common mode. This is checked with the slope of each channel against it,
+$b_i = \mathrm{cov}_e(d_i, \mathrm{CM}) / \mathrm{var}_e\, \mathrm{CM}$: it is 0.96 for the
+channel of the middle panel, and between 0.85 and 1.2 (median 1.04) for all the channels of all
+chips but 15, which take much less (right panel). These 15 channels are those whose SiPM is not
+seen, discussed below.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{noise_steps_C.png}
+\caption{Left: common mode of the example chip. Centre: deviation of channel 40 against the
+common mode, with the fitted slope. Right: slopes $b_i$ of all channels in the runs with
+HoldDelay 0; the channels below 0.75 do not see their SiPM.}
+\label{fig:stepC}
+\end{figure}
+
+\paragraph{4. Total, coherent and incoherent noise.}
+\begin{align*}
+\sigma_\mathrm{tot} &= \operatorname{median}_i\, \mathrm{rms}_e\, d_i , \\
+\sigma_\mathrm{inc} &= \operatorname{median}_i\, \mathrm{rms}_e \big(d_i - \mathrm{CM}\big)\,\sqrt{32/31} , \\
+\sigma_\mathrm{coh}^2 &= \mathrm{var}_e\, \mathrm{CM} - \sigma_\mathrm{inc}^2/32 .
+\end{align*}
+The two corrections come from the mean itself: subtracting the mean removes from each channel
+1/32 of its own noise, and the mean keeps $1/\sqrt{32}$ of the incoherent noise of the
+channels, which is not common. On the example chip $\sigma_\mathrm{tot} = 11.9$,
+$\sigma_\mathrm{coh} = 5.9$ and $\sigma_\mathrm{inc} = 10.4$ counts; the check
+$\sigma_\mathrm{tot}^2 = \sigma_\mathrm{coh}^2 + \sigma_\mathrm{inc}^2$ holds within 0.1\%.
+Figure~\ref{fig:stepD} shows the narrowing of the distribution when the common mode is
+subtracted.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.55\textwidth]{noise_steps_D.png}
+\caption{Example chip: deviations of all channels in all events, before and after subtracting
+the common mode of each event.}
+\label{fig:stepD}
+\end{figure}
+
+\paragraph{5. The common mode belongs to the board.} The common modes of the two chips of the
+same board are correlated (0.58 on board 2 in run 26, 0.6--0.85 on all boards and runs), those
+of different boards are not (Figure~\ref{fig:stepE}).
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{noise_steps_E.png}
+\caption{Common mode of chip 0 against chip 1 of board 2 (left) and of board 2 against board 3
+(right), run 26.}
+\label{fig:stepE}
+\end{figure}
+
+\paragraph{Results.} Applied to every chip of every run (Figures~\ref{fig:shaping}
+and~\ref{fig:hold}):
 \begin{itemize}
 \item \textbf{The noise barely depends on the shaping.} The simulation assumes white series
   noise, which would be 1.87 times larger at 25~ns than at 87.5~ns. The total noise is instead
   0.94 times as large; the incoherent part grows only by 1.13, and the coherent part falls
   (0.72).
 \item \textbf{A quarter to 40\% of the variance is coherent} (5.9 counts at 25~ns, 8.2 at
-  87.5~ns). The coherent noise belongs to the board: it is correlated by 0.6--0.8 between the
-  two chips of a board and not at all between boards. In the sum of the 64 channels, which
-  gives the energy, it adds linearly and dominates: about 380 counts against 85 from the
-  incoherent part at 25~ns.
+  87.5~ns). In the sum of the 64 channels, which gives the energy, it adds linearly and
+  dominates: about 350 counts against 85 from the incoherent part at 25~ns.
+\item \textbf{The common mode enters through the SiPM.} The channels whose SiPM is not
+  connected do not receive it (step 3). This points to the bias line of the SiPMs, the HV of
+  each board, coupled to the inputs through the capacitance of the SiPMs, and it explains why
+  the common mode is shared by the two chips of a board and not between boards.
 \item \textbf{The pedestal rises slowly with the window.} With a longer HoldDelay the pedestal
   rises and narrows, as expected for the peak stretch, but at 296~ns it has risen by 0.5--0.6
   rms where the model predicts 2.2, and it is still rising at 496~ns.
 \item \textbf{The low gain} has 0.45 times the noise of the high gain at the same shaping,
   where the model assumes the same noise in counts.
 \end{itemize}
-
-\noindent These results, the hypotheses that could explain them (a low-frequency noise, the
-bias line of the SiPMs, a non-ideal peak detector) and the measurements that would test them
-are discussed in the note \emph{Noise of the Citiroc front end: model and bench data}.
+\noindent The comparison with the model of the simulation, the hypotheses and the measurements
+that would test them are in the note \emph{Noise of the Citiroc front end: model and bench
+data}.
 
 \begin{figure}[h]
 \centering
@@ -97,6 +189,15 @@ shaping time (median over the eight chips read, bars from the lowest to the high
 and the low gain at 87.5~ns. Left, in ADC counts, with the model scaled to the incoherent
 noise at 87.5~ns; right, divided by the value at 87.5~ns.}
 \label{fig:shaping}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{noise_vs_holddelay.png}
+\caption{Runs 26 and 29--33, high gain at 25~ns: rise of the pedestal from HoldDelay 0 in
+units of its rms (left, median over the channels of each board) and rms relative to HoldDelay
+0 (right), with the model (maximum of white noise shaped at 25~ns over the window).}
+\label{fig:hold}
 \end{figure}
 
 \section{Problems}
@@ -125,7 +226,7 @@ noise at 87.5~ns; right, divided by the value at 87.5~ns.}
   intended, and could the firmware be behind F7 or F10?
 \end{itemize}
 
-\section{Channels without avalanches}
+\section{Channels that do not see their SiPM}\label{sec:sipm}
 
 The staircases taken on 21 October on board 0, with the SiPMs above breakdown, scan the
 threshold of the timing discriminator of each channel and count its rate
@@ -145,12 +246,22 @@ its coarse threshold, one curve per channel, with the T-OR in black.}
 \label{fig:stair}
 \end{figure}
 
-A SiPM at the input raises the noise of its preamplifier, so a channel with a bad contact
-should also be quieter in the pedestal runs, which would allow the other boards to be checked
-without staircases. Figure~\ref{fig:noise} shows the rms of each channel divided by the median
-of its board: at 87.5~ns the six silent channels of board 0 sit at 0.82--0.87, but channels
-with avalanches reach 0.81--0.89. The pedestal does not separate them, and the staircases of
-all five boards are needed.
+The pedestal runs, taken below breakdown, find the same channels without staircases. A SiPM
+at the input adds capacitance and raises the noise of the preamplifier, but the effect is too
+small to cut on: at 87.5~ns the six channels sit at 0.82--0.87 of the median rms of their
+board, and other channels at 0.81--0.89 (Figure~\ref{fig:noise}). The common mode separates
+them cleanly, because it enters through the SiPM: the six channels take 0.02--0.6 of it, every
+channel of board 0 with avalanches more than 0.85 (Figure~\ref{fig:slopes}). The same
+criterion, a slope below 0.75, finds nine channels on the other boards:
+\begin{itemize}
+\item board 1: 61 and 63;
+\item board 3: 45, 47, 49 and 60;
+\item board 4: 59, 61 and 63;
+\end{itemize}
+and none on board 2. These are predictions for the staircases of the five boards (menu 2).
+As on board 0, the odd channels 55--63 recur, on boards 1 and 4, which points to the adapter
+boards or the connectors. The weak channels of F5 have normal slopes, as expected: they see
+their SiPM.
 
 \begin{figure}[h]
 \centering
@@ -159,6 +270,15 @@ all five boards are needed.
 shaping, one column per board and all boards together. In red, the six channels of board 0
 silent in the staircases of 21 October.}
 \label{fig:noise}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.92\textwidth]{bench_slopes.png}
+\caption{Slope of each channel against the common mode of its chip, median over the runs with
+HoldDelay 0 (bars from the lowest to the highest run), with the cut at 0.75. In red, the six
+channels of board 0 silent in the staircases of 21 October.}
+\label{fig:slopes}
 \end{figure}
 
 \section{Two pedestal peaks in the plots grouped by node}
@@ -239,7 +359,7 @@ hold-delay scan), as written, with three corrections:
   that the fast shaper is left on the high gain) is no longer needed.
 \item With five boards, the scan triggers on one channel of board 0 and the trigger masks of
   the other boards are set to zero. The staircase of step 1 is taken on all five boards: it
-  will show which channels see their SiPM (F4, F5).
+  will show which channels see their SiPM and test the predictions of Section~\ref{sec:sipm} (F4, F5).
 \end{enumerate}
 
 \clearpage

@@ -24,7 +24,7 @@
 #                  high gain from the binned spectrum.
 # and prints a summary per run and board and the warnings: channels at full scale, channels
 # at 0 in every event (not read), channels often at 0 (a pedestal clipped by the ADC floor),
-# channels that do not see their SiPM (NO_SIPM_RATIO), settings that differ between runs or boards,
+# settings that differ between runs or boards,
 # missing channels.
 #   julia --project=. fullsim_analysis/scripts/bench/inspect_run.jl benchdata/<YYYY-MM-DD>
 include(joinpath(@__DIR__, "..", "..", "lib", "FullsimAnalysis.jl"))
@@ -33,14 +33,9 @@ using Statistics, Printf
 
 const FULL_SCALE = 8191
 const FLAG_FRACTION = 0.01   # a channel with more than this fraction at 0 or 8191 is flagged
-# A SiPM at the input adds capacitance and raises the noise of the preamplifier, most visibly
-# with the longest shaping: a channel whose high-gain rms is below NO_SIPM_RATIO times the
-# median of its board, in the runs with the longest HG shaping and HoldDelay 0, is flagged as
-# not seeing its SiPM (bad contact). The cut is deliberately loose: on board 0 (22 Oct 2026,
-# 87.5 ns) the six channels without avalanches in the staircases of 21 Oct are at 0.82-0.87
-# of the median and channels with avalanches go down to 0.89, too close to cut between them;
-# the distribution of the ratio is drawn by fullsim_analysis/plots/bench_noise.py.
-const NO_SIPM_RATIO = 0.6
+# Channels that do not see their SiPM are found by noise_components.jl (they do not receive
+# the common mode of their chip, which enters through the SiPM); their pedestal rms is too
+# close to that of the other channels to cut on (fullsim_analysis/plots/bench_noise.py).
 const SETTINGS = ["HG_ShapingTime", "LG_ShapingTime", "HoldDelay", "PeakDetectorMode",
                   "HV_Vbias", "HV_IndivAdj", "HV_Adjust_Range", "PtrgPeriod", "BunchTrgSource",
                   "HG_Gain", "LG_Gain", "TD_CoarseThreshold", "QD_CoarseThreshold", "Pedestal"]
@@ -162,19 +157,6 @@ if !isempty(runs["run"])
     fws = unique(zip(runs["board"], runs["firmware"]))
     length(unique(last.(fws))) > 1 && push!(warnings, "firmware revisions differ between boards: " *
         join(["board $b 0x$(string(f, base = 16))" for (b, f) in sort(fws)], ", "))
-    shaping(v) = (x = tryparse(Float64, first(split(string(v)))); x === nothing ? 0.0 : x)
-    longest = maximum(shaping.(runs["HG_ShapingTime"]))
-    sel = unique(runs["run"][i] for i in eachindex(runs["run"])
-                 if shaping(runs["HG_ShapingTime"][i]) == longest && startswith(string(runs["HoldDelay"][i]), "0"))
-    for n in sel, b in unique(runs["board"])
-        idx = [i for i in eachindex(chans["run"]) if chans["run"][i] == n && chans["board"][i] == b &&
-               chans["hg_zero"][i] < 1 && !isnan(chans["hg_rms"][i])]
-        isempty(idx) && continue
-        m = median(chans["hg_rms"][idx])
-        low = [chans["channel"][i] for i in idx if chans["hg_rms"][i] < NO_SIPM_RATIO * m]
-        isempty(low) || push!(warnings, @sprintf("run %d board %d (HG %g ns): high-gain rms below %.0f%% of the board median (%.2f) in channels %s: SiPM not seen",
-                                                 n, b, longest, 100 * NO_SIPM_RATIO, m, ranges(low)))
-    end
     println(write_table("bench", day, "runs", [k => runs[k] for k in RCOLS]))
     println(write_table("bench", day, "channels", [k => chans[k] for k in CCOLS]))
 end

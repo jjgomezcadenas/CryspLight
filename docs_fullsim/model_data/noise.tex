@@ -4,7 +4,7 @@
 \usepackage[hidelinks]{hyperref}
 \graphicspath{{../../fullsim_analysis/results/bench/2026-10-22/}}
 \title{Noise of the Citiroc front end: model and bench data}
-\author{CaLibrated AUtomatic DocumEnt (CLAUDE), supervised by J. J. G\'omez-Cadenas}
+\author{CaLibrated AUtomatic Document Entity (CLAUDE), supervised by J. J. G\'omez-Cadenas}
 \date{23 October 2026}
 \begin{document}
 \maketitle
@@ -56,14 +56,100 @@ are not read (a readout problem under investigation), which leaves eight chips o
 All the results are in ADC counts. Converting them to photoelectrons needs the gain of the
 high gain in counts per pe, which these runs, without avalanches, cannot give.
 
-Because the 32 channels of a chip are read at the same trigger, the noise can be split in two
-parts. In each event the deviations of the 32 channels from their pedestals are averaged; the
-rms of this average over the events is the \textbf{coherent} noise, the part shared by the
-whole chip (after removing the small share of the independent noise that survives the
-average). The rms of each channel after subtracting the average is the \textbf{incoherent}
-noise, the part of its own. The \textbf{total} noise is the rms of each channel. Events in
-which the whole chip jumps by more than 60 counts (a separate problem of one board, 0.1--0.4\%
-of its events) are set aside. All quoted values are medians over the chips or channels.
+\section{Separating the common mode}\label{sec:method}
+
+Part of the noise is shared by all the channels of a chip, and it can be separated because the
+32 channels of a Citiroc are read at the same trigger. The steps are illustrated on one chip
+that works normally (board 2, channels 32--63, run 26, high gain at 25~ns).
+
+\paragraph{1. Deviations from the pedestal.} For channel $i$ in event $e$, with $x_i(e)$ the
+value read,
+\begin{equation*}
+d_i(e) = x_i(e) - \operatorname{median}_e\, x_i .
+\end{equation*}
+Besides the fluctuations of each channel, the map of $d_i$ shows vertical stripes, events in
+which most channels are above or below their pedestal together (Figure~\ref{fig:stepA}).
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{noise_steps_A.png}
+\caption{Board 2, channels 32--63, run 26: deviation of each channel from its pedestal in 100
+consecutive events (below), and the mean of the 32 deviations in each event (above).}
+\label{fig:stepA}
+\end{figure}
+
+\paragraph{2. Jumps of the whole chip.} The number of channels far from their pedestal,
+\begin{equation*}
+N(e) = \#\{\, i : |d_i(e)| > 60 \text{ counts} \,\},
+\end{equation*}
+with 60 counts five times the rms, separates a different phenomenon: on one board, in
+0.1--0.4\% of the events, all the channels jump together by 60--230 counts
+(Figure~\ref{fig:stepB}). Normal events have $N \le 6$ and the jumps $N = 24$--32; events
+with $N \ge 10$ are set aside. This is a fault of that board, not part of the noise.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{noise_steps_B.png}
+\caption{Left: board 0, channels 32--63, run 26, around a jump (colour saturated at $\pm40$
+counts). Right: distribution of $N(e)$ on board 0 and on the example chip, with the cut.}
+\label{fig:stepB}
+\end{figure}
+
+\paragraph{3. Common mode.} The common mode of an event is the mean of the deviations,
+\begin{equation*}
+\mathrm{CM}(e) = \frac{1}{32}\sum_{i=1}^{32} d_i(e) .
+\end{equation*}
+Its rms is 6.2 counts on the example chip (Figure~\ref{fig:stepC}, left). The separation
+assumes that every channel receives the same common mode, which is checked with the slope of
+each channel against it,
+\begin{equation*}
+b_i = \frac{\mathrm{cov}_e(d_i, \mathrm{CM})}{\mathrm{var}_e\, \mathrm{CM}} .
+\end{equation*}
+It is between 0.85 and 1.2 (median 1.04) for all the channels of all chips but 15, which take
+much less and are discussed in Section~\ref{sec:sipm}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{noise_steps_C.png}
+\caption{Left: common mode of the example chip. Centre: deviation of channel 40 against the
+common mode, with the fitted slope. Right: slopes $b_i$ of all channels in the runs with
+HoldDelay 0; the channels below 0.75 do not see their SiPM.}
+\label{fig:stepC}
+\end{figure}
+
+\paragraph{4. Total, coherent and incoherent noise.}
+\begin{align*}
+\sigma_\mathrm{tot} &= \operatorname{median}_i\, \mathrm{rms}_e\, d_i , \\
+\sigma_\mathrm{inc} &= \operatorname{median}_i\, \mathrm{rms}_e \big(d_i - \mathrm{CM}\big)\,\sqrt{32/31} , \\
+\sigma_\mathrm{coh}^2 &= \mathrm{var}_e\, \mathrm{CM} - \sigma_\mathrm{inc}^2/32 .
+\end{align*}
+The two corrections come from the mean itself: subtracting it removes from each channel 1/32 of
+its own noise, and it keeps $1/\sqrt{32}$ of the incoherent noise of the channels, which is not
+common. On the example chip $\sigma_\mathrm{tot} = 11.9$, $\sigma_\mathrm{coh} = 5.9$ and
+$\sigma_\mathrm{inc} = 10.4$ counts, and $\sigma_\mathrm{tot}^2 = \sigma_\mathrm{coh}^2 +
+\sigma_\mathrm{inc}^2$ within 0.1\%. Subtracting the common mode narrows the distribution of
+the deviations from 12.0 to 10.2 counts (Figure~\ref{fig:stepD}). In what follows, the values
+are medians over the chips of a run.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.55\textwidth]{noise_steps_D.png}
+\caption{Example chip: deviations of all channels in all events, before and after subtracting
+the common mode of each event.}
+\label{fig:stepD}
+\end{figure}
+
+\paragraph{5. Correlation between chips.} The common modes of the two chips of a board are
+correlated by 0.6--0.85 in all boards and runs, those of different boards are not correlated
+(below 0.12; Figure~\ref{fig:stepE}).
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{noise_steps_E.png}
+\caption{Common mode of chip 0 against chip 1 of board 2 (left) and of board 2 against board 3
+(right), run 26.}
+\label{fig:stepE}
+\end{figure}
 
 \section{Results}
 
@@ -88,9 +174,9 @@ is shortened, but by 1.13 and 1.05 instead of 1.87 and 1.32. The coherent noise,
 concentrated at low frequencies. Its share of the variance goes from a quarter at 25~ns to
 40\% at 87.5~ns, so the third assumption of the model fails as well.
 
-The coherent noise belongs to the board. Its correlation between the two chips of the same
-board is 0.6--0.8 (0.8 at 87.5~ns), and between chips of different boards it is zero within
-0.1.
+The coherent noise belongs to the board: as shown in step 5 of
+Section~\ref{sec:method}, the common modes of the two chips of a board are correlated, the
+more so at the longest shaping (0.8 at 87.5~ns), and those of different boards are not.
 
 \subsection{Low gain against high gain}
 
@@ -120,6 +206,29 @@ narrow in the same way. The data therefore behave as if the noise kept its value
 hundred nanoseconds, much longer than the shaping time, so that a longer window adds new
 fluctuations only slowly.
 
+\subsection{The common mode enters through the SiPM}
+\label{sec:sipm}
+
+Fifteen channels take much less common mode than the others, with slopes $b_i$ of 0.02--0.6
+in all runs against more than 0.85 for every other channel (Figure~\ref{fig:slopes}). On
+board 0 they are channels 15, 55, 57, 59, 61 and 63, exactly the six channels that showed no
+avalanches in the threshold scans taken with the SiPMs above breakdown, whose SiPM is
+connected but whose signal is lost in a bad contact or in the connector. The other nine are
+on boards 1, 3 and 4, where no threshold scan has been taken yet. A channel that does not see
+its SiPM does not receive the common mode, so the common mode reaches the preamplifiers through
+the SiPMs. The pedestal rms alone does not separate these channels: a SiPM at the input raises
+the noise of its preamplifier, but at 87.5~ns the six channels sit at 0.82--0.87 of the median
+rms of their board and other channels at 0.81--0.89.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{bench_slopes.png}
+\caption{Slope of each channel against the common mode of its chip, median over the runs with
+HoldDelay 0 (bars from the lowest to the highest run), with a cut at 0.75. In red, the six
+channels of board 0 without avalanches in the threshold scans.}
+\label{fig:slopes}
+\end{figure}
+
 \section{Hypotheses}
 
 \begin{enumerate}
@@ -131,10 +240,13 @@ fluctuations only slowly.
   observations would then have one cause.
 \item \textbf{The coherent noise comes from the bias of the SiPMs.} Each board has its own HV
   module, which biases the 64 SiPMs through a common line; below breakdown each SiPM is a
-  capacitor that couples any ripple of that line to the input of its preamplifier. This would
-  give a noise common to the board, uncorrelated between boards and concentrated at low
-  frequencies, as observed. The reference voltages or the ground of the board would give a
-  similar signature.
+  capacitor that couples any ripple of that line to the input of its preamplifier. This gives
+  a noise common to the board, uncorrelated between boards and concentrated at low
+  frequencies, as observed, and it is the only hypothesis that explains why channels without
+  their SiPM do not receive the common mode (Section~\ref{sec:sipm}). The reference voltages
+  or the ground of the board would reach every channel, connected or not. A pick-up on the
+  cables or adapter boards between the SiPMs and the board would also enter through the
+  SiPMs and is not excluded.
 \item \textbf{The peak detector is not ideal.} If the peak detector follows the signal with a
   finite speed, or loses part of the held value during the window, it acts as a further
   filter and the rise with the window is slower than for an ideal maximum. This would affect
@@ -152,7 +264,8 @@ low gain, and its size in photoelectrons is not yet known. For the sum of the 64
 which gives the energy, the coherent part matters most: the incoherent noise adds in
 quadrature and grows as $\sqrt{64} = 8$ times that of one channel, while the coherent noise
 adds linearly and grows 64 times. With the numbers of the high gain at 25~ns, about 85 counts
-come from the incoherent noise and about 380 from the coherent one. The simulation needs a
+come from the incoherent noise and about 350 from the coherent one (with the measured
+correlation of 0.6--0.85 between the two chips of a board). The simulation needs a
 noise model with a correlated component per board, and with a dependence on the shaping and
 on the window taken from the data.
 
@@ -168,8 +281,10 @@ on the window taken from the data.
   scans: the delay after the trigger at which the stored amplitude reaches its plateau,
   compared with the 31, 58 and 90~ns of the model (plus the latency of the board), and whether the plateau stays flat at long delays. This tests the
   third hypothesis and shows that the shaping time actually changes.
-\item \textbf{A pedestal run with the HV off}, at 25 and 87.5~ns: if the coherent noise
-  disappears, it comes from the bias line (second hypothesis).
+\item \textbf{A pedestal run with the HV off}, at 25 and 87.5~ns. The SiPMs stay connected,
+  so a pick-up on the cables would remain, while a ripple of the bias line would disappear
+  with the coherent noise. This decides the origin of the coherent noise (second
+  hypothesis).
 \item \textbf{The analog probe of the slow shaper on the oscilloscope}, with the SiPMs below
   breakdown: the noise waveform gives its correlation time and its spectrum directly, and
   decides between the first and the third hypotheses.
@@ -185,10 +300,14 @@ are short additions to be scheduled after it.
 The decoded runs are read by \path{fullsim_analysis/scripts/bench/inspect_run.jl}, which writes
 the pedestal, rms and robust width of each channel (\path{channels.csv}), and
 \path{fullsim_analysis/scripts/bench/noise_components.jl}, which writes the total, coherent and
-incoherent noise of each chip (\path{noise_components.csv}) and the correlation of the coherent
-noise between chips (\path{common_mode.csv}), all in
-\path{fullsim_analysis/results/bench/2026-10-22/}. The figures are produced by
-\path{fullsim_analysis/plots/model_data_noise.py}, which also computes the model curves (white
-noise through CR-RC$^2$ on a 1~ns grid, maximum over the window, 20\,000 windows).
+incoherent noise of each chip (\path{noise_components.csv}), the correlation of the common
+modes between chips (\path{common_mode.csv}) and the slope of each channel
+(\path{channel_slopes.csv}), all in \path{fullsim_analysis/results/bench/2026-10-22/}; the
+formulas of Section~\ref{sec:method} are in \path{fullsim_analysis/scripts/bench/chip_noise.jl}, shared with
+\path{noise_steps.jl}, which writes the data of Figures~\ref{fig:stepA}--\ref{fig:stepE}. The
+figures are produced by \path{fullsim_analysis/plots/noise_steps.py},
+\path{bench_noise.py} (Figure~\ref{fig:slopes}) and \path{model_data_noise.py}, which also
+computes the model curves (white noise through CR-RC$^2$ on a 1~ns grid, maximum over the
+window, 20\,000 windows).
 
 \end{document}
