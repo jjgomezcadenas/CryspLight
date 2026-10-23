@@ -16,12 +16,12 @@ channels 0-63.
 | F1 | All values at full scale (8191) | 21 Oct, runs 1-9, hold scan 12 | solved (JMB) |
 | F2 | HV_Vbias 40.7 V in the files, 36.5 V in the logbook | 21 Oct | explained |
 | F3 | Logbook temperature was the board's | 21 Oct | solved |
-| F4 | SiPM not seen: board 0 channels 15, 55, 57, 59, 61, 63 (staircases); 9 more predicted on boards 1, 3, 4 (common mode) | 21-22 Oct | open |
+| F4 | Blind channels: board 0 (green adapter, solved with the red one); board 1 61-63 persist; boards 3, 4 untested | 21-23 Oct | open |
 | F5 | Board 0: low dark rate in channels 0, 2, 8, 10 | 21 Oct, scans 10-11 | open |
 | F6 | 0xDEADBEEF as a staircase count | 21 Oct, scan 11 | open |
-| F7 | Boards 1 and 4: channels 0-31 read 0 in every event | 22 Oct, runs 26-34 | open |
+| F7 | Boards 1 and 4: channels 0-31 read 0 in every event | 22 Oct, runs 26-34 | solved (FPGA firmware, 23 Oct) |
 | F8 | Scans without logbook rows or staircase.h5 | 21 Oct, scans 10-12 | open |
-| F9 | Board 2 runs a different firmware | 22 Oct, runs 26-34 | open |
+| F9 | Board 2 runs a different firmware | 22 Oct, runs 26-34 | explained (newer firmware, F7) |
 | F10 | Board 0: common-mode jumps of the whole board in 0.1-0.4% of the events | 22 Oct, runs 26-32 | open |
 | F11 | Two pedestal peaks in the quick-look plots grouped by node | 22 Oct, runs 26-34 | explained |
 
@@ -32,7 +32,10 @@ channels 0-63.
   noise of the electronics could not be measured. Evidence: 2026-10-21/runs.csv, channels.csv,
   report_2026-10-21.tex.
 - **Cause:** not in the recorded configuration, which agreed with bench note 1. Fixed by JMB
-  (logbook, 22 Oct); the cause has not been reported.
+  (logbook, 22 Oct). Probably a DC offset: JMB validated the fix on board 0 on the morning
+  of 22 Oct (runs 13-22, scans 23-25, 08:20-08:36 UTC, all tagged
+  "jmb-dc-offset-validation-20261022"), with the SiPMs below breakdown; those runs repeat
+  menu 1 on one board and add nothing to runs 26-34.
 - **Status:** solved. Runs 26-34 (22 Oct) have no value at full scale.
 
 ## F2. HV_Vbias in the files and in the logbook
@@ -69,8 +72,15 @@ channels 0-63.
   0.90. Evidence: 2026-10-22/bench_slopes.png, bench_rms.png, channel_noise.csv.
   noise_components.jl prints the channels below the cut ("SiPM not seen"); inspect_run.jl
   no longer cuts on the rms.
-- **Action:** staircases of all five boards (menu 2) to test the predictions; check the
-  contacts, connectors and adapter boards of these channels.
+- **23 Oct, CAEN (red) adapter boards instead of ours (green), boards 0 and 1 (runs 42-50):**
+  board 0 has no blind channel left (the six were lost in our green adapter); board 1 still has
+  61 and 63 blind, and 62 as well (slopes 0.16-0.18 against 0.88 or more for every other
+  channel), so there the fault is not in the adapter but in the SiPM matrix, the cable or the
+  connector on the board side. No channel is dead on the four chips. Evidence:
+  2026-10-23/channel_noise.csv, bench_slopes.png.
+- **Action:** measure boards 3 and 4 with the red adapters (menu 1, step 1), noting which SiPM
+  matrix goes on each board, to see whether their blind channels follow the adapter, the
+  matrix or the board; board 4 needs the FPGA upgrade first (F7).
 - **Consequence:** these channels cannot be calibrated with the periodic trigger and will not
   record the crystal light.
 
@@ -105,8 +115,15 @@ channels 0-63.
 - **Hypothesis:** the same chip on two boards, with a configuration identical to that of the
   chips that work, points to the readout (firmware or DAQ) rather than to two hardware faults,
   presumably software. To be confirmed by JMB.
-- **Test:** read board 1 with Janus. If Janus sees channels 0-31, the problem is in the DAQ.
-- **Action:** question to JMB. Once solved, repeat runs 26-34 (menu 1) for these 64 channels.
+- **Cause and solution (23 Oct, logbook):** the firmware of the FPGA. With the CAEN (red)
+  adapter boards instead of ours (green), board 1 still read 0 in channels 0-31 (runs 35-37,
+  boards 0 and 1 only); Laura then upgraded its FPGA with Janus and the board works. From
+  run 41 on, boards 0 and 1 run firmware 0xa7070800, the version board 2 already had on
+  22 Oct (F9). Menu 1 was repeated with the red adapters and the new firmware in runs 42-50.
+- **Status:** solved for board 1, confirmed in the data: in run 35 (old firmware) its chip 0
+  reads 0 in 56% of the measurements; in runs 42 and 50 (new firmware) no value of either chip
+  of boards 0 and 1 is 0 and the pedestals are 136-175 counts. Board 4 has not been upgraded
+  or measured again yet.
 
 ## F8. Scans without logbook rows
 
@@ -120,7 +137,9 @@ channels 0-63.
 - **Seen:** 22 Oct, manifests of runs 26-34. Boards 0, 1, 3 and 4 run firmware 0xa1230708,
   board 2 runs 0xa7070800. Boards 3 and 4 also report a different acquisition state (16387,
   against 3 for the others) and service status 0x400d (0x000d for the others).
-- **Cause:** unknown; not visibly related to F7 (board 2 reads normally, board 1 does not).
+- **Cause:** board 2 had already been upgraded to the newer firmware 0xa7070800. The other
+  boards ran 0xa1230708, and on two of them (1 and 4) one chip was not read (F7), which the
+  upgrade solved on 23 Oct.
 - **Action:** question to JMB: is the difference intended, could it be behind F7 or F10?
 
 ## F10. Common-mode jumps of board 0
@@ -141,6 +160,9 @@ channels 0-63.
   against 54-57 C).
 - **Consequence:** small for the pedestal runs (the events are set aside), but in data
   with the crystal such an event would look like a shift of the energy of all channels.
+- **23 Oct, red adapters (runs 42-50):** the jumps persist on board 0, 21-61 per chip in runs
+  42-45 and none in runs 46-50, on both chips; board 1 has none. They do not come from our
+  adapter board but from board 0 or its connection.
 - **Action:** question to JMB and Laura (is anything different in the cabling or the power of
   board 0?); watch for it in the next runs.
 
