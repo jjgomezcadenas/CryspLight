@@ -4,10 +4,11 @@ runs.csv (inspect_run.jl), and uses the runs with HoldDelay 0, one per HG shapin
 read are absent from channel_noise.csv.
 
 Writes fullsim_analysis/results/bench/<day>/:
-    bench_rms.png    rms of each channel (without jumps and outliers) in the high gain (left)
-                     and the low gain (right), one column of points per board and shaping;
-                     the channels whose SiPM is not seen (median slope against the common
-                     mode below NO_SIPM_SLOPE) in red;
+    bench_rms.png    rms of each channel (without jumps and outliers): one panel per HG
+                     shaping and one for the low gain, a box per board (quartiles, whiskers to
+                     the extremes) of the channels that see their SiPM, and the channels whose
+                     SiPM is not seen (median slope against the common mode below
+                     NO_SIPM_SLOPE) as red circles;
     bench_slopes.png slope b_i of each channel against the common mode of its chip, median
                      over the runs with HoldDelay 0, against the channel, one panel per board,
                      with the bar from the lowest to the highest run, the cut NO_SIPM_SLOPE and
@@ -48,28 +49,34 @@ def main(day: str):
     s = channel_noise(day)
     s = s[s.run == s.shaping.map(s.groupby("shaping").run.min())]   # one run per shaping
     shapings, boards = sorted(s.shaping.unique()), sorted(s.board.unique())
-    rng = np.random.default_rng(0)
-    fig, axes = plt.subplots(1, 2, figsize=(13, 4.5))
-    for ax, g, lab in ((axes[0], "hg_rms", "high gain"), (axes[1], "lg_rms", "low gain")):
-        for k, tp in enumerate(shapings):
-            x = s[s.shaping == tp]
-            pos = x.board + (k - 1) * 0.27 + rng.uniform(-0.08, 0.08, len(x))
-            ok = ~x.no_sipm
-            ax.plot(pos[ok], x[g][ok], ".", ms=3, c=f"C{k}",
-                    label=f"HG {tp:g} ns (run {int(x.run.iloc[0])})")
-            ax.plot(pos[~ok], x[g][~ok], "o", ms=4, mfc="none", c="tab:red",
-                    label="SiPM not seen" if k == 0 else None)
-            print(f"{lab}, HG {tp:g} ns: median rms {x[g][ok].median():.2f}, "
-                  f"5-95% {x[g][ok].quantile(0.05):.2f}-{x[g][ok].quantile(0.95):.2f}")
-        ax.set_xticks(boards, [f"board {b}" for b in boards])
-        ax.set_ylabel("rms (ADC counts)")
-        ax.set_title(f"{lab}: rms of each channel" +
-                     (" (low gain at 87.5 ns in all runs)" if g == "lg_rms" else ""),
-                     fontsize=10)
-        ax.set_ylim((9, 15) if g == "hg_rms" else (4.5, 7))
-    axes[0].legend(fontsize=7, loc="lower right")
+    panels = [(tp, "hg_rms", f"high gain, {tp:g} ns") for tp in shapings]
+    panels.append((shapings[0], "lg_rms", "low gain, 87.5 ns"))
+    fs = 13
+    fig, axes = plt.subplots(1, len(panels), figsize=(4.2 * len(panels), 4.8),
+                             gridspec_kw={"width_ratios": [1] * len(panels)})
+    for ax, (tp, g, title) in zip(axes, panels):
+        x = s[s.shaping == tp]
+        ok = x[~x.no_sipm]
+        ax.boxplot([ok[ok.board == b][g] for b in boards], positions=boards, widths=0.55,
+                   whis=(0, 100), medianprops={"color": "k", "lw": 1.5},
+                   boxprops={"lw": 1.2}, whiskerprops={"lw": 1.2}, capprops={"lw": 1.2})
+        red = x[x.no_sipm]
+        ax.plot(red.board, red[g], "o", ms=6, mfc="none", mew=1.4, c="tab:red",
+                label="SiPM not seen")
+        ax.set_xticks(boards, [str(b) for b in boards], fontsize=fs)
+        ax.tick_params(axis="y", labelsize=fs)
+        ax.set_xlabel("board", fontsize=fs)
+        ax.set_title(f"{title} (run {int(x.run.iloc[0])})", fontsize=fs)
+        ax.set_ylim((9.5, 14.5) if g == "hg_rms" else (4.75, 6.75))
+        for b in boards:
+            print(f"{title}, board {b}: median {ok[ok.board == b][g].median():.2f}")
+    axes[0].set_ylabel("rms of each channel (ADC counts)", fontsize=fs)
+    axes[0].legend(fontsize=fs - 2, loc="lower left")
+    for ax in axes[1:3]:
+        ax.sharey(axes[0])
+        ax.tick_params(labelleft=False)
     fig.suptitle(f"{day}: pedestal noise of every channel, HoldDelay 0, without jumps and "
-                 "outliers", fontsize=10)
+                 "outliers (box: quartiles, whiskers: extremes)", fontsize=fs)
     fig.tight_layout()
     save(fig, "bench", day, "bench_rms")
 
