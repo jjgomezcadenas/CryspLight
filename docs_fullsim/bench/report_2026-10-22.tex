@@ -83,8 +83,7 @@ that works normally (board 2, channels 32--63, run 26), high gain.
 \subsection{Outliers of a channel}\label{sec:outliers}
 
 For channel $i$ in event $e$, $x_i(e)$ is the value read. The pedestal of the channel, $p_i$,
-is the median of $x_i$ over the events of the run: the jumps and outliers found below, which
-are not yet known at this step, cannot drag it. The deviation from the pedestal is
+is the median of $x_i$ over the events of the run. The deviation from the pedestal is
 \begin{equation*}
 d_i(e) = x_i(e) - p_i .
 \end{equation*}
@@ -99,16 +98,20 @@ on the right come from the integer ADC values.}
 \label{fig:outliers}
 \end{figure}
 
-A single channel may depart from the rest of its chip in one event, a fault of that channel
-rather than noise, and it must not be taken for common mode. In each event the reference of the
-chip, $r(e)$, is the median of the deviations of the 32 channels in that event, which one
-channel cannot move. The pull of channel $i$ in event $e$ is its distance from that reference
-in units of its own noise,
+Possible outliers in the chip should not be taken into account for averages or common mode.
+Define $r(e)$ ---reference of the chip--- as the median of the deviations of the 32 channels in that event. The pull of channel $i$ in event $e$ is then:
+%
 \begin{equation*}
 z_i(e) = \frac{d_i(e) - r(e)}{s_i} ,
 \end{equation*}
-where $s_i$ is measured robustly as 1.4826 times the median absolute deviation of $d_i - r$
-over the events. The channel is an outlier in that event if $|z_i(e)| > 5$; outliers are left
+%
+where $s_i$ is the noise of the channel, measured with the median absolute deviation (MAD).
+The MAD of a set of values is obtained in two steps: first the median of
+the values, then the median of the absolute distances of the values to it, so that half of the
+values lie within one MAD of the median. For a Gaussian of width $\sigma$ half of the values
+lie within $0.674\,\sigma$ of the centre, so $\mathrm{MAD} = 0.674\,\sigma$ and the width is
+estimated as $1.4826\,\mathrm{MAD}$. Unlike the rms, the MAD is not changed by a few extreme
+values, which is what a cut on extreme values needs. Here $s_i = 1.4826\,\mathrm{MAD}(d_i - r)$, over the events. The channel is an outlier in that event if $|z_i(e)| > 5$; outliers are left
 out of what follows and counted for each channel. For Gaussian noise $z$ follows a Gaussian of
 unit width, and an entry beyond $\pm5$ has a probability of $6\times10^{-7}$.
 
@@ -193,8 +196,8 @@ at $\pm40$ counts).}
 
 If the whole chip moves in an event, the common mode of that event falls out of its own
 distribution. With $c$ the centre of that distribution over the run (its median) and
-$\sigma_\mathrm{CM}$ its robust width (1.4826 times its median absolute deviation), an event is
-a jump if
+$\sigma_\mathrm{CM} = 1.4826\,\mathrm{MAD}(\mathrm{CM})$ its width, measured as $s_i$
+(Section~\ref{sec:outliers}), an event is a jump if
 \begin{equation*}
 |\mathrm{CM}(e) - c| > 6\, \sigma_\mathrm{CM} ,
 \end{equation*}

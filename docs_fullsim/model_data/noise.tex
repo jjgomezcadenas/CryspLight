@@ -69,9 +69,14 @@ channel $i$ in event $e$:
   \begin{equation*}
   z_i(e) = \frac{d_i(e) - r(e)}{s_i} ,
   \end{equation*}
-  where $s_i$, 1.4826 times the median absolute deviation of $d_i - r$ over the events (the rms
-  of a Gaussian, measured without being affected by the outliers), is the noise of the channel
-  itself. The channel is an outlier in that event if $|z_i(e)| > 5$. With Gaussian noise a
+  where $s_i$ is the noise of the channel, measured with the median absolute deviation (MAD).
+  The MAD of a set of values is obtained in two steps: first the median of
+  the values, then the median of the absolute distances of the values to it, so that half of the
+  values lie within one MAD of the median. For a Gaussian of width $\sigma$ half of the values
+  lie within $0.674\,\sigma$ of the centre, so $\mathrm{MAD} = 0.674\,\sigma$ and the width is
+  estimated as $1.4826\,\mathrm{MAD}$. Unlike the rms, the MAD is not changed by a few extreme
+  values, which is what a cut on extreme values needs. Here $s_i = 1.4826\,\mathrm{MAD}(d_i - r)$, over
+  the events. The channel is an outlier in that event if $|z_i(e)| > 5$. With Gaussian noise a
   channel passes $5 s_i$ with a probability of $6\times10^{-7}$ per event, about 0.2 times in
   a run of 32 channels and 10\,000 events. The outliers are left out of the common mode and of
   the widths, and counted for each channel: a channel that is often an outlier is faulty.
@@ -93,8 +98,8 @@ channel $i$ in event $e$:
   variance it carries, $\sigma_\mathrm{coh}^2/\sigma_\mathrm{tot}^2$ (step 7).
 \item \textbf{Jumps of the chip.} If the whole chip moves in an event, the common mode of that
   event falls out of its own distribution. With $c$ the centre of that distribution over the
-  run (its median) and $\sigma_\mathrm{CM}$ its robust width (1.4826 times its median absolute
-  deviation), an event is a jump if
+  run (its median) and $\sigma_\mathrm{CM} = 1.4826\,\mathrm{MAD}(\mathrm{CM})$ its width,
+  measured as $s_i$ in step 2, an event is a jump if
   \begin{equation*}
   |\mathrm{CM}(e) - c| > 6\, \sigma_\mathrm{CM} ,
   \end{equation*}
