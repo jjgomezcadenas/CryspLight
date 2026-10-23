@@ -60,7 +60,7 @@ channels 0-63.
 - **Found also in the pedestal runs (22 Oct):** the common mode of a chip enters through the
   SiPMs, so a channel that does not see its SiPM does not receive it. The slope of each
   channel against the common mode of its chip (noise_components.jl, channel_noise.csv) is
-  0.02-0.6 for the six channels in every run, and above 0.85 for every channel of board 0
+  below 0.45 for the six channels in every run, and above 0.82 for every channel of board 0
   with avalanches. With a cut at 0.75 the same criterion finds, on the other boards:
   board 1: 61, 63; board 3: 45, 47, 49, 60; board 4: 59, 61, 63; board 2: none. These are
   predictions for the staircases of the five boards. The odd channels 55-63 recur on boards
@@ -130,11 +130,11 @@ channels 0-63.
   range / 1.349) of board 0 is the same as on the other boards (11.9 counts): the excess is
   in the tails. These come from events in which the channels of a chip move together, up or
   down, often in two consecutive triggers, on both chips of the board. They are found as
-  events whose common mode (mean deviation of the chip) is beyond 6 robust widths of its
-  distribution, about 40 counts (method in fullsim_analysis/lib/chip_noise.jl, figure
-  2026-10-22/noise_steps_B.png): 44-48 per chip in run 26 (0.5%), with a common mode of 42 to
-  230 counts, 10-29 per chip in runs 27-32, none in runs 33 and 34. The other boards have
-  none (board 3: one per chip in runs 30-32). Evidence: 2026-10-22/noise_components.csv
+  events whose common mode (mean deviation of the chip) is beyond 5 robust widths of its
+  distribution, about 31-37 counts (method in fullsim_analysis/lib/chip_noise.jl, figure
+  2026-10-22/noise_steps_B.png): 45-50 per chip in run 26 (0.5%), with a common mode of 38 to
+  270 counts, 3-33 per chip in runs 27-32, none in runs 33 and 34. The other boards have
+  almost none (board 3: one per chip in runs 30-32; board 2: one in run 33). Evidence: 2026-10-22/noise_components.csv
   (column jumps).
 - **Cause:** unknown. A whole-board shift points to the reference, the supply or the ground
   of board 0, or to a disturbance on its cable; board 0 is also the coolest (board 48-51 C

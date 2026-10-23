@@ -101,9 +101,9 @@ channel $i$ in event $e$:
   run (its median) and $\sigma_\mathrm{CM} = 1.4826\,\mathrm{MAD}(\mathrm{CM})$ its width,
   measured as $s_i$ in step 2, an event is a jump if
   \begin{equation*}
-  |\mathrm{CM}(e) - c| > 6\, \sigma_\mathrm{CM} ,
+  |\mathrm{CM}(e) - c| > 5\, \sigma_\mathrm{CM} ,
   \end{equation*}
-  which a Gaussian common mode does with a probability of $2\times10^{-9}$ per event. The jumps
+  which a Gaussian common mode does with a probability of $6\times10^{-7}$ per event. The jumps
   are counted and the events set aside.
 \item \textbf{Coupling of each channel.} The separation assumes that every channel receives the
   same common mode. This is checked with the slope of each channel against it,
@@ -262,9 +262,9 @@ at $\pm40$ counts).}
 \label{fig:stepB}
 \end{figure}
 
-On the example chip the common mode stays within $\pm29$ counts, inside the cut at $\pm37$
-(Figure~\ref{fig:stepB}, top): there is no jump. On board 0, 44 events of run 26 (0.4\%) are
-jumps, with a common mode of 42 to 230 counts in absolute value, often in two consecutive
+On the example chip the common mode stays within $\pm29$ counts, inside the cut at $\pm31$
+(Figure~\ref{fig:stepB}, top): there is no jump. On board 0, 45 events of run 26 (0.5\%) are
+jumps, with a common mode of 38 to 270 counts in absolute value, often in two consecutive
 triggers (bottom); the map of the deviations around one of them shows the whole chip moving
 together (right).
 

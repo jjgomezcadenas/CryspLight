@@ -10,18 +10,21 @@ Writes fullsim_analysis/results/bench/<day>/:
                        first 100 rows and its distribution, and the correlation matrix of the
                        channels in both;
     noise_steps_B.png  common mode CM(e) of every event along the run for the example chip
-                       and the chip with jumps, with the band outside which an event is a jump
-                       (noise_steps_cuts.csv) and the jumps in red; the map of the deviations
-                       of the chip with jumps around its first jump;
-    noise_steps_C.png  example chip: distribution of CM(e); d_i(e) of one channel against
-                       CM(e); distribution of the slopes b_i of all channels and chips in the
+                       (top) and the chip with jumps (bottom), with the band outside which an
+                       event is a jump (noise_steps_cuts.csv) and the jumps in red;
+    noise_steps_C.png  example chip: d_i(e) of one channel against CM(e), with the fitted
+                       slope; distribution of the slopes b_i of all channels and chips in the
                        runs with HoldDelay 0;
-    noise_steps_D.png  example chip: distribution of d_i and of d_i - CM over all channels;
-    noise_steps_E.png  CM(e) of two chips of the same board, and of chips of two boards;
+    noise_steps_D.png  total, coherent and incoherent noise of every chip in the first run with
+                       HoldDelay 0 (noise_components.csv), and the total against
+                       sqrt(coherent^2 + incoherent^2) for every chip of every run with
+                       HoldDelay 0;
+    noise_steps_E.png  correlation of the common modes of every pair of chips read in the first
+                       run (common_mode.csv, noise_components.jl), as a matrix;
     noise_steps_outliers.png  distribution of the pull z = (d_i - r) / s_i of every channel
                        (outlier_pulls.csv, noise_components.jl) in the first run with HoldDelay
-                       0 and in the run with the longest HoldDelay, log scale, with the
-                       Gaussian of unit width and the cut at |z| = 5.
+                       0, log scale, with the Gaussian of unit width and the cut at |z| = 5
+                       (the cut is applied only with HoldDelay 0).
 
     python3 fullsim_analysis/plots/noise_steps.py <YYYY-MM-DD>
 """
@@ -97,85 +100,120 @@ def main(day: str):
     print(f"mean of the 32 channels: rms {rd:.2f} (data), {rs:.2f} (shuffled)")
 
     # B: jumps, seen in the common mode of every event along the run
+    fs = 18
     cuts = pd.read_csv(d / "noise_steps_cuts.csv").set_index("chip")
-    fig = plt.figure(figsize=(14, 7.5))
-    gs = fig.add_gridspec(2, 2, width_ratios=[2.2, 1], hspace=0.35, wspace=0.18)
-    for row, (key, lab) in enumerate((("example", "example chip (board 2, chip 1)"),
-                                      ("jumps", "board 0, chip 1"))):
-        a = fig.add_subplot(gs[row, 0])
+    fig, axes = plt.subplots(2, 1, figsize=(14, 10), sharex=True)
+    for a, (key, lab) in zip(axes, (("example", "example chip (board 2, chip 1)"),
+                                    ("jumps", "board 0, chip 1"))):
         x = ev[["event", f"cm_all_{key}", f"jump_{key}"]].dropna()
         j = x[f"jump_{key}"] == 1
-        a.plot(x.event[~j], x[f"cm_all_{key}"][~j], ".", ms=1.5, c="k")
-        a.plot(x.event[j], x[f"cm_all_{key}"][j], "o", ms=4, mfc="none", c="tab:red",
-               label=f"jumps: {int(j.sum())}")
+        a.plot(x.event[~j], x[f"cm_all_{key}"][~j], ".", ms=2, c="k")
+        a.plot(x.event[j], x[f"cm_all_{key}"][j], "o", ms=8, mfc="none", mew=2, c="tab:red")
         c0, w = cuts.loc[key, "centre"], cuts.loc[key, "half_width"]
         for y in (c0 - w, c0 + w):
-            a.axhline(y, c="tab:red", ls="--", lw=0.8)
-        a.set_ylim(-250, 250); a.set_ylabel("CM(e) (counts)")
-        a.set_title(f"{lab}: common mode of every event, cut at ±{w:.0f} counts", fontsize=10)
-        if j.any():
-            a.legend(fontsize=8, loc="upper right")
-    a.set_xlabel("event")
-    jm = mat[mat.panel == "jump"]
-    e0 = jm.groupby("event").d.mean().abs().idxmax()
-    a = fig.add_subplot(gs[:, 1])
-    im, _ = heat(a, jm[(jm.event - e0).abs() <= 40], f"board 0, chip 1, around event {e0}")
-    fig.colorbar(im, ax=a, label="d$_i$ (counts), saturated at ±40", shrink=0.8)
+            a.axhline(y, c="tab:red", ls="--", lw=1.5)
+        a.set_ylim(-300, 300); a.set_ylabel("CM(e) (counts)", fontsize=fs)
+        a.set_title(f"{lab}: cut at $\\pm${w:.0f} counts, {int(j.sum())} jumps (red)",
+                    fontsize=fs)
+        a.tick_params(labelsize=fs - 2)
+    axes[-1].set_xlabel("event", fontsize=fs)
+    fig.tight_layout()
     save(fig, "bench", day, "noise_steps_B")
 
-    # C: common mode, one channel against it, slopes
-    fig, ax = plt.subplots(1, 3, figsize=(15, 4.2))
+    # C: one channel against the common mode with its fitted slope; slopes of all channels
+    fs = 18
+    fig, ax = plt.subplots(1, 2, figsize=(15, 6.5))
     cm = ev[ex_cm].dropna()
-    ax[0].hist(cm, np.linspace(-30, 30, 121), histtype="step", lw=1.2, color="k")
-    ax[0].set_xlabel("CM(e) (counts)"); ax[0].set_ylabel("events")
-    ax[0].set_title(f"example chip: rms of CM {cm.std():.2f} counts", fontsize=10)
     x = ev[[ex_cm, dch]].dropna()
-    ax[1].hexbin(x[ex_cm], x[dch], gridsize=60, bins="log", cmap="Greys",
+    ax[0].hexbin(x[ex_cm], x[dch], gridsize=50, bins="log", cmap="Greys",
                  extent=(-25, 25, -60, 60))
     b = np.cov(x[dch], x[ex_cm])[0, 1] / x[ex_cm].var()
     t = np.linspace(-25, 25, 2)
-    ax[1].plot(t, t, "r--", lw=1, label="slope 1")
-    ax[1].plot(t, b * t, "b", lw=1, label=f"fit: slope {b:.2f}")
-    ax[1].set_xlabel("CM(e) (counts)"); ax[1].set_ylabel(f"d$_i$(e), channel {dch[4:]} (counts)")
-    ax[1].legend(fontsize=8)
-    s = slopes.merge(runs, on=["run", "board"])
-    s = s[s.HoldDelay.astype(str).str.startswith("0")]
-    ax[2].hist(s.slope, np.linspace(0.0, 1.4, 71), histtype="stepfilled", alpha=0.7)
-    ax[2].axvline(0.75, c="k", ls="--", lw=1, label="cut 0.75 (SiPM not seen below)")
-    ax[2].set_yscale("log"); ax[2].legend(fontsize=8)
-    ax[2].set_xlabel("slope b$_i$ of d$_i$ against CM"); ax[2].set_ylabel("channel-runs")
-    ax[2].set_title(f"all chips, runs with HoldDelay 0 ({len(s)} channel-runs)", fontsize=10)
+    ax[0].plot(t, t, "r--", lw=2, label="slope 1")
+    ax[0].plot(t, b * t, "b", lw=2, label=f"fit: slope {b:.2f}")
+    ax[0].set_xlabel("CM(e) (counts)", fontsize=fs)
+    ax[0].set_ylabel(f"d$_i$(e), channel {dch[4:]} (counts)", fontsize=fs)
+    ax[0].set_title("example chip, one point per event", fontsize=fs)
+    ax[0].legend(fontsize=fs - 3, loc="upper left")
+    s_ = slopes.merge(runs, on=["run", "board"])
+    s_ = s_[s_.HoldDelay.astype(str).str.startswith("0")]
+    ax[1].hist(s_.slope, np.linspace(0.0, 1.4, 71), histtype="stepfilled", alpha=0.7)
+    ax[1].axvline(0.75, c="k", ls="--", lw=2, label="0.75: blind channels below")
+    ax[1].set_yscale("log"); ax[1].legend(fontsize=fs - 3, loc="upper left")
+    ax[1].set_xlabel("slope b$_i$", fontsize=fs); ax[1].set_ylabel("channels x runs", fontsize=fs)
+    ax[1].set_title("all chips, runs with HoldDelay 0", fontsize=fs)
+    for a_ in ax:
+        a_.tick_params(labelsize=fs - 2)
     fig.tight_layout()
     save(fig, "bench", day, "noise_steps_C")
     print(f"CM rms {cm.std():.2f}; slope of channel {dch[4:]} {b:.2f}; slopes "
-          f"{s.slope.quantile(0.01):.2f}-{s.slope.quantile(0.99):.2f} (1-99%), "
-          f"median {s.slope.median():.3f}")
+          f"{s_.slope.quantile(0.01):.2f}-{s_.slope.quantile(0.99):.2f} (1-99%), "
+          f"median {s_.slope.median():.3f}")
 
-    # D: d and d - CM
-    fig, ax = plt.subplots(figsize=(6.5, 4.2))
-    for col, lab in (("count_d", "d$_i$"), ("count_d_minus_cm", "d$_i$ − CM")):
-        w = hist[col].values
-        m = np.average(hist.d, weights=w)
-        sd = np.sqrt(np.average((hist.d - m) ** 2, weights=w))
-        ax.step(hist.d, w, where="mid", lw=1.2, label=f"{lab}: rms {sd:.2f} counts")
-        print(f"{lab}: rms {sd:.2f}")
-    ax.set_yscale("log"); ax.set_ylim(1, None)
-    ax.set_xlabel("counts"); ax.set_ylabel("entries (all channels, all events)")
-    ax.set_title("example chip: before and after subtracting the common mode", fontsize=10)
-    ax.legend(fontsize=8)
+    # D: total, coherent and incoherent noise of every chip, and the check of the decomposition
+    fs = 18
+    nc = pd.read_csv(d / "noise_components.csv")
+    rr = pd.read_csv(d / "runs.csv")[["run", "board", "HG_ShapingTime", "HoldDelay"]]
+    nc = nc.merge(rr, on=["run", "board"])
+    nc = nc[nc.HoldDelay.astype(str).str.startswith("0")].copy()
+    nc["quad"] = np.sqrt(nc.hg_coherent**2 + nc.hg_incoherent**2)
+    first = int(nc.run.min())
+    x = nc[nc.run == first].sort_values(["board", "chip"]).reset_index(drop=True)
+    fig, ax = plt.subplots(2, 1, figsize=(13, 12))
+    k = np.arange(len(x))
+    ax[0].plot(k, x.hg_total, "o", ms=11, c="k", label="$\\sigma_\\mathrm{tot}$")
+    ax[0].plot(k, x.quad, "o", ms=17, mfc="none", mew=2, c="tab:purple",
+               label="$\\sqrt{\\sigma_\\mathrm{coh}^2 + \\sigma_\\mathrm{inc}^2}$")
+    ax[0].plot(k, x.hg_incoherent, "s", ms=10, c="tab:green", label="$\\sigma_\\mathrm{inc}$")
+    ax[0].plot(k, x.hg_coherent, "^", ms=11, c="tab:orange", label="$\\sigma_\\mathrm{coh}$")
+    ax[0].set_xticks(k, [f"{b}/{32 * c}-{32 * c + 31}" for b, c in zip(x.board, x.chip)],
+                     fontsize=fs - 4)
+    ax[0].set_xlabel("board / channels", fontsize=fs)
+    ax[0].set_ylabel("noise (ADC counts)", fontsize=fs)
+    ax[0].set_ylim(0, 15)
+    ax[0].set_title(f"run {first}, {x.HG_ShapingTime.iloc[0]}: every chip read", fontsize=fs)
+    ax[0].legend(fontsize=fs - 4, ncol=4, loc="lower center")
+    for tp, g in nc.groupby("HG_ShapingTime"):
+        ax[1].plot(g.quad, g.hg_total, "o", ms=10, label=f"HG {tp}")
+    t = np.array([10.5, 14.5])
+    ax[1].plot(t, t, "k--", lw=1.5, label="equal")
+    ax[1].set_xlabel("$\\sqrt{\\sigma_\\mathrm{coh}^2 + \\sigma_\\mathrm{inc}^2}$ (ADC counts)",
+                     fontsize=fs)
+    ax[1].set_ylabel("$\\sigma_\\mathrm{tot}$ (ADC counts)", fontsize=fs)
+    ax[1].set_title("every chip, runs with HoldDelay 0", fontsize=fs)
+    ax[1].legend(fontsize=fs - 4, loc="upper left")
+    for a_ in ax:
+        a_.tick_params(labelsize=fs - 2)
     fig.tight_layout()
     save(fig, "bench", day, "noise_steps_D")
+    dev = (nc.quad / nc.hg_total - 1).abs()
+    print(f"check of the decomposition: |quad/total - 1| at most {dev.max():.4f}")
 
-    # E: correlation of the common modes
-    fig, ax = plt.subplots(1, 2, figsize=(10, 4.4))
-    for a, (u, v) in zip(ax, ((cms[0], cms[1]), (cms[1], cms[2]))):
-        x = ev[[u, v]].dropna()
-        rho = np.corrcoef(x[u], x[v])[0, 1]
-        a.hexbin(x[u], x[v], gridsize=50, bins="log", cmap="Greys", extent=(-30, 30, -30, 30))
-        lab = lambda c: c[3:].replace("b", "board ").replace("c", ", chip ")
-        a.set_xlabel(f"CM, {lab(u)} (counts)"); a.set_ylabel(f"CM, {lab(v)} (counts)")
-        a.set_title(f"correlation {rho:.2f}", fontsize=10)
-        print(f"{u} vs {v}: correlation {rho:.2f}")
+    # E: correlation of the common modes of every pair of chips in the first run
+    fs = 18
+    cmc = pd.read_csv(d / "common_mode.csv")
+    r0 = int(cmc.run.min())
+    c = cmc[cmc.run == r0]
+    chips = sorted(set(zip(c.board_a, c.chip_a)) | set(zip(c.board_b, c.chip_b)))
+    idx = {k: i for i, k in enumerate(chips)}
+    mat_ = np.eye(len(chips))
+    for r in c.itertuples():
+        i, j = idx[(r.board_a, r.chip_a)], idx[(r.board_b, r.chip_b)]
+        mat_[i, j] = mat_[j, i] = r.correlation
+    fig, ax = plt.subplots(figsize=(11, 9.5))
+    im = ax.imshow(mat_, cmap="Blues", vmin=0, vmax=1)
+    ax.grid(False)
+    for i in range(len(chips)):
+        for j in range(len(chips)):
+            ax.text(j, i, f"{mat_[i, j]:.2f}", ha="center", va="center", fontsize=fs - 5,
+                    color="white" if mat_[i, j] > 0.5 else "k")
+    labels = [f"{b}/{32 * ch}-{32 * ch + 31}" for b, ch in chips]
+    ax.set_xticks(range(len(chips)), labels, rotation=45, ha="right", fontsize=fs - 4)
+    ax.set_yticks(range(len(chips)), labels, fontsize=fs - 4)
+    ax.set_xlabel("board / channels", fontsize=fs); ax.set_ylabel("board / channels", fontsize=fs)
+    ax.set_title(f"run {r0}: correlation of the common modes of two chips", fontsize=fs)
+    cb = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+    cb.ax.tick_params(labelsize=fs - 4); cb.set_label("correlation", fontsize=fs)
     fig.tight_layout()
     save(fig, "bench", day, "noise_steps_E")
 
@@ -185,8 +223,9 @@ def outliers(day: str, cut: float = 5.0, fs: int = 18):
     pulls = pd.read_csv(d / "outlier_pulls.csv")
     runs = pd.read_csv(d / "runs.csv").drop_duplicates("run").set_index("run")
     hold = runs.HoldDelay.astype(str).str.split().str[0].astype(float)
-    shown = [int(hold[hold == 0].index.min()), int(hold.idxmax())]
-    fig, axes = plt.subplots(1, 2, figsize=(15, 6.5), sharey=True)
+    shown = [int(hold[hold == 0].index.min())]
+    fig, axes = plt.subplots(1, 1, figsize=(10, 7), squeeze=False)
+    axes = axes[0]
     for ax, r in zip(axes, shown):
         x = pulls[pulls.run == r]
         w = 0.1

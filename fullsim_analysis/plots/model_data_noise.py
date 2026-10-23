@@ -21,7 +21,10 @@ Writes fullsim_analysis/results/bench/<day>/:
                             (median over the channels of each board, one curve per board);
                             right, total, coherent and incoherent rms divided by their value
                             at HoldDelay 0 (median over the chips); the model in black.
-and prints the numbers drawn.
+and prints the numbers drawn; and, without the model and with large fonts, for the daily
+report:
+    noise_vs_shaping_data.png    the high-gain noise against shaping and the low gain;
+    noise_vs_holddelay_data.png  the rise of the pedestal and the narrowing against HoldDelay.
 
     python3 fullsim_analysis/plots/model_data_noise.py <YYYY-MM-DD>
 """
@@ -141,5 +144,71 @@ def main(day: str):
     save(fig, "bench", day, "noise_vs_holddelay")
 
 
+def data_figures(day: str, fs: int = 18):
+    """The same measurements without the model, for the daily report."""
+    d = results_dir("bench", day)
+    runs = pd.read_csv(d / "runs.csv")[["run", "board", "HG_ShapingTime", "HoldDelay"]]
+    runs["tp"], runs["hold"] = ns(runs.HG_ShapingTime), ns(runs.HoldDelay)
+    nc = pd.read_csv(d / "noise_components.csv").merge(runs, on=["run", "board"])
+    ch = pd.read_csv(d / "channels.csv").merge(runs, on=["run", "board"])
+    ch = ch[ch.hg_zero < 1]
+    first = nc.groupby(["tp", "hold"]).run.min().rename("first")
+    nc = nc.merge(first, on=["tp", "hold"])
+    nc = nc[nc.run == nc["first"]]
+    ch = ch.merge(first, on=["tp", "hold"])
+    ch = ch[ch.run == ch["first"]]
+    comps = [("hg_total", "HG total", "C0", "o"), ("hg_coherent", "HG coherent", "C1", "^"),
+             ("hg_incoherent", "HG incoherent", "C2", "s")]
+
+    s = nc[nc.hold == 0]
+    g = s.groupby("tp")
+    tps = np.array(sorted(s.tp.unique()))
+    fig, ax = plt.subplots(figsize=(12, 8))
+    for col, lab, c, mk in comps:
+        med, lo, hi = g[col].median(), g[col].min(), g[col].max()
+        ax.errorbar(tps, med, [med - lo, hi - med], fmt=mk + "-", c=c, ms=11, lw=2, capsize=5,
+                    label=lab)
+    lg = s[s.tp == TP_REF]
+    for col, lab, mk in (("lg_total", "LG total", "o"), ("lg_coherent", "LG coherent", "^"),
+                         ("lg_incoherent", "LG incoherent", "s")):
+        ax.plot([TP_REF], [lg[col].median()], mk, mfc="none", mew=2, c="k", ms=12, label=lab)
+    ax.set_xlabel("HG shaping time (ns)", fontsize=fs)
+    ax.set_ylabel("noise (ADC counts)", fontsize=fs)
+    ax.set_xlim(15, 95); ax.set_ylim(0, 15)
+    ax.tick_params(labelsize=fs - 2)
+    ax.legend(fontsize=fs - 4, ncol=2, loc="lower left")
+    ax.set_title("runs with HoldDelay 0: median over the chips (bars: lowest to highest chip)",
+                 fontsize=fs - 2)
+    fig.tight_layout()
+    save(fig, "bench", day, "noise_vs_shaping_data")
+
+    tp = 25.0
+    h = nc[nc.tp == tp]
+    c25 = ch[ch.tp == tp]
+    base = c25[c25.hold == 0].set_index(["board", "channel"])
+    fig, ax = plt.subplots(2, 1, figsize=(12, 12), sharex=True)
+    for b in sorted(c25.board.unique()):
+        x = c25[c25.board == b].set_index(["board", "channel"])
+        rise = ((x.hg_mean - base.hg_mean.reindex(x.index)) / base.hg_rms.reindex(x.index))
+        r = rise.groupby(x.hold).median()
+        ax[0].plot(r.index, r.values, "o-", ms=9, lw=2, label=f"board {b}")
+    ax[0].set_ylabel("pedestal rise / rms at 0", fontsize=fs)
+    ax[0].legend(fontsize=fs - 4, ncol=2, loc="upper left")
+    ax[0].set_title(f"HG {tp:g} ns: pedestal against the window", fontsize=fs)
+    gh = h.groupby("hold")
+    for col, lab, c, mk in comps:
+        med = gh[col].median()
+        ax[1].plot(med.index, med / med.loc[0], mk + "-", c=c, ms=10, lw=2, label=lab)
+    ax[1].set_ylim(0, 1.1)
+    ax[1].set_xlabel("HoldDelay (ns)", fontsize=fs)
+    ax[1].set_ylabel("rms / rms at HoldDelay 0", fontsize=fs)
+    ax[1].legend(fontsize=fs - 4, loc="lower left")
+    for a in ax:
+        a.tick_params(labelsize=fs - 2)
+    fig.tight_layout()
+    save(fig, "bench", day, "noise_vs_holddelay_data")
+
+
 if __name__ == "__main__":
     main(sys.argv[1])
+    data_figures(sys.argv[1])

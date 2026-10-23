@@ -13,19 +13,26 @@
 #                                                    out of the common mode and the widths,
 #                                                    counted per channel
 #   CM(e)     = mean of d_i(e) over the channels that are not outliers   common mode
+#   b_i       = cov_e(d_i, CM) / var_e CM            how much common mode each channel takes;
+#                                                    the split assumes b_i = 1. Channels with
+#                                                    b_i < BLIND_SLOPE do not see their SiPM
+#                                                    (blind): CM is computed a second time
+#                                                    without them, as for the outliers, and
+#                                                    the widths below are over the others
 #   J(e)      = |CM(e) - median_e CM| > JUMP_SIGMA * 1.4826 * MAD_e CM   jump of the chip:
 #                                                    event set aside
+# The outlier cut assumes a symmetric noise: with a long HoldDelay the stored maximum has a
+# longer tail upwards, so the callers switch it off (outliers = false) in those runs.
 # On the events kept, without the outliers:
 #   rms_i   = rms_e d_i                              noise of channel i
-#   total   = median_i rms_i
-#   incoh   = median_i rms_e (d_i - CM) * sqrt(32/31) (subtracting the mean removes 1/32 of
+#   total   = median_i rms_i                         over the n channels that are not blind
+#   incoh   = median_i rms_e (d_i - CM) * sqrt(n/(n-1)) (subtracting the mean removes 1/n of
 #                                                    the channel's own noise)
-#   coh^2   = var_e CM - incoh^2 / 32                (the mean keeps 1/32 of the incoherent
+#   coh^2   = var_e CM - incoh^2 / n                 (the mean keeps 1/n of the incoherent
 #                                                    variance)
-#   b_i     = cov_e(d_i, CM) / var_e CM              how much common mode each channel takes;
-#                                                    the split assumes b_i = 1
 const CHANNEL_SIGMA = 5.0
-const JUMP_SIGMA = 6.0
+const JUMP_SIGMA = 5.0
+const BLIND_SLOPE = 0.75   # a channel taking less common mode than this does not see its SiPM
 
 madn(v) = 1.4826 * median(abs.(v .- median(v)))
 
@@ -52,27 +59,36 @@ chip_rows(o, chain, node, chip) =
     findall(i -> o.chain[i] == chain && o.node[i] == node && o.channel[i] ÷ 32 == chip && o.has_hg[i],
             eachindex(o.hg))
 
-function chip_noise(M)
+function chip_noise(M; outliers::Bool = true, blind = nothing)
     ne, nc = size(M)
     D0 = M .- median(M; dims = 1)
     ref = vec(median(D0; dims = 2))
     s_i = [madn(D0[:, i] .- ref) for i in 1:nc]
     Z = (D0 .- ref) ./ s_i'                           # pull of each channel in each event
-    O = abs.(Z) .> CHANNEL_SIGMA
-    cm_all = [mean(D0[e, j] for j in 1:nc if !O[e, j]) for e in 1:ne]
-    cm_centre, cm_width = median(cm_all), madn(cm_all)
-    jump = abs.(cm_all .- cm_centre) .> JUMP_SIGMA * cm_width
-    keep = .!jump
-    D = D0[keep, :]
-    Ok = O[keep, :]
-    cm = cm_all[keep]
+    O = outliers ? abs.(Z) .> CHANNEL_SIGMA : falses(ne, nc)
     rmsok(v, ok) = std(v[ok])
+    # common mode over the channels in `use` that are not outliers, jumps, and the slope of
+    # every channel against it on the events kept
+    function pass(use)
+        cm_all = [mean(D0[e, j] for j in 1:nc if use[j] && !O[e, j]) for e in 1:ne]
+        centre, width = median(cm_all), madn(cm_all)
+        jump = abs.(cm_all .- centre) .> JUMP_SIGMA * width
+        keep = .!jump
+        cm = cm_all[keep]
+        slope = [(ok = .!O[keep, i]; cov(D0[keep, i][ok], cm[ok]) / var(cm[ok])) for i in 1:nc]
+        (; cm_all, centre, width, jump, keep, cm, slope)
+    end
+    first = pass(trues(nc))
+    blind = blind === nothing ? first.slope .< BLIND_SLOPE : blind
+    p = pass(.!blind)                                 # blind channels left out of CM
+    D, Ok, cm = D0[p.keep, :], O[p.keep, :], p.cm
     rms = [rmsok(D[:, i], .!Ok[:, i]) for i in 1:nc]
-    total = median(rms)
-    inc = median([rmsok(D[:, i] .- cm, .!Ok[:, i]) for i in 1:nc]) * sqrt(nc / (nc - 1))
-    coh = sqrt(max(var(cm) - inc^2 / nc, 0.0))
-    slope = [(ok = .!Ok[:, i]; cov(D[ok, i], cm[ok]) / var(cm[ok])) for i in 1:nc]
+    good = findall(.!blind)
+    n = length(good)
+    total = median(rms[good])
+    inc = median([rmsok(D[:, i] .- cm, .!Ok[:, i]) for i in good]) * sqrt(n / (n - 1))
+    coh = sqrt(max(var(cm) - inc^2 / n, 0.0))
     outliers = vec(sum(Ok; dims = 1))
-    (; D0, Z, O, cm_all, jump, cut = (cm_centre, JUMP_SIGMA * cm_width), D, cm, rms, total, coh,
-       inc, slope, outliers)
+    (; D0, Z, O, cm_all = p.cm_all, jump = p.jump, cut = (p.centre, JUMP_SIGMA * p.width), D,
+       cm, rms, total, coh, inc, slope = p.slope, blind, outliers)
 end

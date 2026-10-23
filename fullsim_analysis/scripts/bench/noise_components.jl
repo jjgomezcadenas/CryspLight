@@ -2,15 +2,16 @@
 # formulas in fullsim_analysis/lib/chip_noise.jl). In each event the 32 channels of a Citiroc
 # are read at the same trigger, so a fluctuation shared by all of them (common mode) can be
 # separated from the noise of each channel. For each run, board and chip: outliers of single
-# channels are left out, jumps of the whole chip (seen in the common mode) are set aside, and
+# channels are left out (in the runs with HoldDelay 0 only, where the noise is symmetric), jumps of the whole chip (seen in the common mode) are set aside, and
 # the total, coherent and incoherent noise and the slope of each channel against the common
 # mode are computed on the rest.
 # Chips whose channels are 0 in every event (not read, findings F7) are skipped. Values are
 # raw ADC counts, high and low gain.
 #
 # Writes fullsim_analysis/results/bench/<day>/:
-#   noise_components.csv  one row per run, board and chip: events, jumps of the chip and
-#                         outliers of single channels (high gain), and total, coherent and
+#   noise_components.csv  one row per run, board and chip: events, jumps of the chip,
+#                         outliers of single channels and channels in the common mode (the
+#                         blind ones left out) of the high gain, and total, coherent and
 #                         incoherent noise of the high and low gain;
 #   common_mode.csv       one row per run and pair of chips (same or different board): the
 #                         correlation coefficient of their common modes over the events both
@@ -26,8 +27,8 @@
 #                         last bins include everything beyond).
 # and prints the channels whose median slope over the runs is below NO_SIPM_SLOPE: they do
 # not receive the common mode, which enters through the SiPM, so their SiPM is not seen (on
-# 22 Oct 2026 the six channels of board 0 silent in the staircases are at 0.02-0.6, all the
-# others above 0.85).
+# 22 Oct 2026 the six channels of board 0 silent in the staircases are below 0.45, all the
+# others above 0.82; computed against the common mode without the blind channels).
 #   julia --project=. fullsim_analysis/scripts/bench/noise_components.jl benchdata/<YYYY-MM-DD>
 include(joinpath(@__DIR__, "..", "..", "lib", "FullsimAnalysis.jl"))
 using .FullsimAnalysis
@@ -38,7 +39,7 @@ day = basename(day_dir)
 subdirs(prefix) = sort(filter(d -> startswith(d, prefix) && isdir(joinpath(day_dir, d)),
                               readdir(day_dir)); by = d -> parse(Int, split(d, '-')[end]))
 
-NCOLS = ["run", "board", "chip", "events", "jumps", "channel_outliers",
+NCOLS = ["run", "board", "chip", "events", "jumps", "channel_outliers", "channels_in_cm",
          "hg_total", "hg_coherent", "hg_incoherent", "lg_total", "lg_coherent", "lg_incoherent"]
 MCOLS = ["run", "board_a", "chip_a", "board_b", "chip_b", "events", "correlation"]
 nt = Dict{String,Vector}(k => [] for k in NCOLS)
@@ -54,6 +55,8 @@ for d in subdirs("run-")
     r = read_daq_run(joinpath(day_dir, d, "run_$(n).0000.h5"))
     bn = daq_board_numbers(read(joinpath(day_dir, d, "manifest.json"), String))
     o = r.obs
+    hold = daq_value(r.config.params, "HoldDelay")
+    cut_outliers = hold !== nothing && hold == 0   # symmetric noise only with HoldDelay 0
     cms = Dict{Tuple{Int,Int},Dict{UInt64,Float64}}()
     zall = Float64[]
     for ((c, nd), b) in sort(collect(bn); by = last), chip in 0:1
@@ -62,7 +65,8 @@ for d in subdirs("run-")
         tids, H = chip_matrix(o, sel, :hg)
         all(H .== 0) && continue
         _, L = chip_matrix(o, sel, :lg)
-        h, l = chip_noise(H), chip_noise(L)
+        h = chip_noise(H; outliers = cut_outliers)
+        l = chip_noise(L; outliers = cut_outliers, blind = h.blind)   # blind from the high gain
         for i in 1:32
             for (k, v) in zip(SCOLS, (n, b, chip, 32chip + i - 1, h.slope[i], h.outliers[i], h.rms[i], l.rms[i]))
                 push!(st[k], v)
@@ -70,7 +74,7 @@ for d in subdirs("run-")
         end
         append!(zall, vec(h.Z[.!h.jump, :]))
         cms[(b, chip)] = Dict(t => x for (t, x) in zip(tids[.!h.jump], h.cm))
-        for (k, v) in zip(NCOLS, (n, b, chip, size(H, 1), count(h.jump), sum(h.outliers),
+        for (k, v) in zip(NCOLS, (n, b, chip, size(H, 1), count(h.jump), sum(h.outliers), count(.!h.blind),
                                   h.total, h.coh, h.inc, l.total, l.coh, l.inc))
             push!(nt[k], v)
         end
@@ -101,7 +105,7 @@ println(write_table("bench", day, "common_mode", [k => mt[k] for k in MCOLS]))
 println(write_table("bench", day, "channel_noise", [k => st[k] for k in SCOLS]))
 println(write_table("bench", day, "outlier_pulls", [k => pt[k] for k in PCOLS]))
 
-const NO_SIPM_SLOPE = 0.75
+const NO_SIPM_SLOPE = BLIND_SLOPE
 for b in sort(unique(st["board"]))
     chs = sort(unique(st["channel"][i] for i in eachindex(st["board"]) if st["board"][i] == b))
     low = [c for c in chs if median([st["slope"][i] for i in eachindex(st["board"])

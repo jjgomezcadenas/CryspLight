@@ -16,6 +16,13 @@ Writes fullsim_analysis/results/bench/<day>/:
                      SiPM is not connected does not receive the common mode, which enters
                      through the SiPM.
 
+    cm_table_run<N>.tex  LaTeX table (booktabs) of the common mode of every chip read in the
+                     first run with HoldDelay 0 (from noise_components.csv): rms of CM,
+                     the reference without common mode (total / sqrt n, n the channels in
+                     CM), the coherent noise
+                     and the fraction of the variance that is common, high gain, and the
+                     median over the chips. Included by the daily report with \\input.
+
     python3 fullsim_analysis/plots/bench_noise.py <YYYY-MM-DD>
 """
 import sys
@@ -62,7 +69,7 @@ def main(day: str):
                    boxprops={"lw": 1.6}, whiskerprops={"lw": 1.6}, capprops={"lw": 1.6})
         red = x[x.no_sipm]
         ax.plot(red.board, red[g], "o", ms=9, mfc="none", mew=2, c="tab:red",
-                label="SiPM not seen")
+                label="blind channels")
         ax.set_xticks(boards, [str(b) for b in boards], fontsize=fs)
         ax.tick_params(axis="y", labelsize=fs)
         ax.set_xlabel("board", fontsize=fs)
@@ -105,6 +112,31 @@ def slopes(day: str):
     save(fig, "bench", day, "bench_slopes")
 
 
+def cm_table(day: str):
+    d = results_dir("bench", day)
+    nc = pd.read_csv(d / "noise_components.csv")
+    runs = pd.read_csv(d / "runs.csv")[["run", "HoldDelay"]].drop_duplicates("run")
+    run = int(runs[runs.HoldDelay.astype(str).str.startswith("0")].run.min())
+    x = nc[nc.run == run].sort_values(["board", "chip"]).copy()
+    x["cm"] = np.sqrt(x.hg_coherent**2 + x.hg_incoherent**2 / 32)
+    x["ref"] = x.hg_total / np.sqrt(x.channels_in_cm)
+    x["frac"] = x.hg_coherent**2 / x.hg_total**2
+    rows = [f"{int(r.board)} & {32 * int(r.chip)}--{32 * int(r.chip) + 31} & {r.cm:.1f} & "
+            f"{r.ref:.1f} & {r.hg_coherent:.1f} & {r.frac:.2f} \\\\" for r in x.itertuples()]
+    med = x[["cm", "ref", "hg_coherent", "frac"]].median()
+    lines = [r"\begin{tabular}{llcccc}", r"\toprule",
+             r"board & channels & rms of CM & reference & $\sigma_\mathrm{coh}$ & "
+             r"$\sigma_\mathrm{coh}^2/\sigma_\mathrm{tot}^2$ \\",
+             r"\midrule", *rows, r"\midrule",
+             f"\\multicolumn{{2}}{{l}}{{median}} & {med.cm:.1f} & {med.ref:.1f} & "
+             f"{med.hg_coherent:.1f} & {med.frac:.2f} \\\\", r"\bottomrule", r"\end{tabular}"]
+    path = d / f"cm_table_run{run}.tex"
+    path.write_text("\n".join(lines) + "\n")
+    print("written", path)
+    print("\n".join(lines))
+
+
 if __name__ == "__main__":
     main(sys.argv[1])
     slopes(sys.argv[1])
+    cm_table(sys.argv[1])
