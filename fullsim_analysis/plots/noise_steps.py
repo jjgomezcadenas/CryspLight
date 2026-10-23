@@ -6,7 +6,8 @@ fullsim_analysis/lib/chip_noise.jl.
 
 Writes fullsim_analysis/results/bench/<day>/:
     noise_steps_A.png  example chip: deviations d_i(e) of its 32 channels in 100 consecutive
-                       events (colour), with the common mode CM(e) of each event above;
+                       events (colour), with the common mode CM(e) of each event above; the
+                       events with |CM| beyond 2 rms framed by vertical lines;
     noise_steps_B.png  common mode CM(e) of every event along the run for the example chip
                        and the chip with jumps, with the band outside which an event is a jump
                        (noise_steps_cuts.csv) and the jumps in red; the map of the deviations
@@ -49,22 +50,34 @@ def main(day: str):
     dch = [c for c in ev.columns if c.startswith("d_ch")][0]
     ex_cm = cms[1]
 
-    # A: deviations and common mode of the example chip (first NA events)
-    NA = 100
-    fig = plt.figure(figsize=(11, 6))
-    gs = fig.add_gridspec(2, 2, height_ratios=[1, 2.5], width_ratios=[40, 1], hspace=0.08,
+    # A: deviations and common mode of the example chip (first NA events); the events whose
+    # common mode is beyond STRIPE rms (the stripes of the map) are framed by vertical lines
+    NA, STRIPE, fs = 100, 2.0, 16
+    fig = plt.figure(figsize=(13, 8))
+    gs = fig.add_gridspec(2, 2, height_ratios=[1, 2.3], width_ratios=[40, 1], hspace=0.08,
                           wspace=0.03)
     a0, a1, ac = fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[1, 0]), fig.add_subplot(gs[1, 1])
     ex = mat[(mat.panel == "example") & (mat.event < mat[mat.panel == "example"].event.min() + NA)]
     im, z = heat(a1, ex, "")
-    a0.plot(z.columns, z.mean(axis=0).values, "k.-", lw=0.8, ms=3)
+    cmv = z.mean(axis=0)
+    stripes = cmv.index[cmv.abs() > STRIPE * ev[ex_cm].std()]
+    a0.plot(cmv.index, cmv.values, "k.-", lw=1, ms=5)
+    a0.plot(stripes, cmv.loc[stripes].values, "o", ms=8, mfc="none", mew=1.8, c="tab:green")
     a0.axhline(0, c="gray", lw=0.5); a0.set_xlim(a1.get_xlim()); a0.set_xticklabels([])
-    a0.set_ylabel("CM(e) (counts)")
-    a0.set_title(f"{day}, example chip ({ex_cm[3:].replace('b', 'board ').replace('c', ', chip ')}): "
-                 "deviation of each channel from its pedestal (below) and its mean (above)",
-                 fontsize=10)
-    fig.colorbar(im, cax=ac, label="d$_i$ (counts)")
+    for e in stripes:
+        for ax in (a0, a1):
+            for xv in (e - 0.5, e + 0.5):
+                ax.axvline(xv, c="tab:green", lw=1.2)
+    a0.set_ylabel("CM(e)\n(counts)", fontsize=fs)
+    a1.set_xlabel("event", fontsize=fs); a1.set_ylabel("channel", fontsize=fs)
+    for ax in (a0, a1, ac):
+        ax.tick_params(labelsize=fs - 2)
+    a0.set_title("example chip (board 2, chip 1): deviation of each channel from its pedestal "
+                 "(below)\nand their mean (above); framed in green, events with |CM| > "
+                 f"{STRIPE:g} rms", fontsize=fs - 1)
+    fig.colorbar(im, cax=ac).set_label("d$_i$ (counts)", fontsize=fs)
     save(fig, "bench", day, "noise_steps_A")
+    print("stripes (|CM| > 2 rms) at events", list(stripes))
 
     # B: jumps, seen in the common mode of every event along the run
     cuts = pd.read_csv(d / "noise_steps_cuts.csv").set_index("chip")
