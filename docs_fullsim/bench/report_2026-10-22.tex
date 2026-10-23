@@ -98,20 +98,52 @@ on the right come from the integer ADC values.}
 \label{fig:outliers}
 \end{figure}
 
-Possible outliers in the chip should not be taken into account for averages or common mode.
-Define $r(e)$ ---reference of the chip--- as the median of the deviations of the 32 channels in that event. The pull of channel $i$ in event $e$ is then:
+Outliers in the chip should not be taken into account for averages or common mode. To exclude them we define the following procedure:
+
+First, define the reference of the chip in event $e$, $r(e)$, as the median of the
+deviations of its 32 channels in that event:
+\begin{equation*}
+r(e) = \mathrm{median}_{\,i}\big(d_i(e)\big) = \mathrm{median}_{\,i}\big(x_i(e) - p_i\big) ,
+\end{equation*}
+where the median is taken over the channels $i$, so that there is one value of $r$ per
+event. A single channel far from the others cannot move it.
+
+The MAD of a set of values $v_k$ is obtained in two steps:
+\begin{enumerate}
+\item compute $m$, the median of the $v_k$;
+\item compute the MAD, $M$, as the median of the distances, $M = \mathrm{median}\big(|v_k - m|\big)$.
+\end{enumerate}
+%
+For a Gaussian of width $\sigma$, the interval $\pm 0.674\,\sigma$ around the centre
+contains half of the probability, and therefore the MAD of a Gaussian, $M_g$, is
+$0.674\,\sigma$. Then $\sigma = M_g / 0.674 = 1.4826\, M_g$. Hence, if a set of values is
+Gaussian and its MAD, $M$, is known, its width is $\sigma = 1.4826\, M$.
+
+Now, for channel $i$, consider the set of values
+\begin{equation*}
+v_e = d_i(e) - r(e) ,
+\end{equation*}
+one per event $e$ of the run, which measures how far the channel strays from the rest of
+its chip in each event. Following the definition of the MAD, $m$ is the median of the
+$v_e$ over the events (close to zero, since both the pedestal and the reference of the
+event have been subtracted), and $M = \mathrm{median}_{\,e}\big(|v_e - m|\big)$. Assuming that
+the distribution of the $v_e$ is Gaussian, its width is
+\begin{equation*}
+s_i = 1.4826\, M ,
+\end{equation*}
+one value per channel: the noise of channel $i$ relative to its chip. Unlike the rms, the
+MAD is not changed by a few extreme values, so $s_i$ is not inflated by the outliers it is
+meant to find.
+
+The pull of channel $i$ in event $e$ is then:
 %
 \begin{equation*}
 z_i(e) = \frac{d_i(e) - r(e)}{s_i} ,
 \end{equation*}
 %
 where $s_i$ is the noise of the channel, measured with the median absolute deviation (MAD).
-The MAD of a set of values is obtained in two steps: first the median of
-the values, then the median of the absolute distances of the values to it, so that half of the
-values lie within one MAD of the median. For a Gaussian of width $\sigma$ half of the values
-lie within $0.674\,\sigma$ of the centre, so $\mathrm{MAD} = 0.674\,\sigma$ and the width is
-estimated as $1.4826\,\mathrm{MAD}$. Unlike the rms, the MAD is not changed by a few extreme
-values, which is what a cut on extreme values needs. Here $s_i = 1.4826\,\mathrm{MAD}(d_i - r)$, over the events. The channel is an outlier in that event if $|z_i(e)| > 5$; outliers are left
+
+ The channel is an outlier in that event if $|z_i(e)| > 5$; outliers are left
 out of what follows and counted for each channel. For Gaussian noise $z$ follows a Gaussian of
 unit width, and an entry beyond $\pm5$ has a probability of $6\times10^{-7}$.
 
