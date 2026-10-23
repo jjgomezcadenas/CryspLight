@@ -2,9 +2,10 @@
 \usepackage[margin=2.2cm]{geometry}
 \usepackage{graphicx,booktabs,url,amsmath}
 \usepackage[hidelinks]{hyperref}
+\usepackage{placeins}
 \graphicspath{{../../fullsim_analysis/results/bench/2026-10-22/}{../../fullsim_analysis/results/bench/2026-10-21/}}
 \title{Bench data of 22 October 2026: menu 1 with five boards}
-\author{CaLibrated AUtomatic Document Entity (CLAUDE), supervised by J. J. G\'omez-Cadenas}
+\author{JJ with help from CaLibrated AUtomatic Document Entity (CLAUDE)}
 \date{23 October 2026}
 \begin{document}
 \maketitle
@@ -17,6 +18,17 @@ of a board are channels 0--31 and 32--63. The problems found so far, and their s
 kept in a findings log (F1--F10), cited below.
 
 \section{Data received}
+
+\begin{figure}[tbhp!]
+\centering
+\includegraphics[width=0.92\textwidth]{bench_pedestals.png}
+\caption{Run 26 (HG 25~ns, HoldDelay 0): mean of the high gain against the channel for each
+board, with the rms as error bar and the robust width (interquartile range / 1.349) as a
+thicker bar. Crosses at zero: channels that read 0 in every event. In red, the channels of
+board 0 without avalanches in the staircases of 21 October (F4).}
+\label{fig:ped}
+\end{figure}
+
 
 \begin{center}
 \small
@@ -31,46 +43,19 @@ Runs & Step of note 1 & HG shaping & HoldDelay \\
 \end{tabular}
 \end{center}
 
-\noindent Each run has 10\,012--10\,016 periodic triggers (1~ms) read by the five boards, with
-no trigger lost. The low gain is at 87.5~ns in all runs. \texttt{HV\_Vbias} = 40.7~V with
-\texttt{HV\_IndivAdj} = 0, so the SiPMs see 36.5~V, below breakdown (F2); the HV current is
-0.2--0.35~$\mu$A. The detector temperature is 24.0--25.0~$^\circ$C on all boards. The logbook
-has one row per run and board and agrees with the files. The DAQ now records
-\texttt{PeakDetectorMode} (PEAK\_STRETCH, applied on all boards), which shows that it includes
-the pull requests merged on 20 October.
-
-The saturation of 21 October is gone (F1): no value of any channel is at 8191. The mean of the
-high gain is different in each channel, between 50 and 310 ADC counts (Figure~\ref{fig:ped}),
-and that of the low gain between 55 and 280. Between run 26 and run 34, taken 23 minutes apart
-with the same settings, the pedestals move by $-0.4$ counts on average and by at most 1.6
-counts: they are stable.
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.92\textwidth]{bench_pedestals.png}
-\caption{Run 26 (HG 25~ns, HoldDelay 0): mean of the high gain against the channel for each
-board, with the rms as error bar and the robust width (interquartile range / 1.349) as a
-thicker bar. Crosses at zero: channels that read 0 in every event. In red, the channels of
-board 0 without avalanches in the staircases of 21 October (F4).}
-\label{fig:ped}
-\end{figure}
-
-\section{Noise}\label{sec:noise}
-
-The rms of the high gain is 12--13 ADC counts at the three shapings, and that of the low gain
-about 6 counts, the same on all boards. Part of this noise is shared by all the channels of a
-chip, and it can be separated because the 32 channels of a Citiroc are read at the same
-trigger. The steps are shown here on one chip that works normally (board 2, channels 32--63,
-run 26), high gain.
-
-\paragraph{1. Deviations from the pedestal.} For channel $i$ in event $e$, with $x_i(e)$ the
-value read,
-\begin{equation*}
-d_i(e) = x_i(e) - \operatorname{median}_e\, x_i .
-\end{equation*}
-Figure~\ref{fig:stepA} shows $d_i$ for 100 consecutive events. Besides the fluctuations of each
-channel there are vertical stripes, events in which most channels are above or below their
-pedestal together (events 67--68, 78, 82--83, 88).
+\begin{itemize}
+\item 10\,012--10\,016 periodic triggers (1~ms) per run, read by the five boards, \textbf{no
+  trigger lost}. Low gain at 87.5~ns in all runs.
+\item \texttt{HV\_Vbias} = 40.7~V, \texttt{HV\_IndivAdj} = 0: the SiPMs see \textbf{36.5~V,
+  below breakdown} (F2); HV current 0.2--0.35~$\mu$A. Detector at 24.0--25.0~$^\circ$C.
+\item Logbook complete, one row per run and board, in agreement with the files.
+\item The DAQ records \texttt{PeakDetectorMode} (PEAK\_STRETCH on all boards): it includes
+  \textbf{the pull requests merged on 20 October}.
+\item \textbf{The saturation of 21 October is gone} (F1): no value at 8191.
+\item Pedestals \textbf{different in each channel}, 50--310 ADC counts in the high gain
+  (Figure~\ref{fig:ped}), 55--280 in the low gain, and \textbf{stable}: between runs 26 and 34,
+  23 minutes apart, they move by $-0.4$ counts on average, 1.6 at most.
+\end{itemize}
 
 \begin{figure}[h]
 \centering
