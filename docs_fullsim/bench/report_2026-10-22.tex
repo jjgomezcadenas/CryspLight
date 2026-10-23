@@ -161,6 +161,67 @@ silent in the staircases of 21 October.}
 \label{fig:noise}
 \end{figure}
 
+\section{Two pedestal peaks in the plots grouped by node}
+
+In the quick-look plots of these runs made at the bench, most channels of ``board 0'' and half
+of the channels of ``board 1'' show two pedestal peaks, half of ``board 2'' shows nothing, and
+only three boards appear. The plots group the measurements by the node number alone. The five
+boards sit on two chains, boards 0 and 1 on chain 0 (nodes 0 and 1) and boards 2, 3 and 4 on
+chain 1 (nodes 0, 1 and 2), so that grouping by node gives three groups and mixes boards:
+
+\begin{itemize}
+\item \textbf{Node 0} is boards 0 and 2. Each channel shows the pedestals of two different
+  boards, hence two peaks, or one when the two pedestals happen to coincide.
+\item \textbf{Node 1} is boards 1 and 3. In channels 0--31 board 1 reads 0 (F7) and a cut
+  above 20 counts removes it, leaving board 3 alone; in channels 32--63 both boards are
+  present and there are two peaks.
+\item \textbf{Node 2} is board 4 alone, whose channels 0--31 read 0 (F7).
+\end{itemize}
+
+\noindent The positions of the two peaks agree channel by channel with the pedestals of the two
+boards measured separately (run 26):
+
+\begin{center}
+\small
+\begin{tabular}{lccl}
+\toprule
+Channel & Board 0 & Board 2 & Plot grouped by node 0 \\
+\midrule
+0 & 166 & 235 & peaks at about 165 and 235 \\
+6 & 240 & 105 & peaks at about 100 and 240 \\
+27 & 80 & 230 & peaks at about 80 and 240 \\
+47 & 172 & 312 & peaks at about 170 and 310 \\
+1, 57, 61 & 166, 167, 163 & 180, 166, 147 & one peak \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Figure~\ref{fig:mix} shows it directly: each board alone has one peak per channel, and
+their sum reproduces the two peaks. The spectra of all channels of the five boards, each board
+on its own, are in the appendix: one pedestal per channel, everywhere. There are no short
+circuits to explain in these data, and no board is missing: the five are in the files.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{node_mixing.png}
+\caption{Run 26, high gain: spectra of some channels for each board alone (solid) and for the
+boards that share a node number added together (dashed), which is what a plot grouped by node
+shows.}
+\label{fig:mix}
+\end{figure}
+
+\paragraph{Recipe.} A board is identified by the pair (chain, node) of each measurement, never
+by the node alone. Every run stores the table that numbers the boards, in
+\path{manifest.json} (\path{execution_identity.topology.boards}) and in the event file
+(\path{configuration/effective/boards}), with the fields board, chain and node. In a script:
+\begin{verbatim}
+boards = {(b["chain"], b["node"]): b["board"]
+          for b in manifest["execution_identity"]["topology"]["boards"]}
+board  = [boards[(c, n)] for c, n in zip(obs["chain"], obs["node"])]
+\end{verbatim}
+and the spectra are then made per board and channel. \textbf{Laura}: with this change the
+plots of the five boards should look like those of the appendix.
+
 \section{Requests}
 
 \textbf{JMB}: the dead chips of boards 1 and 4 (F7), the common-mode jumps of board 0 (F10)
@@ -180,5 +241,38 @@ hold-delay scan), as written, with three corrections:
   the other boards are set to zero. The staircase of step 1 is taken on all five boards: it
   will show which channels see their SiPM (F4, F5).
 \end{enumerate}
+
+\clearpage
+\appendix
+\section{Pedestal spectra of the five boards}
+
+Spectra of the high gain of every channel, board by board (boards identified by chain and
+node), in runs 26, 27 and 28 (HG shaping 25, 50 and 87.5~ns, HoldDelay 0).
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{pedestal_spectra_board0.png}
+\caption{Board 0: spectrum of the high gain of each channel in runs 26--28.}
+\end{figure}
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{pedestal_spectra_board1.png}
+\caption{Board 1: spectrum of the high gain of each channel in runs 26--28.}
+\end{figure}
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{pedestal_spectra_board2.png}
+\caption{Board 2: spectrum of the high gain of each channel in runs 26--28.}
+\end{figure}
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{pedestal_spectra_board3.png}
+\caption{Board 3: spectrum of the high gain of each channel in runs 26--28.}
+\end{figure}
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{pedestal_spectra_board4.png}
+\caption{Board 4: spectrum of the high gain of each channel in runs 26--28.}
+\end{figure}
 
 \end{document}

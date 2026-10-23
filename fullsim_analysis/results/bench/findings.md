@@ -23,6 +23,7 @@ channels 0-63.
 | F8 | Scans without logbook rows or staircase.h5 | 21 Oct, scans 10-12 | open |
 | F9 | Board 2 runs a different firmware | 22 Oct, runs 26-34 | open |
 | F10 | Board 0: common-mode jumps of the whole board in 0.1-0.4% of the events | 22 Oct, runs 26-32 | open |
+| F11 | Two pedestal peaks in the quick-look plots grouped by node | 22 Oct, runs 26-34 | explained |
 
 ## F1. All values at full scale
 
@@ -136,6 +137,22 @@ channels 0-63.
 - **Action:** question to JMB and Laura (is anything different in the cabling or the power of
   board 0?); watch for it in the next runs.
 
+## F11. Two pedestal peaks in the plots grouped by node
+
+- **Seen:** 23 Oct, in Laura's quick-look plots of runs 26-28: two pedestal peaks in most
+  channels of "board 0" and in channels 32-63 of "board 1", half of "board 2" empty, and only
+  three boards.
+- **Cause:** the plots group the measurements by node alone. With two chains (boards 0, 1 on
+  chain 0, nodes 0, 1; boards 2, 3, 4 on chain 1, nodes 0, 1, 2), node 0 mixes boards 0 and 2,
+  node 1 boards 1 and 3, node 2 is board 4 alone; the empty halves are F7. The peak positions
+  agree channel by channel with the pedestals of each board. Each board alone has one
+  pedestal per channel. Evidence: 2026-10-22/node_mixing.png, pedestal_spectra_board0-4.png
+  (fullsim_analysis/scripts/bench/pedestal_spectra.jl, fullsim_analysis/plots/pedestal_spectra.py).
+- **Status:** explained; not shorts on the adapter boards, no board missing.
+- **Solution:** identify the board by (chain, node), numbered with the topology table of the
+  run (manifest execution_identity.topology.boards, or configuration/effective/boards in the
+  event file). Recipe in the report of 22 Oct.
+
 ## Requests
 
 Open entries and what they need, by person. For Laura, menu 1 is complete; the next session
@@ -144,6 +161,6 @@ is menu 2 (bench note 2), with the corrections listed in the report of 22 Oct.
 - **JMB:** F7 (silent chip on boards 1 and 4; Janus test), F10 (common-mode jumps of board 0:
   hardware or firmware?), F9 (firmware of board 2: intended, related to F7 or F10?). F6 is not
   asked: a single invalid point, flagged by staircase.py.
-- **Laura:** F4 and F5 (staircases of the five boards, in menu 2; contacts and connector of
+- **Laura:** F11 (group by chain and node in the quick-look plots); F4 and F5 (staircases of the five boards, in menu 2; contacts and connector of
   the board-0 channels), F8 (logbook rows of scans 10-12), F10 (cabling and power of board 0);
   after F7 is solved, repeat menu 1 for the 64 missing channels.
