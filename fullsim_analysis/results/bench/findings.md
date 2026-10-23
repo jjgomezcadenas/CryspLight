@@ -14,8 +14,8 @@ channels 0-63.
 | F1 | All values at full scale (8191) | 21 Oct, runs 1-9, hold scan 12 | solved (JMB) |
 | F2 | HV_Vbias 40.7 V in the files, 36.5 V in the logbook | 21 Oct | explained |
 | F3 | Logbook temperature was the board's | 21 Oct | solved |
-| F4 | No avalanches in channels 15, 55, 57, 59, 61, 63 | 21 Oct, scans 10-11 | open |
-| F5 | Low dark rate in channels 0, 2, 8, 10 | 21 Oct, scans 10-11 | open |
+| F4 | Board 0: no avalanches in channels 15, 55, 57, 59, 61, 63 | 21 Oct, scans 10-11 | open |
+| F5 | Board 0: low dark rate in channels 0, 2, 8, 10 | 21 Oct, scans 10-11 | open |
 | F6 | 0xDEADBEEF as a staircase count | 21 Oct, scan 11 | open |
 | F7 | Boards 1 and 4: channels 0-31 read 0 in every event | 22 Oct, runs 26-34 | open |
 | F8 | Scans without logbook rows or staircase.h5 | 21 Oct, scans 10-12 | open |
@@ -49,19 +49,21 @@ channels 0-63.
 
 ## F4. Channels without avalanches
 
-- **Seen:** 21 Oct, staircases 10 and 11, board 0, SiPMs above breakdown. Channels 15, 55, 57,
+- **Seen:** 21 Oct, staircases 10 and 11, board 0 (the only board connected that day; the
+  other four have not been scanned), SiPMs above breakdown. Channels 15, 55, 57,
   59, 61 and 63 fall from the noise plateau (edge at 180-185 DAC) to zero within 10 DAC; 30 DAC
   above the edge they count 0-4 Hz, against a median of 6e5 Hz. Evidence: 2026-10-21/
   staircase_11.png, staircase_11_channels.csv.
 - **Cause:** unknown. Five of the six are the odd channels 55-63: a connector or the channel
   mapping rather than single SiPMs?
-- **Action:** Laura to check whether SiPMs are connected to these channels.
+- **Action:** Laura to check whether SiPMs are connected to these channels; staircases of
+  boards 1-4 to see whether the same channels fail there.
 - **Consequence:** these channels cannot be calibrated with the periodic trigger and will not
   record the crystal light.
 
 ## F5. Channels with low dark rate
 
-- **Seen:** 21 Oct, staircases 10 and 11, board 0. Channels 0, 2, 8 and 10 count 60-90 kHz
+- **Seen:** 21 Oct, staircases 10 and 11, board 0 (other boards not scanned). Channels 0, 2, 8 and 10 count 60-90 kHz
   30 DAC above the edge, 7-10 times below the median. Evidence as F4.
 - **Cause:** unknown; even channels 0-10, again a connector or mapping pattern?
 - **Action:** as F4.
