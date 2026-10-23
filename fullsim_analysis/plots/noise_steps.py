@@ -7,7 +7,7 @@ fullsim_analysis/lib/chip_noise.jl.
 Writes fullsim_analysis/results/bench/<day>/:
     noise_steps_A.png  example chip: deviations d_i(e) of its 32 channels in 100 consecutive
                        events (colour), with the common mode CM(e) of each event above; the
-                       events with |CM| beyond 2 rms framed by vertical lines;
+                       events with |CM| beyond 1.5 rms framed by vertical lines;
     noise_steps_B.png  common mode CM(e) of every event along the run for the example chip
                        and the chip with jumps, with the band outside which an event is a jump
                        (noise_steps_cuts.csv) and the jumps in red; the map of the deviations
@@ -52,7 +52,7 @@ def main(day: str):
 
     # A: deviations and common mode of the example chip (first NA events); the events whose
     # common mode is beyond STRIPE rms (the stripes of the map) are framed by vertical lines
-    NA, STRIPE, fs = 100, 2.0, 16
+    NA, STRIPE, fs = 100, 1.5, 16
     fig = plt.figure(figsize=(13, 8))
     gs = fig.add_gridspec(2, 2, height_ratios=[1, 2.3], width_ratios=[40, 1], hspace=0.08,
                           wspace=0.03)
@@ -77,7 +77,7 @@ def main(day: str):
                  f"{STRIPE:g} rms", fontsize=fs - 1)
     fig.colorbar(im, cax=ac).set_label("d$_i$ (counts)", fontsize=fs)
     save(fig, "bench", day, "noise_steps_A")
-    print("stripes (|CM| > 2 rms) at events", list(stripes))
+    print(f"stripes (|CM| > {STRIPE:g} rms) at events", list(stripes))
 
     # B: jumps, seen in the common mode of every event along the run
     cuts = pd.read_csv(d / "noise_steps_cuts.csv").set_index("chip")
