@@ -51,32 +51,27 @@ def main(day: str):
     shapings, boards = sorted(s.shaping.unique()), sorted(s.board.unique())
     panels = [(tp, "hg_rms", f"high gain, {tp:g} ns") for tp in shapings]
     panels.append((shapings[0], "lg_rms", "low gain, 87.5 ns"))
-    fs = 13
-    fig, axes = plt.subplots(1, len(panels), figsize=(4.2 * len(panels), 4.8),
-                             gridspec_kw={"width_ratios": [1] * len(panels)})
+    fs = 18
+    fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+    axes = axes.flat
     for ax, (tp, g, title) in zip(axes, panels):
         x = s[s.shaping == tp]
         ok = x[~x.no_sipm]
         ax.boxplot([ok[ok.board == b][g] for b in boards], positions=boards, widths=0.55,
-                   whis=(0, 100), medianprops={"color": "k", "lw": 1.5},
-                   boxprops={"lw": 1.2}, whiskerprops={"lw": 1.2}, capprops={"lw": 1.2})
+                   whis=(0, 100), medianprops={"color": "k", "lw": 2},
+                   boxprops={"lw": 1.6}, whiskerprops={"lw": 1.6}, capprops={"lw": 1.6})
         red = x[x.no_sipm]
-        ax.plot(red.board, red[g], "o", ms=6, mfc="none", mew=1.4, c="tab:red",
+        ax.plot(red.board, red[g], "o", ms=9, mfc="none", mew=2, c="tab:red",
                 label="SiPM not seen")
         ax.set_xticks(boards, [str(b) for b in boards], fontsize=fs)
         ax.tick_params(axis="y", labelsize=fs)
         ax.set_xlabel("board", fontsize=fs)
+        ax.set_ylabel("rms (ADC counts)", fontsize=fs)
         ax.set_title(f"{title} (run {int(x.run.iloc[0])})", fontsize=fs)
         ax.set_ylim((9.5, 14.5) if g == "hg_rms" else (4.75, 6.75))
         for b in boards:
             print(f"{title}, board {b}: median {ok[ok.board == b][g].median():.2f}")
-    axes[0].set_ylabel("rms of each channel (ADC counts)", fontsize=fs)
     axes[0].legend(fontsize=fs - 2, loc="lower left")
-    for ax in axes[1:3]:
-        ax.sharey(axes[0])
-        ax.tick_params(labelleft=False)
-    fig.suptitle(f"{day}: pedestal noise of every channel, HoldDelay 0, without jumps and "
-                 "outliers (box: quartiles, whiskers: extremes)", fontsize=fs)
     fig.tight_layout()
     save(fig, "bench", day, "bench_rms")
 
