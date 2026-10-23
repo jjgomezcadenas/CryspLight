@@ -85,21 +85,6 @@ value read,
 \begin{equation*}
 d_i(e) = x_i(e) - \operatorname{median}_e\, x_i .
 \end{equation*}
-Figure~\ref{fig:stepA} shows $d_i$ for 100 consecutive events. Besides the fluctuations of each
-channel there are vertical stripes, events in which most channels are above or below their
-pedestal together. The common mode varies continuously from event to event; framed in green
-are the events in which the mean of the deviations exceeds 1.5 times its rms, as a guide to the
-eye (for instance events 23, 58, 62, 67--68 and 77--79).
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=\textwidth]{noise_steps_A.png}
-\caption{Board 2, channels 32--63, run 26: deviation of each channel from its pedestal in 100
-consecutive events (below), and the mean of the 32 deviations in each event (above). Framed
-in green, the events in which the mean exceeds 1.5 times its rms.}
-\label{fig:stepA}
-\end{figure}
-
 \paragraph{2. Outliers of a channel.} A single channel may depart from the rest of its chip in
 one event, a fault of that channel rather than noise, and it must not be taken for common
 mode. In each event the reference of the chip is the median of the 32 deviations,
@@ -123,8 +108,37 @@ channels that are not outliers (32 in almost every event),
 \begin{equation*}
 \mathrm{CM}(e) = \frac{1}{n(e)}\sum_{i \,\notin\, \text{outliers}} d_i(e) ,
 \end{equation*}
-drawn above the map of Figure~\ref{fig:stepA}. Its rms is 6.2 counts on the example chip
-(Figure~\ref{fig:stepC}, left). The separation assumes that every channel receives the same
+If the 32 channels were independent, CM would still vary from event to event, only less: its
+rms would be that of one channel divided by $\sqrt{32}$. To see whether there is a common mode,
+the measured CM is compared with a reference made from the data themselves. The table of the
+deviations has one row per event and one column per channel; shuffling puts the values of each
+column in an independent random order. Each channel keeps its values, and so its pedestal, its
+rms and the shape of its distribution, but the 32 values in a row no longer come from the same
+trigger, so nothing common can move them together. Figure~\ref{fig:stepA} compares the two on
+the example chip:
+\begin{itemize}
+\item the mean of the 32 channels has an rms of 6.2 counts in the data and 2.1 after
+  shuffling, which is the rms of one channel, 11.9 counts, divided by $\sqrt{32}$;
+\item in the data every pair of channels is correlated by about 0.25, uniformly over the chip,
+  and after shuffling by zero.
+\end{itemize}
+The channels share a common fluctuation, which varies continuously from event to event. A
+uniform correlation of 0.25 is what a common part with a quarter of the variance of each
+channel gives, and it agrees with the separation of step~5
+($\sigma_\mathrm{coh}^2/\sigma_\mathrm{tot}^2 = 5.9^2/11.9^2 = 0.25$).
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{noise_steps_A.png}
+\caption{Example chip (board 2, channels 32--63, run 26), data (black) against the same data
+with each channel shuffled independently (orange). Top: mean of the 32 channels in the first
+100 rows, and its distribution. Bottom: correlation between every pair of channels, in the data
+(left) and after shuffling (right).}
+\label{fig:stepA}
+\end{figure}
+
+On the example chip the common mode has an rms of 6.2 counts (Figure~\ref{fig:stepC}, left).
+The separation assumes that every channel receives the same
 common mode. This is checked with the slope of each channel against it,
 $b_i = \mathrm{cov}_e(d_i, \mathrm{CM}) / \mathrm{var}_e\, \mathrm{CM}$: it is 0.96 for the
 channel of the middle panel, and between 0.85 and 1.2 (median 1.04) for all the channels of all

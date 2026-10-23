@@ -5,9 +5,10 @@ channel_noise.csv, runs.csv (noise_components.jl, inspect_run.jl). Definitions i
 fullsim_analysis/lib/chip_noise.jl.
 
 Writes fullsim_analysis/results/bench/<day>/:
-    noise_steps_A.png  example chip: deviations d_i(e) of its 32 channels in 100 consecutive
-                       events (colour), with the common mode CM(e) of each event above; the
-                       events with |CM| beyond 1.5 rms framed by vertical lines;
+    noise_steps_A.png  example chip, data against the same data with each channel shuffled
+                       independently (noise_steps.jl): the mean of the 32 channels in the
+                       first 100 rows and its distribution, and the correlation matrix of the
+                       channels in both;
     noise_steps_B.png  common mode CM(e) of every event along the run for the example chip
                        and the chip with jumps, with the band outside which an event is a jump
                        (noise_steps_cuts.csv) and the jumps in red; the map of the deviations
@@ -50,34 +51,46 @@ def main(day: str):
     dch = [c for c in ev.columns if c.startswith("d_ch")][0]
     ex_cm = cms[1]
 
-    # A: deviations and common mode of the example chip (first NA events); the events whose
-    # common mode is beyond STRIPE rms (the stripes of the map) are framed by vertical lines
-    NA, STRIPE, fs = 100, 1.5, 16
-    fig = plt.figure(figsize=(13, 8))
-    gs = fig.add_gridspec(2, 2, height_ratios=[1, 2.3], width_ratios=[40, 1], hspace=0.08,
-                          wspace=0.03)
-    a0, a1, ac = fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[1, 0]), fig.add_subplot(gs[1, 1])
-    ex = mat[(mat.panel == "example") & (mat.event < mat[mat.panel == "example"].event.min() + NA)]
-    im, z = heat(a1, ex, "")
-    cmv = z.mean(axis=0)
-    stripes = cmv.index[cmv.abs() > STRIPE * ev[ex_cm].std()]
-    a0.plot(cmv.index, cmv.values, "k.-", lw=1, ms=5)
-    a0.plot(stripes, cmv.loc[stripes].values, "o", ms=8, mfc="none", mew=1.8, c="tab:green")
-    a0.axhline(0, c="gray", lw=0.5); a0.set_xlim(a1.get_xlim()); a0.set_xticklabels([])
-    for e in stripes:
-        for ax in (a0, a1):
-            for xv in (e - 0.5, e + 0.5):
-                ax.axvline(xv, c="tab:green", lw=1.2)
-    a0.set_ylabel("CM(e)\n(counts)", fontsize=fs)
-    a1.set_xlabel("event", fontsize=fs); a1.set_ylabel("channel", fontsize=fs)
-    for ax in (a0, a1, ac):
-        ax.tick_params(labelsize=fs - 2)
-    a0.set_title("example chip (board 2, chip 1): deviation of each channel from its pedestal "
-                 "(below)\nand their mean (above); framed in green, events with |CM| > "
-                 f"{STRIPE:g} rms", fontsize=fs - 1)
-    fig.colorbar(im, cax=ac).set_label("d$_i$ (counts)", fontsize=fs)
+    # A: the common mode against its reference, the same data with the channels shuffled
+    fs = 18
+    corr = pd.read_csv(d / "noise_steps_corr.csv")
+    fig, ax = plt.subplots(2, 2, figsize=(14, 11))
+    x = ev[["event", ex_cm, "cm_shuffled_example"]].dropna().reset_index(drop=True)
+    rd, rs = x[ex_cm].std(), x.cm_shuffled_example.std()
+    w = x.iloc[:100]
+    ax[0, 0].plot(w.index, w[ex_cm], "k.-", lw=1.2, ms=6, label="data")
+    ax[0, 0].plot(w.index, w.cm_shuffled_example, ".-", c="tab:orange", lw=1.2, ms=6,
+                  label="channels shuffled")
+    ax[0, 0].set_xlabel("row (first 100)", fontsize=fs)
+    ax[0, 0].set_ylabel("mean of the 32 channels (counts)", fontsize=fs)
+    ax[0, 0].set_ylim(-25, 25)
+    bins = np.linspace(-30, 30, 121)
+    ax[0, 1].hist(x[ex_cm], bins, histtype="step", lw=2, color="k", label=f"data: rms {rd:.1f}")
+    ax[0, 1].hist(x.cm_shuffled_example, bins, histtype="step", lw=2, color="tab:orange",
+                  label=f"shuffled: rms {rs:.1f}")
+    ax[0, 1].set_xlabel("mean of the 32 channels (counts)", fontsize=fs)
+    ax[0, 1].set_ylabel("rows", fontsize=fs)
+    for k, (t, a_) in enumerate((("data", ax[1, 0]), ("shuffled", ax[1, 1]))):
+        c = corr[corr.table == t].pivot(index="channel_a", columns="channel_b", values="rho")
+        m = c.values.copy(); np.fill_diagonal(m, np.nan)
+        im = a_.imshow(m, cmap="RdBu_r", vmin=-0.5, vmax=0.5,
+                       extent=(c.columns[0] - 0.5, c.columns[-1] + 0.5, c.index[-1] + 0.5,
+                               c.index[0] - 0.5))
+        off = m[~np.isnan(m)]
+        a_.set_title(f"{t}: correlation of channels\n(mean off diagonal {off.mean():.2f})",
+                     fontsize=fs)
+        a_.set_xlabel("channel", fontsize=fs); a_.set_ylabel("channel", fontsize=fs)
+        print(f"{t}: mean correlation {off.mean():.3f}, rms {off.std():.3f}")
+        cb = fig.colorbar(im, ax=a_, fraction=0.046, pad=0.04)
+        cb.ax.tick_params(labelsize=fs - 4)
+    for a_ in ax.flat:
+        a_.tick_params(labelsize=fs - 2)
+    for a_ in (ax[0, 0], ax[0, 1]):
+        a_.legend(fontsize=fs - 3)
+    ax[0, 0].set_title("mean of each row", fontsize=fs)
+    ax[0, 1].set_title("its distribution", fontsize=fs)
     save(fig, "bench", day, "noise_steps_A")
-    print(f"stripes (|CM| > {STRIPE:g} rms) at events", list(stripes))
+    print(f"mean of the 32 channels: rms {rd:.2f} (data), {rs:.2f} (shuffled)")
 
     # B: jumps, seen in the common mode of every event along the run
     cuts = pd.read_csv(d / "noise_steps_cuts.csv").set_index("chip")

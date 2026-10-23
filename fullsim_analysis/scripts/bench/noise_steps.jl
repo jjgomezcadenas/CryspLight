@@ -14,11 +14,21 @@
 #   noise_steps_events.csv  one row per trigger id: the event (row in the run), CM(e) of every
 #                           event and the jump flag of the example chip and of the chip with
 #                           jumps, CM(e) of the CORRELATED chips (empty for jumps), and d_i(e)
-#                           of the channel SHOWN of the example chip.
+#                           of the channel SHOWN of the example chip; cm_shuffled_example is
+#                           the mean of the 32 channels after shuffling (below), written next
+#                           to the kept events in order, so its row is not an event;
+#   noise_steps_corr.csv    correlation coefficient between every pair of channels of the
+#                           example chip, in the data and after shuffling; columns table
+#                           ("data" or "shuffled"), channel_a, channel_b, rho.
+# Shuffling: the deviations of each channel of the example chip (kept events) are put in an
+# independent random order. Each channel keeps its values, and so its pedestal, rms and
+# distribution, but the values in one row no longer come from the same trigger, so nothing
+# common moves them together: the shuffled table is the reference of a chip with the same
+# noise per channel and no common mode.
 #   julia --project=. fullsim_analysis/scripts/bench/noise_steps.jl benchdata/<YYYY-MM-DD> <run>
 include(joinpath(@__DIR__, "..", "..", "lib", "FullsimAnalysis.jl"))
 using .FullsimAnalysis
-using Statistics
+using Statistics, Random
 
 const EXAMPLE = (board = 2, chip = 1)
 const JUMPS = (board = 0, chip = 1)
@@ -76,7 +86,25 @@ for (b, c) in CORRELATED
 end
 ishow = SHOWN - 32 * EXAMPLE.chip + 1
 push!(ecols, "d_ch$(SHOWN)" => (m = Dict(zip(kept(ex), ex.c.D[:, ishow])); [get(m, t, NaN) for t in alltids]))
+rng = Xoshiro(2610)
+S = similar(ex.c.D)
+for i in 1:32
+    S[:, i] = ex.c.D[randperm(rng, size(S, 1)), i]
+end
+cm_shuf = vec(mean(S; dims = 2))
+push!(ecols, "cm_shuffled_example" => (m = Dict(zip(kept(ex), cm_shuf)); [get(m, t, NaN) for t in alltids]))
 println(write_table("bench", day, "noise_steps_events", ecols))
+ccols = Dict(k => [] for k in ("table", "channel_a", "channel_b", "rho"))
+for (name, T) in (("data", ex.c.D), ("shuffled", S))
+    C = cor(T)
+    for a in 1:32, b in 1:32
+        push!(ccols["table"], name); push!(ccols["channel_a"], 32EXAMPLE.chip + a - 1)
+        push!(ccols["channel_b"], 32EXAMPLE.chip + b - 1); push!(ccols["rho"], C[a, b])
+    end
+end
+println(write_table("bench", day, "noise_steps_corr",
+                    [k => ccols[k] for k in ("table", "channel_a", "channel_b", "rho")]))
+println("example chip: rms of the mean of the 32 channels $(round(std(ex.c.cm), digits=2)) (data), $(round(std(cm_shuf), digits=2)) (shuffled)")
 println(write_table("bench", day, "noise_steps_cuts",
                     ["chip" => ["example", "jumps"], "centre" => [ex.c.cut[1], ju.c.cut[1]],
                      "half_width" => [ex.c.cut[2], ju.c.cut[2]]]))

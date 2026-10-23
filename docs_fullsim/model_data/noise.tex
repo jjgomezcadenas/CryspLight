@@ -80,6 +80,16 @@ channel $i$ in event $e$:
   \mathrm{CM}(e) = \frac{1}{n(e)}\sum_{i \,\notin\, \text{outliers}} d_i(e) ,
   \end{equation*}
   with $n(e)$ their number, 32 in almost every event.
+\item \textbf{Is there a common mode?} CM varies from event to event even if the channels are
+  independent, with an rms equal to that of one channel divided by $\sqrt{32}$. The reference
+  is made from the data themselves by shuffling: in the table of the deviations, with one row
+  per event and one column per channel, the values of each column are put in an independent
+  random order. Each channel keeps its values, and so its pedestal, rms and distribution, but
+  the values in a row no longer come from the same trigger, so nothing common can move them
+  together. A common mode shows as an rms of CM above that of the shuffled table, and as a
+  correlation between the channels that the shuffling removes. For a common part that every
+  channel takes in full, the correlation between any two channels is the fraction of the
+  variance it carries, $\sigma_\mathrm{coh}^2/\sigma_\mathrm{tot}^2$ (step 7).
 \item \textbf{Jumps of the chip.} If the whole chip moves in an event, the common mode of that
   event falls out of its own distribution. With $\sigma_\mathrm{CM} = 1.4826\,
   \operatorname{MAD}_e \mathrm{CM}$ its robust width, an event is a jump if
@@ -189,18 +199,20 @@ the channels that see their SiPM; red circles, the channels whose SiPM is not se
 The method of Section~\ref{sec:cm} is illustrated on one chip that works normally (board 2,
 channels 32--63, run 26, high gain at 25~ns).
 
-Besides the fluctuations of each channel, the map of the deviations $d_i$ shows vertical
-stripes, events in which most channels are above or below their pedestal together
-(Figure~\ref{fig:stepA}; framed in green, as a guide to the eye, the events in which their
-mean exceeds 1.5 times its rms): this is the common mode, which varies continuously from event
-to event.
+The channels share a common fluctuation (Figure~\ref{fig:stepA}). The mean of the 32 channels
+has an rms of 6.2 counts in the data and 2.1 after shuffling, which is the rms of one channel,
+11.9 counts, divided by $\sqrt{32}$. In the data every pair of channels is correlated by about
+0.25, uniformly over the chip, and after shuffling by zero; 0.25 is the fraction of the
+variance carried by the common mode found in step 7 ($5.9^2/11.9^2$). The common mode varies
+continuously from event to event.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\textwidth]{noise_steps_A.png}
-\caption{Board 2, channels 32--63, run 26: deviation of each channel from its pedestal in 100
-consecutive events (below), and the mean of the 32 deviations in each event (above). Framed
-in green, the events in which the mean exceeds 1.5 times its rms.}
+\caption{Example chip (board 2, channels 32--63, run 26), data (black) against the same data
+with each channel shuffled independently (orange). Top: mean of the 32 channels in the first
+100 rows, and its distribution. Bottom: correlation between every pair of channels, in the data
+(left) and after shuffling (right).}
 \label{fig:stepA}
 \end{figure}
 
