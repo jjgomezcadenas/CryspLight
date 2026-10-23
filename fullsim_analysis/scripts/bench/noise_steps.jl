@@ -7,11 +7,14 @@
 #                           panel "example" from the first event of the example chip, panel
 #                           "jump" centred on the first jump of the chip with jumps; columns
 #                           panel, event (row in the run), channel, d;
+#   noise_steps_cuts.csv    for the example chip and the chip with jumps: centre and half-width
+#                           of the band of the common mode outside which an event is a jump;
 #   noise_steps_hist.csv    histograms (bins of 1 count, -100 to 100) of d_i and of d_i - CM
 #                           over all channels and kept events of the example chip;
-#   noise_steps_events.csv  one row per trigger id: N(e) of the example chip and of the chip
-#                           with jumps, CM(e) of the CORRELATED chips (empty for set-aside
-#                           events), and d_i(e) of the channel SHOWN of the example chip.
+#   noise_steps_events.csv  one row per trigger id: the event (row in the run), CM(e) of every
+#                           event and the jump flag of the example chip and of the chip with
+#                           jumps, CM(e) of the CORRELATED chips (empty for jumps), and d_i(e)
+#                           of the channel SHOWN of the example chip.
 #   julia --project=. fullsim_analysis/scripts/bench/noise_steps.jl benchdata/<YYYY-MM-DD> <run>
 include(joinpath(@__DIR__, "..", "..", "lib", "FullsimAnalysis.jl"))
 using .FullsimAnalysis
@@ -39,7 +42,7 @@ chips = Dict((b, c) => analyse(b, c) for (b, c) in unique([(EXAMPLE...,), (JUMPS
 # matrices
 mcols = Dict(k => [] for k in ("panel", "event", "channel", "d"))
 ex, ju = chips[(EXAMPLE...,)], chips[(JUMPS...,)]
-j0 = findfirst(ju.c.out)
+j0 = findfirst(ju.c.jump)
 for (panel, a, first) in (("example", ex, 1), ("jump", ju, max(1, j0 - NSHOW ÷ 2)))
     for e in first:min(first + NSHOW - 1, size(a.c.D0, 1)), i in 1:32
         push!(mcols["panel"], panel); push!(mcols["event"], e - 1)
@@ -61,14 +64,20 @@ println(write_table("bench", day, "noise_steps_hist",
 alltids = sort(unique(vcat([a.tids for a in values(chips)]...)))
 ecols = Pair{String,Vector}["trigger_id" => Int.(alltids)]
 lookup(a, v) = (m = Dict(zip(a.tids, v)); [get(m, t, NaN) for t in alltids])
-kept(a) = a.tids[.!a.c.out]
+kept(a) = a.tids[.!a.c.jump]
 cmof(a) = (m = Dict(zip(kept(a), a.c.cm)); [get(m, t, NaN) for t in alltids])
-push!(ecols, "n_example" => lookup(ex, ex.c.nout))
-push!(ecols, "n_jumps" => lookup(ju, ju.c.nout))
+push!(ecols, "event" => lookup(ex, collect(0:length(ex.tids) - 1)))
+push!(ecols, "cm_all_example" => lookup(ex, ex.c.cm_all))
+push!(ecols, "jump_example" => lookup(ex, Float64.(ex.c.jump)))
+push!(ecols, "cm_all_jumps" => lookup(ju, ju.c.cm_all))
+push!(ecols, "jump_jumps" => lookup(ju, Float64.(ju.c.jump)))
 for (b, c) in CORRELATED
     push!(ecols, "cm_b$(b)c$(c)" => cmof(chips[(b, c)]))
 end
 ishow = SHOWN - 32 * EXAMPLE.chip + 1
 push!(ecols, "d_ch$(SHOWN)" => (m = Dict(zip(kept(ex), ex.c.D[:, ishow])); [get(m, t, NaN) for t in alltids]))
 println(write_table("bench", day, "noise_steps_events", ecols))
-println("example board $(EXAMPLE.board) chip $(EXAMPLE.chip): total $(round(ex.c.total, digits=2)) coherent $(round(ex.c.coh, digits=2)) incoherent $(round(ex.c.inc, digits=2)), slopes $(round.(extrema(ex.c.slope), digits=2)); jumps in board $(JUMPS.board) chip $(JUMPS.chip): $(count(ju.c.out)), first at row $(j0 - 1)")
+println(write_table("bench", day, "noise_steps_cuts",
+                    ["chip" => ["example", "jumps"], "centre" => [ex.c.cut[1], ju.c.cut[1]],
+                     "half_width" => [ex.c.cut[2], ju.c.cut[2]]]))
+println("example board $(EXAMPLE.board) chip $(EXAMPLE.chip): total $(round(ex.c.total, digits=2)) coherent $(round(ex.c.coh, digits=2)) incoherent $(round(ex.c.inc, digits=2)), slopes $(round.(extrema(ex.c.slope), digits=2)), channel outliers $(sum(ex.c.outliers)), jump cut ±$(round(ex.c.cut[2], digits=1)); jumps in board $(JUMPS.board) chip $(JUMPS.chip): $(count(ju.c.jump)), first at row $(j0 - 1)")

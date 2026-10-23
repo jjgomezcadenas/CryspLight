@@ -7,9 +7,10 @@ fullsim_analysis/lib/chip_noise.jl.
 Writes fullsim_analysis/results/bench/<day>/:
     noise_steps_A.png  example chip: deviations d_i(e) of its 32 channels in 100 consecutive
                        events (colour), with the common mode CM(e) of each event above;
-    noise_steps_B.png  the chip with jumps: the same map around its first jump, and the
-                       distribution of N(e), the number of channels beyond 60 counts, for this
-                       chip and the example chip, with the cut at 10;
+    noise_steps_B.png  common mode CM(e) of every event along the run for the example chip
+                       and the chip with jumps, with the band outside which an event is a jump
+                       (noise_steps_cuts.csv) and the jumps in red; the map of the deviations
+                       of the chip with jumps around its first jump;
     noise_steps_C.png  example chip: distribution of CM(e); d_i(e) of one channel against
                        CM(e); distribution of the slopes b_i of all channels and chips in the
                        runs with HoldDelay 0;
@@ -26,7 +27,6 @@ import pandas as pd
 from common import plt, results_dir, save
 
 VMAX = 40     # colour range of the maps (counts)
-CUT = 10      # OUTLIER_CHANNELS of chip_noise.jl
 
 
 def heat(ax, m, title):
@@ -45,7 +45,7 @@ def main(day: str):
     ev = pd.read_csv(d / "noise_steps_events.csv")
     slopes = pd.read_csv(d / "channel_slopes.csv")
     runs = pd.read_csv(d / "runs.csv")[["run", "board", "HoldDelay"]]
-    cms = [c for c in ev.columns if c.startswith("cm_")]
+    cms = [c for c in ev.columns if c.startswith("cm_b")]
     dch = [c for c in ev.columns if c.startswith("d_ch")][0]
     ex_cm = cms[1]
 
@@ -66,20 +66,31 @@ def main(day: str):
     fig.colorbar(im, cax=ac, label="d$_i$ (counts)")
     save(fig, "bench", day, "noise_steps_A")
 
-    # B: jumps
-    fig, ax = plt.subplots(1, 2, figsize=(13, 4.2), gridspec_kw={"width_ratios": [1.6, 1]})
+    # B: jumps, seen in the common mode of every event along the run
+    cuts = pd.read_csv(d / "noise_steps_cuts.csv").set_index("chip")
+    fig = plt.figure(figsize=(14, 7.5))
+    gs = fig.add_gridspec(2, 2, width_ratios=[2.2, 1], hspace=0.35, wspace=0.18)
+    for row, (key, lab) in enumerate((("example", "example chip (board 2, chip 1)"),
+                                      ("jumps", "board 0, chip 1"))):
+        a = fig.add_subplot(gs[row, 0])
+        x = ev[["event", f"cm_all_{key}", f"jump_{key}"]].dropna()
+        j = x[f"jump_{key}"] == 1
+        a.plot(x.event[~j], x[f"cm_all_{key}"][~j], ".", ms=1.5, c="k")
+        a.plot(x.event[j], x[f"cm_all_{key}"][j], "o", ms=4, mfc="none", c="tab:red",
+               label=f"jumps: {int(j.sum())}")
+        c0, w = cuts.loc[key, "centre"], cuts.loc[key, "half_width"]
+        for y in (c0 - w, c0 + w):
+            a.axhline(y, c="tab:red", ls="--", lw=0.8)
+        a.set_ylim(-250, 250); a.set_ylabel("CM(e) (counts)")
+        a.set_title(f"{lab}: common mode of every event, cut at ±{w:.0f} counts", fontsize=10)
+        if j.any():
+            a.legend(fontsize=8, loc="upper right")
+    a.set_xlabel("event")
     jm = mat[mat.panel == "jump"]
     e0 = jm.groupby("event").d.mean().abs().idxmax()
-    im, _ = heat(ax[0], jm[(jm.event - e0).abs() <= 40],
-                 f"chip with jumps (board 0, chip 1), around the jump at event {e0}")
-    fig.colorbar(im, ax=ax[0], label="d$_i$ (counts), saturated at ±40")
-    bins = np.arange(-0.5, 33.5, 1)
-    for col, lab in (("n_example", "example chip"), ("n_jumps", "board 0, chip 1")):
-        ax[1].hist(ev[col].dropna(), bins, histtype="step", lw=1.3, label=lab)
-    ax[1].axvline(CUT - 0.5, c="k", ls="--", lw=1, label=f"cut: N ≥ {CUT} set aside")
-    ax[1].set_yscale("log"); ax[1].set_xlabel("N(e): channels with |d$_i$| > 60 counts")
-    ax[1].set_ylabel("events"); ax[1].legend(fontsize=8)
-    fig.tight_layout()
+    a = fig.add_subplot(gs[:, 1])
+    im, _ = heat(a, jm[(jm.event - e0).abs() <= 40], f"board 0, chip 1, around event {e0}")
+    fig.colorbar(im, ax=a, label="d$_i$ (counts), saturated at ±40", shrink=0.8)
     save(fig, "bench", day, "noise_steps_B")
 
     # C: common mode, one channel against it, slopes

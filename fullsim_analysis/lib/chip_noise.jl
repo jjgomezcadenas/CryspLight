@@ -1,10 +1,20 @@
 # Common-mode analysis of the 32 channels of a Citiroc, the method of the noise note
-# (docs_fullsim/model_data/noise.tex), for bench and simulated pedestal runs alike. For one chip of one run, x_i(e) is the high (or low) gain of channel i in
-# event e:
-#   d_i(e)  = x_i(e) - median_e x_i                  deviation from the pedestal
-#   N(e)    = #{i : |d_i(e)| > OUTLIER}              events with N >= OUTLIER_CHANNELS are
-#                                                    jumps of the whole chip, set aside
-#   CM(e)   = (1/32) sum_i d_i(e)                    common mode of the event
+# (docs_fullsim/model_data/noise.tex), for bench and simulated pedestal runs alike. For one
+# chip of one run, x_i(e) is the high (or low) gain of channel i in event e. Two kinds of
+# anomaly are separated from the noise, each with its own variable: a channel that departs
+# from the rest of its chip in one event (outlier of a channel), and a chip that moves as a
+# whole (jump, seen in the common mode).
+#   d_i(e)    = x_i(e) - median_e x_i                deviation from the pedestal
+#   r(e)      = median_i d_i(e)                      reference of the event, which a single
+#                                                    channel cannot move
+#   s_i       = 1.4826 * MAD_e (d_i - r)             robust incoherent width of channel i
+#   O_i(e)    = |d_i(e) - r(e)| > CHANNEL_SIGMA s_i  outlier of channel i in event e: left
+#                                                    out of the common mode and the widths,
+#                                                    counted per channel
+#   CM(e)     = mean of d_i(e) over the channels that are not outliers   common mode
+#   J(e)      = |CM(e) - median_e CM| > JUMP_SIGMA * 1.4826 * MAD_e CM   jump of the chip:
+#                                                    event set aside
+# On the events kept, without the outliers:
 #   total   = median_i rms_e d_i
 #   incoh   = median_i rms_e (d_i - CM) * sqrt(32/31) (subtracting the mean removes 1/32 of
 #                                                    the channel's own noise)
@@ -12,8 +22,10 @@
 #                                                    variance)
 #   b_i     = cov_e(d_i, CM) / var_e CM              how much common mode each channel takes;
 #                                                    the split assumes b_i = 1
-const OUTLIER = 60        # counts, five times the pedestal rms of the high gain
-const OUTLIER_CHANNELS = 10
+const CHANNEL_SIGMA = 5.0
+const JUMP_SIGMA = 6.0
+
+madn(v) = 1.4826 * median(abs.(v .- median(v)))
 
 # board number from chain and node, as in the manifest topology
 function daq_board_numbers(text)
@@ -39,14 +51,24 @@ chip_rows(o, chain, node, chip) =
             eachindex(o.hg))
 
 function chip_noise(M)
+    ne, nc = size(M)
     D0 = M .- median(M; dims = 1)
-    nout = vec(sum(abs.(D0) .> OUTLIER; dims = 2))
-    out = nout .>= OUTLIER_CHANNELS
-    D = D0[.!out, :]
-    cm = vec(mean(D; dims = 2))
-    total = median(vec(std(D; dims = 1)))
-    inc = median(vec(std(D .- cm; dims = 1))) * sqrt(32 / 31)
-    coh = sqrt(max(var(cm) - inc^2 / 32, 0.0))
-    slope = [cov(D[:, i], cm) / var(cm) for i in 1:32]
-    (; D0, nout, out, D, cm, total, coh, inc, slope)
+    ref = vec(median(D0; dims = 2))
+    s_i = [madn(D0[:, i] .- ref) for i in 1:nc]
+    O = abs.(D0 .- ref) .> CHANNEL_SIGMA .* s_i'
+    cm_all = [mean(D0[e, j] for j in 1:nc if !O[e, j]) for e in 1:ne]
+    cm_centre, cm_width = median(cm_all), madn(cm_all)
+    jump = abs.(cm_all .- cm_centre) .> JUMP_SIGMA * cm_width
+    keep = .!jump
+    D = D0[keep, :]
+    Ok = O[keep, :]
+    cm = cm_all[keep]
+    rmsok(v, ok) = std(v[ok])
+    total = median([rmsok(D[:, i], .!Ok[:, i]) for i in 1:nc])
+    inc = median([rmsok(D[:, i] .- cm, .!Ok[:, i]) for i in 1:nc]) * sqrt(nc / (nc - 1))
+    coh = sqrt(max(var(cm) - inc^2 / nc, 0.0))
+    slope = [(ok = .!Ok[:, i]; cov(D[ok, i], cm[ok]) / var(cm[ok])) for i in 1:nc]
+    outliers = vec(sum(Ok; dims = 1))
+    (; D0, O, cm_all, jump, cut = (cm_centre, JUMP_SIGMA * cm_width), D, cm, total, coh, inc,
+       slope, outliers)
 end

@@ -59,16 +59,35 @@ channel $i$ in event $e$:
   \begin{equation*}
   d_i(e) = x_i(e) - \operatorname{median}_e\, x_i .
   \end{equation*}
-\item \textbf{Jumps of the whole chip.} The number of channels far from their pedestal,
+\item \textbf{Outliers of a channel.} A channel may depart from the rest of its chip in a
+  single event, a fault of that channel rather than noise. In each event the reference of the
+  chip is the median of the deviations,
   \begin{equation*}
-  N(e) = \#\{\, i : |d_i(e)| > 60 \text{ counts} \,\},
+  r(e) = \operatorname{median}_i\, d_i(e) ,
   \end{equation*}
-  with 60 counts about five times the rms, flags events in which the whole chip jumps, a fault
-  rather than noise. Events with $N(e) \ge 10$ are counted and set aside.
-\item \textbf{Common mode.} The common mode of an event is the mean of the deviations,
+  which one channel cannot move, and channel $i$ is an outlier in event $e$ if
   \begin{equation*}
-  \mathrm{CM}(e) = \frac{1}{32}\sum_{i=1}^{32} d_i(e) .
+  |d_i(e) - r(e)| > 5\, s_i , \qquad s_i = 1.4826\, \operatorname{MAD}_e\big(d_i - r\big) ,
   \end{equation*}
+  where $s_i$, the median absolute deviation scaled to the rms of a Gaussian, is the noise of
+  the channel itself, measured without being affected by the outliers. With Gaussian noise a
+  channel passes $5 s_i$ with a probability of $6\times10^{-7}$ per event, about 0.2 times in
+  a run of 32 channels and 10\,000 events. The outliers are left out of the common mode and of
+  the widths, and counted for each channel: a channel that is often an outlier is faulty.
+\item \textbf{Common mode.} The common mode of an event is the mean of the deviations of the
+  channels that are not outliers,
+  \begin{equation*}
+  \mathrm{CM}(e) = \frac{1}{n(e)}\sum_{i \,\notin\, \text{outliers}} d_i(e) ,
+  \end{equation*}
+  with $n(e)$ their number, 32 in almost every event.
+\item \textbf{Jumps of the chip.} If the whole chip moves in an event, the common mode of that
+  event falls out of its own distribution. With $\sigma_\mathrm{CM} = 1.4826\,
+  \operatorname{MAD}_e \mathrm{CM}$ its robust width, an event is a jump if
+  \begin{equation*}
+  |\mathrm{CM}(e) - \operatorname{median}_e \mathrm{CM}| > 6\, \sigma_\mathrm{CM} ,
+  \end{equation*}
+  which a Gaussian common mode does with a probability of $2\times10^{-9}$ per event. The jumps
+  are counted and the events set aside.
 \item \textbf{Coupling of each channel.} The separation assumes that every channel receives the
   same common mode. This is checked with the slope of each channel against it,
   \begin{equation*}
@@ -166,15 +185,25 @@ consecutive events (below), and the mean of the 32 deviations in each event (abo
 \label{fig:stepA}
 \end{figure}
 
-On the example chip $N$ is 0 in every event. On board 0, in 0.1--0.4\% of the events of most
-runs, all the channels jump together by 60--230 counts (Figure~\ref{fig:stepB}); normal events
-have $N \le 6$ and the jumps $N = 24$--32, so the cut separates them.
+In the runs with HoldDelay 0 there are 41 outliers of a channel in about $10^7$ entries,
+spread over 34 channels with at most two in one channel: no channel is faulty, and the tails
+are only slightly longer than Gaussian. The criterion assumes a symmetric noise: with long
+windows the stored maximum has a longer tail upwards (skewness 0.76 at 496~ns), and the
+outliers it then finds, all positive, are that tail rather than faults; leaving them out
+changes the widths by less than 0.1 counts. On the example chip no channel is an outlier in
+any event, and the common mode stays within
+$\pm29$ counts, inside the cut at $\pm37$ (Figure~\ref{fig:stepB}, top): there is no jump.
+On board 0, 44 events of run 26 (0.4\%) are jumps, with a common mode of 42 to 230 counts in
+absolute value, often in two consecutive triggers (bottom); the map of the deviations around
+one of them shows the whole chip moving together (right).
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\textwidth]{noise_steps_B.png}
-\caption{Left: board 0, channels 32--63, run 26, around a jump (colour saturated at $\pm40$
-counts). Right: distribution of $N(e)$ on board 0 and on the example chip, with the cut.}
+\caption{Run 26. Left: common mode of every event along the run for the example chip (top)
+and for board 0, channels 32--63 (bottom), with the cut (dashed) and the jumps (red circles).
+Right: deviations of the channels of board 0, channels 32--63, around a jump (colour saturated
+at $\pm40$ counts).}
 \label{fig:stepB}
 \end{figure}
 
@@ -242,9 +271,9 @@ the common modes of the two chips of a board is highest at the longest shaping (
 \subsection{Low gain against high gain}
 
 At 87.5~ns, where both paths have the same shaping, the low gain has a total noise of 5.8
-counts against 13.1 for the high gain, 0.45 times as much, while the model assumes the same
+counts against 13.1 for the high gain, 0.44 times as much, while the model assumes the same
 noise. The reduction is not the same for the two parts: the incoherent noise of the low gain
-is 5.5 counts (0.59 of the high gain), its coherent noise only 1.9 (0.23).
+is 5.5 counts (0.59 of the high gain), its coherent noise only 1.6 (0.20).
 
 \subsection{Pedestal against HoldDelay}
 
@@ -350,7 +379,7 @@ fifth are short additions to be scheduled after it.
 Nothing is yet stable enough to replace the noise model of the simulation. What the
 measurements already establish, in ADC counts, is that the noise of a channel has a coherent
 part shared by the 64 channels of a board, entering through the SiPMs, of 25--40\% of the
-variance; that neither part follows the $t_p^{-1/2}$ scaling; that the low gain has 0.45 times
+variance; that neither part follows the $t_p^{-1/2}$ scaling; that the low gain has 0.44 times
 the noise of the high gain; and that the noise varies over hundreds of nanoseconds. For the
 sum of the 64 channels, which gives the energy, the coherent part matters most: the incoherent
 noise adds in quadrature and grows as $\sqrt{64} = 8$ times that of one channel, while the

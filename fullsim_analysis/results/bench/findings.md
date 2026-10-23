@@ -127,12 +127,14 @@ channels 0-63.
 - **Seen:** 22 Oct. First reported as board 0 being noisier at 25 ns (median high-gain rms
   15.9 counts in run 26, against 12.0-12.4 on boards 1-4). The robust width (interquartile
   range / 1.349) of board 0 is the same as on the other boards (11.9 counts): the excess is
-  in the tails. These come from events in which the channels of a chip move together by
-  60-230 counts, up or down, often in two consecutive triggers, and in most runs both chips
-  of the board in the same number of events: 41 such events in run 26
-  (0.4%), 10-28 per chip in runs 27-32, none in runs 33 and 34. The other boards have none
-  (board 3: one event in runs 30-32). Evidence: 2026-10-22/noise_components.csv (column
-  outlier_events; fullsim_analysis/scripts/bench/noise_components.jl).
+  in the tails. These come from events in which the channels of a chip move together, up or
+  down, often in two consecutive triggers, on both chips of the board. They are found as
+  events whose common mode (mean deviation of the chip) is beyond 6 robust widths of its
+  distribution, about 40 counts (method in fullsim_analysis/lib/chip_noise.jl, figure
+  2026-10-22/noise_steps_B.png): 44-48 per chip in run 26 (0.5%), with a common mode of 42 to
+  230 counts, 10-29 per chip in runs 27-32, none in runs 33 and 34. The other boards have
+  none (board 3: one per chip in runs 30-32). Evidence: 2026-10-22/noise_components.csv
+  (column jumps).
 - **Cause:** unknown. A whole-board shift points to the reference, the supply or the ground
   of board 0, or to a disturbance on its cable; board 0 is also the coolest (board 48-51 C
   against 54-57 C).

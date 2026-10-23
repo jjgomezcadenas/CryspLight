@@ -30,6 +30,6 @@ export open_pes_run, emulate, chain_maker, event_lists, with, with_window
 export measured_charge, fitted_gains, matched_filter_template, matched_filter, filter_amplitudes
 export daq_params, daq_param, daq_value, read_daq_run, daq_channel_values, daq_spectra
 export read_daq_histograms, read_daq_staircase, read_daq_hold_delay
-export daq_board_numbers, chip_rows, chip_matrix, chip_noise, OUTLIER, OUTLIER_CHANNELS
+export daq_board_numbers, chip_rows, chip_matrix, chip_noise, CHANNEL_SIGMA, JUMP_SIGMA
 
 end
