@@ -17,7 +17,11 @@ Writes fullsim_analysis/results/bench/<day>/:
                        CM(e); distribution of the slopes b_i of all channels and chips in the
                        runs with HoldDelay 0;
     noise_steps_D.png  example chip: distribution of d_i and of d_i - CM over all channels;
-    noise_steps_E.png  CM(e) of two chips of the same board, and of chips of two boards.
+    noise_steps_E.png  CM(e) of two chips of the same board, and of chips of two boards;
+    noise_steps_outliers.png  distribution of the pull z = (d_i - r) / s_i of every channel
+                       (outlier_pulls.csv, noise_components.jl) in the first run with HoldDelay
+                       0 and in the run with the longest HoldDelay, log scale, with the
+                       Gaussian of unit width and the cut at |z| = 5.
 
     python3 fullsim_analysis/plots/noise_steps.py <YYYY-MM-DD>
 """
@@ -176,5 +180,37 @@ def main(day: str):
     save(fig, "bench", day, "noise_steps_E")
 
 
+def outliers(day: str, cut: float = 5.0, fs: int = 18):
+    d = results_dir("bench", day)
+    pulls = pd.read_csv(d / "outlier_pulls.csv")
+    runs = pd.read_csv(d / "runs.csv").drop_duplicates("run").set_index("run")
+    hold = runs.HoldDelay.astype(str).str.split().str[0].astype(float)
+    shown = [int(hold[hold == 0].index.min()), int(hold.idxmax())]
+    fig, axes = plt.subplots(1, 2, figsize=(15, 6.5), sharey=True)
+    for ax, r in zip(axes, shown):
+        x = pulls[pulls.run == r]
+        w = 0.1
+        n = x["count"].sum()
+        ax.step(x.z_low + w / 2, x["count"], where="mid", c="k", lw=1.5, label="data")
+        zz = np.linspace(-10, 10, 801)
+        ax.plot(zz, n * w * np.exp(-zz**2 / 2) / np.sqrt(2 * np.pi), c="tab:blue", lw=1.5,
+                label="Gaussian, width 1")
+        for c in (-cut, cut):
+            ax.axvline(c, c="tab:red", ls="--", lw=1.5)
+        beyond = x[(x.z_low + w / 2).abs() > cut]["count"].sum()
+        expected = n * 5.7e-7
+        ax.set_yscale("log"); ax.set_ylim(0.5, None); ax.set_xlim(-10, 10)
+        ax.set_title(f"run {r}, HoldDelay {hold[r]:g} ns: {beyond} beyond $\\pm${cut:g}\n"
+                     f"({expected:.1f} expected for Gaussian noise)", fontsize=fs)
+        ax.set_xlabel("z = (d$_i$ - r) / s$_i$", fontsize=fs)
+        ax.tick_params(labelsize=fs - 2)
+        print(f"run {r}: {n} entries, {beyond} beyond {cut}, {expected:.2f} expected")
+    axes[0].set_ylabel("entries per 0.1", fontsize=fs)
+    axes[0].legend(fontsize=fs - 3, loc="upper left")
+    fig.tight_layout()
+    save(fig, "bench", day, "noise_steps_outliers")
+
+
 if __name__ == "__main__":
     main(sys.argv[1])
+    outliers(sys.argv[1])

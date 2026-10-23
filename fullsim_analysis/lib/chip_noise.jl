@@ -8,7 +8,8 @@
 #   r(e)      = median_i d_i(e)                      reference of the event, which a single
 #                                                    channel cannot move
 #   s_i       = 1.4826 * MAD_e (d_i - r)             robust incoherent width of channel i
-#   O_i(e)    = |d_i(e) - r(e)| > CHANNEL_SIGMA s_i  outlier of channel i in event e: left
+#   z_i(e)    = (d_i(e) - r(e)) / s_i                pull of channel i in event e
+#   O_i(e)    = |z_i(e)| > CHANNEL_SIGMA             outlier of channel i in event e: left
 #                                                    out of the common mode and the widths,
 #                                                    counted per channel
 #   CM(e)     = mean of d_i(e) over the channels that are not outliers   common mode
@@ -56,7 +57,8 @@ function chip_noise(M)
     D0 = M .- median(M; dims = 1)
     ref = vec(median(D0; dims = 2))
     s_i = [madn(D0[:, i] .- ref) for i in 1:nc]
-    O = abs.(D0 .- ref) .> CHANNEL_SIGMA .* s_i'
+    Z = (D0 .- ref) ./ s_i'                           # pull of each channel in each event
+    O = abs.(Z) .> CHANNEL_SIGMA
     cm_all = [mean(D0[e, j] for j in 1:nc if !O[e, j]) for e in 1:ne]
     cm_centre, cm_width = median(cm_all), madn(cm_all)
     jump = abs.(cm_all .- cm_centre) .> JUMP_SIGMA * cm_width
@@ -71,6 +73,6 @@ function chip_noise(M)
     coh = sqrt(max(var(cm) - inc^2 / nc, 0.0))
     slope = [(ok = .!Ok[:, i]; cov(D[ok, i], cm[ok]) / var(cm[ok])) for i in 1:nc]
     outliers = vec(sum(Ok; dims = 1))
-    (; D0, O, cm_all, jump, cut = (cm_centre, JUMP_SIGMA * cm_width), D, cm, rms, total, coh,
+    (; D0, Z, O, cm_all, jump, cut = (cm_centre, JUMP_SIGMA * cm_width), D, cm, rms, total, coh,
        inc, slope, outliers)
 end

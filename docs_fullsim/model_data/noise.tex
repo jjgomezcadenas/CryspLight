@@ -2,6 +2,7 @@
 \usepackage[margin=2.2cm]{geometry}
 \usepackage{graphicx,booktabs,url,amsmath}
 \usepackage[hidelinks]{hyperref}
+\usepackage{float}
 \graphicspath{{../../fullsim_analysis/results/bench/2026-10-22/}}
 \title{Noise of the Citiroc front end: how it is measured, and what the bench shows}
 \author{JJ with help from CaLibrated AUtomatic Document Entity (CLAUDE)}
@@ -178,14 +179,9 @@ from 96 to 496~ns; a last run repeats the first. The low gain is shaped at 87.5~
 Channels 0--31 of two boards are not read (a readout problem under investigation), which
 leaves eight chips of 32 channels. The gain was not measured, so the results are in ADC counts.
 
-Figure~\ref{fig:rms} shows the rms of every channel in the three runs with HoldDelay 0: 12--13
-counts in the high gain, with 90\% of the channels within $\pm0.4$ counts of the median at
-25~ns and $\pm0.7$ at 50 and 87.5~ns, and about 5.8 counts in the low gain, the same on all
-boards.
-
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{bench_rms.png}
+\includegraphics[width=0.85\textwidth]{bench_rms.png}
 \caption{Runs 26--28, HoldDelay 0: rms of each channel in the high gain at 25, 50 and
 87.5~ns and in the low gain (87.5~ns), without jumps of the chip and outliers of single
 channels (Section~\ref{sec:cm}). One box per board (quartiles, whiskers to the extremes) for
@@ -194,10 +190,48 @@ the channels that see their SiPM; red circles, the channels whose SiPM is not se
 \label{fig:rms}
 \end{figure}
 
+Figure~\ref{fig:rms} shows the rms of every channel in the three runs with HoldDelay 0: 12--13
+counts in the high gain, with 90\% of the channels within $\pm0.4$ counts of the median at
+25~ns and $\pm0.7$ at 50 and 87.5~ns, and about 5.8 counts in the low gain, the same on all
+boards.
+
 \subsection{The steps on one chip}
 
 The method of Section~\ref{sec:cm} is illustrated on one chip that works normally (board 2,
-channels 32--63, run 26, high gain at 25~ns).
+channels 32--63, run 26, high gain at 25~ns), and on all the chips where the step needs them.
+
+\subsubsection*{Outliers of a channel}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{noise_steps_outliers.png}
+\caption{Pull $z = (d_i - r)/s_i$ of every channel of every chip read, in all the events that
+are not jumps, at HoldDelay 0 (left, run 26) and 496~ns (right, run 33), with the Gaussian of
+unit width (blue) and the cut at $|z| = 5$ (red). The excess in the bin at zero and the comb
+on the right come from the integer ADC values.}
+\label{fig:outliers}
+\end{figure}
+
+At HoldDelay 0 the pull follows the Gaussian over five orders of magnitude, with slightly longer
+tails (Figure~\ref{fig:outliers}, left): in run 26, 7 entries of 2.6 million are beyond $\pm5$,
+against 1.5 expected; in all the runs with HoldDelay 0 there are 41 in about $10^7$, spread
+over 34 channels with at most two in one channel, so no channel is faulty. With a long window
+the distribution is asymmetric (right): the stored maximum has a longer tail upwards (skewness
+0.76 at 496~ns), which crosses $+5$, and the outliers found there, all positive, are that tail
+rather than faults. The criterion assumes a symmetric noise and is meaningful at HoldDelay 0;
+at long windows leaving those entries out changes the widths by less than 0.1 counts.
+
+\subsubsection*{Is there a common mode?}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{noise_steps_A.png}
+\caption{Example chip (board 2, channels 32--63, run 26), data (black) against the same data
+with each channel shuffled independently (orange). Top: mean of the 32 channels in the first
+100 rows, and its distribution. Bottom: correlation between every pair of channels, in the data
+(left) and after shuffling (right).}
+\label{fig:stepA}
+\end{figure}
 
 The channels share a common fluctuation (Figure~\ref{fig:stepA}). The mean of the 32 channels
 has an rms of 6.2 counts in the data and 2.1 after shuffling, which is the rms of one channel,
@@ -206,29 +240,9 @@ has an rms of 6.2 counts in the data and 2.1 after shuffling, which is the rms o
 variance carried by the common mode found in step 7 ($5.9^2/11.9^2$). The common mode varies
 continuously from event to event.
 
-\begin{figure}[h]
-\centering
-\includegraphics[width=\textwidth]{noise_steps_A.png}
-\caption{Example chip (board 2, channels 32--63, run 26), data (black) against the same data
-with each channel shuffled independently (orange). Top: mean of the 32 channels in the first
-100 rows, and its distribution. Bottom: correlation between every pair of channels, in the data
-(left) and after shuffling (right).}
-\label{fig:stepA}
-\end{figure}
+\subsubsection*{Jumps of the chip}
 
-In the runs with HoldDelay 0 there are 41 outliers of a channel in about $10^7$ entries,
-spread over 34 channels with at most two in one channel: no channel is faulty, and the tails
-are only slightly longer than Gaussian. The criterion assumes a symmetric noise: with long
-windows the stored maximum has a longer tail upwards (skewness 0.76 at 496~ns), and the
-outliers it then finds, all positive, are that tail rather than faults; leaving them out
-changes the widths by less than 0.1 counts. On the example chip no channel is an outlier in
-any event, and the common mode stays within
-$\pm29$ counts, inside the cut at $\pm37$ (Figure~\ref{fig:stepB}, top): there is no jump.
-On board 0, 44 events of run 26 (0.4\%) are jumps, with a common mode of 42 to 230 counts in
-absolute value, often in two consecutive triggers (bottom); the map of the deviations around
-one of them shows the whole chip moving together (right).
-
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{noise_steps_B.png}
 \caption{Run 26. Left: common mode of every event along the run for the example chip (top)
@@ -238,12 +252,15 @@ at $\pm40$ counts).}
 \label{fig:stepB}
 \end{figure}
 
-The common mode of the example chip has an rms of 6.2 counts (Figure~\ref{fig:stepC}, left).
-The slopes $b_i$ are between 0.85 and 1.2, with a median of 1.04, for all the channels of all
-chips but 15, which take much less (Section~\ref{sec:sipm}); for these the assumption of a
-uniform coupling holds.
+On the example chip the common mode stays within $\pm29$ counts, inside the cut at $\pm37$
+(Figure~\ref{fig:stepB}, top): there is no jump. On board 0, 44 events of run 26 (0.4\%) are
+jumps, with a common mode of 42 to 230 counts in absolute value, often in two consecutive
+triggers (bottom); the map of the deviations around one of them shows the whole chip moving
+together (right).
 
-\begin{figure}[h]
+\subsubsection*{Coupling of each channel}
+
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{noise_steps_C.png}
 \caption{Left: common mode of the example chip. Centre: deviation of channel 40 against the
@@ -252,15 +269,14 @@ HoldDelay 0; the channels below 0.75 do not see their SiPM.}
 \label{fig:stepC}
 \end{figure}
 
-On the example chip $\sigma_\mathrm{tot} = 11.9$, $\sigma_\mathrm{coh} = 5.9$ and
-$\sigma_\mathrm{inc} = 10.4$ counts, and $\sigma_\mathrm{tot}^2 = \sigma_\mathrm{coh}^2 +
-\sigma_\mathrm{inc}^2$ within 0.1\%. Subtracting the common mode narrows the distribution of
-the deviations from 12.0 to 10.2 counts (Figure~\ref{fig:stepD}). The common modes of the two
-chips of a board are correlated by 0.6--0.85 in all boards and runs, those of different boards
-by less than 0.12 (Figure~\ref{fig:stepE}): the common mode belongs to the board. In what
-follows the values are medians over the chips of a run.
+The common mode of the example chip has an rms of 6.2 counts (Figure~\ref{fig:stepC}, left).
+The slopes $b_i$ are between 0.85 and 1.2, with a median of 1.04, for all the channels of all
+chips but 15, which take much less (Section~\ref{sec:sipm}); for these the assumption of a
+uniform coupling holds.
 
-\begin{figure}[h]
+\subsubsection*{Total, coherent and incoherent noise}
+
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.55\textwidth]{noise_steps_D.png}
 \caption{Example chip: deviations of all channels in all events, before and after subtracting
@@ -268,7 +284,15 @@ the common mode of each event.}
 \label{fig:stepD}
 \end{figure}
 
-\begin{figure}[h]
+On the example chip $\sigma_\mathrm{tot} = 11.9$, $\sigma_\mathrm{coh} = 5.9$ and
+$\sigma_\mathrm{inc} = 10.4$ counts, and $\sigma_\mathrm{tot}^2 = \sigma_\mathrm{coh}^2 +
+\sigma_\mathrm{inc}^2$ within 0.1\%. Subtracting the common mode narrows the distribution of
+the deviations from 12.0 to 10.2 counts (Figure~\ref{fig:stepD}). In what follows the values
+are medians over the chips of a run.
+
+\subsubsection*{Correlation between chips}
+
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{noise_steps_E.png}
 \caption{Common mode of chip 0 against chip 1 of board 2 (left) and of board 2 against board 3
@@ -276,9 +300,13 @@ the common mode of each event.}
 \label{fig:stepE}
 \end{figure}
 
+The common modes of the two chips of a board are correlated by 0.6--0.85 in all boards and
+runs, those of different boards by less than 0.12 (Figure~\ref{fig:stepE}): the common mode
+belongs to the board.
+
 \subsection{Noise against shaping}
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{noise_vs_shaping.png}
 \caption{Pedestal noise of the high gain at \texttt{HoldDelay} = 0 against the shaping time:
@@ -308,7 +336,7 @@ is 5.5 counts (0.59 of the high gain), its coherent noise only 1.6 (0.20).
 
 \subsection{Pedestal against HoldDelay}
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{noise_vs_holddelay.png}
 \caption{High gain at 25~ns against \texttt{HoldDelay}. Left, rise of the pedestal from its
@@ -330,6 +358,15 @@ fluctuations only slowly.
 \subsection{The common mode enters through the SiPM}
 \label{sec:sipm}
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{bench_slopes.png}
+\caption{Slope of each channel against the common mode of its chip, median over the runs with
+HoldDelay 0 (bars from the lowest to the highest run), with a cut at 0.75. In red, the six
+channels of board 0 without avalanches in the threshold scans.}
+\label{fig:slopes}
+\end{figure}
+
 Fifteen channels take much less common mode than the others, with slopes $b_i$ of 0.02--0.6
 in all runs against more than 0.85 for every other channel (Figure~\ref{fig:slopes}). On
 board 0 they are channels 15, 55, 57, 59, 61 and 63, exactly the six channels that showed no
@@ -342,14 +379,6 @@ lack the common mode, but not enough to be separated by it: at 87.5~ns they sit 
 of the median rms of their board, and the quietest normal channel at 0.90. The slope is
 therefore also a test, from a pedestal run, of whether each channel sees its SiPM.
 
-\begin{figure}[h]
-\centering
-\includegraphics[width=\textwidth]{bench_slopes.png}
-\caption{Slope of each channel against the common mode of its chip, median over the runs with
-HoldDelay 0 (bars from the lowest to the highest run), with a cut at 0.75. In red, the six
-channels of board 0 without avalanches in the threshold scans.}
-\label{fig:slopes}
-\end{figure}
 
 \section{Hypotheses}
 

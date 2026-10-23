@@ -19,7 +19,11 @@
 #                         deviation of the high gain against the common mode (1 if the
 #                         channel takes the full common mode), the number of events in which
 #                         the channel is an outlier (high gain), and the rms of the channel in
-#                         the high and low gain, without jumps and outliers.
+#                         the high and low gain, without jumps and outliers;
+#   outlier_pulls.csv     one row per run and bin of 0.1: the number of entries of the pull
+#                         z = (d_i - r) / s_i of the high gain, over all channels of all chips
+#                         and the events that are not jumps, from -10 to 10 (the first and
+#                         last bins include everything beyond).
 # and prints the channels whose median slope over the runs is below NO_SIPM_SLOPE: they do
 # not receive the common mode, which enters through the SiPM, so their SiPM is not seen (on
 # 22 Oct 2026 the six channels of board 0 silent in the staircases are at 0.02-0.6, all the
@@ -40,6 +44,9 @@ MCOLS = ["run", "board_a", "chip_a", "board_b", "chip_b", "events", "correlation
 nt = Dict{String,Vector}(k => [] for k in NCOLS)
 mt = Dict{String,Vector}(k => [] for k in MCOLS)
 SCOLS = ["run", "board", "chip", "channel", "slope", "outliers", "hg_rms", "lg_rms"]
+const ZEDGES = -10.0:0.1:10.0
+PCOLS = ["run", "z_low", "count"]
+pt = Dict{String,Vector}(k => [] for k in PCOLS)
 st = Dict{String,Vector}(k => [] for k in SCOLS)
 
 for d in subdirs("run-")
@@ -48,6 +55,7 @@ for d in subdirs("run-")
     bn = daq_board_numbers(read(joinpath(day_dir, d, "manifest.json"), String))
     o = r.obs
     cms = Dict{Tuple{Int,Int},Dict{UInt64,Float64}}()
+    zall = Float64[]
     for ((c, nd), b) in sort(collect(bn); by = last), chip in 0:1
         sel = chip_rows(o, c, nd, chip)
         isempty(sel) && continue
@@ -60,6 +68,7 @@ for d in subdirs("run-")
                 push!(st[k], v)
             end
         end
+        append!(zall, vec(h.Z[.!h.jump, :]))
         cms[(b, chip)] = Dict(t => x for (t, x) in zip(tids[.!h.jump], h.cm))
         for (k, v) in zip(NCOLS, (n, b, chip, size(H, 1), count(h.jump), sum(h.outliers),
                                   h.total, h.coh, h.inc, l.total, l.coh, l.inc))
@@ -67,6 +76,14 @@ for d in subdirs("run-")
         end
         @printf("run %d board %d chip %d: %d events, %d jumps, %d channel outliers; HG total %.2f coherent %.2f incoherent %.2f; LG total %.2f coherent %.2f incoherent %.2f\n",
                 n, b, chip, size(H, 1), count(h.jump), sum(h.outliers), h.total, h.coh, h.inc, l.total, l.coh, l.inc)
+    end
+    zc = zeros(Int, length(ZEDGES) - 1)
+    for z in zall
+        k = clamp(floor(Int, (z - first(ZEDGES)) / step(ZEDGES)) + 1, 1, length(zc))
+        zc[k] += 1
+    end
+    for (k, c) in enumerate(zc)
+        push!(pt["run"], n); push!(pt["z_low"], ZEDGES[k]); push!(pt["count"], c)
     end
     keys_ = sort(collect(keys(cms)))
     for i in eachindex(keys_), j in i+1:length(keys_)
@@ -82,6 +99,7 @@ end
 println(write_table("bench", day, "noise_components", [k => nt[k] for k in NCOLS]))
 println(write_table("bench", day, "common_mode", [k => mt[k] for k in MCOLS]))
 println(write_table("bench", day, "channel_noise", [k => st[k] for k in SCOLS]))
+println(write_table("bench", day, "outlier_pulls", [k => pt[k] for k in PCOLS]))
 
 const NO_SIPM_SLOPE = 0.75
 for b in sort(unique(st["board"]))
