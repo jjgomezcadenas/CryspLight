@@ -57,6 +57,24 @@ Runs & Step of note 1 & HG shaping & HoldDelay \\
   23 minutes apart, they move by $-0.4$ counts on average, 1.6 at most.
 \end{itemize}
 
+\FloatBarrier
+\section{Noise}\label{sec:noise}
+
+The rms of the high gain is 12--13 ADC counts at the three shapings, and that of the low gain
+about 6 counts, the same on all boards. Part of this noise is shared by all the channels of a
+chip, and it can be separated because the 32 channels of a Citiroc are read at the same
+trigger. The steps are shown here on one chip that works normally (board 2, channels 32--63,
+run 26), high gain.
+
+\paragraph{1. Deviations from the pedestal.} For channel $i$ in event $e$, with $x_i(e)$ the
+value read,
+\begin{equation*}
+d_i(e) = x_i(e) - \operatorname{median}_e\, x_i .
+\end{equation*}
+Figure~\ref{fig:stepA} shows $d_i$ for 100 consecutive events. Besides the fluctuations of each
+channel there are vertical stripes, events in which most channels are above or below their
+pedestal together (events 67--68, 78, 82--83, 88).
+
 \begin{figure}[h]
 \centering
 \includegraphics[width=\textwidth]{noise_steps_A.png}
