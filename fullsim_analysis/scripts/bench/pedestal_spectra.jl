@@ -14,17 +14,11 @@ day_dir = rstrip(ARGS[1], '/')
 day = basename(day_dir)
 runs = parse.(Int, ARGS[2:end])
 
-# board number from chain and node, as in the manifest topology
-function board_numbers(text)
-    re = r"\"board\":\s*(\d+),\s*\"chain\":\s*(\d+),\s*\"node\":\s*(\d+)"
-    Dict((parse(Int, m[2]), parse(Int, m[3])) => parse(Int, m[1]) for m in eachmatch(re, text))
-end
-
 cols = Dict(k => Int[] for k in ("run", "board", "channel", "adc", "count"))
 for n in runs
     d = joinpath(day_dir, "run-$(n)")
     r = read_daq_run(joinpath(d, "run_$(n).0000.h5"))
-    bn = board_numbers(read(joinpath(d, "manifest.json"), String))
+    bn = daq_board_numbers(read(joinpath(d, "manifest.json"), String))
     o = r.obs
     h = Dict{NTuple{3,Int},Int}()
     for i in eachindex(o.hg)

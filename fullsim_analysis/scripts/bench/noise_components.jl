@@ -1,4 +1,5 @@
-# Coherent and incoherent noise (definitions and formulas in chip_noise.jl) of the pedestal runs of a day of bench data. In each event the
+# Coherent and incoherent noise of the pedestal runs of a day of bench data (definitions and
+# formulas in fullsim_analysis/lib/chip_noise.jl). In each event the
 # 32 channels of a Citiroc are read at the same trigger; a fluctuation shared by all of them
 # (common mode: the reference, the supply or a pick-up that reaches the whole chip) shows as
 # an event-by-event shift of their mean, while the noise of each preamplifier is independent
@@ -32,7 +33,6 @@
 include(joinpath(@__DIR__, "..", "..", "lib", "FullsimAnalysis.jl"))
 using .FullsimAnalysis
 using Statistics, Printf
-include(joinpath(@__DIR__, "chip_noise.jl"))
 
 day_dir = rstrip(ARGS[1], '/')
 day = basename(day_dir)
@@ -50,7 +50,7 @@ st = Dict{String,Vector}(k => [] for k in SCOLS)
 for d in subdirs("run-")
     n = parse(Int, split(d, '-')[end])
     r = read_daq_run(joinpath(day_dir, d, "run_$(n).0000.h5"))
-    bn = board_numbers(read(joinpath(day_dir, d, "manifest.json"), String))
+    bn = daq_board_numbers(read(joinpath(day_dir, d, "manifest.json"), String))
     o = r.obs
     cms = Dict{Tuple{Int,Int},Dict{UInt64,Float64}}()
     for ((c, nd), b) in sort(collect(bn); by = last), chip in 0:1
@@ -59,7 +59,7 @@ for d in subdirs("run-")
         tids, H = chip_matrix(o, sel, :hg)
         all(H .== 0) && continue
         _, L = chip_matrix(o, sel, :lg)
-        h, l = components(H), components(L)
+        h, l = chip_noise(H), chip_noise(L)
         for i in 1:32
             for (k, v) in zip(SCOLS, (n, b, chip, 32chip + i - 1, h.slope[i]))
                 push!(st[k], v)

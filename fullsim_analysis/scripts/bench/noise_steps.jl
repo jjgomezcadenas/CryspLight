@@ -1,5 +1,5 @@
-# The steps of the common-mode analysis (chip_noise.jl) on one run, to illustrate them in the
-# report and in the noise note: an example chip (EXAMPLE), the chip with jumps (JUMPS), and the
+# The steps of the common-mode analysis (fullsim_analysis/lib/chip_noise.jl) on one run, to
+# illustrate them in the report and in the noise note: an example chip (EXAMPLE), the chip with jumps (JUMPS), and the
 # common mode of the chips used to show its correlation (CORRELATED). High gain, ADC counts.
 #
 # Writes fullsim_analysis/results/bench/<day>/:
@@ -16,7 +16,6 @@
 include(joinpath(@__DIR__, "..", "..", "lib", "FullsimAnalysis.jl"))
 using .FullsimAnalysis
 using Statistics
-include(joinpath(@__DIR__, "chip_noise.jl"))
 
 const EXAMPLE = (board = 2, chip = 1)
 const JUMPS = (board = 0, chip = 1)
@@ -29,12 +28,12 @@ day = basename(day_dir)
 n = parse(Int, ARGS[2])
 d = joinpath(day_dir, "run-$(n)")
 r = read_daq_run(joinpath(d, "run_$(n).0000.h5"))
-bn = board_numbers(read(joinpath(d, "manifest.json"), String))
+bn = daq_board_numbers(read(joinpath(d, "manifest.json"), String))
 cn = Dict(v => k for (k, v) in bn)
 o = r.obs
 
 analyse(b, chip) = (sel = chip_rows(o, cn[b]..., chip); (tids, M) = chip_matrix(o, sel, :hg);
-                    (tids = tids, c = components(M)))
+                    (tids = tids, c = chip_noise(M)))
 chips = Dict((b, c) => analyse(b, c) for (b, c) in unique([(EXAMPLE...,), (JUMPS...,), CORRELATED...]))
 
 # matrices

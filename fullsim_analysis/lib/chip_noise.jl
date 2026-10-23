@@ -1,5 +1,5 @@
-# Common-mode analysis of the 32 channels of a Citiroc, shared by noise_components.jl and
-# noise_steps.jl. For one chip of one run, x_i(e) is the high (or low) gain of channel i in
+# Common-mode analysis of the 32 channels of a Citiroc, the method of the noise note
+# (docs_fullsim/model_data/noise.tex), for bench and simulated pedestal runs alike. For one chip of one run, x_i(e) is the high (or low) gain of channel i in
 # event e:
 #   d_i(e)  = x_i(e) - median_e x_i                  deviation from the pedestal
 #   N(e)    = #{i : |d_i(e)| > OUTLIER}              events with N >= OUTLIER_CHANNELS are
@@ -12,13 +12,11 @@
 #                                                    variance)
 #   b_i     = cov_e(d_i, CM) / var_e CM              how much common mode each channel takes;
 #                                                    the split assumes b_i = 1
-using Statistics
-
 const OUTLIER = 60        # counts, five times the pedestal rms of the high gain
 const OUTLIER_CHANNELS = 10
 
 # board number from chain and node, as in the manifest topology
-function board_numbers(text)
+function daq_board_numbers(text)
     re = r"\"board\":\s*(\d+),\s*\"chain\":\s*(\d+),\s*\"node\":\s*(\d+)"
     Dict((parse(Int, m[2]), parse(Int, m[3])) => parse(Int, m[1]) for m in eachmatch(re, text))
 end
@@ -40,7 +38,7 @@ chip_rows(o, chain, node, chip) =
     findall(i -> o.chain[i] == chain && o.node[i] == node && o.channel[i] ÷ 32 == chip && o.has_hg[i],
             eachindex(o.hg))
 
-function components(M)
+function chip_noise(M)
     D0 = M .- median(M; dims = 1)
     nout = vec(sum(abs.(D0) .> OUTLIER; dims = 2))
     out = nout .>= OUTLIER_CHANNELS

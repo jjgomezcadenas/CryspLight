@@ -2,7 +2,7 @@
 noise note (docs_fullsim/model_data/noise.tex). Reads, in fullsim_analysis/results/bench/<day>/,
 noise_steps_matrix.csv, noise_steps_hist.csv, noise_steps_events.csv (noise_steps.jl) and
 channel_slopes.csv, runs.csv (noise_components.jl, inspect_run.jl). Definitions in
-fullsim_analysis/scripts/bench/chip_noise.jl.
+fullsim_analysis/lib/chip_noise.jl.
 
 Writes fullsim_analysis/results/bench/<day>/:
     noise_steps_A.png  example chip: deviations d_i(e) of its 32 channels in 100 consecutive

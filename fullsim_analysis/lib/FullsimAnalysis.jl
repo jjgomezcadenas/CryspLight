@@ -19,6 +19,7 @@ include("results.jl")
 include("emulate.jl")
 include("calibrate.jl")
 include("io_daq.jl")
+include("chip_noise.jl")
 
 export read_events, select_photopeak511, select_photopeak1275, select_empty, select_compton
 export fit_gauss_linear, peak_fit, peak_fit_window, photoelectron_ladder
@@ -29,5 +30,6 @@ export open_pes_run, emulate, chain_maker, event_lists, with, with_window
 export measured_charge, fitted_gains, matched_filter_template, matched_filter, filter_amplitudes
 export daq_params, daq_param, daq_value, read_daq_run, daq_channel_values, daq_spectra
 export read_daq_histograms, read_daq_staircase, read_daq_hold_delay
+export daq_board_numbers, chip_rows, chip_matrix, chip_noise, OUTLIER, OUTLIER_CHANNELS
 
 end
