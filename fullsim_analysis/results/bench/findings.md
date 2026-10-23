@@ -14,7 +14,7 @@ channels 0-63.
 | F1 | All values at full scale (8191) | 21 Oct, runs 1-9, hold scan 12 | solved (JMB) |
 | F2 | HV_Vbias 40.7 V in the files, 36.5 V in the logbook | 21 Oct | explained |
 | F3 | Logbook temperature was the board's | 21 Oct | solved |
-| F4 | Board 0: no avalanches in channels 15, 55, 57, 59, 61, 63 | 21 Oct, scans 10-11 | open |
+| F4 | Channels probably without a SiPM, on boards 0, 1, 3, 4 | 21 Oct, scans 10-11; 22 Oct, run 28 | open |
 | F5 | Board 0: low dark rate in channels 0, 2, 8, 10 | 21 Oct, scans 10-11 | open |
 | F6 | 0xDEADBEEF as a staircase count | 21 Oct, scan 11 | open |
 | F7 | Boards 1 and 4: channels 0-31 read 0 in every event | 22 Oct, runs 26-34 | open |
@@ -47,17 +47,32 @@ channels 0-63.
   at 24.7-24.8 C.
 - **Status:** solved. From 22 Oct the logbook gives the detector temperature, per board.
 
-## F4. Channels without avalanches
+## F4. Channels without a SiPM
 
-- **Seen:** 21 Oct, staircases 10 and 11, board 0 (the only board connected that day; the
-  other four have not been scanned), SiPMs above breakdown. Channels 15, 55, 57,
-  59, 61 and 63 fall from the noise plateau (edge at 180-185 DAC) to zero within 10 DAC; 30 DAC
-  above the edge they count 0-4 Hz, against a median of 6e5 Hz. Evidence: 2026-10-21/
-  staircase_11.png, staircase_11_channels.csv.
-- **Cause:** unknown. Five of the six are the odd channels 55-63: a connector or the channel
-  mapping rather than single SiPMs?
+- **Seen in the staircases:** 21 Oct, scans 10 and 11, board 0 (the only board scanned so
+  far), SiPMs above breakdown. Channels 15, 55, 57, 59, 61 and 63 fall from the noise plateau
+  (edge at 180-185 DAC) to zero within 10 DAC; 30 DAC above the edge they count 0-4 Hz, against
+  a median of 6e5 Hz. Evidence: 2026-10-21/staircase_11.png, staircase_11_channels.csv.
+- **Seen in the pedestal:** 22 Oct, run 28 (HG 87.5 ns, HoldDelay 0, SiPMs below breakdown).
+  A SiPM at the input adds capacitance and raises the noise of the preamplifier; a channel
+  without one is quieter. On board 0 the six channels above are exactly the six of lowest
+  high-gain rms, 0.82-0.87 of the board median; the next one, channel 2, is at 0.89. With the
+  cut at 0.88 of the board median (inspect_run.jl), run 28 gives:
+
+  | Board | Channels below 0.88 of the median (ratio) |
+  |---|---|
+  | 0 | 15, 55, 57, 59, 61, 63 (0.82-0.87) |
+  | 1 | 61, 63 (0.87); channels 0-31 not read (F7) |
+  | 2 | none (lowest 0.95) |
+  | 3 | 45, 47, 49, 60 (0.81-0.82) |
+  | 4 | 59, 61 (0.87-0.88); 63 at 0.90, below the cut at 50 ns; channels 0-31 not read (F7) |
+
+  At 25 ns the criterion does not separate them. The margin on boards 0, 1 and 4 is small; on
+  board 3 it is clear. Evidence: 2026-10-22/channels.csv.
+- **Cause:** unknown. The high odd channels 59-63 recur on boards 0, 1 and 4: a connector or
+  the channel mapping rather than single SiPMs?
 - **Action:** Laura to check whether SiPMs are connected to these channels; staircases of
-  boards 1-4 to see whether the same channels fail there.
+  boards 1-4 to confirm with avalanches.
 - **Consequence:** these channels cannot be calibrated with the periodic trigger and will not
   record the crystal light.
 
@@ -65,8 +80,11 @@ channels 0-63.
 
 - **Seen:** 21 Oct, staircases 10 and 11, board 0 (other boards not scanned). Channels 0, 2, 8 and 10 count 60-90 kHz
   30 DAC above the edge, 7-10 times below the median. Evidence as F4.
+- **Not seen in the pedestal:** these channels have a SiPM (they count dark pulses) and their
+  noise in run 28 is normal or slightly low (channel 2 at 0.89 of the median, 10 at 0.92, 0
+  and 8 normal); a low dark rate cannot show in a run below breakdown.
 - **Cause:** unknown; even channels 0-10, again a connector or mapping pattern?
-- **Action:** as F4.
+- **Action:** staircases of all boards, to see whether other boards have such channels.
 
 ## F6. 0xDEADBEEF in a staircase
 
