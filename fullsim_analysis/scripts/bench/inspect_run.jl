@@ -23,7 +23,7 @@
 #                  high gain from the binned spectrum.
 # and prints a summary per run and board and the warnings: channels at full scale, channels
 # at 0 in every event (not read), channels often at 0 (a pedestal clipped by the ADC floor),
-# channels probably without a SiPM (NO_SIPM_RATIO), settings that differ between runs or boards,
+# channels that do not see their SiPM (NO_SIPM_RATIO), settings that differ between runs or boards,
 # missing channels.
 #   julia --project=. fullsim_analysis/scripts/bench/inspect_run.jl benchdata/<YYYY-MM-DD>
 include(joinpath(@__DIR__, "..", "..", "lib", "FullsimAnalysis.jl"))
@@ -35,10 +35,11 @@ const FLAG_FRACTION = 0.01   # a channel with more than this fraction at 0 or 81
 # A SiPM at the input adds capacitance and raises the noise of the preamplifier, most visibly
 # with the longest shaping: a channel whose high-gain rms is below NO_SIPM_RATIO times the
 # median of its board, in the runs with the longest HG shaping and HoldDelay 0, is flagged as
-# probably without a SiPM. On board 0 (22 Oct 2026, 87.5 ns) 0.88 selects exactly the six
-# channels that showed no avalanches in the staircases of 21 Oct (ratios 0.83-0.87); the
-# margin is small: channel 2, which has avalanches, is at 0.89.
-const NO_SIPM_RATIO = 0.88
+# not seeing its SiPM (bad contact). The cut is deliberately loose: on board 0 (22 Oct 2026,
+# 87.5 ns) the six channels without avalanches in the staircases of 21 Oct are at 0.82-0.87
+# of the median and channels with avalanches go down to 0.89, too close to cut between them;
+# the distribution of the ratio is drawn by fullsim_analysis/plots/bench_noise.py.
+const NO_SIPM_RATIO = 0.6
 const SETTINGS = ["HG_ShapingTime", "LG_ShapingTime", "HoldDelay", "PeakDetectorMode",
                   "HV_Vbias", "HV_IndivAdj", "HV_Adjust_Range", "PtrgPeriod", "BunchTrgSource",
                   "HG_Gain", "LG_Gain", "TD_CoarseThreshold", "QD_CoarseThreshold", "Pedestal"]
@@ -168,7 +169,7 @@ if !isempty(runs["run"])
         isempty(idx) && continue
         m = median(chans["hg_rms"][idx])
         low = [chans["channel"][i] for i in idx if chans["hg_rms"][i] < NO_SIPM_RATIO * m]
-        isempty(low) || push!(warnings, @sprintf("run %d board %d (HG %g ns): high-gain rms below %.0f%% of the board median (%.2f) in channels %s: probably no SiPM",
+        isempty(low) || push!(warnings, @sprintf("run %d board %d (HG %g ns): high-gain rms below %.0f%% of the board median (%.2f) in channels %s: SiPM not seen",
                                                  n, b, longest, 100 * NO_SIPM_RATIO, m, ranges(low)))
     end
     println(write_table("bench", day, "runs", [k => runs[k] for k in RCOLS]))
