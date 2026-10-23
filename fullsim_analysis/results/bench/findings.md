@@ -59,13 +59,14 @@ channels 0-63.
   a bad contact or a fault in the connector or the adapter board.
 - **Found also in the pedestal runs (22 Oct):** the common mode of a chip enters through the
   SiPMs, so a channel that does not see its SiPM does not receive it. The slope of each
-  channel against the common mode of its chip (noise_components.jl, channel_slopes.csv) is
+  channel against the common mode of its chip (noise_components.jl, channel_noise.csv) is
   0.02-0.6 for the six channels in every run, and above 0.85 for every channel of board 0
   with avalanches. With a cut at 0.75 the same criterion finds, on the other boards:
   board 1: 61, 63; board 3: 45, 47, 49, 60; board 4: 59, 61, 63; board 2: none. These are
   predictions for the staircases of the five boards. The odd channels 55-63 recur on boards
-  0, 1 and 4. The pedestal rms alone does not separate them (0.82-0.87 of the board median
-  against 0.81-0.89 for others). Evidence: 2026-10-22/bench_slopes.png, bench_noise.png.
+  0, 1 and 4. In the rms (without jumps) they are quieter, mostly for lack of common mode,
+  but not separated: at 87.5 ns 0.81-0.90 of the board median, the quietest normal channel
+  0.90. Evidence: 2026-10-22/bench_slopes.png, bench_rms.png, channel_noise.csv.
   noise_components.jl prints the channels below the cut ("SiPM not seen"); inspect_run.jl
   no longer cuts on the rms.
 - **Action:** staircases of all five boards (menu 2) to test the predictions; check the

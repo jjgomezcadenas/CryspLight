@@ -1,21 +1,19 @@
-"""Noise of the high gain, channel by channel, for a day of bench data, to see which channels
-do not see their SiPM: a SiPM at the input adds capacitance and raises the noise of the
-preamplifier, so a channel with a bad contact is quieter than its neighbours. Reads
-fullsim_analysis/results/bench/<day>/channels.csv and runs.csv (written by
-fullsim_analysis/scripts/bench/inspect_run.jl) and uses the runs with HoldDelay 0, one per
-HG shaping. Channels at 0 in every event (not read) are left out.
+"""Noise of every channel for a day of bench data, and the channels that do not see their
+SiPM. Reads fullsim_analysis/results/bench/<day>/channel_noise.csv (noise_components.jl) and
+runs.csv (inspect_run.jl), and uses the runs with HoldDelay 0, one per HG shaping. Chips not
+read are absent from channel_noise.csv.
 
 Writes fullsim_analysis/results/bench/<day>/:
-    bench_noise.png  histograms of the high-gain rms divided by the median of its board, one
-                     row per shaping, one column per board and a last column with all boards;
-                     the channels confirmed silent by the staircases (CONFIRMED) are drawn
-                     apart, in red;
-    bench_slopes.png slope b_i of each channel against the common mode of its chip (from
-                     channel_slopes.csv, noise_components.jl), median over the runs with
-                     HoldDelay 0, against the channel, one panel per board, with the bar from
-                     the lowest to the highest run, the cut NO_SIPM_SLOPE and the CONFIRMED
-                     channels in red. A channel whose SiPM is not connected does not receive
-                     the common mode, which enters through the SiPM.
+    bench_rms.png    rms of each channel (without jumps and outliers) in the high gain (left)
+                     and the low gain (right), one column of points per board and shaping;
+                     the channels whose SiPM is not seen (median slope against the common
+                     mode below NO_SIPM_SLOPE) in red;
+    bench_slopes.png slope b_i of each channel against the common mode of its chip, median
+                     over the runs with HoldDelay 0, against the channel, one panel per board,
+                     with the bar from the lowest to the highest run, the cut NO_SIPM_SLOPE and
+                     the channels silent in the staircases (CONFIRMED) in red. A channel whose
+                     SiPM is not connected does not receive the common mode, which enters
+                     through the SiPM.
 
     python3 fullsim_analysis/plots/bench_noise.py <YYYY-MM-DD>
 """
@@ -29,55 +27,56 @@ from common import plt, results_dir, save
 # channels without avalanches in the staircases (board -> channels): scans 10 and 11 of
 # 21 Oct 2026, board 0 (findings F4)
 CONFIRMED = {0: [15, 55, 57, 59, 61, 63]}
-BINS = np.linspace(0.0, 1.5, 61)
 NO_SIPM_SLOPE = 0.75   # as in noise_components.jl
 
 
-def main(day: str):
+def channel_noise(day: str) -> pd.DataFrame:
+    """channel_noise.csv of the runs with HoldDelay 0, with the shaping of each run and the
+    flag of the channels whose SiPM is not seen (median slope below NO_SIPM_SLOPE)."""
     d = results_dir("bench", day)
-    ch = pd.read_csv(d / "channels.csv")
+    s = pd.read_csv(d / "channel_noise.csv")
     runs = pd.read_csv(d / "runs.csv")[["run", "board", "HG_ShapingTime", "HoldDelay"]]
-    df = ch.merge(runs, on=["run", "board"])
-    df = df[df.HoldDelay.astype(str).str.startswith("0") & (df.hg_zero < 1)].copy()
-    df["shaping"] = df.HG_ShapingTime.astype(str).str.split().str[0].astype(float)
-    # one run per shaping: the first one
-    first = df.groupby("shaping").run.min()
-    df = df[df.run == df.shaping.map(first)]
-    df["ratio"] = df.hg_rms / df.groupby(["run", "board"]).hg_rms.transform("median")
-    df["confirmed"] = [c in CONFIRMED.get(b, []) for b, c in zip(df.board, df.channel)]
+    s = s.merge(runs, on=["run", "board"])
+    s = s[s.HoldDelay.astype(str).str.startswith("0")].copy()
+    s["shaping"] = s.HG_ShapingTime.astype(str).str.split().str[0].astype(float)
+    med = s.groupby(["board", "channel"]).slope.transform("median")
+    s["no_sipm"] = med < NO_SIPM_SLOPE
+    return s
 
-    shapings, boards = sorted(df.shaping.unique()), sorted(df.board.unique())
-    fig, axes = plt.subplots(len(shapings), len(boards) + 1, sharex=True,
-                             figsize=(2.6 * (len(boards) + 1), 2.2 * len(shapings)), squeeze=False)
-    for i, tp in enumerate(shapings):
-        for j, b in enumerate(boards + ["all"]):
-            ax = axes[i, j]
-            x = df[df.shaping == tp] if b == "all" else df[(df.shaping == tp) & (df.board == b)]
-            ax.hist(x[~x.confirmed].ratio, BINS, histtype="stepfilled", alpha=0.6, label="other")
-            if x.confirmed.any():
-                ax.hist(x[x.confirmed].ratio, BINS, histtype="stepfilled", color="tab:red",
-                        alpha=0.8, label="silent in staircase")
-            ax.set_title(f"{tp:g} ns, " + ("all boards" if b == "all" else f"board {b}") +
-                         f" (run {int(x.run.iloc[0])})" if len(x) else "")
-            if i == len(shapings) - 1:
-                ax.set_xlabel("HG rms / board median")
-            if j == 0:
-                ax.set_ylabel("channels")
-    axes[0, 0].legend()
-    save(fig, "bench", day, "bench_noise")
-    for tp in shapings:
-        x = df[df.shaping == tp]
-        print(f"{tp:g} ns: ratio of the confirmed channels "
-              f"{np.round(np.sort(x[x.confirmed].ratio.values), 2)}; lowest of the others "
-              f"{np.round(np.sort(x[~x.confirmed].ratio.values)[:5], 2)}")
+
+def main(day: str):
+    s = channel_noise(day)
+    s = s[s.run == s.shaping.map(s.groupby("shaping").run.min())]   # one run per shaping
+    shapings, boards = sorted(s.shaping.unique()), sorted(s.board.unique())
+    rng = np.random.default_rng(0)
+    fig, axes = plt.subplots(1, 2, figsize=(13, 4.5))
+    for ax, g, lab in ((axes[0], "hg_rms", "high gain"), (axes[1], "lg_rms", "low gain")):
+        for k, tp in enumerate(shapings):
+            x = s[s.shaping == tp]
+            pos = x.board + (k - 1) * 0.27 + rng.uniform(-0.08, 0.08, len(x))
+            ok = ~x.no_sipm
+            ax.plot(pos[ok], x[g][ok], ".", ms=3, c=f"C{k}",
+                    label=f"HG {tp:g} ns (run {int(x.run.iloc[0])})")
+            ax.plot(pos[~ok], x[g][~ok], "o", ms=4, mfc="none", c="tab:red",
+                    label="SiPM not seen" if k == 0 else None)
+            print(f"{lab}, HG {tp:g} ns: median rms {x[g][ok].median():.2f}, "
+                  f"5-95% {x[g][ok].quantile(0.05):.2f}-{x[g][ok].quantile(0.95):.2f}")
+        ax.set_xticks(boards, [f"board {b}" for b in boards])
+        ax.set_ylabel("rms (ADC counts)")
+        ax.set_title(f"{lab}: rms of each channel" +
+                     (" (low gain at 87.5 ns in all runs)" if g == "lg_rms" else ""),
+                     fontsize=10)
+        ax.set_ylim((9, 15) if g == "hg_rms" else (4.5, 7))
+    axes[0].legend(fontsize=7, loc="lower right")
+    fig.suptitle(f"{day}: pedestal noise of every channel, HoldDelay 0, without jumps and "
+                 "outliers", fontsize=10)
+    fig.tight_layout()
+    save(fig, "bench", day, "bench_rms")
 
 
 def slopes(day: str):
     d = results_dir("bench", day)
-    s = pd.read_csv(d / "channel_slopes.csv")
-    runs = pd.read_csv(d / "runs.csv")[["run", "board", "HoldDelay"]]
-    s = s.merge(runs, on=["run", "board"])
-    s = s[s.HoldDelay.astype(str).str.startswith("0")]
+    s = channel_noise(day)
     g = s.groupby(["board", "channel"]).slope.agg(["median", "min", "max"]).reset_index()
     boards = sorted(g.board.unique())
     fig, axes = plt.subplots(len(boards), 1, sharex=True, figsize=(10, 1.8 * len(boards)),

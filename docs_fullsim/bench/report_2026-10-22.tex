@@ -60,8 +60,22 @@ Runs & Step of note 1 & HG shaping & HoldDelay \\
 \FloatBarrier
 \section{Noise}\label{sec:noise}
 
-The rms of the high gain is 12--13 ADC counts at the three shapings, and that of the low gain
-about 6 counts, the same on all boards. Part of this noise is shared by all the channels of a
+Figure~\ref{fig:rms} shows the rms of every channel in the three runs with HoldDelay 0: 12--13
+ADC counts in the high gain, with 90\% of the channels within $\pm0.4$ counts of the median
+at 25~ns and $\pm0.7$ at 50 and 87.5~ns, and about 5.8 counts in the low gain, the same on all
+boards. The channels that do not see their SiPM (Section~\ref{sec:sipm}) are in red.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{bench_rms.png}
+\caption{Runs 26--28 (HG shaping 25, 50, 87.5~ns, HoldDelay 0): rms of each channel in the
+high gain (left) and the low gain (right), one column of points per board and shaping,
+without the jumps of the chip and the outliers of single channels defined below. In red, the
+channels whose SiPM is not seen.}
+\label{fig:rms}
+\end{figure}
+
+Part of this noise is shared by all the channels of a
 chip, and it can be separated because the 32 channels of a Citiroc are read at the same
 trigger. The steps are shown here on one chip that works normally (board 2, channels 32--63,
 run 26), high gain.
@@ -243,10 +257,11 @@ its coarse threshold, one curve per channel, with the T-OR in black.}
 \label{fig:stair}
 \end{figure}
 
-The pedestal runs, taken below breakdown, find the same channels without staircases. A SiPM
-at the input adds capacitance and raises the noise of the preamplifier, but the effect is too
-small to cut on: at 87.5~ns the six channels sit at 0.82--0.87 of the median rms of their
-board, and other channels at 0.81--0.89 (Figure~\ref{fig:noise}). The common mode separates
+The pedestal runs, taken below breakdown, find the same channels without staircases. In the
+rms they show as quieter channels (red in Figure~\ref{fig:rms}), mostly because they lack the
+common mode: at 87.5~ns they sit at 0.81--0.90 of the median rms of their board, but the
+quietest normal channel is at 0.90, so the rms does not separate them cleanly. The common mode
+separates
 them cleanly, because it enters through the SiPM: the six channels take 0.02--0.6 of it, every
 channel of board 0 with avalanches more than 0.85 (Figure~\ref{fig:slopes}). The same
 criterion, a slope below 0.75, finds nine channels on the other boards:
@@ -259,15 +274,6 @@ and none on board 2. These are predictions for the staircases of the five boards
 As on board 0, the odd channels 55--63 recur, on boards 1 and 4, which points to the adapter
 boards or the connectors. The weak channels of F5 have normal slopes, as expected: they see
 their SiPM.
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=\textwidth]{bench_noise.png}
-\caption{Runs 26--28: rms of the high gain divided by the median of its board, one row per
-shaping, one column per board and all boards together. In red, the six channels of board 0
-silent in the staircases of 21 October.}
-\label{fig:noise}
-\end{figure}
 
 \begin{figure}[h]
 \centering

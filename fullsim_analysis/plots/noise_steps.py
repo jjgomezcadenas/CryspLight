@@ -1,7 +1,7 @@
 """The steps of the common-mode analysis of the pedestal noise, for the daily report and the
 noise note (docs_fullsim/model_data/noise.tex). Reads, in fullsim_analysis/results/bench/<day>/,
 noise_steps_matrix.csv, noise_steps_hist.csv, noise_steps_events.csv (noise_steps.jl) and
-channel_slopes.csv, runs.csv (noise_components.jl, inspect_run.jl). Definitions in
+channel_noise.csv, runs.csv (noise_components.jl, inspect_run.jl). Definitions in
 fullsim_analysis/lib/chip_noise.jl.
 
 Writes fullsim_analysis/results/bench/<day>/:
@@ -43,7 +43,7 @@ def main(day: str):
     mat = pd.read_csv(d / "noise_steps_matrix.csv")
     hist = pd.read_csv(d / "noise_steps_hist.csv")
     ev = pd.read_csv(d / "noise_steps_events.csv")
-    slopes = pd.read_csv(d / "channel_slopes.csv")
+    slopes = pd.read_csv(d / "channel_noise.csv")
     runs = pd.read_csv(d / "runs.csv")[["run", "board", "HoldDelay"]]
     cms = [c for c in ev.columns if c.startswith("cm_b")]
     dch = [c for c in ev.columns if c.startswith("d_ch")][0]

@@ -15,10 +15,11 @@
 #   common_mode.csv       one row per run and pair of chips (same or different board): the
 #                         correlation coefficient of their common modes over the events both
 #                         read (events matched by trigger id);
-#   channel_slopes.csv    one row per run, board, chip and channel: the slope b_i of the
+#   channel_noise.csv     one row per run, board, chip and channel: the slope b_i of the
 #                         deviation of the high gain against the common mode (1 if the
-#                         channel takes the full common mode) and the number of events in
-#                         which the channel is an outlier.
+#                         channel takes the full common mode), the number of events in which
+#                         the channel is an outlier (high gain), and the rms of the channel in
+#                         the high and low gain, without jumps and outliers.
 # and prints the channels whose median slope over the runs is below NO_SIPM_SLOPE: they do
 # not receive the common mode, which enters through the SiPM, so their SiPM is not seen (on
 # 22 Oct 2026 the six channels of board 0 silent in the staircases are at 0.02-0.6, all the
@@ -38,7 +39,7 @@ NCOLS = ["run", "board", "chip", "events", "jumps", "channel_outliers",
 MCOLS = ["run", "board_a", "chip_a", "board_b", "chip_b", "events", "correlation"]
 nt = Dict{String,Vector}(k => [] for k in NCOLS)
 mt = Dict{String,Vector}(k => [] for k in MCOLS)
-SCOLS = ["run", "board", "chip", "channel", "slope", "outliers"]
+SCOLS = ["run", "board", "chip", "channel", "slope", "outliers", "hg_rms", "lg_rms"]
 st = Dict{String,Vector}(k => [] for k in SCOLS)
 
 for d in subdirs("run-")
@@ -55,7 +56,7 @@ for d in subdirs("run-")
         _, L = chip_matrix(o, sel, :lg)
         h, l = chip_noise(H), chip_noise(L)
         for i in 1:32
-            for (k, v) in zip(SCOLS, (n, b, chip, 32chip + i - 1, h.slope[i], h.outliers[i]))
+            for (k, v) in zip(SCOLS, (n, b, chip, 32chip + i - 1, h.slope[i], h.outliers[i], h.rms[i], l.rms[i]))
                 push!(st[k], v)
             end
         end
@@ -80,7 +81,7 @@ for d in subdirs("run-")
 end
 println(write_table("bench", day, "noise_components", [k => nt[k] for k in NCOLS]))
 println(write_table("bench", day, "common_mode", [k => mt[k] for k in MCOLS]))
-println(write_table("bench", day, "channel_slopes", [k => st[k] for k in SCOLS]))
+println(write_table("bench", day, "channel_noise", [k => st[k] for k in SCOLS]))
 
 const NO_SIPM_SLOPE = 0.75
 for b in sort(unique(st["board"]))

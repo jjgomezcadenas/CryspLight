@@ -15,7 +15,8 @@
 #   J(e)      = |CM(e) - median_e CM| > JUMP_SIGMA * 1.4826 * MAD_e CM   jump of the chip:
 #                                                    event set aside
 # On the events kept, without the outliers:
-#   total   = median_i rms_e d_i
+#   rms_i   = rms_e d_i                              noise of channel i
+#   total   = median_i rms_i
 #   incoh   = median_i rms_e (d_i - CM) * sqrt(32/31) (subtracting the mean removes 1/32 of
 #                                                    the channel's own noise)
 #   coh^2   = var_e CM - incoh^2 / 32                (the mean keeps 1/32 of the incoherent
@@ -64,11 +65,12 @@ function chip_noise(M)
     Ok = O[keep, :]
     cm = cm_all[keep]
     rmsok(v, ok) = std(v[ok])
-    total = median([rmsok(D[:, i], .!Ok[:, i]) for i in 1:nc])
+    rms = [rmsok(D[:, i], .!Ok[:, i]) for i in 1:nc]
+    total = median(rms)
     inc = median([rmsok(D[:, i] .- cm, .!Ok[:, i]) for i in 1:nc]) * sqrt(nc / (nc - 1))
     coh = sqrt(max(var(cm) - inc^2 / nc, 0.0))
     slope = [(ok = .!Ok[:, i]; cov(D[ok, i], cm[ok]) / var(cm[ok])) for i in 1:nc]
     outliers = vec(sum(Ok; dims = 1))
-    (; D0, O, cm_all, jump, cut = (cm_centre, JUMP_SIGMA * cm_width), D, cm, total, coh, inc,
-       slope, outliers)
+    (; D0, O, cm_all, jump, cut = (cm_centre, JUMP_SIGMA * cm_width), D, cm, rms, total, coh,
+       inc, slope, outliers)
 end

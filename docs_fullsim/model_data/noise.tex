@@ -168,6 +168,21 @@ from 96 to 496~ns; a last run repeats the first. The low gain is shaped at 87.5~
 Channels 0--31 of two boards are not read (a readout problem under investigation), which
 leaves eight chips of 32 channels. The gain was not measured, so the results are in ADC counts.
 
+Figure~\ref{fig:rms} shows the rms of every channel in the three runs with HoldDelay 0: 12--13
+counts in the high gain, with 90\% of the channels within $\pm0.4$ counts of the median at
+25~ns and $\pm0.7$ at 50 and 87.5~ns, and about 5.8 counts in the low gain, the same on all
+boards.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{bench_rms.png}
+\caption{Runs 26--28 (HG shaping 25, 50, 87.5~ns, HoldDelay 0): rms of each channel in the
+high gain (left) and the low gain (right), one column of points per board and shaping,
+without jumps of the chip and outliers of single channels (Section~\ref{sec:cm}). In red, the
+channels whose SiPM is not seen (Section~\ref{sec:sipm}).}
+\label{fig:rms}
+\end{figure}
+
 \subsection{The steps on one chip}
 
 The method of Section~\ref{sec:cm} is illustrated on one chip that works normally (board 2,
@@ -306,9 +321,9 @@ avalanches in the threshold scans taken on 21 October with the SiPMs above break
 SiPM is connected but whose signal is lost in a bad contact or in the connector. The other
 nine are on boards 1, 3 and 4, where no threshold scan has been taken yet. A channel that does
 not see its SiPM does not receive the common mode, so the common mode reaches the
-preamplifiers through the SiPMs. The pedestal rms alone does not separate these channels: a
-SiPM at the input raises the noise of its preamplifier, but at 87.5~ns the six channels sit at
-0.82--0.87 of the median rms of their board and other channels at 0.81--0.89. The slope is
+preamplifiers through the SiPMs. In the rms these channels are quieter, mostly because they
+lack the common mode, but not enough to be separated by it: at 87.5~ns they sit at 0.81--0.90
+of the median rms of their board, and the quietest normal channel at 0.90. The slope is
 therefore also a test, from a pedestal run, of whether each channel sees its SiPM.
 
 \begin{figure}[h]
@@ -401,7 +416,7 @@ the pedestal, rms and robust width of each channel (\path{channels.csv}), and
 \path{fullsim_analysis/scripts/bench/noise_components.jl}, which writes the total, coherent and
 incoherent noise of each chip (\path{noise_components.csv}), the correlation of the common
 modes between chips (\path{common_mode.csv}) and the slope of each channel
-(\path{channel_slopes.csv}), all in \path{fullsim_analysis/results/bench/2026-10-22/}. The
+(\path{channel_noise.csv}, with its rms in both gains), all in \path{fullsim_analysis/results/bench/2026-10-22/}. The
 method of Section~\ref{sec:cm} is implemented once, in \path{fullsim_analysis/lib/chip_noise.jl},
 so that bench and simulated pedestal runs are analysed by the same code;
 \path{noise_steps.jl} writes the data of Figures~\ref{fig:stepA}--\ref{fig:stepE}. The figures
