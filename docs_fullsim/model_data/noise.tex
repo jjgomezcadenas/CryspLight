@@ -1,0 +1,194 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{graphicx,booktabs,url,amsmath}
+\usepackage[hidelinks]{hyperref}
+\graphicspath{{../../fullsim_analysis/results/bench/2026-10-22/}}
+\title{Noise of the Citiroc front end: model and bench data}
+\author{J. J. G\'omez-Cadenas}
+\date{23 October 2026}
+\begin{document}
+\maketitle
+
+\section{Purpose}
+
+The simulation of the detector describes the electronic noise of the Citiroc front end with a
+simple model, and the first pedestal measurements on the bench do not follow it. This note
+records what the model assumes, what was measured, where the two disagree, the hypotheses that
+could explain the disagreement and the measurements that would distinguish them. It is a
+working record: it will be updated as the measurements arrive.
+
+\section{The model}
+
+Each channel of the Citiroc amplifies the SiPM signal with a preamplifier and shapes it with a
+slow shaper (one differentiation and two integrations, CR-RC$^2$, with a peaking time $t_p$
+that can be set to 25, 50 or 87.5~ns) in two parallel paths, the high gain and the low gain.
+In the peak stretch mode used throughout, a peak detector follows the maximum of the shaped
+signal between the trigger and the hold, which comes \texttt{HoldDelay} after the trigger, and
+the value it holds is digitised by a 13-bit ADC.
+
+The simulation makes three assumptions about the noise:
+\begin{enumerate}
+\item \textbf{Series white noise.} The noise is that of the preamplifier input, white, and
+  after the slow shaper its rms scales as $t_p^{-1/2}$. It is set to 0.1~photoelectron (pe)
+  in the high gain at 87.5~ns and 3~V of overvoltage, hence 0.06~pe at 5~V; at 50 and 25~ns
+  it is 1.32 and 1.87 times larger.
+\item \textbf{Same noise in both gains.} The low gain has the same rms in ADC counts as the
+  high gain at the same shaping.
+\item \textbf{Independent channels.} The noise of each channel is independent of that of the
+  others.
+\end{enumerate}
+In the peak stretch the stored value is the maximum of the noise over the window, so the
+pedestal rises and narrows as \texttt{HoldDelay} grows. For white noise shaped at 25~ns, a
+window of 96~ns already contains several independent fluctuations: the model predicts a rise
+of 1.7 times the rms of a single sample at 96~ns and 2.2 at 296~ns, with the width reduced to
+0.6 and 0.5 of that rms.
+
+\section{The measurements}
+
+The data were taken on 22 October 2026 with five A5202 boards (two Citirocs each, 320
+channels), the SiPMs connected but biased at 36.5~V, below breakdown, so that no avalanche
+contributes, and a periodic trigger every 1~ms, uncorrelated with any signal. Each run has
+about 10\,000 events. Three runs at \texttt{HoldDelay} = 0 change the shaping of the high gain
+(25, 50, 87.5~ns); five more at 25~ns change \texttt{HoldDelay} from 96 to 496~ns; a last run
+repeats the first. The low gain is shaped at 87.5~ns in all runs. Channels 0--31 of two boards
+are not read (a readout problem under investigation), which leaves eight chips of 32 channels.
+
+All the results are in ADC counts. Converting them to photoelectrons needs the gain of the
+high gain in counts per pe, which these runs, without avalanches, cannot give.
+
+Because the 32 channels of a chip are read at the same trigger, the noise can be split in two
+parts. In each event the deviations of the 32 channels from their pedestals are averaged; the
+rms of this average over the events is the \textbf{coherent} noise, the part shared by the
+whole chip (after removing the small share of the independent noise that survives the
+average). The rms of each channel after subtracting the average is the \textbf{incoherent}
+noise, the part of its own. The \textbf{total} noise is the rms of each channel. Events in
+which the whole chip jumps by more than 60 counts (a separate problem of one board, 0.1--0.4\%
+of its events) are set aside. All quoted values are medians over the chips or channels.
+
+\section{Results}
+
+\subsection{Noise against shaping}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{noise_vs_shaping.png}
+\caption{Pedestal noise of the high gain at \texttt{HoldDelay} = 0 against the shaping time:
+total, coherent and incoherent rms (median over the eight chips, bars from the lowest to the
+highest chip), and the low gain at 87.5~ns. Left, in ADC counts, with the model scaled to the
+incoherent noise at 87.5~ns; right, divided by the value at 87.5~ns, with the model ratio.}
+\label{fig:shaping}
+\end{figure}
+
+The total noise of the high gain is 12.3, 12.6 and 13.1 counts at 25, 50 and 87.5~ns: it
+barely changes, and it is slightly larger at the longest shaping, while the model predicts a
+noise 1.87 times larger at 25~ns than at 87.5~ns (Figure~\ref{fig:shaping}). The two parts
+behave differently. The incoherent noise, 10.5, 9.8 and 9.3 counts, does fall when the shaping
+is shortened, but by 1.13 and 1.05 instead of 1.87 and 1.32. The coherent noise, 5.9, 7.7 and
+8.2 counts, grows with the shaping, which is the behaviour of a noise whose power is
+concentrated at low frequencies. Its share of the variance goes from a quarter at 25~ns to
+40\% at 87.5~ns, so the third assumption of the model fails as well.
+
+The coherent noise belongs to the board. Its correlation between the two chips of the same
+board is 0.6--0.8 (0.8 at 87.5~ns), and between chips of different boards it is zero within
+0.1.
+
+\subsection{Low gain against high gain}
+
+At 87.5~ns, where both paths have the same shaping, the low gain has a total noise of 5.8
+counts against 13.1 for the high gain, 0.45 times as much, while the model assumes the same
+noise. The reduction is not the same for the two parts: the incoherent noise of the low gain
+is 5.5 counts (0.59 of the high gain), its coherent noise only 1.9 (0.23).
+
+\subsection{Pedestal against HoldDelay}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{noise_vs_holddelay.png}
+\caption{High gain at 25~ns against \texttt{HoldDelay}. Left, rise of the pedestal from its
+value at 0~ns, in units of the total rms at 0~ns (median over the channels of each board).
+Right, total, coherent and incoherent rms divided by their value at 0~ns. In black, the model:
+the maximum of white noise shaped at 25~ns over a window of \texttt{HoldDelay}.}
+\label{fig:hold}
+\end{figure}
+
+The pedestal rises and narrows with the window, as expected, but slowly and steadily
+(Figure~\ref{fig:hold}). At 96~ns it has risen by 0.2 rms against 1.7 in the model, at 296~ns
+by 0.5--0.6 against 2.2, and at 496~ns by 0.8--0.9 against 2.4, and it has not yet stopped
+rising. The width falls to 0.87 of its initial value at 96~ns and to 0.58 at 496~ns, where the
+model reaches 0.6 already at 96~ns and stays at about 0.5. The coherent and incoherent parts
+narrow in the same way. The data therefore behave as if the noise kept its value for a few
+hundred nanoseconds, much longer than the shaping time, so that a longer window adds new
+fluctuations only slowly.
+
+\section{Hypotheses}
+
+\begin{enumerate}
+\item \textbf{A low-frequency noise dominates.} After a CR-RC shaper, white series noise
+  scales as $t_p^{-1/2}$, white parallel noise (the leakage current and the bias resistors) as
+  $t_p^{+1/2}$, and a $1/f$ noise does not depend on $t_p$. A mixture in which the $1/f$ or
+  parallel components dominate gives a noise nearly independent of the shaping, and a noise
+  with long correlation times explains the slow rise of the pedestal with the window. The two
+  observations would then have one cause.
+\item \textbf{The coherent noise comes from the bias of the SiPMs.} Each board has its own HV
+  module, which biases the 64 SiPMs through a common line; below breakdown each SiPM is a
+  capacitor that couples any ripple of that line to the input of its preamplifier. This would
+  give a noise common to the board, uncorrelated between boards and concentrated at low
+  frequencies, as observed. The reference voltages or the ground of the board would give a
+  similar signature.
+\item \textbf{The peak detector is not ideal.} If the peak detector follows the signal with a
+  finite speed, or loses part of the held value during the window, it acts as a further
+  filter and the rise with the window is slower than for an ideal maximum. This would affect
+  the response to real pulses as well.
+\item \textbf{The low gain has its own noise.} The two paths share the input but have their own
+  preamplifiers, and the coherent part, which enters before them, is reduced by the ratio of
+  their gains, while the incoherent part is reduced less. A model with the same noise in
+  counts in both gains is then too simple.
+\end{enumerate}
+
+\section{Consequences for the simulation}
+
+For a single channel the measured noise is 10--13 counts in the high gain and about 6 in the
+low gain, and its size in photoelectrons is not yet known. For the sum of the 64 channels,
+which gives the energy, the coherent part matters most: the incoherent noise adds in
+quadrature and grows as $\sqrt{64} = 8$ times that of one channel, while the coherent noise
+adds linearly and grows 64 times. With the numbers of the high gain at 25~ns, about 85 counts
+come from the incoherent noise and about 380 from the coherent one. The simulation needs a
+noise model with a correlated component per board, and with a dependence on the shaping and
+on the window taken from the data.
+
+\section{What is needed}
+
+\begin{enumerate}
+\item \textbf{The gain in counts per pe}, at 25, 50 and 87.5~ns, to express the noise in
+  photoelectrons and compare with the 0.06--0.11~pe of the model. It comes from the
+  hold-delay scans with the SiPMs at 5~V of overvoltage (bench note 2), on the plateau where
+  the single-pe peaks are resolved, and from the calibration with the periodic trigger
+  (bench note 3).
+\item \textbf{The response of the peak detector to a known pulse}, from the same hold-delay
+  scans: the delay after the trigger at which the stored amplitude reaches its plateau,
+  compared with the 31, 58 and 90~ns of the model (plus the latency of the board), and whether the plateau stays flat at long delays. This tests the
+  third hypothesis and shows that the shaping time actually changes.
+\item \textbf{A pedestal run with the HV off}, at 25 and 87.5~ns: if the coherent noise
+  disappears, it comes from the bias line (second hypothesis).
+\item \textbf{The analog probe of the slow shaper on the oscilloscope}, with the SiPMs below
+  breakdown: the noise waveform gives its correlation time and its spectrum directly, and
+  decides between the first and the third hypotheses.
+\item \textbf{A fit of the model to both data sets}, on our side: series, parallel and $1/f$
+  components, plus a coherent component per board, adjusted to the noise against shaping and
+  to the pedestal against the window at the same time.
+\end{enumerate}
+\noindent The first two come from the next bench session (bench note 2); the third and fourth
+are short additions to be scheduled after it.
+
+\section*{Implementation}
+
+The decoded runs are read by \path{fullsim_analysis/scripts/bench/inspect_run.jl}, which writes
+the pedestal, rms and robust width of each channel (\path{channels.csv}), and
+\path{fullsim_analysis/scripts/bench/noise_components.jl}, which writes the total, coherent and
+incoherent noise of each chip (\path{noise_components.csv}) and the correlation of the coherent
+noise between chips (\path{common_mode.csv}), all in
+\path{fullsim_analysis/results/bench/2026-10-22/}. The figures are produced by
+\path{fullsim_analysis/plots/model_data_noise.py}, which also computes the model curves (white
+noise through CR-RC$^2$ on a 1~ns grid, maximum over the window, 20\,000 windows).
+
+\end{document}

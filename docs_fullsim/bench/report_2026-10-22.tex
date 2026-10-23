@@ -1,0 +1,137 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{graphicx,booktabs,url,amsmath}
+\usepackage[hidelinks]{hyperref}
+\graphicspath{{../../fullsim_analysis/results/bench/2026-10-22/}}
+\title{Bench data of 22 October 2026: menu 1 with five boards}
+\author{J. J. G\'omez-Cadenas}
+\date{23 October 2026}
+\begin{document}
+\maketitle
+
+Data measured by Laura Navarro on 22 October 2026 with five A5202 boards and the PET CAEN DAQ,
+copied from \path{hyperion:/data/lnavarro/26_10_caen_measurements_jj}. The runs repeat bench
+note 1 (Citiroc noise) after JMB solved the saturation of 21 October. Boards are numbered as in
+the DAQ (board 0--4 = chain,node 0,0 / 0,1 / 1,0 / 1,1 / 1,2), channels 0--63; the two Citirocs
+of a board are channels 0--31 and 32--63. The problems found so far, and their status, are
+kept in a findings log (F1--F10), cited below.
+
+\section{Data received}
+
+\begin{center}
+\small
+\begin{tabular}{llll}
+\toprule
+Runs & Step of note 1 & HG shaping & HoldDelay \\
+\midrule
+26, 27, 28 & 1: noise against shaping & 25, 50, 87.5 ns & 0 ns \\
+29--33 & 2: pedestal against HoldDelay & 25 ns & 96, 200, 296, 400, 496 ns \\
+34 & 3: stability & 25 ns & 0 ns \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Each run has 10\,012--10\,016 periodic triggers (1~ms) read by the five boards, with
+no trigger lost. The low gain is at 87.5~ns in all runs. \texttt{HV\_Vbias} = 40.7~V with
+\texttt{HV\_IndivAdj} = 0, so the SiPMs see 36.5~V, below breakdown (F2); the HV current is
+0.2--0.35~$\mu$A. The detector temperature is 24.0--25.0~$^\circ$C on all boards. The logbook
+has one row per run and board and agrees with the files. The DAQ now records
+\texttt{PeakDetectorMode} (PEAK\_STRETCH, applied on all boards), which shows that it includes
+the pull requests merged on 20 October.
+
+\section{What works}
+
+\begin{itemize}
+\item \textbf{The saturation is gone} (F1). No value of any channel is at 8191.
+\item \textbf{Pedestals.} The mean of the high gain is different in each channel, between 50
+  and 310 ADC counts (Figure~\ref{fig:ped}), and the low gain between 55 and 280. Between
+  run 26 and run 34, taken 23 minutes apart with the same settings, the pedestals move by
+  $-0.4$ counts on average and by at most 1.6 counts: they are stable.
+\item \textbf{Noise.} The rms of the high gain is 12--13 counts at all three shapings, and that
+  of the low gain about 6 counts, the same on all boards. With a longer HoldDelay the
+  pedestal rises and narrows, as expected for the peak stretch: at 496~ns it is 0.8 rms
+  higher and 0.6 times as wide as at 0~ns. How these numbers compare with the noise model of
+  the simulation is the subject of a separate note (model against data, noise); in short, the
+  noise depends much less on the shaping than the model predicts, and 25--40\% of its variance
+  is common to the 32 channels of a chip.
+\end{itemize}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.92\textwidth]{bench_pedestals.png}
+\caption{Run 26 (HG 25~ns, HoldDelay 0): mean of the high gain against the channel for each
+board, with the rms as error bar and the robust width (interquartile range / 1.349) as a
+thicker bar. Crosses at zero: channels that read 0 in every event. In red, the channels of
+board 0 without avalanches in the staircases of 21 October (F4).}
+\label{fig:ped}
+\end{figure}
+
+\section{Problems}
+
+\begin{itemize}
+\item \textbf{Half of boards 1 and 4 reads zero (F7).} Channels 0--31 of boards 1 and 4 give 0
+  in every event, in both gains and all nine runs; channels 32--63 of the same boards are
+  normal. The configuration stored in the files is the same for these two chips as for the
+  others: readout, discriminators and preamplifiers enabled, the same gains, thresholds and
+  shaping, and per-channel pedestal calibrations of 102--271 counts like those of the chips
+  that work. \texttt{Pedestal} = 0 is not the cause either, since the live channels have
+  essentially no value at zero. The same chip failing on two boards with a normal
+  configuration points to the readout (firmware or DAQ), presumably software. 64 of the 320
+  channels have therefore no data.
+\item \textbf{Board 0 jumps as a whole (F10).} In 0.1--0.4\% of the events of runs 26--32, all
+  the channels of board 0 move together by 60--230 counts, up or down, often in two
+  consecutive triggers. This is what made board 0 look noisier in run 26: its rms is 15.9
+  counts, but its robust width is 11.9, the same as on the other boards. Runs 33 and 34 have
+  no such events, and the other boards have none (board 3, one event in three runs).
+\item \textbf{Firmware (F9).} Board 2 runs firmware 0xa7070800, the others 0xa1230708; boards 3
+  and 4 report acquisition state 16387 and service status 0x400d, the others 3 and 0x000d.
+  No effect is visible in the data: board 2 reads normally.
+\item \textbf{The channels without avalanches cannot be found from the pedestal (F4).} A SiPM
+  at the input raises the noise of its preamplifier, so a channel with a bad contact should
+  be quieter. Figure~\ref{fig:noise} shows the rms of each channel divided by the median of
+  its board: at 87.5~ns the six channels of board 0 that were silent in the staircases sit at
+  0.82--0.87, but channels with avalanches reach 0.81--0.89. The pedestal does not separate
+  them, and the staircases of all five boards are needed.
+\end{itemize}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{bench_noise.png}
+\caption{Runs 26--28: rms of the high gain divided by the median of its board, one row per
+shaping, one column per board and all boards together. In red, the six channels of board 0
+silent in the staircases of 21 October.}
+\label{fig:noise}
+\end{figure}
+
+\section{Questions and requests}
+
+\textbf{For JMB.}
+\begin{enumerate}
+\item Why do channels 0--31 of boards 1 and 4 read 0 (F7)? Would Janus, CAEN's software, read
+  them on board 1?
+\item Is anything different in the power, ground or cabling of board 0, which jumps as a whole
+  in a few events per thousand (F10)?
+\item What was the cause of the saturation of 21 October (F1)? Where does the
+  \texttt{0xDEADBEEF} of scan 11 come from (F6)? Why does board 2 run a different firmware,
+  and what do acquisition state 16387 and status 0x400d of boards 3 and 4 mean (F9)?
+\item The manifests record DAQ revision 716d093, which is not on GitHub: is it a local
+  build? The configuration decoded from the Citiroc register shows
+  \texttt{PeakDetectorHigh} = false on all chips, while the audit gives PEAK\_STRETCH: is
+  the bit active low?
+\end{enumerate}
+
+\noindent\textbf{For Laura.} Menu 1 is complete, except for the 64 channels of F7, which will
+need runs 26--34 repeated once JMB has solved it. The next session is menu 2 (bench note 2,
+hold-delay scan), as written, with three corrections:
+\begin{enumerate}
+\item \texttt{HV\_Vbias} = 47.2~V. The note asks for about 43~V, but the board subtracts 4.2~V
+  (F2), and 5~V of overvoltage needs about 43~V at the SiPM.
+\item \texttt{FastShaperInput} = HG-PA, set explicitly. The DAQ now applies it, and the
+  production configuration asks for LG-PA; the precaution of the note (staircase first, so
+  that the fast shaper is left on the high gain) is no longer needed.
+\item With five boards, the scan triggers on one channel of board 0 and the trigger masks of
+  the other boards are set to zero. The staircase of step 1 is taken on all five boards: it
+  will show which channels see their SiPM (F4, F5).
+\end{enumerate}
+
+\end{document}

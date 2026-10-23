@@ -5,7 +5,9 @@ cause and their solution. One entry per finding, numbered in order of discovery;
 updated, not deleted, when the cause or the solution is found. Runs are DAQ run numbers; the
 data are in benchdata/<YYYY-MM-DD>/ (not in git), the tables and figures in
 fullsim_analysis/results/bench/<YYYY-MM-DD>/, produced by
-fullsim_analysis/scripts/bench/inspect_run.jl and fullsim_analysis/plots/staircase.py.
+fullsim_analysis/scripts/bench/inspect_run.jl, noise_components.jl and fullsim_analysis/plots/staircase.py;
+the daily reports are in docs_fullsim/bench/. The requests that follow from the open entries
+are listed at the end.
 Boards are numbered as in the DAQ (board 0-4 = chain,node 0,0 / 0,1 / 1,0 / 1,1 / 1,2),
 channels 0-63.
 
@@ -20,7 +22,7 @@ channels 0-63.
 | F7 | Boards 1 and 4: channels 0-31 read 0 in every event | 22 Oct, runs 26-34 | open |
 | F8 | Scans without logbook rows or staircase.h5 | 21 Oct, scans 10-12 | open |
 | F9 | Board 2 runs a different firmware | 22 Oct, runs 26-34 | open |
-| F10 | Board 0 noisier than the others at 25 ns | 22 Oct, runs 26-34 | open |
+| F10 | Board 0: the whole board jumps in 0.1-0.4% of the events | 22 Oct, runs 26-32 | open |
 
 ## F1. All values at full scale
 
@@ -87,13 +89,19 @@ channels 0-63.
 - **Seen:** 22 Oct, runs 26-34. On boards 1 (chain 0, node 1) and 4 (chain 1, node 2),
   channels 0-31 give 0 in every event, high and low gain; channels 32-63 of the same boards are
   normal (pedestals 50-230 counts, rms about 12 counts at 25 ns). Channels 0-31 are one of the
-  two Citirocs of the A5202. Evidence: 2026-10-22/channels.csv.
+  two Citirocs of the A5202. Evidence: 2026-10-22/channels.csv, bench_pedestals.png.
 - **Not the cause:** Pedestal = 0 on all boards. It was the first suspicion, but the live
   channels have pedestals of 50-310 counts and essentially no value at 0, so the ADC floor
   clips nothing.
-- **Cause:** unknown: the first Citiroc of these two boards is not read, not configured, or
-  its data are lost in the readout.
-- **Action:** question to JMB and Laura.
+- **Not in the recorded configuration:** the effective configuration stored in the run files
+  is the same for the silent chips as for the others: readout, charge and time discriminators
+  enabled, preamplifiers on, gains 55, the same thresholds and shaping, and per-channel
+  pedestal calibrations of 102-271 counts like those of the other chips.
+- **Hypothesis:** the same chip on two boards, with a configuration identical to that of the
+  chips that work, points to the readout (firmware or DAQ) rather than to two hardware faults,
+  presumably software. To be confirmed by JMB.
+- **Test:** read board 1 with Janus. If Janus sees channels 0-31, the problem is in the DAQ.
+- **Action:** question to JMB. Once solved, repeat runs 26-34 (menu 1) for these 64 channels.
 
 ## F8. Scans without logbook rows
 
@@ -110,11 +118,34 @@ channels 0-63.
 - **Cause:** unknown; not visibly related to F7 (board 2 reads normally, board 1 does not).
 - **Action:** question to JMB.
 
-## F10. Board 0 noisier
+## F10. Board 0 jumps as a whole
 
-- **Seen:** 22 Oct, runs 26-34. At 25 ns and HoldDelay 0 the median high-gain rms is 15.9
-  counts on board 0 and 12.0-12.4 on boards 1-4; at 87.5 ns there is no difference (12.7
-  against 12.9-13.1). Board 0
-  also runs cooler (board 48-51 C against 54-57 C).
-- **Cause:** unknown; board 0 may be the one connected to the SiPM array (to be confirmed).
-- **Action:** confirm which board reads the array.
+- **Seen:** 22 Oct. First reported as board 0 being noisier at 25 ns (median high-gain rms
+  15.9 counts in run 26, against 12.0-12.4 on boards 1-4). The robust width (interquartile
+  range / 1.349) of board 0 is the same as on the other boards (11.9 counts): the excess is
+  in the tails. These come from events in which the channels of a chip move together by
+  60-230 counts, up or down, often in two consecutive triggers, and in most runs both chips
+  of the board in the same number of events: 41 such events in run 26
+  (0.4%), 10-28 per chip in runs 27-32, none in runs 33 and 34. The other boards have none
+  (board 3: one event in runs 30-32). Evidence: 2026-10-22/noise_components.csv (column
+  outlier_events; fullsim_analysis/scripts/bench/noise_components.jl).
+- **Cause:** unknown. A whole-board shift points to the reference, the supply or the ground
+  of board 0, or to a disturbance on its cable; board 0 is also the coolest (board 48-51 C
+  against 54-57 C).
+- **Consequence:** small for the pedestal runs (the events are set aside), but in data
+  with the crystal such an event would look like a shift of the energy of all channels.
+- **Action:** question to JMB and Laura (is anything different in the cabling or the power of
+  board 0?); watch for it in the next runs.
+
+## Requests
+
+Open entries and what they need, by person. For Laura, menu 1 is complete; the next session
+is menu 2 (bench note 2), with the corrections listed in the report of 22 Oct.
+
+- **JMB:** F7 (silent chip on boards 1 and 4; Janus test), F10 (board 0 jumps), F6
+  (0xDEADBEEF), F9 (firmware of board 2, acquisition state of boards 3 and 4), the cause of F1,
+  and the revision 716d093 of the DAQ recorded in the manifests of 22 Oct, which is not on
+  GitHub.
+- **Laura:** F4 and F5 (staircases of the five boards, in menu 2; contacts and connector of
+  the board-0 channels), F8 (logbook rows of scans 10-12), F10 (cabling and power of board 0);
+  after F7 is solved, repeat menu 1 for the 64 missing channels.

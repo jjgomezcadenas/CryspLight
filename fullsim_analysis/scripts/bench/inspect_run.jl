@@ -16,8 +16,9 @@
 #                  (temperatures in C, HV in V and A), and the fractions of its measurements
 #                  at full scale and at zero;
 #   channels.csv   one row per run, board and channel: number of measurements, mean, rms,
-#                  minimum, maximum, fraction at full scale and fraction at zero of the high
-#                  and low gain, fraction with the discriminator set;
+#                  robust width (interquartile range / 1.349, the rms of a gaussian without
+#                  its tails), minimum, maximum, fraction at full scale and fraction at zero
+#                  of the high and low gain, fraction with the discriminator set;
 #   hold_scan.csv  one row per point and channel of each hold-delay scan (board 0): requested
 #                  and applied delay, events, events missing the channel, mean and rms of the
 #                  high gain from the binned spectrum.
@@ -75,14 +76,15 @@ function ranges(c)
     join(out, ", ")
 end
 stat(f, v) = isempty(v) ? NaN : f(v)
+iqr_width(v) = (quantile(v, 0.75) - quantile(v, 0.25)) / 1.349
 
 warnings = String[]
 RCOLS = ["run", "events", "triggers", "lost_triggers", "board", "chain", "node", "firmware",
          SETTINGS..., "T_detector", "T_board", "T_fpga", "T_hv", "hv_v", "hv_i",
          "hg_full", "lg_full", "hg_zero", "lg_zero"]
 CCOLS = ["run", "board", "chain", "node", "channel", "n",
-         "hg_mean", "hg_rms", "hg_min", "hg_max", "hg_full", "hg_zero",
-         "lg_mean", "lg_rms", "lg_min", "lg_max", "lg_full", "lg_zero", "discriminator"]
+         "hg_mean", "hg_rms", "hg_sigr", "hg_min", "hg_max", "hg_full", "hg_zero",
+         "lg_mean", "lg_rms", "lg_sigr", "lg_min", "lg_max", "lg_full", "lg_zero", "discriminator"]
 runs = Dict{String,Vector}(k => [] for k in RCOLS)
 chans = Dict{String,Vector}(k => [] for k in CCOLS)
 summary = String[]
@@ -120,6 +122,7 @@ for d in subdirs("run-")
             push!(chans["node"], nd); push!(chans["channel"], c - 1); push!(chans["n"], length(hg[c]))
             for (g, v) in (("hg", hg[c]), ("lg", lg[c]))
                 push!(chans["$(g)_mean"], stat(mean, v)); push!(chans["$(g)_rms"], stat(std, v))
+                push!(chans["$(g)_sigr"], stat(iqr_width, v))
                 push!(chans["$(g)_min"], stat(minimum, v)); push!(chans["$(g)_max"], stat(maximum, v))
                 push!(chans["$(g)_full"], frac(v, FULL_SCALE)); push!(chans["$(g)_zero"], frac(v, 0))
             end
