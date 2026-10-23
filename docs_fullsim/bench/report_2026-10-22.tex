@@ -11,51 +11,50 @@
 \begin{document}
 \maketitle
 
-Data measured by Laura Navarro on 22 October 2026 with five A5202 boards and the PET CAEN DAQ,
-copied from \path{hyperion:/data/lnavarro/26_10_caen_measurements_jj}. The runs repeat bench
-note 1 (Citiroc noise) after JMB solved the saturation of 21 October. Boards are numbered as in
-the DAQ (board 0--4 = chain,node 0,0 / 0,1 / 1,0 / 1,1 / 1,2), channels 0--63; the two Citirocs
-of a board are channels 0--31 and 32--63. The problems found so far, and their status, are
-kept in a findings log (F1--F10), cited below.
+%Data measured by Laura Navarro on 22 October 2026 with five A5202 boards and the PET CAEN DAQ,
+%copied from \path{hyperion:/data/lnavarro/26_10_caen_measurements_jj}. The runs repeat bench
+%note 1 (Citiroc noise) after JMB solved the saturation of 21 October. Boards are numbered as in
+%the DAQ (board 0--4 = chain,node 0,0 / 0,1 / 1,0 / 1,1 / 1,2), channels 0--63; the two Citirocs
+%of a board are channels 0--31 and 32--63. The problems found so far, and their status, are
+%kept in a findings log (F1--F10), cited below.
 
-\section{Data received}
+\section{Data}
+
+The data are nine pedestal runs taken on 22 October with five ``green'' boards
+(Table~\ref{tab:runs}). The runs were taken with the SiPMs biased at
+36.5~V, below breakdown, and a periodic trigger every 1~ms. Each run
+has about 10\,000 events, read by all the boards. The low gain is shaped at 87.5~ns in all runs,
+and the detector was at 24--25~$^\circ$C.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{llll}
+\toprule
+Runs & Purpose & HG shaping & HoldDelay \\
+\midrule
+26, 27, 28 & noise against shaping & 25, 50, 87.5 ns & 0 ns \\
+29--33 & pedestal against HoldDelay & 25 ns & 96, 200, 296, 400, 496 ns \\
+34 & stability (repeats run 26) & 25 ns & 0 ns \\
+\bottomrule
+\end{tabular}
+\caption{Pedestal runs of 22 October.}
+\label{tab:runs}
+\end{table}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.92\textwidth]{bench_pedestals.png}
 \caption{Run 26 (HG 25~ns, HoldDelay 0): mean of the high gain against the channel for each
 board, with the rms as error bar and the robust width (interquartile range / 1.349) as a
-thicker bar. Crosses at zero: channels that read 0 in every event. In red, the channels of
+thicker bar. Crosses at zero: channels that read 0 in every event (F7). In red, the channels of
 board 0 without avalanches in the staircases of 21 October (F4).}
 \label{fig:ped}
 \end{figure}
 
-\begin{center}
-\small
-\begin{tabular}{llll}
-\toprule
-Runs & Step of note 1 & HG shaping & HoldDelay \\
-\midrule
-26, 27, 28 & 1: noise against shaping & 25, 50, 87.5 ns & 0 ns \\
-29--33 & 2: pedestal against HoldDelay & 25 ns & 96, 200, 296, 400, 496 ns \\
-34 & 3: stability & 25 ns & 0 ns \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\begin{itemize}
-\item 10\,012--10\,016 periodic triggers (1~ms) per run, read by the five boards, \textbf{no
-  trigger lost}. Low gain at 87.5~ns in all runs.
-\item \texttt{HV\_Vbias} = 40.7~V, \texttt{HV\_IndivAdj} = 0. \textbf{The SiPMs see 36.5~V,
-  below breakdown} (F2); HV current 0.2--0.35~$\mu$A. Detector at 24.0--25.0~$^\circ$C.
-\item Logbook complete, one row per run and board, in agreement with the files.
-\item The DAQ records \texttt{PeakDetectorMode} (PEAK\_STRETCH on all boards): it includes
-  \textbf{the pull requests merged on 20 October}.
-\item \textbf{The saturation of 21 October is gone} (F1): no value at 8191.
-\item Pedestals \textbf{different in each channel}, 50--310 ADC counts in the high gain
-  (Figure~\ref{fig:ped}), 55--280 in the low gain, and \textbf{stable}: between runs 26 and 34,
-  23 minutes apart, they move by $-0.4$ counts on average, 1.6 at most.
-\end{itemize}
+Figure~\ref{fig:ped} shows the pedestal of every channel of the five green  boards in run 26, with
+its rms as error bar. The pedestals vary from channel to channel between 50 and 310 ADC counts,
+and channels 0--31 of boards 1 and 4 read 0 in every event.
 
 \FloatBarrier
 \section{Noise}\label{sec:noise}
