@@ -2,9 +2,9 @@
 \usepackage[margin=2.2cm]{geometry}
 \usepackage{graphicx,booktabs,url,amsmath}
 \usepackage[hidelinks]{hyperref}
-\graphicspath{{../../fullsim_analysis/results/bench/2026-10-22/}}
+\graphicspath{{../../fullsim_analysis/results/bench/2026-10-22/}{../../fullsim_analysis/results/bench/2026-10-21/}}
 \title{Bench data of 22 October 2026: menu 1 with five boards}
-\author{J. J. G\'omez-Cadenas}
+\author{CaLibrated AUtomatic DocumEnt (CLAUDE), supervised by J. J. G\'omez-Cadenas}
 \date{23 October 2026}
 \begin{document}
 \maketitle
@@ -47,13 +47,6 @@ the pull requests merged on 20 October.
   and 310 ADC counts (Figure~\ref{fig:ped}), and the low gain between 55 and 280. Between
   run 26 and run 34, taken 23 minutes apart with the same settings, the pedestals move by
   $-0.4$ counts on average and by at most 1.6 counts: they are stable.
-\item \textbf{Noise.} The rms of the high gain is 12--13 counts at all three shapings, and that
-  of the low gain about 6 counts, the same on all boards. With a longer HoldDelay the
-  pedestal rises and narrows, as expected for the peak stretch: at 496~ns it is 0.8 rms
-  higher and 0.6 times as wide as at 0~ns. How these numbers compare with the noise model of
-  the simulation is the subject of a separate note (model against data, noise); in short, the
-  noise depends much less on the shaping than the model predicts, and 25--40\% of its variance
-  is common to the 32 channels of a chip.
 \end{itemize}
 
 \begin{figure}[h]
@@ -66,6 +59,46 @@ board 0 without avalanches in the staircases of 21 October (F4).}
 \label{fig:ped}
 \end{figure}
 
+\section{Noise}
+
+The rms of the high gain is 12--13 ADC counts at the three shapings, and that of the low gain
+about 6 counts, the same on all boards. Because the 32 channels of a chip are read at the same
+trigger, the noise can be split into a \textbf{coherent} part, the event-by-event shift shared
+by the whole chip (the mean of the deviations of its 32 channels), and an \textbf{incoherent}
+part, that of each channel after subtracting this shift. Figure~\ref{fig:shaping} shows both
+against the shaping time.
+
+\begin{itemize}
+\item \textbf{The noise barely depends on the shaping.} The simulation assumes white series
+  noise, which would be 1.87 times larger at 25~ns than at 87.5~ns. The total noise is instead
+  0.94 times as large; the incoherent part grows only by 1.13, and the coherent part falls
+  (0.72).
+\item \textbf{A quarter to 40\% of the variance is coherent} (5.9 counts at 25~ns, 8.2 at
+  87.5~ns). The coherent noise belongs to the board: it is correlated by 0.6--0.8 between the
+  two chips of a board and not at all between boards. In the sum of the 64 channels, which
+  gives the energy, it adds linearly and dominates: about 380 counts against 85 from the
+  incoherent part at 25~ns.
+\item \textbf{The pedestal rises slowly with the window.} With a longer HoldDelay the pedestal
+  rises and narrows, as expected for the peak stretch, but at 296~ns it has risen by 0.5--0.6
+  rms where the model predicts 2.2, and it is still rising at 496~ns.
+\item \textbf{The low gain} has 0.45 times the noise of the high gain at the same shaping,
+  where the model assumes the same noise in counts.
+\end{itemize}
+
+\noindent These results, the hypotheses that could explain them (a low-frequency noise, the
+bias line of the SiPMs, a non-ideal peak detector) and the measurements that would test them
+are discussed in the note \emph{Noise of the Citiroc front end: model and bench data}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{noise_vs_shaping.png}
+\caption{Runs 26--28: total, coherent and incoherent noise of the high gain against the
+shaping time (median over the eight chips read, bars from the lowest to the highest chip),
+and the low gain at 87.5~ns. Left, in ADC counts, with the model scaled to the incoherent
+noise at 87.5~ns; right, divided by the value at 87.5~ns.}
+\label{fig:shaping}
+\end{figure}
+
 \section{Problems}
 
 \begin{itemize}
@@ -76,23 +109,48 @@ board 0 without avalanches in the staircases of 21 October (F4).}
   shaping, and per-channel pedestal calibrations of 102--271 counts like those of the chips
   that work. \texttt{Pedestal} = 0 is not the cause either, since the live channels have
   essentially no value at zero. The same chip failing on two boards with a normal
-  configuration points to the readout (firmware or DAQ), presumably software. 64 of the 320
-  channels have therefore no data.
-\item \textbf{Board 0 jumps as a whole (F10).} In 0.1--0.4\% of the events of runs 26--32, all
-  the channels of board 0 move together by 60--230 counts, up or down, often in two
-  consecutive triggers. This is what made board 0 look noisier in run 26: its rms is 15.9
-  counts, but its robust width is 11.9, the same as on the other boards. Runs 33 and 34 have
-  no such events, and the other boards have none (board 3, one event in three runs).
-\item \textbf{Firmware (F9).} Board 2 runs firmware 0xa7070800, the others 0xa1230708; boards 3
-  and 4 report acquisition state 16387 and service status 0x400d, the others 3 and 0x000d.
-  No effect is visible in the data: board 2 reads normally.
-\item \textbf{The channels without avalanches cannot be found from the pedestal (F4).} A SiPM
-  at the input raises the noise of its preamplifier, so a channel with a bad contact should
-  be quieter. Figure~\ref{fig:noise} shows the rms of each channel divided by the median of
-  its board: at 87.5~ns the six channels of board 0 that were silent in the staircases sit at
-  0.82--0.87, but channels with avalanches reach 0.81--0.89. The pedestal does not separate
-  them, and the staircases of all five boards are needed.
+  configuration points to the readout, presumably firmware or DAQ. 64 of the 320 channels
+  have therefore no data. \textbf{JMB}: needs a fix in the readout; reading board 1 with
+  Janus, CAEN's software, would tell whether the problem is in the DAQ.
+\item \textbf{Common-mode jumps of board 0 (F10).} In 0.1--0.4\% of the events of runs 26--32,
+  all the channels of board 0, on both chips, move together by 60--230 counts, up or down,
+  often in two consecutive triggers (1~ms apart). This is what made board 0 look noisier in
+  run 26: its rms is 15.9 counts, but its robust width is 11.9, the same as on the other
+  boards. Runs 33 and 34 have no such events, and the other boards have none (board 3, one
+  event in three runs). A shift of the whole board points either to its reference, supply or
+  ground, or to the readout. \textbf{JMB}: is it hardware (power, ground, cabling of board 0)
+  or firmware?
+\item \textbf{Firmware (F9).} Board 2 runs firmware 0xa7070800, the others 0xa1230708. No
+  effect is visible in the data: board 2 reads normally. \textbf{JMB}: is the difference
+  intended, and could the firmware be behind F7 or F10?
 \end{itemize}
+
+\section{Channels without avalanches}
+
+The staircases taken on 21 October on board 0, with the SiPMs above breakdown, scan the
+threshold of the timing discriminator of each channel and count its rate
+(Figure~\ref{fig:stair}). Above the noise plateau, which ends at 180--185 DAC in all
+channels, the rate falls slowly with the steps of the dark-count spectrum (1, 2, 3 \ldots\ pe)
+in 54 channels. Six channels, \textbf{15, 55, 57, 59, 61 and 63}, fall from the plateau to zero
+within 10 DAC and count 0--4~Hz 30 DAC above the edge, against a median of $6\times10^5$~Hz:
+they see no avalanches (F4). Since the SiPMs are connected, the signal is lost between SiPM and
+Citiroc, in a bad contact or in the connector. Four more, \textbf{0, 2, 8 and 10}, count 7--10
+times less than the median (F5).
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.6\textwidth]{staircase_11.png}
+\caption{Staircase of 21 October (scan 11, board 0): rate of the timing discriminator against
+its coarse threshold, one curve per channel, with the T-OR in black.}
+\label{fig:stair}
+\end{figure}
+
+A SiPM at the input raises the noise of its preamplifier, so a channel with a bad contact
+should also be quieter in the pedestal runs, which would allow the other boards to be checked
+without staircases. Figure~\ref{fig:noise} shows the rms of each channel divided by the median
+of its board: at 87.5~ns the six silent channels of board 0 sit at 0.82--0.87, but channels
+with avalanches reach 0.81--0.89. The pedestal does not separate them, and the staircases of
+all five boards are needed.
 
 \begin{figure}[h]
 \centering
@@ -103,24 +161,13 @@ silent in the staircases of 21 October.}
 \label{fig:noise}
 \end{figure}
 
-\section{Questions and requests}
+\section{Requests}
 
-\textbf{For JMB.}
-\begin{enumerate}
-\item Why do channels 0--31 of boards 1 and 4 read 0 (F7)? Would Janus, CAEN's software, read
-  them on board 1?
-\item Is anything different in the power, ground or cabling of board 0, which jumps as a whole
-  in a few events per thousand (F10)?
-\item What was the cause of the saturation of 21 October (F1)? Where does the
-  \texttt{0xDEADBEEF} of scan 11 come from (F6)? Why does board 2 run a different firmware,
-  and what do acquisition state 16387 and status 0x400d of boards 3 and 4 mean (F9)?
-\item The manifests record DAQ revision 716d093, which is not on GitHub: is it a local
-  build? The configuration decoded from the Citiroc register shows
-  \texttt{PeakDetectorHigh} = false on all chips, while the audit gives PEAK\_STRETCH: is
-  the bit active low?
-\end{enumerate}
+\textbf{JMB}: the dead chips of boards 1 and 4 (F7), the common-mode jumps of board 0 (F10)
+and the firmware of board 2 (F9), as above.
 
-\noindent\textbf{For Laura.} Menu 1 is complete, except for the 64 channels of F7, which will
+\medskip
+\noindent\textbf{Laura}: menu 1 is complete, except for the 64 channels of F7, which will
 need runs 26--34 repeated once JMB has solved it. The next session is menu 2 (bench note 2,
 hold-delay scan), as written, with three corrections:
 \begin{enumerate}

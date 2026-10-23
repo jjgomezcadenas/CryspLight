@@ -22,7 +22,7 @@ channels 0-63.
 | F7 | Boards 1 and 4: channels 0-31 read 0 in every event | 22 Oct, runs 26-34 | open |
 | F8 | Scans without logbook rows or staircase.h5 | 21 Oct, scans 10-12 | open |
 | F9 | Board 2 runs a different firmware | 22 Oct, runs 26-34 | open |
-| F10 | Board 0: the whole board jumps in 0.1-0.4% of the events | 22 Oct, runs 26-32 | open |
+| F10 | Board 0: common-mode jumps of the whole board in 0.1-0.4% of the events | 22 Oct, runs 26-32 | open |
 
 ## F1. All values at full scale
 
@@ -33,7 +33,6 @@ channels 0-63.
 - **Cause:** not in the recorded configuration, which agreed with bench note 1. Fixed by JMB
   (logbook, 22 Oct); the cause has not been reported.
 - **Status:** solved. Runs 26-34 (22 Oct) have no value at full scale.
-- **Action:** ask JMB what the cause was, to record it here.
 
 ## F2. HV_Vbias in the files and in the logbook
 
@@ -82,7 +81,7 @@ channels 0-63.
 
 - **Seen:** 21 Oct, scan 11, channel 61, threshold 490: 3735928559 counts (0xDEADBEEF), a
   sentinel, not a measurement. staircase.py marks such points invalid.
-- **Action:** question to JMB.
+- **Action:** none for now (not asked; see Requests).
 
 ## F7. Half of boards 1 and 4 reads 0
 
@@ -116,9 +115,9 @@ channels 0-63.
   board 2 runs 0xa7070800. Boards 3 and 4 also report a different acquisition state (16387,
   against 3 for the others) and service status 0x400d (0x000d for the others).
 - **Cause:** unknown; not visibly related to F7 (board 2 reads normally, board 1 does not).
-- **Action:** question to JMB.
+- **Action:** question to JMB: is the difference intended, could it be behind F7 or F10?
 
-## F10. Board 0 jumps as a whole
+## F10. Common-mode jumps of board 0
 
 - **Seen:** 22 Oct. First reported as board 0 being noisier at 25 ns (median high-gain rms
   15.9 counts in run 26, against 12.0-12.4 on boards 1-4). The robust width (interquartile
@@ -142,10 +141,9 @@ channels 0-63.
 Open entries and what they need, by person. For Laura, menu 1 is complete; the next session
 is menu 2 (bench note 2), with the corrections listed in the report of 22 Oct.
 
-- **JMB:** F7 (silent chip on boards 1 and 4; Janus test), F10 (board 0 jumps), F6
-  (0xDEADBEEF), F9 (firmware of board 2, acquisition state of boards 3 and 4), the cause of F1,
-  and the revision 716d093 of the DAQ recorded in the manifests of 22 Oct, which is not on
-  GitHub.
+- **JMB:** F7 (silent chip on boards 1 and 4; Janus test), F10 (common-mode jumps of board 0:
+  hardware or firmware?), F9 (firmware of board 2: intended, related to F7 or F10?). F6 is not
+  asked: a single invalid point, flagged by staircase.py.
 - **Laura:** F4 and F5 (staircases of the five boards, in menu 2; contacts and connector of
   the board-0 channels), F8 (logbook rows of scans 10-12), F10 (cabling and power of board 0);
   after F7 is solved, repeat menu 1 for the 64 missing channels.
