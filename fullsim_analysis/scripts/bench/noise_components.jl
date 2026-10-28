@@ -5,8 +5,9 @@
 # channels are left out (in the runs with HoldDelay 0 only, where the noise is symmetric), jumps of the whole chip (seen in the common mode) are set aside, and
 # the total, coherent and incoherent noise and the slope of each channel against the common
 # mode are computed on the rest.
-# Chips whose channels are 0 in every event (not read, findings F7) are skipped. Values are
-# raw ADC counts, high and low gain.
+# Chips whose channels are 0 in every event (not read, findings F7) are skipped, and so are the
+# runs with the SiPMs above breakdown (HV_Vbias above PEDESTAL_HV_MAX). Values are raw ADC
+# counts, high and low gain.
 #
 # Writes fullsim_analysis/results/bench/<day>/:
 #   noise_components.csv  one row per run, board and chip: events, jumps of the chip,
@@ -46,6 +47,9 @@ nt = Dict{String,Vector}(k => [] for k in NCOLS)
 mt = Dict{String,Vector}(k => [] for k in MCOLS)
 SCOLS = ["run", "board", "chip", "channel", "slope", "outliers", "hg_rms", "lg_rms"]
 const ZEDGES = -10.0:0.1:10.0
+# Pedestal runs have the SiPMs below breakdown (HV_Vbias 40.7 V, 36.5 V at the SiPM); runs with
+# a higher bias (the calibration with the periodic trigger, menu 3) are not noise runs and are skipped.
+const PEDESTAL_HV_MAX = 42.0
 PCOLS = ["run", "z_low", "count"]
 pt = Dict{String,Vector}(k => [] for k in PCOLS)
 st = Dict{String,Vector}(k => [] for k in SCOLS)
@@ -57,6 +61,11 @@ for d in subdirs("run-")
     o = r.obs
     hold = daq_value(r.config.params, "HoldDelay")
     cut_outliers = hold !== nothing && hold == 0   # symmetric noise only with HoldDelay 0
+    hv = daq_value(r.config.params, "HV_Vbias")
+    if hv !== nothing && hv > PEDESTAL_HV_MAX
+        println("run $(n): HV_Vbias $(hv) V, SiPMs above breakdown, not a pedestal run, skipped")
+        continue
+    end
     cms = Dict{Tuple{Int,Int},Dict{UInt64,Float64}}()
     zall = Float64[]
     for ((c, nd), b) in sort(collect(bn); by = last), chip in 0:1

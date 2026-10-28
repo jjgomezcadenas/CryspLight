@@ -30,11 +30,13 @@ import sys
 import numpy as np
 import pandas as pd
 
-from common import plt, results_dir, save
+from common import plt, results_dir, save, board_name
 
 # channels without avalanches in the staircases (board -> channels): scans 10 and 11 of
 # 21 Oct 2026, board 0 (findings F4)
-CONFIRMED = {0: [15, 55, 57, 59, 61, 63]}
+# by day: the six channels were lost in the in-house adapter board of board 0 and are read
+# again with the CAEN adapter boards (23 Oct onwards)
+CONFIRMED = {"2026-10-21": {0: [15, 55, 57, 59, 61, 63]}, "2026-10-22": {0: [15, 55, 57, 59, 61, 63]}}
 NO_SIPM_SLOPE = 0.75   # as in noise_components.jl
 
 
@@ -70,14 +72,14 @@ def main(day: str):
         red = x[x.no_sipm]
         ax.plot(red.board, red[g], "o", ms=9, mfc="none", mew=2, c="tab:red",
                 label="blind channels")
-        ax.set_xticks(boards, [str(b) for b in boards], fontsize=fs)
+        ax.set_xticks(boards, [str(board_name(day, b)) for b in boards], fontsize=fs)
         ax.tick_params(axis="y", labelsize=fs)
         ax.set_xlabel("board", fontsize=fs)
         ax.set_ylabel("rms (ADC counts)", fontsize=fs)
         ax.set_title(f"{title} (run {int(x.run.iloc[0])})", fontsize=fs)
         ax.set_ylim((9.5, 14.5) if g == "hg_rms" else (4.75, 6.75))
         for b in boards:
-            print(f"{title}, board {b}: median {ok[ok.board == b][g].median():.2f}")
+            print(f"{title}, board {board_name(day, b)}: median {ok[ok.board == b][g].median():.2f}")
     axes[0].legend(fontsize=fs - 2, loc="lower left")
     fig.tight_layout()
     save(fig, "bench", day, "bench_rms")
@@ -92,7 +94,7 @@ def slopes(day: str):
                              squeeze=False)
     for ax, b in zip(axes[:, 0], boards):
         x = g[g.board == b]
-        red = x.channel.isin(CONFIRMED.get(b, []))
+        red = x.channel.isin(CONFIRMED.get(day, {}).get(b, []))
         for sel, c in ((~red, "C0"), (red, "tab:red")):
             y = x[sel]
             ax.errorbar(y.channel, y["median"], [y["median"] - y["min"], y["max"] - y["median"]],
@@ -102,12 +104,13 @@ def slopes(day: str):
         ax.set_xlim(-1, 64); ax.set_ylim(-0.1, 1.3)
         ax.set_ylabel("slope b$_i$")
         low = x[x["median"] < NO_SIPM_SLOPE].channel.tolist()
-        ax.set_title(f"board {b}: below {NO_SIPM_SLOPE} in channels {low}" if low else
-                     f"board {b}: no channel below {NO_SIPM_SLOPE}", fontsize=9)
+        ax.set_title(f"board {board_name(day, b)}: below {NO_SIPM_SLOPE} in channels {low}" if low else
+                     f"board {board_name(day, b)}: no channel below {NO_SIPM_SLOPE}", fontsize=9)
         print(f"board {b}: slope below {NO_SIPM_SLOPE} in {low}")
     axes[-1, 0].set_xlabel("channel")
-    fig.suptitle(f"{day}: common mode taken by each channel (median over the runs with "
-                 "HoldDelay 0); red: silent in the staircases of 21 Oct", fontsize=10)
+    fig.suptitle(f"{day}: common mode taken by each channel (median over the runs with HoldDelay 0)"
+                 + ("; red: silent in the staircases of 21 Oct" if day in CONFIRMED else ""),
+                 fontsize=10)
     fig.tight_layout()
     save(fig, "bench", day, "bench_slopes")
 

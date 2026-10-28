@@ -17,7 +17,7 @@ import sys
 import pandas as pd
 
 from bench_noise import CONFIRMED
-from common import plt, results_dir, save
+from common import plt, results_dir, save, board_name
 
 
 def main(day: str, run: int | None = None):
@@ -32,7 +32,7 @@ def main(day: str, run: int | None = None):
     for ax, b in zip(axes[:, 0], boards):
         x = ch[ch.board == b]
         live, dead = x[x.hg_zero < 1], x[x.hg_zero == 1]
-        red = live.channel.isin(CONFIRMED.get(b, []))
+        red = live.channel.isin(CONFIRMED.get(day, {}).get(b, []))
         for sel, c in ((~red, "C0"), (red, "tab:red")):
             y = live[sel]
             ax.errorbar(y.channel, y.hg_mean, y.hg_rms, fmt="o", ms=2.5, c=c, lw=0.8, capsize=0)
@@ -42,7 +42,7 @@ def main(day: str, run: int | None = None):
             ax.legend(loc="upper right", fontsize=7)
         ax.axvline(31.5, c="gray", lw=0.6, ls=":")
         r = info[info.board == b].iloc[0]
-        ax.set_title(f"board {b} (chain {r.chain}, node {r.node}), T detector "
+        ax.set_title(f"board {board_name(day, b)} (chain {r.chain}, node {r.node}), T detector "
                      f"{r.T_detector:.1f} C", fontsize=9)
         ax.set_ylabel("HG (ADC)")
         ax.set_ylim(-20, max(350, x.hg_mean.max() + 60))

@@ -67,3 +67,13 @@ def save(fig, campaign: str, study: str, name: str) -> Path:
     plt.close(fig)
     print("written", path)
     return path
+
+
+# Board numbers of the bench when they differ from the DAQ numbers of a day: on 27 Oct 2026 the
+# three boards read by the DAQ as 0, 1, 2 (chain 0, nodes 0, 1, 2) are the bench boards 1, 2, 4.
+BOARD_NAMES = {"2026-10-27": {0: 1, 1: 2, 2: 4}}
+
+
+def board_name(day: str, board: int) -> int:
+    """The bench number of a DAQ board of a day."""
+    return BOARD_NAMES.get(day, {}).get(board, board)
