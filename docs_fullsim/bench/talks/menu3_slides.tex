@@ -136,6 +136,21 @@ Periodic trigger at 1~kHz, HoldDelay 200~ns, preamplifier gains 55, peak-stretch
 \end{itemize}
 \end{frame}
 
+\begin{frame}{Towards menu 4: calibration at 87.5 ns}
+\begin{itemize}
+\item The crystal data are taken at 87.5~ns, in both gains.
+\item High gain: $g_i(87.5) = r_b\, g_i(25)$, with $r_b$ the ratio of the gains at 87.5 and
+  25~ns on the channels resolved at both: 1.006 (26 channels, rms 0.044); per board 1.011,
+  0.981, 1.012.
+\item Low gain: single photoelectrons not resolvable (17 counts per pe against 6 of noise).
+  Menu 4, on the first crystal runs: per channel, a line of $\mathrm{LG} - p_\mathrm{LG}$
+  against $\mathrm{HG} - p_\mathrm{HG}$ (high gain below its ceiling, low gain above its
+  noise) through the origin; its inverse slope $r_i$ gives $g^\mathrm{LG}_i = g_i(87.5)/r_i$.
+\item Noise for the energy at 87.5~ns, 64 channels: 3.6 photoelectrons coherent, 0.4
+  incoherent, against 2500 photoelectrons of a 511~keV event in BGO.
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Menu 3: summary of results}
 \begin{itemize}
 \item At 25~ns the ladder is resolved in nearly every channel (183, 184, 161 of 186 at 41,

@@ -303,6 +303,9 @@ Against expectations:
   4.1~V: 0.073 photoelectrons at 87.5~ns, 0.097 at 50~ns, 0.137 at 25~ns.
 \item Observed: 0.07 at the three shapings, with the coherent part growing from 0.035 to
   0.057 between 25 and 87.5~ns: as the model at 87.5~ns, half the model at 25~ns.
+\item For the sum over the 64 channels of a board at 87.5~ns: the coherent part adds
+  linearly, 3.6 photoelectrons; the incoherent in quadrature, 0.4; both negligible against
+  the 2500 photoelectrons of a 511~keV event in BGO.
 \end{itemize}
 
 \subsection{Staircases at 43 and 41 V}
@@ -346,6 +349,20 @@ Table~\ref{tab:zeros}:
 \item the fits leave these entries out; their origin is open (finding F12).
 \end{itemize}
 
+\section{Towards menu 4: calibration at 87.5 ns}
+
+The crystal data are taken at 87.5~ns, in both gains. From the measurements of this menu:
+\begin{itemize}
+\item High gain: $g_i(87.5) = r_b\, g_i(25)$, with $r_b$ the ratio of the gains at 87.5 and
+  25~ns measured on the channels resolved at both shapings: 1.006 over 26 channels (rms
+  0.044); per board 1.011, 0.981, 1.012 (boards 1, 2, 4).
+\item Low gain: not resolvable in single photoelectrons (about 17 counts per photoelectron
+  against 6 counts of noise). Menu 4, on the first crystal runs at 87.5~ns: for each channel,
+  the events with the high gain 30 counts below its ceiling and the low gain 30 counts above
+  its pedestal; a line of $\mathrm{LG} - p_\mathrm{LG}$ against $\mathrm{HG} - p_\mathrm{HG}$
+  through the origin; its inverse slope $r_i$ gives $g^\mathrm{LG}_i = g_i(87.5) / r_i$.
+\end{itemize}
+
 \section{Summary of results}
 
 Main findings:
@@ -365,6 +382,8 @@ Main findings:
   is 22 units at 43~V and 12.5 at 41~V.
 \item Open: at 43~V a fraction of the entries, growing with the shaping from 0.5 to 12\%,
   reads 0 (finding F12).
+\item The calibration transfers to 87.5~ns with the measured ratio of the shapings (1.006);
+  the low gain is calibrated on the crystal data from the ratio of the two paths (menu 4).
 \end{itemize}
 
 \begin{table}[H]
