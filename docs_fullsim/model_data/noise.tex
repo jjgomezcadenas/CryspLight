@@ -4,9 +4,10 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage{float}
 \graphicspath{{../../fullsim_analysis/results/bench/2026-10-22/}}
+\newcommand{\dayb}{../../fullsim_analysis/results/bench/2026-10-27}
 \title{Noise Model for CRYSP}
 \author{JJ with help from CaLibrated AUtomatic Document Entity (CLAUDE)}
-\date{23 October 2026}
+\date{23 October 2026, updated 28 October 2026}
 \begin{document}
 \maketitle
 
@@ -157,7 +158,8 @@ All the quantities above are in ADC counts. Expressing them in photoelectrons, w
 the simulation and the calibration need, takes the gain of each path in counts per
 photoelectron, at each shaping and overvoltage. It is measured with the SiPMs above breakdown,
 from the spacing of the single-photoelectron peaks of the dark counts (hold-delay scan,
-calibration with the periodic trigger).
+calibration with the periodic trigger); the measurement of 27 October is in
+Section~\ref{sec:pe}.
 
 \section{The noise model of the simulation}
 \label{sec:model}
@@ -390,79 +392,171 @@ of the median rms of their board, and the quietest normal channel at 0.90. The s
 therefore also a test, from a pedestal run, of whether each channel sees its SiPM.
 
 
+\section{Case: pedestal runs of 27 October 2026}
+\label{sec:case2}
+
+Boards 1, 2 and 4 with the CAEN adapter boards and the upgraded FPGA firmware, the same
+programme as on 22 October; the report of menu~1 of 27 October has the full account. Against
+22 October (in-house adapter boards, earlier firmware, five boards) and 23 October (boards 0
+and 1, CAEN adapters):
+
+\begin{table}[H]
+\centering
+\small
+\input{\dayb/compare_days_summary.tex}
+\caption{Median over the chips and range of the total, coherent and incoherent noise of the
+high gain at HoldDelay 0, ADC counts, for the three sessions.}
+\label{tab:days}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.62\textwidth]{\dayb/compare_days_holddelay.png}
+\caption{High gain at 25~ns against \texttt{HoldDelay} in the three sessions: rise of the
+pedestal in units of the rms at HoldDelay 0 (top) and the components relative to HoldDelay 0
+(bottom).}
+\label{fig:days}
+\end{figure}
+
+\begin{itemize}
+\item The eighteen chips of the three sessions have the same noise: 11.9--12.7 counts total at
+  25~ns on sixteen of them, coherent fraction 0.24--0.33; the same growth of the coherent part
+  with the shaping; the same narrowing with the window (Table~\ref{tab:days},
+  Figure~\ref{fig:days}). The noise does not depend on the adapter board or on the firmware.
+\item The rise of the pedestal with the window differs by board: 0.8 of the rms at 496~ns on
+  board 2 (as on 22 and 23 October), 0.5 on boards 1 and 4, where it starts only after 96~ns;
+  the narrowing is the same on all. A possible cause is a shift of the baseline with the hold
+  delay.
+\item Blind channels found by the slope: 61, 63 on board 1; 3, 59, 61, 63 on board 4; none on
+  board 2. The six blind channels of board 0 on 22 October were lost in its in-house adapter
+  board and read normally with the CAEN one.
+\item No chip jumps on boards 1, 2 and 4; the jumps of 22 October belong to board 0.
+\end{itemize}
+
+\section{The noise in photoelectrons}
+\label{sec:pe}
+
+The gain of every channel was measured on 27 October with the periodic trigger (menu~3): the
+spectrum of each channel above breakdown is a ladder of dark-pulse peaks, fitted with a comb
+of Gaussians.
+
+\begin{table}[H]
+\centering
+\small
+\input{\dayb/spe_noise_pe.tex}
+\caption{Per board and shaping: median gain at 43~V (4.1~V above breakdown), and the total,
+coherent and incoherent pedestal noise at HoldDelay 0 in ADC counts and in photoelectrons.}
+\label{tab:pe}
+\end{table}
+
+\begin{itemize}
+\item Gain at 43~V: 165--178 counts per photoelectron at 25~ns, 176--182 at 50~ns, 170--173 at
+  87.5~ns (board medians); 41--42 counts per photoelectron per volt of overvoltage; breakdown
+  38.8--39.0~V.
+\item Noise at 43~V: 0.07 photoelectrons per channel at the three shapings; coherent 0.035 at
+  25~ns, 0.057 at 87.5~ns; incoherent 0.06 (Table~\ref{tab:pe}).
+\item Model of Section~\ref{sec:model} at 4.1~V: 0.137, 0.097, 0.073 photoelectrons at 25,
+  50, 87.5~ns. The data match it at 87.5~ns and are half of it at 25~ns.
+\item For the sum over the 64 channels of a board at 87.5~ns: 3.6 photoelectrons coherent
+  (linear sum), 0.4 incoherent (quadrature); negligible against the 2500 photoelectrons of a
+  511~keV event in BGO.
+\end{itemize}
+
+\section{The response of the peak detector}
+\label{sec:peak}
+
+The hold-delay scans of 27 October (menu~2) measure what the peak detector stores for a single
+avalanche against the length of the window: the trigger limited to one channel, the position
+of its 1-pe peak against \texttt{HoldDelay}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{\dayb/hold_scan_response.png}
+\caption{Board 1 at 25~ns (top) and 50~ns (bottom): mean of the stored value of the shooting
+channel (left) and position of its 1-pe peak above the pedestal (right) against
+\texttt{HoldDelay}; dotted, the maximum of the shaped pulse in the model of the front end.}
+\label{fig:peak}
+\end{figure}
+
+\begin{itemize}
+\item At 25~ns the 1-pe peak reaches its plateau 32--40~ns after the trigger, where the model
+  of the front end puts the maximum of the shaped pulse (31~ns); at 50~ns at 128--160~ns, the
+  model at 58~ns.
+\item Once the window contains the maximum, the stored amplitude stays constant to the end of
+  the scan (248 or 496~ns): the peak detector holds a pulse as an ideal one.
+\item The slow rise of the pedestal with the window (Section~\ref{sec:case2}) is therefore not
+  a loss of the held value; a shift of the baseline with the hold delay remains as the
+  candidate.
+\end{itemize}
+
 \section{Hypotheses}
 
 \begin{enumerate}
-\item \textbf{A low-frequency noise dominates.} A mixture in which the $1/f$ or parallel
-  components dominate gives a noise nearly independent of the shaping, and a noise with long
-  correlation times explains the slow rise of the pedestal with the window. The two
-  observations would then have one cause.
-\item \textbf{The coherent noise comes from the bias of the SiPMs.} The HV module of each board
-  biases its 64 SiPMs through a common line; below breakdown each SiPM is a capacitor that
-  couples any ripple of that line to the input of its preamplifier. This gives a noise common
-  to the board, uncorrelated between boards and concentrated at low frequencies, as observed,
-  and it explains why channels without their SiPM do not receive the common mode
-  (Section~\ref{sec:sipm}); the reference voltages or the ground of the board would reach
-  every channel, connected or not. A pick-up on the cables or adapter boards between the
-  SiPMs and the board would also enter through the SiPMs and is not excluded.
-\item \textbf{The peak detector is not ideal.} If the peak detector follows the signal with a
-  finite speed, or loses part of the held value during the window, it acts as a further
-  filter and the rise with the window is slower than for an ideal maximum. This would affect
-  the response to real pulses as well.
-\item \textbf{The low gain has its own noise.} If the coherent part enters before the
-  preamplifiers, it is scaled by the ratio of their gains, while the incoherent part, partly
-  their own, is reduced less, as observed. A model with the same noise in counts in both gains
-  is then too simple.
+\item \textbf{A low-frequency noise dominates.} The coherent part grows with the shaping and
+  the incoherent part barely falls: neither is series white noise. Still the only reading of
+  the dependence on the shaping; the correlation time of the noise is not yet measured
+  directly.
+\item \textbf{The coherent noise enters through the SiPMs.} Confirmed in its mechanism: the
+  blind channels take none of it, and the six channels of board~0 that regained their SiPM with
+  the CAEN adapter take it in full. Its source is not identified: the noise is the same with
+  the two adapter boards, so a pick-up on the adapter is excluded; the bias line, the cable or
+  the matrix remain.
+\item \textbf{The peak detector is not ideal.} Not supported by the response to a pulse
+  (Section~\ref{sec:peak}). What remains unexplained is the pedestal, which rises with the
+  window less than the maximum of the noise would, by board-dependent amounts; a shift of the
+  baseline with the hold delay would do it.
+\item \textbf{The low gain has its own noise.} Unchanged: 0.46 of the high-gain noise in
+  counts, with the coherent part reduced more than the incoherent one.
 \end{enumerate}
 
 \section{What is needed}
 
 \begin{enumerate}
-\item \textbf{The gain in counts per pe}, at 25, 50 and 87.5~ns, to express the noise in
-  photoelectrons and compare with the 0.06--0.11~pe of the model. It comes from the
-  hold-delay scans with the SiPMs at 5~V of overvoltage (bench note 2), on the plateau where
-  the single-pe peaks are resolved, and from the calibration with the periodic trigger
-  (bench note 3).
-\item \textbf{The response of the peak detector to a known pulse}, from the same hold-delay
-  scans: the delay after the trigger at which the stored amplitude reaches its plateau,
-  compared with the 31, 58 and 90~ns of the model (plus the latency of the board), and whether
-  the plateau stays flat at long delays. This tests the third hypothesis and shows that the
-  shaping time actually changes.
-\item \textbf{Threshold scans of the five boards} (bench note 2), to test the prediction of
-  Section~\ref{sec:sipm} for the nine channels of boards 1, 3 and 4.
-\item \textbf{A pedestal run with the HV off}, at 25 and 87.5~ns. The SiPMs stay connected,
-  so a pick-up on the cables would remain, while a ripple of the bias line would disappear
-  with the coherent noise. This decides the origin of the coherent noise (second
-  hypothesis).
-\item \textbf{The analog probe of the slow shaper on the oscilloscope}, with the SiPMs below
-  breakdown: the noise waveform gives its correlation time and its spectrum directly, and
-  decides between the first and the third hypotheses.
-\item \textbf{A fit of the model to both data sets}, on our side: series, parallel and $1/f$
-  components, plus a coherent component per board, adjusted to the noise against shaping and
+\item \textbf{A pedestal run with the HV off}, at 25 and 87.5~ns: a ripple of the bias line
+  disappears with the coherent noise, a pick-up on the cables does not.
+\item \textbf{The analog probe of the slow shaper on the oscilloscope}, SiPMs below
+  breakdown: the correlation time and the spectrum of the noise, which decide hypothesis~1 and
+  what the pedestal does on top of it.
+\item \textbf{A fit of the model to the data}, on our side: series, parallel and $1/f$
+  components plus a coherent component per board, adjusted to the noise against shaping and
   to the pedestal against the window at the same time.
 \end{enumerate}
-\noindent The first three come from the next bench session (bench note 2); the fourth and
-fifth are short additions to be scheduled after it.
 
 \section{Status for the model}
 
-Nothing is yet stable enough to replace the noise model of the simulation. What the
-measurements already establish, in ADC counts, is that the noise of a channel has a coherent
-part shared by the 64 channels of a board, entering through the SiPMs, of 25--40\% of the
-variance; that neither part follows the $t_p^{-1/2}$ scaling; that the low gain has 0.44 times
-the noise of the high gain; and that the noise varies over hundreds of nanoseconds. For the
-sum of the 64 channels, which gives the energy, the coherent part matters most: the incoherent
-noise adds in quadrature and grows as $\sqrt{64} = 8$ times that of one channel, while the
-coherent noise adds almost linearly. With the numbers of the high gain at 25~ns, about 85
-counts come from the incoherent noise and about 350 from the coherent one (with the measured
-correlation of 0.6--0.85 between the two chips of a board). The model will need a correlated
-component per board and a dependence on the shaping and on the window taken from the data.
+Measured on five boards in three sessions, the same on all; values at 43~V (4.1~V of
+overvoltage), high gain, preamplifier gain 55:
 
-To pass a result to the model, three things are missing: the gain, to express the noise in
-photoelectrons; the origin of the coherent noise, since a ripple of the bias may change with
-the HV module or be filtered, while a pick-up depends on the cabling, which will change with
-the new adapter board; and the behaviour of the peak detector, which decides whether the slow
-rise with the window is a property of the noise or of the chip.
+\begin{center}
+\small
+\begin{tabular}{lp{0.6\textwidth}}
+\toprule
+per channel, 25 ns, HoldDelay 0 & $\sigma_\mathrm{tot} = 12.3$ counts $= 0.07$~pe;
+  $\sigma_\mathrm{coh} = 6.2$ (0.035~pe); $\sigma_\mathrm{inc} = 10.6$ (0.06~pe) \\
+against the shaping (25, 50, 87.5 ns) & $\sigma_\mathrm{coh} = 6.2, 8.0, 9.8$;
+  $\sigma_\mathrm{inc} = 10.6, 10.0, 9.6$; in photoelectrons 0.07 at the three, with the
+  coherent part 0.035 to 0.057 \\
+against the window (0--496 ns, 25 ns) & both components scaled by 1.00, 0.88, 0.76, 0.69,
+  0.63, 0.59; the pedestal rises by 0.0, 0.03, 0.23, 0.38, 0.51, 0.62 rms (board-dependent) \\
+coherent component & common to the 64 channels of a board; correlation 0.6 between its chips,
+  0 between boards; enters through the SiPMs \\
+low gain, 87.5 ns & 0.46 of $\sigma_\mathrm{tot}$ of the high gain \\
+gain & 165--178 counts per photoelectron at 25~ns, 176--182 at 50~ns, 170--173 at 87.5~ns;
+  41--42 counts per photoelectron per volt; breakdown 38.8--39.0~V \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+What replaces the three assumptions of Section~\ref{sec:model}:
+\begin{enumerate}
+\item The noise per channel is 0.06~pe incoherent at any shaping, not $t_p^{-1/2}$.
+\item A coherent component per board, 0.035~pe at 25~ns and 0.057 at 87.5~ns, fully
+  correlated among the 64 channels of a board and independent between boards.
+\item The low gain at 0.46 of the high-gain noise in counts.
+\end{enumerate}
+The dependence on the window and the rise of the pedestal are taken from the table. Open: the
+origin of the coherent part and of the pedestal rise, which the two measurements of the
+previous section decide.
 
 \section*{Implementation}
 
@@ -471,12 +565,15 @@ the pedestal, rms and robust width of each channel (\path{channels.csv}), and
 \path{fullsim_analysis/scripts/bench/noise_components.jl}, which writes the total, coherent and
 incoherent noise of each chip (\path{noise_components.csv}), the correlation of the common
 modes between chips (\path{common_mode.csv}) and the slope of each channel
-(\path{channel_noise.csv}, with its rms in both gains), all in \path{fullsim_analysis/results/bench/2026-10-22/}. The
-method of Section~\ref{sec:cm} is implemented once, in \path{fullsim_analysis/lib/chip_noise.jl},
-so that bench and simulated pedestal runs are analysed by the same code;
-\path{noise_steps.jl} writes the data of Figures~\ref{fig:stepA}--\ref{fig:stepE}. The figures
-are produced by \path{fullsim_analysis/plots/noise_steps.py}, \path{bench_noise.py}
-(Figure~\ref{fig:slopes}) and \path{model_data_noise.py}, which also computes the model curves
-(white noise through CR-RC$^2$ on a 1~ns grid, maximum over the window, 20\,000 windows).
+(\path{channel_noise.csv}, with its rms in both gains), in
+\path{fullsim_analysis/results/bench/<day>/}. The method of Section~\ref{sec:cm} is implemented
+once, in \path{fullsim_analysis/lib/chip_noise.jl}, so that bench and simulated pedestal runs
+are analysed by the same code; \path{noise_steps.jl} writes the data of
+Figures~\ref{fig:stepA}--\ref{fig:stepE}. The figures are produced by
+\path{fullsim_analysis/plots/noise_steps.py}, \path{bench_noise.py} (Figure~\ref{fig:slopes}),
+\path{model_data_noise.py}, which also computes the model curves (white noise through
+CR-RC$^2$ on a 1~ns grid, maximum over the window, 20\,000 windows), \path{compare_days.py}
+(the three sessions), \path{hold_scan.py} with \path{scripts/bench/hold_scan.jl} (the response
+of the peak detector) and \path{spe_calib.py} (the gains and the noise in photoelectrons).
 
 \end{document}

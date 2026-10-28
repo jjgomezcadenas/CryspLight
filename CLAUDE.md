@@ -69,51 +69,46 @@ sufficient to resume work without prior context:
    reconstructability classifier and the acceptance dial (A2/A1 0.5→0.04 in z);
    figures via graphicspath from analysis/results.
 
-## Status (2026-07-15) and next steps
+## Status (2026-10-28) and next steps
 
-Everything below is BUILT, tested (9 test sets), committed and pushed: optical
-transport (CPU reference + bit-identical KA/Metal kernel, 33 Mphotons/s), three
-calibrated materials, three calibration campaigns, the vendored gamma core, the
-per-event pipeline (runs/gammas_{csitl,bgo}.toml → output/<tag>/events.h5).
-CRYSP baselines (PDE=1): cold CsI 83.0%, BGO 88.0%, CsI(Tl) 88.8%. End-to-end
-photopeak at wavelength-correct PDE: CsI(Tl) 9798 pe, BGO 2832 pe — both on
-calibration-chain expectations. The CNN-dataset layer is in: per-event truth
-(xyz1/e1, xyz2/e2, er = 511−e1−e2, int_type −1/0/X = none/photo/X-Compton, n_int),
-the 8×8 first-pe time matrix (tmin_ns, Inf = no hit), flat PDE 0.40 for both
-crystals (BGO photopeak 2518 pe), all in events.h5 chunked along events —
-column-major means h5py reads (n,8,8)/(n,3), PyTorch-ready with no transposes.
-Light-map figures from scripts/plot_light_maps.jl (tracked; images in latex/figs).
-The Python analysis layer (analysis/, same repo) holds true_vars.py (control
-plots + containment stats from the 50k runs) and the CNN reconstruction
-(analysis/cnn: dataset.py with exact D4 augmentation — self-test via python3
-analysis/cnn/dataset.py; model.py CryspNet ~0.6M-param residual ConvNet + MLP +
-Anger baselines; train.py driven by analysis/cnn/runs/cnn_{csitl,bgo}.toml).
-Trained on the 500k runs (torch MPS). Idealized (truth-selected photo): test
-RMSE x/y/z = 1.21/1.24/1.11 mm CsI(Tl), 0.84/0.84/0.92 mm BGO; depth linear over
-the FULL crystal. Phase 1 Compton (realistic 511 +- 2 sigma window on smeared
-energy, FWHM 6%/10%, configs cnn_*_win.toml): global p68 = 2.0/2.0/2.1 mm CsI(Tl)
-(26.8% of events beyond 5 mm), 1.1/1.1/1.3 mm BGO (9.7%); photo class survives
-the mixture nearly intact; tail = soft-recoil Compton (first site outshone by
-the second). Phase 2 COMPLETE and in the note: ordering study (containment
-enriches backscatter, P(z1<z2)=0.60/0.66, deterministic step at 255.5 keV in E1;
-analysis/order_study.py); two-site regressions (plain + (r,delta) loss) all equal
-phase 1 => the 27%/10% tails are the INFORMATION LIMIT of the integrated 8x8 map
-(timing evaluated and set aside: tau ~ 1 us drowns the sub-ns geometric signal);
-two-Gaussian response (fit_residuals.py): core 1.1-1.2 mm CsI(Tl) / 0.8-1.0 mm
-BGO carrying 58-82%; reconstructability classifier (train_classifier.py, label =
-'reco': positive = phase-1 error >= 5 mm) AUC ~0.80 both crystals, acceptance
-dial: tail 26.8->10.8% CsI / 9.7->2.8% BGO at 50%; frozen-shape amplitude fits
-(selection_fits.py): A2/A1 in z 0.49->0.04 CsI, 0.22->0.04 BGO at constant core
-width; selection removes tail 18x faster than core. PET smearing recipe
-for PTCrysp (pet_recipe.py -> selection_fits/pet_resolution_recipe.json,
-note section 'A resolution recipe'): window 0.954 x acceptance x
-per-coordinate two-Gaussian mixture, frozen shapes, scenario f_core. Per-run per-event dataframes
-test_events.h5 (dataset.load_test_events) make all such studies ~0.5 s pandas.
-All results in analysis/results/cnn (+ order_study); note updated. Next
-candidates: geometric barycenter label (needs 2 truth columns in events.h5 +
-500k reruns); 16x16 granularity study; response layer (intrinsic resolution
-~5.3% FWHM + SiPM excess noise) for realistic spectra; coincidence-level
-studies; Brose phase-2 frustum; cold-CsI gamma runs.
+Two layers in this repo. The **pedagogical simulation** (tag `pedsim`, everything in the
+five notes of `latex/`) is closed: optical transport (CPU reference + bit-identical
+KA/Metal kernel), three calibrated materials, the vendored gamma core, the per-event
+pipeline, the CNN-dataset layer and the CryspNet reconstruction with its resolution
+recipe (details in the notes; nothing pending there). The **full simulation and the bench
+comparison** (since 16 Oct 2026) is the live work; its source of truth is the working plan
+`docs_fullsim/plan/working_plan.tex` (tasks, decisions, log) and the design document
+`docs_fullsim/model/fullsim_design.tex`. Built and tested: tiled readout, grease window,
+ambient/cold materials, Na-22 decays, photoelectron file, SiPM model, three emulated
+front ends (Citiroc 1A, DT2745 digitizer, Radioroc2), the first emulated campaign, the
+room-temperature study note, the Citiroc calibration note (periodic trigger), the API
+reference (`docs/`, Documenter).
+
+**Bench (Donostia, Citiroc 1A on A5202 boards, JMB's DAQ).** Sessions of 21, 22, 23 and
+27 Oct 2026; raw data in the gitignored `benchdata/<day>/`, logbooks in
+`docs_fullsim/bench/logbooks/`, findings F1-F14 in `fullsim_analysis/results/bench/findings.md`,
+daily reports in `docs_fullsim/bench/reports/`, talks in `docs_fullsim/bench/talks/`. The
+session of 27 Oct (boards 1, 2, 4, CAEN adapters, firmware 0xa7070800; DAQ numbers 0, 1, 2)
+covered the three calibration menus and has one report each (menu 1 pedestal noise, menu 2
+threshold and hold delay, menu 3 single-photoelectron calibration) and the talk of 28 Oct.
+Frozen numbers: pedestal noise 12.3 counts per channel at 25 ns (6.2 coherent per board,
+10.6 incoherent), the same on five boards and three sessions; gain 165-178 counts/pe at
+43 V = 4.1 V over breakdown (38.8-39.0 V), 41-42 counts/pe/V; noise 0.07 pe at the three
+shapings; gain ratio 87.5/25 ns = 1.006; threshold edge 179-182 DAC, 20 DAC/pe at 43 V.
+The noise note `docs_fullsim/model_data/noise.tex` ("Noise Model for CRYSP") holds the
+method, the two cases and the status for the model.
+
+**Next.** Menu 4 (low-gain calibration from the ratio of the two paths on the first crystal
+runs at 87.5 ns); the model fit of the noise (series, parallel, 1/f + coherent per board);
+bench requests pending: F12 (entries at 0 above breakdown), F13 (temperature sensor of
+board 1), F14 (hold-delay lag of the DAQ), board 3 with the CAEN adapters, a pedestal run
+with the HV off, the oscilloscope probe of the slow shaper. Then the crystal campaigns of the
+plan (ambient BGO and CsI(Tl), cold BGO, Radioroc2).
+
+**Report style (agreed 28 Oct).** Reports and talks: schematic (tables, formulas, itemize),
+"Dishes served" first and "Summary of results" last, figures explained bullet by bullet,
+expectations stated against the model, only the day's data, no out-of-scope remarks, no
+defensive sentences, authors JJ and Laura Navarro with "Assisted by CLAUDE".
 
 ## Layout (PTCryspMC conventions)
 
@@ -152,6 +147,14 @@ studies; Brose phase-2 frustum; cold-CsI gamma runs.
   `ding_calib.jl` (BGO 6 mm cube, two-sided readout); `test/` — `Pkg.test`, compulsory
   for every step of the simulation chain; `latex/` — the notes; `papers/` — reference
   papers (PDF + txt; read the txt, not the PDF).
+- **Full simulation layer:** `src/frontend/` (SiPM model and the three front ends),
+  `fullsim_runs/<campaign>/` (configurations), `fullsim_analysis/` (Julia library `lib/`,
+  one script per study in `scripts/`, bench scripts in `scripts/bench/`, Python plotters in
+  `plots/`, committed results in `results/`), `docs_fullsim/` (model, calib, na22, plan,
+  reviews, model_data = the noise note, bench = logbooks, reports, talks), `bench/` (the
+  bench notes in Spanish: menus 0-3), `benchdata/` (gitignored raw bench data, README tracked),
+  `docs/` (API reference). Boards: the DAQ numbers boards by (chain, node); the bench numbers
+  differ (27 Oct: DAQ 0, 1, 2 = boards 1, 2, 4), see `benchdata/README.md`.
 
 Supported platform: Apple Silicon macOS, Julia 1.11 or newer (the committed manifest
 was generated with Julia 1.12.6). Metal is a required package dependency; simulations

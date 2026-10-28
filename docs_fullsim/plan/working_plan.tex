@@ -18,7 +18,7 @@
 
 \title{CryspLight full simulation: working plan}
 \author{J.\,J.~Gómez-Cadenas}
-\date{Live document --- last edited 18 October 2026}
+\date{Live document --- last edited 28 October 2026}
 
 \begin{document}
 \maketitle
@@ -100,7 +100,7 @@ id & task & status & date \\
 \midrule
 \endhead
 1.1 & Converters from the bench files to the common layout, with the run log: Citiroc charges; digitizer waveforms reduced to baseline, gated charge and threshold crossings (from the Antarctica analysis code) & \planned & \\
-1.2 & Single-photoelectron gains and breakdown per channel; pedestals and noise term; dark rates & \planned & \\
+1.2 & Single-photoelectron gains and breakdown per channel; pedestals and noise term; dark rates (bench sessions of 22--27 Oct, reports of menus 1--3 in \code{docs\_fullsim/bench/reports}, noise note \code{docs\_fullsim/model\_data/noise.tex}) & \done & 28 Oct \\
 1.3 & Spectra: 511, 1275, sum peak; resolution and its decomposition; 1275 to 511 ratio & \planned & \\
 1.4 & Light yield in photoelectrons and in photons per MeV through the simulated collection & \planned & \\
 1.5 & Maps: occupancy, mean charge, seed-channel photopeak; fit of the dead-area reflectivity and check of the roughness & \planned & \\
@@ -371,7 +371,21 @@ campaign & configuration & readout & dates \\
   repetition of the pedestal runs (menu 1) with the ``red'' boards from CAEN, which should behave
   much better than the ``green'' boards made by us used on 22 October. Only then is the note
   written; the method of the noise analysis (\code{fullsim\_analysis/lib/chip\_noise.jl}) and
-  the report of 22 October stay as they are.
+  the report of 22 October stay as they are. \emph{Closed 28 Oct:} the noise is the same
+  with both adapter boards; the note carries the two cases and the status for the model.
+\item[28 Oct 2026] Reports and talks of the bench in a schematic form: tables, formulas and
+  lists instead of prose; ``Dishes served'' first and ``Summary of results'' last; every
+  figure explained in bullets; expectations stated against the model; only the day's data;
+  no out-of-scope remarks. One report per menu, one talk per session, logbooks tracked in
+  \code{docs\_fullsim/bench/logbooks}.
+\item[28 Oct 2026] Noise model for the simulation, from the bench: 0.06~pe incoherent per
+  channel at any shaping, a coherent part per board of 0.035~pe at 25~ns and 0.057 at 87.5~ns
+  (correlation 0.6 between its chips, 0 between boards), low gain at 0.46 of the high-gain
+  noise in counts; window dependence from the measured table. Replaces the $t_p^{-1/2}$,
+  equal-gains and independent-channels assumptions.
+\item[28 Oct 2026] Calibration at 87.5~ns: the gain at 87.5~ns is the gain at 25~ns times the
+  board ratio measured on the resolved channels (1.006); the low gain is calibrated on the
+  first crystal runs from the ratio of the two paths, channel by channel (menu 4).
 \end{description}
 
 \section{Open questions}
@@ -412,6 +426,19 @@ campaign & configuration & readout & dates \\
 \section{Log}
 
 \begin{description}
+\item[27--28 Oct 2026] Bench session of 27 Oct (Laura): menus 1, 2 and 3 on boards 1, 2
+  and 4 with the CAEN adapter boards and the upgraded firmware. Data copied to
+  \code{benchdata/2026-10-27}, logbook tracked, first look, noise analysis, hold-delay scans
+  (\code{hold\_scan.jl/.py}), single-photoelectron calibration (\code{spe\_calib.py}),
+  three-session comparison (\code{compare\_days.py}). Findings F12 (entries at 0 above
+  breakdown), F13 (temperature sensor of board 1 moves with the HV), F14 (the DAQ applies a
+  new hold delay with a lag of up to five points). Three reports and the talk of 28 Oct in
+  the schematic style; the noise note updated with the two cases, the noise in
+  photoelectrons, the response of the peak detector and the status for the model.
+  Pedestal noise 12.3 counts at 25~ns (6.2 coherent, 10.6 incoherent), identical on 18 chips
+  over three sessions; gain 165--178 counts/pe at 43~V, breakdown 38.8--39.0~V (43~V is 4.1~V
+  of overvoltage); noise 0.07~pe at the three shapings; minimum hold delay 40~ns at 25~ns and
+  160~ns at 50~ns; 20 DAC units per photoelectron in the threshold at 43~V.
 \item[16 Oct 2026] Project assessed; datasheets read (Citiroc 1A, Radioroc2,
   S14160/S14161); Antarctica draft read; tag and branch; design document
   v0.1 and this plan; overvoltage recipe written.
