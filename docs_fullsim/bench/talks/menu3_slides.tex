@@ -113,8 +113,8 @@ Periodic trigger at 1~kHz, HoldDelay 200~ns, preamplifier gains 55, peak-stretch
 \item At 43~V and 25~ns: 0.068--0.075 photoelectrons per channel, 0.033--0.038 coherent,
   0.059--0.065 incoherent.
 \item At 50~ns: 0.067--0.074, coherent 0.041--0.046.
-\item Expected (model of the simulation): 0.11, 0.08, 0.06 photoelectrons at 25, 50, 87.5~ns.
-  Observed: 0.07 at the three shapings.
+\item Expected (model of the simulation at 4.1~V of overvoltage): 0.137, 0.097, 0.073
+  photoelectrons at 25, 50, 87.5~ns. Observed: 0.07 at the three shapings.
 \end{itemize}
 \end{frame}
 
@@ -145,8 +145,8 @@ Periodic trigger at 1~kHz, HoldDelay 200~ns, preamplifier gains 55, peak-stretch
   43~V is 4.1~V above breakdown, not 5.
 \item The gain varies by 2.4--5.6\% across the channels of a board and little with the
   shaping.
-\item The pedestal noise of the chain at 43~V and 25~ns is 0.07 photoelectrons per channel,
-  half of it coherent.
+\item The pedestal noise of the chain at 43~V is 0.07 photoelectrons per channel at the three
+  shapings, half of it coherent; the model has 0.073 at 87.5~ns and 0.137 at 25~ns.
 \item One DAC unit of the threshold is 7.8 counts of the high gain at 43~V.
 \item Open: at 43~V a fraction of the entries, 0.5 to 12\% growing with the shaping, reads 0
   (F12).

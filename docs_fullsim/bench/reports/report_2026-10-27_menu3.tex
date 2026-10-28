@@ -298,10 +298,11 @@ Figure~\ref{fig:noisepe} and Table~\ref{tab:noisepe}:
 \needspace{6\baselineskip}
 Against expectations:
 \begin{itemize}
-\item Expected (noise model of the simulation, series white noise): 0.06 photoelectrons at
-  87.5~ns and 5~V, 0.08 at 50~ns, 0.11 at 25~ns, independent channels.
+\item Expected (noise model of the simulation: 0.1 photoelectrons at 87.5~ns and 3~V of
+  overvoltage, series white noise, independent channels), at the measured overvoltage of
+  4.1~V: 0.073 photoelectrons at 87.5~ns, 0.097 at 50~ns, 0.137 at 25~ns.
 \item Observed: 0.07 at the three shapings, with the coherent part growing from 0.035 to
-  0.057 between 25 and 87.5~ns: less noise than the model at 25~ns, more at 87.5~ns.
+  0.057 between 25 and 87.5~ns: as the model at 87.5~ns, half the model at 25~ns.
 \end{itemize}
 
 \subsection{Staircases at 43 and 41 V}
@@ -358,8 +359,8 @@ Main findings:
 \item The gain varies by 2.4--5.6\% across the channels of a board and little with the
   shaping (165--182 counts per photoelectron at 43~V).
 \item The pedestal noise of the chain at 43~V is 0.07 photoelectrons per channel at the three
-  shapings, half of it coherent at 25~ns; the model of the simulation has 0.11 at 25~ns and
-  0.06 at 87.5~ns.
+  shapings, half of it coherent; at this overvoltage the model of the simulation has 0.073 at
+  87.5~ns and 0.137 at 25~ns.
 \item One DAC unit of the threshold is 7.8 counts of the high gain at 43~V; one photoelectron
   is 22 units at 43~V and 12.5 at 41~V.
 \item Open: at 43~V a fraction of the entries, growing with the shaping from 0.5 to 12\%,
