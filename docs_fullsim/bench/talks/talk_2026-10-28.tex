@@ -8,8 +8,8 @@
 \newcommand{\results}{../../../fullsim_analysis/results/bench/2026-10-27}
 
 \title{The Citiroc front end on the bench}
-\subtitle{Pedestal noise, hold-delay scan and single-photoelectron calibration: session of 27 October 2026}
-\author{J.\,J.~Gómez-Cadenas}
+\subtitle{Noise, hold delay and single-photoelectron calibration: session of 27 October 2026}
+\author{J.\,J.~Gómez-Cadenas and Laura Navarro\\ \small Assisted by CLAUDE}
 \date{28 October 2026}
 
 \begin{document}
@@ -18,370 +18,321 @@
 \titlepage
 \end{frame}
 
-\begin{frame}{The session of 27 October 2026}
+\begin{frame}{The session}
 \begin{itemize}
-\item Three A5202 boards, 1, 2 and 4, each with two Citiroc~1A and a 64-channel SiPM matrix,
-  connected through the CAEN adapter boards and running the upgraded FPGA firmware
-  (0xa7070800). The DAQ reads them on one chain as boards 0, 1, 2.
-\item The three menus of the calibration programme:
+\item Boards 1, 2 and 4 (A5202: two Citiroc~1A, a 64-channel SiPM matrix each), CAEN adapter
+  boards, FPGA firmware 0xa7070800; read by the DAQ as boards 0, 1, 2.
+\item Peak-stretch mode: at each trigger the peak detector follows the slow shaper from the
+  opening of the window, holds the highest value reached and stops at the hold (HoldDelay
+  after the trigger); the ADC reads that value.
+\item Three menus:
   \begin{enumerate}
   \item \textbf{Pedestal noise}, SiPMs below breakdown: runs 91--99, three boards.
-  \item \textbf{Hold-delay scan}, SiPMs at 5~V of overvoltage: staircase 100 and hold-delay
-    scans 101--106, board 1.
-  \item \textbf{Single-photoelectron calibration} with the periodic trigger: runs 108--112
-    at 5, 4 and 3~V of overvoltage, three boards; staircases 113--115, board 1.
+  \item \textbf{Threshold and hold delay}, SiPMs at 43~V: staircase 100, hold-delay scans
+    101--106, board 1.
+  \item \textbf{Single-photoelectron calibration}, periodic trigger at 43, 42, 41~V: runs
+    108--112, three boards; staircases 113--115, board 1.
   \end{enumerate}
-\item Every run with its settings, temperatures and incidents in the logbook of the day.
 \end{itemize}
 \end{frame}
 
 \section{Menu 1: pedestal noise}
 
-\begin{frame}{Menu 1: goal}
+\begin{frame}{Menu 1: dishes served, data}
+\begin{columns}
+\column{0.5\textwidth}
+\textbf{Dishes served}
 \begin{itemize}
-\item At each trigger a channel stores the maximum of its shaped signal inside a window
-  (peak-stretch mode). With the SiPMs below breakdown there is no signal: the stored value is
-  the pedestal, and its fluctuation is the noise of the electronics.
-\item The peak detector, after the slow shaper, follows the signal from the opening of the
-  window, holds the highest value reached and stops at the hold; the ADC reads that value.
-\item Measured for every channel of every board:
-  \begin{itemize}
-  \item the pedestal and its noise;
-  \item the dependence of the noise on the shaping time and on the length of the window
-    (HoldDelay);
-  \item the part of the noise common to the channels of a chip (coherent) and the part
-    proper to each channel (incoherent).
-  \end{itemize}
-\item These are the inputs of the noise model of the simulation, and the reference against
-  which the blind channels are found.
+\item Below breakdown there is no signal: the stored value is the pedestal, its fluctuation
+  the noise of the electronics.
+\item For every channel: pedestal and noise; dependence on the shaping and on the window;
+  the part common to the chip (coherent) and the part proper to the channel (incoherent).
 \end{itemize}
-\end{frame}
-
-\begin{frame}{Menu 1: data}
-\centering
-\begin{tabular}{llll}
-\toprule
-Runs & Purpose & HG shaping & HoldDelay \\
-\midrule
-91--93 & shaping & 25, 50, 87.5 ns & 0 \\
-94--98 & window & 25 ns & 96--496 ns \\
-99 & stability & 25 ns & 0 \\
-\bottomrule
-\end{tabular}
-
-\bigskip
-\raggedright
-SiPMs at 36.5~V, below breakdown; periodic trigger at 1~kHz; 10\,000 events per board and run;
-preamplifier gains 55; peak-stretch mode; low gain at 87.5~ns. Boards 1, 2 and 4, read by the
-DAQ as 0, 1, 2.
+\column{0.5\textwidth}
+\textbf{Data}
+\begin{itemize}
+\item Nine runs, 10\,000 events per board; SiPMs at 36.5~V; periodic trigger at 1~kHz.
+\item Preamplifier gains 55; low gain at 87.5~ns.
+\item Runs 91--93: 25, 50, 87.5~ns at HoldDelay 0.
+\item Runs 94--98: 25~ns, HoldDelay 96--496~ns.
+\item Run 99: repeats 91.
+\end{itemize}
+\end{columns}
 \end{frame}
 
 \begin{frame}{Menu 1: method}
 Channel $i$, event $e$, high-gain value $v_i(e)$:
 \begin{align*}
 p_i &= \operatorname{median}_e v_i(e), \quad d_i(e) = v_i(e) - p_i, \quad
-\mathrm{CM}(e) = \tfrac{1}{n}\textstyle\sum_i d_i(e),\\
-d_i(e) &= b_i\,\mathrm{CM}(e) + r_i(e),\\
+\mathrm{CM}(e) = \tfrac{1}{n}\textstyle\sum_i d_i(e), \quad d_i(e) = b_i\,\mathrm{CM}(e) + r_i(e),\\
 \sigma_\mathrm{tot}^2 &= \langle d_i^2\rangle = \sigma_\mathrm{coh}^2 + \sigma_\mathrm{inc}^2,
 \quad \sigma_\mathrm{coh}^2 = \langle b_i^2\,\mathrm{CM}^2\rangle, \quad
 \sigma_\mathrm{inc}^2 = \langle r_i^2\rangle.
 \end{align*}
 \begin{itemize}
 \item $p_i$ pedestal, $d_i$ deviation, $\mathrm{CM}$ common mode of the $n$ channels of the
-  chip read at the same trigger, $b_i$ slope of the channel against it, $r_i$ incoherent part;
-  $\langle\,\rangle$ over channels and events.
-\item Jumps of the chip ($|\mathrm{CM}| > 6\,s_\mathrm{CM}$) and outliers
-  ($|d_i - \mathrm{CM}| > 5\,s_i$) set aside; $s$ the robust width, 1.4826 times the median
-  absolute deviation.
-\item A \emph{blind channel} takes no common mode ($b_i < 0.75$) and is excluded from $n$.
+  chip, $b_i$ slope of the channel against it, $r_i$ incoherent part.
+\item Set aside: jumps of the chip ($|\mathrm{CM}| > 6\,s_\mathrm{CM}$), outliers
+  ($|d_i - \mathrm{CM}| > 5\,s_i$); $s$ the robust width.
+\item Blind channel: no signal from its SiPM, takes no common mode ($b_i < 0.75$).
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Noise of every channel}
+\begin{frame}{Menu 1: noise per channel and per chip}
 \begin{columns}
-\column{0.6\textwidth}
+\column{0.48\textwidth}
 \includegraphics[width=\textwidth]{bench_rms.png}
-\column{0.4\textwidth}
-\begin{itemize}
-\item Every channel of the three boards is read; $100 < p_i < 300$.
-\item Rms at 25~ns: 12.0--12.4 counts in the median of each board (high gain), spread of
-  about 1~count over the 64 channels; 5.9 in the low gain.
-\item Red: the blind channels.
-\end{itemize}
-\end{columns}
-\end{frame}
-
-\begin{frame}{Coherent and incoherent noise per chip}
-\begin{columns}
-\column{0.55\textwidth}
+\column{0.52\textwidth}
 \centering
 \scriptsize
 \input{\results/menu1_chips.tex}
-
-\medskip
-Run 91: high gain, 25~ns, HoldDelay 0, ADC counts; low gain at 87.5~ns.
-\column{0.45\textwidth}
+\normalsize
 \begin{itemize}
-\item Six chips: $11.9 \le \sigma_\mathrm{tot} \le 12.7$, $5.9 \le \sigma_\mathrm{coh} \le 6.7$,
-  $10.3 \le \sigma_\mathrm{inc} \le 10.8$.
-\item The coherent part carries 24--28\% of the variance.
-\item Correlation of the common modes: 0.59--0.64 between the two chips of a board, zero
-  between boards.
-\item No jump of any chip in the nine runs.
+\item Rms at 25~ns: 12.0--12.4 counts per board; low gain 5.9.
+\item Six chips within 11.9--12.7; coherent fraction 24--28\%; correlation 0.6 between the
+  chips of a board, 0 between boards; no jumps.
 \item Expected: independent channels. Observed: a quarter of the variance shared by the
-  board, entering through the SiPMs.
+  board.
 \end{itemize}
 \end{columns}
 \end{frame}
 
-\begin{frame}{Dependence on the shaping time}
-\begin{columns}
-\column{0.6\textwidth}
-\includegraphics[width=\textwidth]{noise_vs_shaping_data.png}
-\column{0.4\textwidth}
-\begin{itemize}
-\item Total 12.3, 12.8, 13.6 counts at 25, 50, 87.5~ns (median over the chips).
-\item $\sigma_\mathrm{coh}$ grows from 6.2 to 9.8 between 25 and 87.5~ns; $\sigma_\mathrm{inc}$
-  falls from 10.6 to 9.6.
-\item Low gain: 0.48, 0.46, 0.43 of $\sigma_\mathrm{tot}$ of the high gain.
-\item Expected for white series noise: $\propto t_p^{-1/2}$, 12.3, 8.7, 6.6. Not series
-  white noise.
-\end{itemize}
-\end{columns}
-\end{frame}
-
-\begin{frame}{Dependence on the hold delay}
+\begin{frame}{Menu 1: shaping time and hold delay}
 \begin{columns}
 \column{0.5\textwidth}
-\includegraphics[width=\textwidth]{noise_vs_holddelay_data.png}
+\centering
+\includegraphics[height=0.42\textheight]{noise_vs_shaping_data.png}
 \column{0.5\textwidth}
-\begin{itemize}
-\item Peak-stretch mode: the stored value is the maximum of the shaped signal over the window.
-\item Both components narrow together: 1.00, 0.88, 0.76, 0.69, 0.63, 0.59 at 0, 96, 200, 296,
-  400, 496~ns.
-\item The pedestal rises with the window: 0.62 of $\sigma_\mathrm{tot}(0)$ at 496~ns in the
-  median; 0.81 on board 2, 0.51 on boards 1 and 4, where the rise starts after 96~ns.
-\item Expected for white noise and an ideal peak detector: rms 0.60 at 96~ns, rise 1.7.
-  A possible cause is a shift of the baseline with the hold delay.
-\end{itemize}
+\centering
+\includegraphics[height=0.42\textheight]{noise_vs_holddelay_data.png}
 \end{columns}
-\end{frame}
-
-\begin{frame}{Blind channels}
-\begin{columns}
-\column{0.6\textwidth}
-\includegraphics[width=\textwidth]{bench_slopes.png}
-\column{0.4\textwidth}
 \begin{itemize}
-\item The common mode enters the chip through the SiPMs: a channel whose SiPM signal does not
-  reach the chip takes a slope $b_i$ well below one.
-\item Board 1: channels 61 and 63 ($b_i < 0.2$). Channel 62, blind on 23 October, takes the
-  full common mode.
-\item Board 4: channels 3, 59, 61 and 63.
-\item Board 2: none. Every other channel: $b_i > 0.85$.
-\end{itemize}
-\end{columns}
-\end{frame}
-
-\begin{frame}{Menu 1: summary of results}
-\begin{itemize}
-\item The pedestal noise of a channel has a coherent part, shared by the 32 channels of its
-  chip, and an incoherent part; at 25~ns the coherent part carries a quarter of the variance.
-\item The two chips of a board share their common mode (correlation 0.6); boards are
-  independent.
-\item The coherent part grows with the shaping time, the incoherent part falls slightly.
-\item Both parts narrow together with the window of the peak detector, to 0.59 at 496~ns; the
-  pedestal rises with the window, by board-dependent amounts.
-\item The six chips of boards 1, 2 and 4 agree within 0.8 counts; no chip jumps.
-\item Six channels are blind: two on board 1, four on board 4.
+\item Shaping: $\sigma_\mathrm{coh}$ 6.2, 8.0, 9.8; $\sigma_\mathrm{inc}$ 10.6, 10.0, 9.6 at
+  25, 50, 87.5~ns. Series white noise would give 12.3, 8.7, 6.6.
+\item Hold delay, 25~ns: both parts narrow to 0.59 at 496~ns; the pedestal rises by 0.62 rms,
+  board-dependent (expected 0.60 and 1.7 at 96~ns): possibly a baseline shift.
+\item Blind channels: 61, 63 on board 1; 3, 59, 61, 63 on board 4; none on board 2.
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Menu 1: values for the noise model}
-High gain, preamplifier gain 55, ADC counts:
+\begin{frame}{Menu 1: summary}
+\begin{itemize}
+\item The noise of a channel has a coherent part, shared by the chip, and an incoherent
+  part; the two chips of a board share their common mode; boards are independent.
+\item The coherent part grows with the shaping, the incoherent falls slightly; both narrow
+  together with the window; the pedestal rises less than expected.
+\item Six chips agree within 0.8 counts; no jumps; six blind channels.
+\end{itemize}
 \medskip
-
 \centering
 \small
-\begin{tabular}{lp{0.5\textwidth}}
+\begin{tabular}{lp{0.55\textwidth}}
 \toprule
 per channel, 25 ns, HoldDelay 0 & $\sigma_\mathrm{tot} = 12.3$, $\sigma_\mathrm{coh} = 6.2$, $\sigma_\mathrm{inc} = 10.6$ \\
 against the shaping (25, 50, 87.5 ns) & $\sigma_\mathrm{coh} = 6.2, 8.0, 9.8$; $\sigma_\mathrm{inc} = 10.6, 10.0, 9.6$ \\
-against the hold delay (0--496 ns, 25 ns) & both components scaled by 1.00, 0.88, 0.76, 0.69, 0.63, 0.59 \\
-coherent component & common to the 64 channels of a board; correlation 0.6 between its chips, 0 between boards \\
+against the hold delay (0--496 ns) & both scaled by 1.00, 0.88, 0.76, 0.69, 0.63, 0.59 \\
+coherent component & 64 channels of a board; correlation 0.6 between its chips, 0 between boards \\
 low gain, 87.5 ns & 0.46 of $\sigma_\mathrm{tot}$ of the high gain \\
-blind channels & board 1: 61, 63; board 4: 3, 59, 61, 63 \\
 \bottomrule
 \end{tabular}
-\medskip
-
-\raggedright
-The sessions of 22 and 23 October (five boards, both adapter boards, both firmwares) gave the
-same values.
 \end{frame}
 
 \section{Menu 2: threshold and hold delay}
 
-\begin{frame}{Menu 2: goal}
+\begin{frame}{Menu 2: dishes served, data}
+\begin{columns}
+\column{0.5\textwidth}
+\textbf{Dishes served}
 \begin{itemize}
-\item The peak detector, after the slow shaper, follows the signal from the opening of the
-  window, holds the highest value reached and stops at the hold; the ADC reads that value.
-\item Above breakdown every channel produces dark pulses, several MHz, almost all of one
-  photoelectron; with crosstalk, 2, 3, \ldots~pe. They are the test signal of this menu.
-\item Two parameters of the data taking with the crystal are set:
-  \begin{itemize}
-  \item the threshold of the discriminator (TD\_CoarseThreshold), to trigger on one
-    photoelectron and not on the noise;
-  \item the hold delay (HoldDelay), so that the window of the peak detector contains the
-    maximum of the shaped pulse.
-  \end{itemize}
-\item Two measurements: the \emph{staircase}, trigger rate against threshold, gives the edge
-  of the noise and one photoelectron in DAC units; the \emph{hold-delay scan}, stored value
-  against hold delay, gives the response of the peak detector to one avalanche, the minimum
-  hold delay and the gain of the channel.
+\item Above breakdown every channel produces dark pulses of 1~pe (2, 3 with crosstalk): the
+  test signal.
+\item Two parameters of the data taking: the threshold of the discriminator, to trigger on one
+  photoelectron and not on the noise; the hold delay, so that the window contains the maximum
+  of the shaped pulse.
 \end{itemize}
-\end{frame}
-
-\begin{frame}{Menu 2: data}
+\column{0.5\textwidth}
+\textbf{Data}, board 1, 43~V, threshold 185
 \begin{itemize}
-\item Board 1; HV\_Vbias 47.2~V, 43~V at the SiPM (5~V of overvoltage); TD\_CoarseThreshold
-  185; preamplifier gains 55; peak-stretch mode.
-\item \textbf{Staircase} (scan 100): trigger rate of the 64 channels against the threshold,
-  150--300 DAC units in steps of 1, 0.5~s per point, 25~ns.
-\item \textbf{Hold-delay scans}: trigger limited to the shooting channel; high-gain spectrum of
-  every channel at each delay; 10\,000 events per delay.
-\item The DAQ applies a new delay with a lag of up to five points (stale points, left out).
+\item Staircase 100: trigger rate of the 64 channels against the threshold, 150--300 DAC
+  units, 0.5~s per point.
+\item Hold-delay scans: trigger limited to one channel (the shooting channel); spectrum of
+  every channel at each delay, 10\,000 events. 101, 104--106: 25~ns, channels 0, 20, 40, 60,
+  0--248~ns; 102, 103: 50~ns, channel 0, 0--496~ns.
+\item The DAQ applies a new delay with a lag of up to five points; those points are left out.
 \end{itemize}
-\medskip
-\centering
-\small
-\begin{tabular}{llllc}
-\toprule
-Scan & Shooting channel & HG shaping & HoldDelay & stale points \\
-\midrule
-101 & 0 & 25 ns & 0--248 ns, steps of 8 & 0 \\
-102, 103 & 0 & 50 ns & 0--496 ns, steps of 16 & 5, 5 \\
-104, 105, 106 & 20, 40, 60 & 25 ns & 0--248 ns, steps of 8 & 4, 2, 1 \\
-\bottomrule
-\end{tabular}
+\end{columns}
 \end{frame}
 
 \begin{frame}{Menu 2: method}
-\small
-Staircase, channel $i$, threshold $\theta$ (DAC units), rate $R_i(\theta)$:
+\begin{itemize}
+\item Staircase: below the edge $\theta^\mathrm{e}$ the discriminator fires on the noise of the
+  fast shaper (plateau); above it the rate falls in steps, one per photoelectron, $\Delta\theta$
+  apart.
+\item Hold-delay scan: the spectrum of the shooting channel is a ladder of 1, 2, 3~pe. If the
+  hold comes before the maximum of the pulse, the 1-pe peak sits below the full amplitude;
+  once the window contains the maximum, it stays there. The 1-pe peak against the delay is
+  the response of the peak detector; the mean also counts the dark pulses in the window.
+\end{itemize}
 \begin{align*}
-R_i^\mathrm{max} = \max_\theta R_i(\theta), \qquad
-\theta_i^\mathrm{e} = \max\{\theta : R_i(\theta) \ge R_i^\mathrm{max}/2\}, \qquad
-\Delta\theta = \text{distance between steps of } R_i(\theta).
-\end{align*}
-Hold-delay scan, shooting channel $i$, delay $\tau$, spectrum $S_i(v;\tau)$, pedestal $p_i$
-below breakdown at the same shaping:
-\begin{align*}
-q_1(\tau) &= \arg\max_{p_i + 48 \le v \le p_i + 400} S_i(v;\tau), &
-G &= \operatorname{median}_{\text{last 8 points}} q_1(\tau) - p_i, &
+q_1(\tau) &= \text{position of the 1-pe peak at delay } \tau, \qquad
+G = \operatorname{median}_{\text{last 8 points}} q_1(\tau) - p_i, \\
 \tau_\mathrm{min} &= \min\{\tau : q_1(\tau) - p_i \ge 0.95\,G\}.
 \end{align*}
 \begin{itemize}
-\item $\theta^\mathrm{e}$ edge of the noise plateau; $\Delta\theta$ one photoelectron in DAC
-  units.
-\item $q_1$ position of the 1-pe peak (most populated bin in the 1-pe region, interpolated
-  with its two neighbours): the response of the peak detector to one avalanche, read on the
-  peak, not on the mean (which also collects the dark pulses in the window).
-\item $G$ single-photoelectron gain; $\tau_\mathrm{min}$ minimum hold delay.
-\item Model of the front end: maximum of the shaped pulse 31~ns (25~ns) and 58~ns (50~ns)
-  after the crossing of the threshold.
+\item $G$ gain at this bias; $\tau_\mathrm{min}$ minimum hold delay; model of the front end:
+  maximum of the shaped pulse 31~ns (25~ns) and 58~ns (50~ns) after the threshold crossing.
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Threshold: the staircase at 5 V}
+\begin{frame}{Menu 2: staircase and response}
+\begin{columns}
+\column{0.42\textwidth}
+\centering
+\includegraphics[height=0.5\textheight]{staircase_100.png}
+\column{0.58\textwidth}
+\centering
+\includegraphics[height=0.5\textheight]{hold_scan_response.png}
+\end{columns}
+\begin{itemize}
+\item Staircase: edge at 179--182, one photoelectron = 20 DAC units, dark rate
+  $4.4\times10^{5}$~Hz above the edge; channels 61, 63 without steps.
+\item Response (right panels): plateau at 32--40~ns at 25~ns (model 31); at 128--160~ns at
+  50~ns (model 58); flat to the end of the scan. The mean (left) keeps growing.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Menu 2: summary}
+\begin{itemize}
+\item A threshold of 185 DAC units is a clean single-photoelectron trigger: the noise edge is
+  at 179--182 and one photoelectron 20 units.
+\item The response reaches its plateau at 32--40~ns for 25~ns of shaping (model 31~ns) and at
+  128--160~ns for 50~ns (model 58~ns); the stored amplitude then stays constant, as for an
+  ideal peak detector.
+\item Minimum hold delay: 40~ns at 25~ns, 160~ns at 50~ns.
+\item One photoelectron: 20 units of the threshold DAC (fast shaper); 150--182 counts of the
+  high-gain ADC (slow shaper, 25~ns).
+\end{itemize}
+\end{frame}
+
+\section{Menu 3: single-photoelectron calibration}
+
+\begin{frame}{Menu 3: dishes served, data}
+\begin{columns}
+\column{0.5\textwidth}
+\textbf{Dishes served}
+\begin{itemize}
+\item The gain, in ADC counts per photoelectron, is the unit of the whole chain.
+\item With a periodic trigger the window holds the pedestal or the dark pulse that fell
+  inside: the spectrum is a ladder of 0, 1, 2, \ldots~pe; the spacing is the gain.
+\item For every channel: the gain at three biases and three shapings; the breakdown voltage;
+  the pedestal noise of menu~1 in photoelectrons.
+\end{itemize}
+\column{0.5\textwidth}
+\textbf{Data}, boards 1, 2, 4, 50\,000 events per board, HoldDelay 200~ns
+\begin{itemize}
+\item Runs 108--110: 43~V at 25, 50, 87.5~ns.
+\item Runs 111, 112: 42 and 41~V at 25~ns.
+\item Staircases 113 (43~V), 114, 115 (41~V), board 1.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Menu 3: method}
+\begin{equation*}
+f(x) = \sum_{n=0}^{5} A_n \exp\left[-\frac{(x - p - n g)^2}{2(\sigma_0^2 + n\sigma_1^2)}\right],
+\qquad \text{resolved if } \sqrt{\sigma_0^2 + \sigma_1^2} < g/2,
+\qquad g = a\,(V - V_\mathrm{bd}), \qquad \sigma^\mathrm{pe} = \sigma / g.
+\end{equation*}
+\begin{itemize}
+\item A comb of six Gaussians per channel: $p$ pedestal, $g$ gain, $\sigma_0$ width of the
+  0-pe peak, $\sigma_1$ extra width per photoelectron; resolved when the 1-pe peak is narrower
+  than half the spacing.
+\item Seed: the peaks at 41~V, then scaled by the overvoltage.
+\item Breakdown $V_\mathrm{bd}$: the line through the gain at 41, 42, 43~V.
+\item Noise in photoelectrons: the pedestal noise of menu~1 over the median gain of the board.
+\item Blind channels left out.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Menu 3: ladders and gains}
 \begin{columns}
 \column{0.55\textwidth}
-\includegraphics[width=\textwidth]{staircase_100.png}
+\includegraphics[width=\textwidth]{spe_spectra.png}
 \column{0.45\textwidth}
+\begin{itemize}
+\item One channel at 41, 42, 43~V (top) and at 25, 50, 87.5~ns (bottom): clean at 25~ns,
+  merged at 87.5~ns.
+\item Resolved at 25~ns in 183, 184, 161 of 186 channels at 41, 42, 43~V; at 50~ns in 110;
+  at 87.5~ns in 26.
+\item Gain at 25~ns: 85--92, 127--134, 165--178 counts per pe at 41, 42, 43~V (board
+  medians); spread 2.4--5.6\% over the channels of a board.
+\item At 43~V: 165--178, 176--182, 170--173 at 25, 50, 87.5~ns.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Menu 3: breakdown voltage}
+\begin{columns}
+\column{0.6\textwidth}
+\includegraphics[width=\textwidth]{spe_breakdown.png}
+\column{0.4\textwidth}
+\begin{itemize}
+\item Gain linear in the bias: 41--42 counts per pe per volt.
+\item $V_\mathrm{bd}$ = 38.8, 38.8, 39.0~V (boards 1, 2, 4), rms 0.3~V over the channels.
+\item Expected 38~V (43~V set as 5~V of overvoltage): the biases are 4.1, 3.1, 2.1~V above
+  breakdown.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Menu 3: noise in photoelectrons, staircases}
+\centering
 \scriptsize
-\begin{tabular}{ll}
-\toprule
-edge $\theta^\mathrm{e}$ & 179 (179--182) \\
-one photoelectron $\Delta\theta$ & 20 DAC units \\
-rate 30 units above the edge & $4.4\times 10^{5}$~Hz \\
-blind channels & 61, 63 \\
-threshold of the scans & 185: below 1~pe \\
-\bottomrule
-\end{tabular}
-\end{columns}
-\end{frame}
-
-\begin{frame}{Response of the peak detector}
-\begin{columns}
-\column{0.62\textwidth}
-\includegraphics[width=\textwidth]{hold_scan_response.png}
-\column{0.38\textwidth}
+\input{\results/spe_noise_pe.tex}
+\normalsize
 \begin{itemize}
-\item Right: $q_1(\tau) - p_i$, the response to one avalanche. Left: the mean, which keeps
-  growing with the dark pulses in the window.
-\item 25~ns: plateau from 32--40~ns, flat to 248~ns; model 31~ns.
-\item 50~ns: plateau from 128--160~ns; model 58~ns.
-\item Hollow: stale points.
-\end{itemize}
-\end{columns}
-\end{frame}
-
-\begin{frame}{Spectra of the shooting channel}
-\begin{columns}
-\column{0.62\textwidth}
-\includegraphics[width=\textwidth]{hold_scan_spectra.png}
-\column{0.38\textwidth}
-\begin{itemize}
-\item Shooting channel 0, 25~ns: 1-pe peak at 265 counts at $\tau = 0$, at 315 from 32~ns on;
-  2 and 3~pe at 505 and 700, 190~counts apart.
-\item Channel 32, which does not trigger: the pedestal and a ladder of 1, 2, 3~pe that fills
-  as the window lengthens.
-\end{itemize}
-\end{columns}
-\end{frame}
-
-\begin{frame}{Knee and gain at 5 V}
-\centering
-\input{\results/hold_scan_knees.tex}
-
-\medskip
-\begin{itemize}
-\item Knee $\tau_\mathrm{min}$ and gain $G$ of the shooting channel; pedestal below breakdown
-  at the same shaping; ADC counts of the high gain.
-\item Minimum hold delay: 40~ns at 25~ns of shaping, 160~ns at 50~ns.
-\item Gain at 5~V: 150--182 counts per photoelectron at 25~ns (four channels), 185--192 at
-  50~ns.
+\item Noise at 43~V: 0.07 photoelectrons at the three shapings, half coherent. Model at 4.1~V:
+  0.137, 0.097, 0.073 at 25, 50, 87.5~ns.
+\item Staircases: one photoelectron = 22 DAC units at 43~V, 12.5 at 41~V; one DAC unit =
+  7.8 counts of the high gain.
+\item Entries at 0 at 43~V: 0.5\% at 25~ns to 12\% at 87.5~ns (F12).
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Menu 2: summary of results}
+\begin{frame}{Menu 3: summary}
 \begin{itemize}
-\item The discriminator triggers on the noise below 179--182 DAC units and one photoelectron
-  is 20 units: a threshold of 185 is a clean single-photoelectron trigger.
-\item At 25~ns the response reaches its plateau at 32--40~ns; the model predicts 31~ns. At
-  50~ns at 128--160~ns; the model predicts 58~ns.
-\item Once the window contains the maximum, the stored amplitude stays constant to the
-  longest delay scanned, as expected for an ideal peak detector.
-\item The 1-pe peak measures the response; the mean also counts the dark pulses in the window.
-\item One photoelectron: 20 units of the threshold DAC (fast shaper); 150--182 counts of the
-  high-gain ADC (slow shaper, 25~ns), 185--192 at 50~ns.
+\item The single-photoelectron calibration works at 25~ns: ladder resolved in nearly every
+  channel at the three biases; gain 165--178 counts per pe at 43~V, uniform to 2.4--5.6\%.
+\item Breakdown 38.8--39.0~V on the three boards; 43~V is 4.1~V above breakdown.
+\item The pedestal noise of the chain is 0.07 photoelectrons per channel, half coherent; as
+  the model at 87.5~ns, half the model at 25~ns. For the energy at 87.5~ns, 64 channels:
+  3.6~pe coherent, 0.4 incoherent, against 2500~pe of a 511~keV event in BGO.
+\item Open: entries at 0 growing with the shaping (F12).
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Menu 2: values}
-\centering
-\small
-\begin{tabular}{p{0.3\textwidth}p{0.52\textwidth}}
-\toprule
-threshold, 5~V, 25~ns & edge of the noise at 179--182 DAC units; one photoelectron = 20
-  units; 185 is below one photoelectron \\
-minimum hold delay & 40~ns at 25~ns of shaping; 160~ns at 50~ns \\
-gain at 5~V, high gain, preamplifier gain 55 & 150--182 counts per photoelectron at 25~ns
-  (four channels); 185--192 at 50~ns \\
-\bottomrule
-\end{tabular}
+\begin{frame}{Towards menu 4: calibration at 87.5 ns}
+\begin{itemize}
+\item The crystal data are taken at 87.5~ns, in both gains.
+\item High gain: $g_i(87.5) = r_b\, g_i(25)$, with $r_b$ the ratio of the gains at 87.5 and
+  25~ns on the channels resolved at both: 1.006 (26 channels, rms 0.044); per board 1.011,
+  0.981, 1.012.
+\item Low gain: single photoelectrons not resolvable (17 counts per pe against 6 of noise).
+  Menu 4, on the first crystal runs: per channel, a line of $\mathrm{LG} - p_\mathrm{LG}$
+  against $\mathrm{HG} - p_\mathrm{HG}$ (high gain below its ceiling, low gain above its
+  noise) through the origin; its inverse slope $r_i$ gives $g^\mathrm{LG}_i = g_i(87.5)/r_i$.
+\end{itemize}
 \end{frame}
 
-\input{menu3_slides.tex}
+\begin{frame}{Open points}
+\begin{itemize}
+\item F12: at 43~V a fraction of the high-gain entries reads 0, growing with the shaping.
+\item F13: the detector temperature of board 1 moves with the HV (JMB).
+\item F14: the DAQ applies a new hold delay with a lag of up to five points (JMB).
+\item F4: blind channels 61, 63 on board 1 and 3, 59, 61, 63 on board 4; board 3 not yet
+  measured with the CAEN adapters.
+\item F10: common-mode jumps of board 0 (not in this session).
+\end{itemize}
+\end{frame}
 
 \end{document}
