@@ -34,7 +34,7 @@ import numpy as np
 import pandas as pd
 from scipy.signal import lfilter
 
-from common import plt, results_dir, save
+from common import plt, results_dir, save, board_name
 
 TP_REF = 87.5
 N_EV = 20000
@@ -123,7 +123,7 @@ def main(day: str):
         x = c25[c25.board == b].set_index(["board", "channel"])
         rise = ((x.hg_mean - base.hg_mean.reindex(x.index)) / base.hg_rms.reindex(x.index))
         r = rise.groupby(x.hold).median()
-        ax[0].plot(r.index, r.values, "o-", ms=4, label=f"board {b}")
+        ax[0].plot(r.index, r.values, "o-", ms=4, label=f"board {board_name(day, b)}")
         print(f"  board {b} rise / rms(0): {np.round(r.values, 2).tolist()}")
     ax[0].plot(holds, mm - mm[0], "ks--", label="model: maximum of series noise")
     print(f"  model rise: {np.round(mm - mm[0], 2).tolist()}")
@@ -191,7 +191,7 @@ def data_figures(day: str, fs: int = 18):
         x = c25[c25.board == b].set_index(["board", "channel"])
         rise = ((x.hg_mean - base.hg_mean.reindex(x.index)) / base.hg_rms.reindex(x.index))
         r = rise.groupby(x.hold).median()
-        ax[0].plot(r.index, r.values, "o-", ms=9, lw=2, label=f"board {b}")
+        ax[0].plot(r.index, r.values, "o-", ms=9, lw=2, label=f"board {board_name(day, b)}")
     ax[0].set_ylabel("pedestal rise / rms at 0", fontsize=fs)
     ax[0].legend(fontsize=fs - 4, ncol=2, loc="upper left")
     ax[0].set_title(f"HG {tp:g} ns: pedestal against the window", fontsize=fs)

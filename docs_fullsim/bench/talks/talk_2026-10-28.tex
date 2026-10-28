@@ -37,10 +37,8 @@
 
 \section{Menu 1: pedestal noise}
 
-\begin{frame}{Menu 1: data and method}
-\begin{columns}
-\column{0.5\textwidth}
-\small
+\begin{frame}{Menu 1: data}
+\centering
 \begin{tabular}{llll}
 \toprule
 Runs & Purpose & HG shaping & HoldDelay \\
@@ -51,20 +49,32 @@ Runs & Purpose & HG shaping & HoldDelay \\
 \bottomrule
 \end{tabular}
 
-\medskip
-SiPMs at 36.5~V, periodic trigger at 1~kHz, 10\,000 events per board and run, preamplifier
-gains 55, peak detectors in peak-stretch mode, low gain shaped at 87.5~ns.
-\column{0.5\textwidth}
+\bigskip
+\raggedright
+SiPMs at 36.5~V, below breakdown; periodic trigger at 1~kHz; 10\,000 events per board and run;
+preamplifier gains 55; peak-stretch mode; low gain at 87.5~ns. Boards 1, 2 and 4, read by the
+DAQ as 0, 1, 2.
+\end{frame}
+
+\begin{frame}{Menu 1: method}
+Channel $i$, event $e$, high-gain value $v_i(e)$:
+\begin{align*}
+p_i &= \operatorname{median}_e v_i(e), \quad d_i(e) = v_i(e) - p_i, \quad
+\mathrm{CM}(e) = \tfrac{1}{n}\textstyle\sum_i d_i(e),\\
+d_i(e) &= b_i\,\mathrm{CM}(e) + r_i(e),\\
+\sigma_\mathrm{tot}^2 &= \langle d_i^2\rangle = \sigma_\mathrm{coh}^2 + \sigma_\mathrm{inc}^2,
+\quad \sigma_\mathrm{coh}^2 = \langle b_i^2\,\mathrm{CM}^2\rangle, \quad
+\sigma_\mathrm{inc}^2 = \langle r_i^2\rangle.
+\end{align*}
 \begin{itemize}
-\item Pedestal $p_i$: median of the channel over the run; deviation $d_i = v_i - p_i$.
-\item Common mode of a chip in an event: mean of the $d_i$ of its 32 channels, read at the
-  same trigger.
-\item Each channel takes the common mode with a slope $b_i$: coherent noise $b_i\,\mathrm{CM}$,
-  incoherent noise the remainder.
-\item Jumps of the chip (common mode beyond six robust widths) and single-channel outliers
-  (beyond five) are set aside.
+\item $p_i$ pedestal, $d_i$ deviation, $\mathrm{CM}$ common mode of the $n$ channels of the
+  chip read at the same trigger, $b_i$ slope of the channel against it, $r_i$ incoherent part;
+  $\langle\,\rangle$ over channels and events.
+\item Jumps of the chip ($|\mathrm{CM}| > 6\,s_\mathrm{CM}$) and outliers
+  ($|d_i - \mathrm{CM}| > 5\,s_i$) set aside; $s$ the robust width, 1.4826 times the median
+  absolute deviation.
+\item A \emph{blind channel} takes no common mode ($b_i < 0.75$) and is excluded from $n$.
 \end{itemize}
-\end{columns}
 \end{frame}
 
 \begin{frame}{Noise of every channel}
@@ -73,28 +83,28 @@ gains 55, peak detectors in peak-stretch mode, low gain shaped at 87.5~ns.
 \includegraphics[width=\textwidth]{bench_rms.png}
 \column{0.4\textwidth}
 \begin{itemize}
-\item Rms of the high gain at 25~ns: 12.0 to 12.4~counts in the median of each board, about
-  1~count of spread across the 64 channels.
-\item Low gain at 87.5~ns: 5.9~counts.
-\item Every channel of the three boards is read; pedestals between 100 and 300 counts.
-\item Red: the channels without signal from their SiPM, the quietest at long shaping.
+\item Every channel of the three boards is read; $100 < p_i < 300$.
+\item Rms at 25~ns: 12.0--12.4 counts in the median of each board (high gain), spread of
+  about 1~count over the 64 channels; 5.9 in the low gain.
+\item Red: the blind channels.
 \end{itemize}
 \end{columns}
 \end{frame}
 
 \begin{frame}{Coherent and incoherent noise per chip}
 \begin{columns}
-\column{0.5\textwidth}
+\column{0.55\textwidth}
 \centering
-\small
-\input{\results/compare_days_components_last.tex}
+\scriptsize
+\input{\results/menu1_chips.tex}
 
 \medskip
-High gain, 25~ns, HoldDelay 0, ADC counts.
-\column{0.5\textwidth}
+Run 91: high gain, 25~ns, HoldDelay 0, ADC counts; low gain at 87.5~ns.
+\column{0.45\textwidth}
 \begin{itemize}
-\item Six chips: total 11.9--12.7~counts, coherent 5.9--6.7, incoherent 10.3--10.8.
-\item The coherent part carries 24 to 28\% of the variance.
+\item Six chips: $11.9 \le \sigma_\mathrm{tot} \le 12.7$, $5.9 \le \sigma_\mathrm{coh} \le 6.7$,
+  $10.3 \le \sigma_\mathrm{inc} \le 10.8$.
+\item The coherent part carries 24--28\% of the variance.
 \item Correlation of the common modes: 0.59--0.64 between the two chips of a board, zero
   between boards.
 \item No jump of any chip in the nine runs.
@@ -104,15 +114,14 @@ High gain, 25~ns, HoldDelay 0, ADC counts.
 
 \begin{frame}{Dependence on the shaping time}
 \begin{columns}
-\column{0.58\textwidth}
-\includegraphics[width=\textwidth]{compare_days_shaping.png}
-\column{0.42\textwidth}
+\column{0.6\textwidth}
+\includegraphics[width=\textwidth]{noise_vs_shaping_data.png}
+\column{0.4\textwidth}
 \begin{itemize}
-\item Total noise 12.3, 12.8, 13.6~counts at 25, 50, 87.5~ns.
-\item The growth is coherent: 6.2, 8.0, 9.8~counts.
-\item The incoherent part falls: 10.6, 10.0, 9.6~counts.
-\item Low gain: 0.48, 0.46, 0.43 of the high-gain total.
-\item The three sessions coincide within the spread of the chips.
+\item Total 12.3, 12.8, 13.6 counts at 25, 50, 87.5~ns (median over the chips).
+\item $\sigma_\mathrm{coh}$ grows from 6.2 to 9.8 between 25 and 87.5~ns; $\sigma_\mathrm{inc}$
+  falls from 10.6 to 9.6.
+\item Low gain: 0.48, 0.46, 0.43 of $\sigma_\mathrm{tot}$ of the high gain.
 \end{itemize}
 \end{columns}
 \end{frame}
@@ -120,71 +129,55 @@ High gain, 25~ns, HoldDelay 0, ADC counts.
 \begin{frame}{Dependence on the hold delay}
 \begin{columns}
 \column{0.5\textwidth}
-\includegraphics[width=\textwidth]{compare_days_holddelay.png}
+\includegraphics[width=\textwidth]{noise_vs_holddelay_data.png}
 \column{0.5\textwidth}
 \begin{itemize}
-\item Peak-stretch mode: the stored value is the maximum of the shaped signal over the window
-  opened by the hold delay.
-\item At 25~ns the rms falls to 0.88, 0.76, 0.69, 0.63, 0.59 of its value at HoldDelay 0 for
-  96, 200, 296, 400, 496~ns; coherent and incoherent parts fall together, equally in the three
-  sessions.
-\item The pedestal rises with the window: 7.7~counts at 496~ns (0.62 of the rms), with no rise
-  up to 96~ns. On 22 and 23 October the rise was 0.80 of the rms at 496~ns and 0.21--0.28 at
-  96~ns.
+\item Peak-stretch mode: the stored value is the maximum of the shaped signal over the window.
+\item Both components narrow together: 1.00, 0.88, 0.76, 0.69, 0.63, 0.59 at 0, 96, 200, 296,
+  400, 496~ns.
+\item The pedestal rises with the window: 0.62 of $\sigma_\mathrm{tot}(0)$ at 496~ns in the
+  median; 0.81 on board 2, 0.51 on boards 1 and 4, where the rise starts after 96~ns.
 \end{itemize}
 \end{columns}
 \end{frame}
 
-\begin{frame}{Channels without signal from their SiPM}
+\begin{frame}{Blind channels}
 \begin{columns}
 \column{0.6\textwidth}
 \includegraphics[width=\textwidth]{bench_slopes.png}
 \column{0.4\textwidth}
 \begin{itemize}
-\item The common mode enters the chip through the SiPMs: a channel whose SiPM is not connected
-  takes a slope $b_i$ well below one.
-\item Board 1: channels 61 and 63 (slopes below 0.2). Channel 62, blind on 23 October, takes
-  the full common mode.
+\item The common mode enters the chip through the SiPMs: a channel whose SiPM signal does not
+  reach the chip takes a slope $b_i$ well below one.
+\item Board 1: channels 61 and 63 ($b_i < 0.2$). Channel 62, blind on 23 October, takes the
+  full common mode.
 \item Board 4: channels 3, 59, 61 and 63.
-\item Board 2: none. Every other channel of the three boards is above 0.85.
+\item Board 2: none. Every other channel: $b_i > 0.85$.
 \end{itemize}
 \end{columns}
 \end{frame}
 
-\begin{frame}{The three sessions}
-\centering
-\scriptsize
-\input{\results/compare_days_summary.tex}
-
-\smallskip
-\footnotesize
-22 Oct: boards 0--4, in-house adapter boards, earlier firmware. 23 Oct: boards 0 and 1, CAEN
-adapter boards. 27 Oct: boards 1, 2 and 4, CAEN adapter boards, upgraded firmware.
-\normalsize
-\begin{itemize}
-\item Eighteen chips over three sessions: total noise at 25~ns between 11.9 and 12.7~counts
-  on sixteen of them, coherent fraction 0.24--0.33; the same dependence on the shaping and
-  the same narrowing with the hold delay.
-\item The noise is a property of the board and the chip: the same on the five boards, with
-  either adapter board and either firmware.
-\end{itemize}
-\end{frame}
-
 \begin{frame}{Values frozen for the noise model}
 High gain, preamplifier gain 55, ADC counts:
-\begin{enumerate}
-\item At 25~ns and HoldDelay 0, per channel: total 12.3, coherent 6.2, incoherent 10.6.
-\item Against the shaping, HoldDelay 0: total 12.3, 12.8, 13.6 and coherent 6.2, 8.0, 9.8 at
-  25, 50, 87.5~ns; incoherent 10.6, 10.0, 9.6.
-\item Against the hold delay, 25~ns: both components scaled by 1.00, 0.88, 0.76, 0.69, 0.63,
-  0.59 at 0, 96, 200, 296, 400, 496~ns.
-\item The coherent component is common to the 64 channels of a board, correlation 0.6 between
-  its chips, none between boards.
-\item Low gain at 87.5~ns: 0.46 of the high-gain noise.
-\item Boards 1 and 4: two and four channels without signal from their SiPM.
-\end{enumerate}
 \medskip
-The conversion to photoelectrons takes the single-photoelectron gain from menu 3.
+
+\centering
+\small
+\begin{tabular}{lp{0.5\textwidth}}
+\toprule
+per channel, 25 ns, HoldDelay 0 & $\sigma_\mathrm{tot} = 12.3$, $\sigma_\mathrm{coh} = 6.2$, $\sigma_\mathrm{inc} = 10.6$ \\
+against the shaping (25, 50, 87.5 ns) & $\sigma_\mathrm{coh} = 6.2, 8.0, 9.8$; $\sigma_\mathrm{inc} = 10.6, 10.0, 9.6$ \\
+against the hold delay (0--496 ns, 25 ns) & both components scaled by 1.00, 0.88, 0.76, 0.69, 0.63, 0.59 \\
+coherent component & common to the 64 channels of a board; correlation 0.6 between its chips, 0 between boards \\
+low gain, 87.5 ns & 0.46 of $\sigma_\mathrm{tot}$ of the high gain \\
+blind channels & board 1: 61, 63; board 4: 3, 59, 61, 63 \\
+\bottomrule
+\end{tabular}
+\medskip
+
+\raggedright
+The sessions of 22 and 23 October (five boards, both adapter boards, both firmwares) gave the
+same values. The conversion to photoelectrons takes the single-photoelectron gain from menu 3.
 \end{frame}
 
 \section{Menu 2: threshold and hold delay}
