@@ -126,6 +126,8 @@ Run 91: high gain, 25~ns, HoldDelay 0, ADC counts; low gain at 87.5~ns.
 \item Correlation of the common modes: 0.59--0.64 between the two chips of a board, zero
   between boards.
 \item No jump of any chip in the nine runs.
+\item Expected: independent channels. Observed: a quarter of the variance shared by the
+  board, entering through the SiPMs.
 \end{itemize}
 \end{columns}
 \end{frame}
@@ -140,6 +142,8 @@ Run 91: high gain, 25~ns, HoldDelay 0, ADC counts; low gain at 87.5~ns.
 \item $\sigma_\mathrm{coh}$ grows from 6.2 to 9.8 between 25 and 87.5~ns; $\sigma_\mathrm{inc}$
   falls from 10.6 to 9.6.
 \item Low gain: 0.48, 0.46, 0.43 of $\sigma_\mathrm{tot}$ of the high gain.
+\item Expected for white series noise: $\propto t_p^{-1/2}$, 12.3, 8.7, 6.6. Not series
+  white noise.
 \end{itemize}
 \end{columns}
 \end{frame}
@@ -155,6 +159,8 @@ Run 91: high gain, 25~ns, HoldDelay 0, ADC counts; low gain at 87.5~ns.
   400, 496~ns.
 \item The pedestal rises with the window: 0.62 of $\sigma_\mathrm{tot}(0)$ at 496~ns in the
   median; 0.81 on board 2, 0.51 on boards 1 and 4, where the rise starts after 96~ns.
+\item Expected for white noise and an ideal peak detector: rms 0.60 at 96~ns, rise 1.7.
+  Few independent fluctuations per window.
 \end{itemize}
 \end{columns}
 \end{frame}

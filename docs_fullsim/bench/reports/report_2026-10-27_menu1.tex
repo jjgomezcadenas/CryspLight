@@ -4,6 +4,7 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage{placeins}
 \usepackage{float}
+\usepackage{needspace}
 \graphicspath{{../../../fullsim_analysis/results/bench/2026-10-27/}}
 \newcommand{\results}{../../../fullsim_analysis/results/bench/2026-10-27}
 \newcommand{\us}{\textmu s}
@@ -27,7 +28,7 @@ this report & pedestal noise of the three boards; dependence on the shaping time
 \end{tabular}
 \end{center}
 
-\section{Goal}
+\section{Dishes served}
 
 \begin{itemize}
 \item Every channel of the Citiroc stores, at each trigger, the maximum of its shaped signal
@@ -42,8 +43,6 @@ this report & pedestal noise of the three boards; dependence on the shaping time
   \item how much of the noise is common to the channels of a chip (coherent) and how much
     is proper to each channel (incoherent).
   \end{itemize}
-\item These are the inputs of the noise model of the simulation, and the reference against
-  which the channels without signal from their SiPM (blind channels) are found.
 \end{itemize}
 
 \section{Data}
@@ -52,8 +51,13 @@ this report & pedestal noise of the three boards; dependence on the shaping time
 \item Runs: nine (Table~\ref{tab:runs}), 10\,000 events per board and run.
 \item SiPMs: HV\_Vbias 40.7~V, 36.5~V at the SiPM, below breakdown.
 \item Trigger: periodic, 1~kHz.
-\item Citiroc: preamplifier gains 55 in both paths; peak detectors in peak-stretch mode; low
-  gain shaped at 87.5~ns; high gain at 25, 50 or 87.5~ns.
+\item Citiroc:
+  \begin{itemize}
+  \item preamplifier gains 55 in both paths;
+  \item peak detectors in peak-stretch mode;
+  \item low gain shaped at 87.5~ns;
+  \item high gain at 25, 50 or 87.5~ns.
+  \end{itemize}
 \end{itemize}
 
 \begin{table}[H]
@@ -66,7 +70,8 @@ this report & pedestal noise of the three boards; dependence on the shaping time
 
 \section{Method}
 
-For channel $i$ of a chip and event $e$, with $v_i(e)$ the high-gain value:
+The method is that of the noise note~\cite{noisenote}. For channel $i$ of a chip and event $e$,
+with $v_i(e)$ the high-gain value:
 \begin{align*}
 p_i &= \operatorname{median}_e v_i(e), & d_i(e) &= v_i(e) - p_i, &
 \mathrm{CM}(e) &= \frac{1}{n}\sum_{i} d_i(e),\\
@@ -115,15 +120,10 @@ $\sigma_\mathrm{tot}$ of the channel as the error bar.}
 \includegraphics[width=0.85\textwidth]{bench_rms.png}
 \caption{Rms of every channel without jumps and outliers: high gain at 25, 50 and 87.5~ns and
 low gain at 87.5~ns. One box per board: the box spans the middle half of the channels, the
-line inside is the median, the whiskers reach the lowest and highest channel; blind channels
+line inside is the median, the lines reach the lowest and highest channel; blind channels
 in red.}
 \label{fig:rms}
 \end{figure}
-
-% - Can be itemized
-% Every channel of the three boards is read; $100 < p_i < 300$ (Figure~\ref{fig:pedestals}).
-%At 25~ns the median rms per board is 12.0 to 12.4 in the high gain and 5.9 in the low gain
-% spread...
 \begin{itemize}
 \item Every channel of the three boards is read; $100 < p_i < 300$ (Figure~\ref{fig:pedestals}).
 \item Rms at 25~ns, median per board: 12.0--12.4 in the high gain, 5.9 in the low gain
@@ -149,8 +149,6 @@ $\sigma_\mathrm{inc}$ of each chip (left) and the coherent fraction of the varia
 total noise of the low gain.}
 \label{tab:chips}
 \end{table}
-
-% -- same
 \begin{itemize}
 \item Six chips (Figure~\ref{fig:chips}, Table~\ref{tab:chips}): $11.9 \le \sigma_\mathrm{tot}
   \le 12.7$, $5.9 \le \sigma_\mathrm{coh} \le 6.7$, $10.3 \le \sigma_\mathrm{inc} \le 10.8$.
@@ -158,6 +156,14 @@ total noise of the low gain.}
 \item Correlation of the common modes: 0.59--0.64 between the two chips of a board; $-0.01$
   to 0.02 between boards.
 \item Jumps: none, in any chip and run.
+\end{itemize}
+\needspace{6\baselineskip}
+Against expectations:
+\begin{itemize}
+\item Expected (noise model of the simulation): independent channels, no coherent part.
+\item Observed: a quarter of the variance is coherent, shared by the 64 channels of a board,
+  absent from the blind channels (it enters through the SiPMs) and uncorrelated between
+  boards.
 \end{itemize}
 
 \subsection{Dependence on the shaping time}
@@ -178,12 +184,20 @@ chips, bars to the extreme chips; the low gain (87.5~ns in all runs) in black.}
 time, and the total noise of the low gain.}
 \label{tab:shaping}
 \end{table}
-
-%-- same
 \begin{itemize}
 \item From 25 to 87.5~ns (Figure~\ref{fig:shaping}, Table~\ref{tab:shaping}):
   $\sigma_\mathrm{coh}$ grows from 6.2 to 9.8; $\sigma_\mathrm{inc}$ falls from 10.6 to 9.6.
 \item Low gain: 0.48, 0.46, 0.43 of $\sigma_\mathrm{tot}$ of the high gain at 25, 50, 87.5~ns.
+\end{itemize}
+\needspace{6\baselineskip}
+Against expectations:
+\begin{itemize}
+\item Expected (white series noise, as in the model): $\sigma \propto t_p^{-1/2}$, that is
+  12.3, 8.7, 6.6 at 25, 50, 87.5~ns; the same noise in both gains.
+\item Observed: $\sigma_\mathrm{inc}$ falls by 10\% instead of 47\%; $\sigma_\mathrm{coh}$
+  grows by 58\%, as white parallel noise ($\propto t_p^{+1/2}$: 6.2, 8.8, 11.6) or a
+  low-frequency noise would; the low gain has 0.46 of the noise of the high gain. The noise is
+  not series white noise.
 \end{itemize}
 
 \subsection{Dependence on the hold delay}
@@ -214,6 +228,15 @@ and the rise of the pedestal $\Delta p$ (median over the channels) against the h
 \item The pedestal rises with the window: 0.62 of $\sigma_\mathrm{tot}(0)$ at 496~ns in the
   median; 0.81 on board 2, 0.51 on boards 1 and 4 (Figure~\ref{fig:hold}).
 \item Boards 1 and 4: no rise up to 96~ns.
+\end{itemize}
+\needspace{6\baselineskip}
+Against expectations:
+\begin{itemize}
+\item Expected (white noise at 25~ns, ideal peak detector): the rms falls to 0.60 at 96~ns and
+  0.50 at 296~ns; the pedestal rises by 1.7 and 2.2 times $\sigma_\mathrm{tot}(0)$.
+\item Observed: the rms falls to 0.88 and 0.69, the pedestal rises by 0.03 and 0.38: few
+  independent fluctuations fit in the window. Either the noise varies over hundreds of
+  nanoseconds (a low-frequency noise), or the peak detector is slower than ideal.
 \end{itemize}
 
 \subsection{Blind channels}
@@ -266,4 +289,10 @@ blind channels & board 1: 61, 63; board 4: 3, 59, 61, 63 \\
 \label{tab:values}
 \end{table}
 
+\begin{thebibliography}{1}
+\bibitem{noisenote} J.\,J.~Gómez-Cadenas, \emph{Noise of the Citiroc front end: how it is
+  measured, and what the bench shows}, CRYSP note, October 2026.
+\end{thebibliography}
+
 \end{document}
+
