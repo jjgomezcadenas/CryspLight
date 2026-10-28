@@ -9,21 +9,25 @@ fullsim_analysis/scripts/bench/inspect_run.jl, noise_components.jl and fullsim_a
 the daily reports are in docs_fullsim/bench/. The requests that follow from the open entries
 are listed at the end.
 Boards are numbered as in the DAQ (board 0-4 = chain,node 0,0 / 0,1 / 1,0 / 1,1 / 1,2),
-channels 0-63.
+channels 0-63. On 27 Oct only three boards were read, on one chain: DAQ boards 0, 1, 2 =
+chain,node 0,0 / 0,1 / 0,2 are Laura's boards 1, 2 and 4 (logbook of 27 Oct; the blind channels
+and the temperatures agree, benchdata/README.md); in the entries below the 27 Oct boards are named by Laura's number.
 
 | # | Finding | Seen | Status |
 |---|---|---|---|
 | F1 | All values at full scale (8191) | 21 Oct, runs 1-9, hold scan 12 | solved (JMB) |
 | F2 | HV_Vbias 40.7 V in the files, 36.5 V in the logbook | 21 Oct | explained |
 | F3 | Logbook temperature was the board's | 21 Oct | solved |
-| F4 | Blind channels: board 0 (green adapter, solved with the red one); board 1 61-63 persist; boards 3, 4 untested | 21-23 Oct | open |
+| F4 | Blind channels: board 0 (green adapter, solved with the red one); board 1 61, 63 persist (27 Oct); board 4: 3, 59, 61, 63 (27 Oct); board 2 none; board 3 untested with the red adapters | 21-27 Oct | open |
 | F5 | Board 0: low dark rate in channels 0, 2, 8, 10 | 21 Oct, scans 10-11 | open |
 | F6 | 0xDEADBEEF as a staircase count | 21 Oct, scan 11 | open |
-| F7 | Boards 1 and 4: channels 0-31 read 0 in every event | 22 Oct, runs 26-34 | solved (FPGA firmware, 23 Oct) |
+| F7 | Boards 1 and 4: channels 0-31 read 0 in every event | 22 Oct, runs 26-34 | solved (FPGA firmware, 23 Oct; board 4 confirmed 27 Oct) |
 | F8 | Scans without logbook rows or staircase.h5 | 21 Oct, scans 10-12 | open |
 | F9 | Board 2 runs a different firmware | 22 Oct, runs 26-34 | explained (newer firmware, F7) |
 | F10 | Board 0: common-mode jumps of the whole board in 0.1-0.4% of the events | 22 Oct, runs 26-32 | open |
 | F11 | Two pedestal peaks in the quick-look plots grouped by node | 22 Oct, runs 26-34 | explained |
+| F12 | Periodic-trigger runs at 5 V: high gain at 0 in 1-11% of the measurements, growing with the shaping | 27 Oct, runs 108-112 | open |
+| F13 | Detector temperature of board 1 falls from 21.6 to 11.6 C along the session; boards 2 and 4 stable | 27 Oct, runs 91-112 | open |
 
 ## F1. All values at full scale
 
@@ -78,9 +82,13 @@ channels 0-63.
   channel), so there the fault is not in the adapter but in the SiPM matrix, the cable or the
   connector on the board side. No channel is dead on the four chips. Evidence:
   2026-10-23/channel_noise.csv, bench_slopes.png.
-- **Action:** measure boards 3 and 4 with the red adapters (menu 1, step 1), noting which SiPM
-  matrix goes on each board, to see whether their blind channels follow the adapter, the
-  matrix or the board; board 4 needs the FPGA upgrade first (F7).
+- **27 Oct, boards 1, 2 and 4 (runs 91-99, pedestals; staircases 100, 113-115 on board 1):**
+  board 1 keeps 61 and 63 blind (slopes below 0.75; the staircases count 0-4 Hz there), 62 now
+  takes the common mode; board 4 has 3, 59, 61 and 63 blind (59, 61, 63 as predicted on 22 Oct,
+  channel 3 new); board 2 none. Evidence: 2026-10-27/channel_noise.csv, bench_slopes.png,
+  staircase_100_channels.csv.
+- **Action:** board 3 with the red adapters; note which SiPM matrix goes on each board, to see
+  whether the blind channels follow the adapter, the matrix or the board.
 - **Consequence:** these channels cannot be calibrated with the periodic trigger and will not
   record the crystal light.
 
@@ -122,8 +130,9 @@ channels 0-63.
   22 Oct (F9). Menu 1 was repeated with the red adapters and the new firmware in runs 42-50.
 - **Status:** solved for board 1, confirmed in the data: in run 35 (old firmware) its chip 0
   reads 0 in 56% of the measurements; in runs 42 and 50 (new firmware) no value of either chip
-  of boards 0 and 1 is 0 and the pedestals are 136-175 counts. Board 4 has not been upgraded
-  or measured again yet.
+  of boards 0 and 1 is 0 and the pedestals are 136-175 counts. Board 4 upgraded before 27 Oct:
+  in runs 91-99 (boards 1, 2, 4 on firmware 0xa7070800) both chips of every board are read,
+  pedestals 138-170 counts (2026-10-27/runs.csv).
 
 ## F8. Scans without logbook rows
 
@@ -163,6 +172,8 @@ channels 0-63.
 - **23 Oct, red adapters (runs 42-50):** the jumps persist on board 0, 21-61 per chip in runs
   42-45 and none in runs 46-50, on both chips; board 1 has none. They do not come from our
   adapter board but from board 0 or its connection.
+- **27 Oct (boards 1, 2, 4, runs 91-99):** no jumps on any chip in the nine pedestal runs
+  (2026-10-27/noise_components.csv). Board 0 was not in the set.
 - **Action:** question to JMB and Laura (is anything different in the cabling or the power of
   board 0?); watch for it in the next runs.
 
@@ -182,6 +193,41 @@ channels 0-63.
   run (manifest execution_identity.topology.boards, or configuration/effective/boards in the
   event file). Recipe in the report of 22 Oct.
 
+## F12. High gain at 0 in the periodic-trigger runs
+
+- **Seen:** 27 Oct, runs 108-112 (menu 3, periodic trigger, HoldDelay 200 ns, SiPMs above
+  breakdown). At 5 V of overvoltage the high gain reads 0 in 1.1-1.8% of the measurements at
+  25 ns (run 108), 4.8-6.3% at 50 ns (109) and 9.7-11.4% at 87.5 ns (110), in most channels of
+  the three boards; at 4 V 0.2-0.4% (111) and at 3 V none (112). The pedestal runs of the day
+  have no value at 0. Evidence: 2026-10-27/channels.csv (column of the fraction at 0), the
+  warnings of inspect_run.jl.
+- **Hypothesis:** the stored value is the maximum of the shaped signal in the window; when a
+  dark pulse precedes the window its undershoot can hold the signal below the pedestal, and
+  the ADC clips at 0. The fraction grows with the shaping (longer undershoot) and with the
+  overvoltage (dark rate), as seen. To be checked on the model (fullsim_analysis/scripts/citiroc_calib.jl)
+  before the SPE calibration treats those entries.
+- **Consequence:** the entries at 0 are lost from the ladder; the 0-pe peak of the calibration
+  must be taken from the measurements above 0 only.
+
+## F13. Detector temperature of board 1
+
+- **Seen:** 27 Oct. The detector temperature recorded by board 1 (DAQ board 0) falls along the
+  session: 21.6-21.9 C in runs 91-99, 18.9-19.0 in 108-110, 16.2 in 111 and 11.6 C in 112,
+  while boards 2 and 4 stay at 24.4-24.8 and 25.4-25.9 C and the board temperatures of the
+  three are stable (49-56 C). On 23 Oct board 1 read 22.2-22.3 C in every run. Evidence:
+  2026-10-27/runs.csv, 2026-10-23/runs.csv.
+- **In the logbook:** 21.6-21.9 C through menu 1 (SiPMs below breakdown), then 11.4 C at the
+  staircase 100 (17:55 local, the first measurement at 43 V) and 19.0-19.1 C in the hold-delay
+  scans that follow: the reading moves with the HV, not with time.
+  Laura saw it on the bench (logbook, runs 111-112: "Temperature in board 1 fluctuates a lot
+  but the current seems to be nice"); nothing was cooling the matrix.
+- **Cause:** unknown; a sensor or its connection reacting to the bias of the board (the other
+  boards do not). The HV current of board 1 follows the overvoltage like the others.
+- **Consequence:** the temperature of board 1 cannot be used for the overvoltage correction of
+  its channels; the breakdown of that matrix has to come from the gain against HV_Vbias alone.
+- **Action:** question to JMB (sensor type and reading of that board); check the sensor on the
+  bench with the HV off and on.
+
 ## Requests
 
 Open entries and what they need, by person. For Laura, menu 1 is complete; the next session
@@ -192,4 +238,5 @@ is menu 2 (bench note 2), with the corrections listed in the report of 22 Oct.
   asked: a single invalid point, flagged by staircase.py.
 - **Laura:** F11 (group by chain and node in the quick-look plots); F4 and F5 (staircases of the five boards, in menu 2; contacts and connector of
   the board-0 channels), F8 (logbook rows of scans 10-12), F10 (cabling and power of board 0);
-  after F7 is solved, repeat menu 1 for the 64 missing channels.
+  which SiPM matrix went on each of the boards 1, 2 and 4 on 27 Oct (F4).
+- **JMB:** F13 (the detector temperature of board 1 moves with the HV).
