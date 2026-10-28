@@ -42,6 +42,8 @@
 \item At each trigger a channel stores the maximum of its shaped signal inside a window
   (peak-stretch mode). With the SiPMs below breakdown there is no signal: the stored value is
   the pedestal, and its fluctuation is the noise of the electronics.
+\item The peak detector, after the slow shaper, follows the signal from the opening of the
+  window, holds the highest value reached and stops at the hold; the ADC reads that value.
 \item Measured for every channel of every board:
   \begin{itemize}
   \item the pedestal and its noise;
@@ -160,7 +162,7 @@ Run 91: high gain, 25~ns, HoldDelay 0, ADC counts; low gain at 87.5~ns.
 \item The pedestal rises with the window: 0.62 of $\sigma_\mathrm{tot}(0)$ at 496~ns in the
   median; 0.81 on board 2, 0.51 on boards 1 and 4, where the rise starts after 96~ns.
 \item Expected for white noise and an ideal peak detector: rms 0.60 at 96~ns, rise 1.7.
-  Few independent fluctuations per window.
+  A possible cause is a shift of the baseline with the hold delay.
 \end{itemize}
 \end{columns}
 \end{frame}

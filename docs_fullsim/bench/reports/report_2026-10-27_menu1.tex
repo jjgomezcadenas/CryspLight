@@ -35,6 +35,10 @@ this report & pedestal noise of the three boards; dependence on the shaping time
   inside a window (peak-stretch mode). With the SiPMs below breakdown there is no signal: the
   stored value is the pedestal of the channel, and its fluctuation is the noise of the
   electronics.
+\item The peak detector is the stage of the Citiroc after the slow shaper. In peak-stretch
+  mode it follows the shaped signal from the opening of the window, holds the highest value
+  reached, and stops at the hold (HoldDelay after the trigger); that value is what the ADC
+  reads.
 \item Menu 1 measures, for every channel of every board:
   \begin{itemize}
   \item the pedestal and its noise;
@@ -234,9 +238,8 @@ Against expectations:
 \begin{itemize}
 \item Expected (white noise at 25~ns, ideal peak detector): the rms falls to 0.60 at 96~ns and
   0.50 at 296~ns; the pedestal rises by 1.7 and 2.2 times $\sigma_\mathrm{tot}(0)$.
-\item Observed: the rms falls to 0.88 and 0.69, the pedestal rises by 0.03 and 0.38: few
-  independent fluctuations fit in the window. Either the noise varies over hundreds of
-  nanoseconds (a low-frequency noise), or the peak detector is slower than ideal.
+\item Observed: the rms falls to 0.88 and 0.69, the pedestal rises by 0.03 and 0.38, by
+  board-dependent amounts. A possible cause is a shift of the baseline with the hold delay.
 \end{itemize}
 
 \subsection{Blind channels}
