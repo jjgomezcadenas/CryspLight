@@ -224,6 +224,8 @@ same values.
 
 \begin{frame}{Menu 2: goal}
 \begin{itemize}
+\item The peak detector, after the slow shaper, follows the signal from the opening of the
+  window, holds the highest value reached and stops at the hold; the ADC reads that value.
 \item Above breakdown every channel produces dark pulses, several MHz, almost all of one
   photoelectron; with crosstalk, 2, 3, \ldots~pe. They are the test signal of this menu.
 \item Two parameters of the data taking with the crystal are set:
@@ -356,14 +358,13 @@ threshold of the scans & 185: below 1~pe \\
 \begin{itemize}
 \item The discriminator triggers on the noise below 179--182 DAC units and one photoelectron
   is 20 units: a threshold of 185 is a clean single-photoelectron trigger.
-\item The peak detector reaches the maximum of a 25~ns pulse 32--40~ns after the trigger,
-  where the model puts it; at 50~ns it takes 130--160~ns, 70--100~ns more than the model.
-\item Once the window contains the maximum, the stored amplitude of one avalanche stays
-  constant up to the longest delay scanned.
-\item The 1-pe peak, not the mean, is the observable of the scan: the mean keeps growing with
-  the dark pulses that the window collects.
-\item The four channels scanned: 150--182 counts per photoelectron at 25~ns, 185--192 at
-  50~ns.
+\item At 25~ns the response reaches its plateau at 32--40~ns; the model predicts 31~ns. At
+  50~ns at 128--160~ns; the model predicts 58~ns.
+\item Once the window contains the maximum, the stored amplitude stays constant to the
+  longest delay scanned, as expected for an ideal peak detector.
+\item The 1-pe peak measures the response; the mean also counts the dark pulses in the window.
+\item One photoelectron: 20 units of the threshold DAC (fast shaper); 150--182 counts of the
+  high-gain ADC (slow shaper, 25~ns), 185--192 at 50~ns.
 \end{itemize}
 \end{frame}
 

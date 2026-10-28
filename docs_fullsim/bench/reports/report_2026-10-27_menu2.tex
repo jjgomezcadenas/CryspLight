@@ -27,9 +27,13 @@ this report & threshold of the discriminator; response of the peak detector to o
 \end{tabular}
 \end{center}
 
-\section{Goal}
+\section{Dishes served}
 
 \begin{itemize}
+\item The peak detector is the stage of the Citiroc after the slow shaper. In peak-stretch
+  mode it follows the shaped signal from the opening of the window, holds the highest value
+  reached, and stops at the hold (HoldDelay after the trigger); that value is what the ADC
+  reads.
 \item Above breakdown every channel produces dark pulses, several MHz per channel, almost all
   of one photoelectron (pe); those with crosstalk are of 2, 3, \ldots~pe. They are the test
   signal of this menu.
@@ -53,16 +57,21 @@ this report & threshold of the discriminator; response of the peak detector to o
 \section{Data}
 
 \begin{itemize}
-\item Settings common to all scans: HV\_Vbias 47.2~V (43~V at the SiPM); TD\_CoarseThreshold
-  185; preamplifier gains 55; peak-stretch mode; low gain at 87.5~ns.
-\item Staircase (scan 100): 64 channels, thresholds 150 to 300 in steps of 1, 0.5~s per
-  point, 25~ns.
+\item Settings common to all scans:
+  \begin{itemize}
+  \item HV\_Vbias 47.2~V, 43~V at the SiPM;
+  \item TD\_CoarseThreshold 185;
+  \item preamplifier gains 55;
+  \item peak-stretch mode;
+  \item low gain at 87.5~ns.
+  \end{itemize}
+\item Staircase (scan 100): 64 channels, thresholds from 150 to 300 DAC units in steps of 1,
+  0.5~s per point, 25~ns.
 \item Hold-delay scans (Table~\ref{tab:scans}): trigger limited to one channel (the shooting
   channel); the high-gain spectrum of every channel stored at each delay; 10\,000 events per
   delay.
-\item The DAQ applies a new delay with a lag of up to five points: the first points of each
-  scan but the first keep the values of the last delay of the previous scan. They are flagged
-  (Section~\ref{sec:method}) and left out.
+\item The DAQ applied each new delay with a lag of up to five points; those points are left
+  out.
 \end{itemize}
 
 \begin{table}[H]
@@ -92,9 +101,13 @@ each scan still at the delay of the previous scan.}
 
 What the DAQ does:
 \begin{itemize}
-\item sets the threshold $\theta$ of the 64 discriminators, counts the triggers of each
-  channel for 0.5~s, lowers $\theta$ by one unit, and repeats from 300 to 150;
-\item the result is the trigger rate $R_i(\theta)$ of each channel $i$.
+\item sets the threshold $\theta$ of the 64 discriminators (TD\_CoarseThreshold, in DAC
+  units), counts the triggers of each channel for 0.5~s, lowers $\theta$ by one unit, and
+  repeats;
+\item the range, 300 down to 150, covers from about six photoelectrons down to below the
+  edge of the noise, near 180;
+\item the result is the trigger rate $R_i(\theta)$ of each channel $i$, and the rate of the
+  OR of the 64 discriminators (T-OR), the trigger of the board.
 \end{itemize}
 What it shows:
 \begin{itemize}
@@ -171,8 +184,8 @@ G &= \operatorname{median}_{\text{last 8 points}} q_1(\tau) - p_i, \qquad
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{staircase_100.png}
-\caption{Scan 100, 25~ns, 5~V: $R_i(\theta)$ of the 64 channels of board 1 and the rate of the
-OR of the 64 channels.}
+\caption{Scan 100, 25~ns, 5~V: $R_i(\theta)$ of the 64 channels of board 1 (one line per
+channel) and the rate of the OR of the 64 discriminators (T-OR, black).}
 \label{fig:staircase}
 \end{figure}
 
@@ -181,13 +194,18 @@ OR of the 64 channels.}
 \begin{tabular}{ll}
 \toprule
 edge $\theta^\mathrm{e}$ & 179 (median), 179--182 \\
-one photoelectron $\Delta\theta$ & 20 DAC units \\
+one photoelectron $\Delta\theta$ & 20 DAC units (distance between the steps of
+  Figure~\ref{fig:staircase}) \\
 rate 30 units above the edge & $4.4\times 10^{5}$~Hz (median) \\
 blind channels & 61, 63: below $10^{3}$~Hz within 10 units of the edge \\
 threshold of the scans, 185 & 4--6 units above the edge, below one photoelectron \\
 \bottomrule
 \end{tabular}
 \end{center}
+\begin{itemize}
+\item Figure~\ref{fig:staircase}: plateau of every channel below 180; steps every 20 units
+  above it, to 300 (six photoelectrons); two channels (61, 63) with no steps.
+\end{itemize}
 
 \subsection{Response of the peak detector}
 
@@ -217,15 +235,30 @@ channel, ADC counts of the high gain.}
 \label{tab:knees}
 \end{table}
 
+Figure~\ref{fig:response}, right (1-pe peak):
 \begin{itemize}
-\item 25~ns: $q_1$ rises from the pedestal region to its plateau at 32 to 40~ns in the four
-  channels and stays flat to 248~ns (Figure~\ref{fig:response}, Table~\ref{tab:knees}); the
-  model's maximum is at 31~ns.
-\item 50~ns: $q_1$ reaches its plateau at 128 to 160~ns; the model's maximum is at 58~ns.
-\item The mean rises with $q_1$ and keeps growing after the knee.
-\item Scan 101 (Figure~\ref{fig:spectra}): 1-pe peak at 265 counts at $\tau = 0$, at 315 from
-  32~ns on; 2 and 3~pe at 505 and 700, 190 counts apart.
-\item Gain $G$ at 5~V: 175, 150, 159 and 182 counts per photoelectron in channels 0, 20, 40
+\item 25~ns: rises from 125 counts above the pedestal at $\tau = 0$ to a plateau of 150--182
+  at 32--40~ns, in the four channels; flat to 248~ns.
+\item 50~ns: rises from 110 at 80~ns to a plateau of 185--192 at 128--160~ns; flat to 496~ns.
+\item Model: maximum of the shaped pulse at 31~ns (25~ns) and 58~ns (50~ns), dotted.
+\end{itemize}
+Figure~\ref{fig:response}, left (mean):
+\begin{itemize}
+\item rises with the 1-pe peak up to the knee, then keeps growing to the end of the scan,
+  with the dark pulses and the crosstalk that fall inside the window.
+\end{itemize}
+Figure~\ref{fig:spectra} (scan 101, 25~ns):
+\begin{itemize}
+\item shooting channel: 1-pe peak at 265 counts at $\tau = 0$, at 315 from 32~ns on; 2 and
+  3~pe peaks at 505 and 700, 190 counts apart;
+\item channel 32, which does not trigger: the pedestal, and a ladder of 1, 2, 3~pe that fills
+  as the window lengthens.
+\end{itemize}
+Table~\ref{tab:knees}:
+\begin{itemize}
+\item knee $\tau_\mathrm{min}$: 32--40~ns at 25~ns (64~ns in channel 20, whose peak is noisy);
+  128 and 160~ns at 50~ns;
+\item gain $G$ at 5~V: 175, 150, 159 and 182 counts per photoelectron in channels 0, 20, 40
   and 60 at 25~ns; 185 and 192 in channel 0 at 50~ns.
 \end{itemize}
 
@@ -235,15 +268,15 @@ Main findings:
 \begin{itemize}
 \item The discriminator triggers on the noise below 179 to 182 DAC units and one photoelectron
   is 20 units: a threshold of 185 is a clean single-photoelectron trigger.
-\item The peak detector reaches the maximum of a 25~ns pulse 32 to 40~ns after the trigger,
-  where the model of the front end puts it; at 50~ns it takes 130 to 160~ns, 70 to 100~ns more
-  than the model.
+\item At 25~ns the response reaches its plateau at 32--40~ns; the model predicts 31~ns. At
+  50~ns the plateau is reached at 128--160~ns; the model predicts 58~ns.
 \item Once the window contains the maximum, the stored amplitude of one avalanche stays
-  constant up to the longest delay scanned.
-\item The 1-pe peak, not the mean, is the observable of the scan: the mean keeps growing with
-  the dark pulses that the window collects.
-\item The four channels scanned have gains between 150 and 182 counts per photoelectron at
-  25~ns, 185 to 192 at 50~ns.
+  constant up to the longest delay scanned, as expected for an ideal peak detector.
+\item The position of the 1-pe peak measures the response; the mean also counts the dark
+  pulses and the crosstalk that fall inside the window.
+\item One photoelectron is 20 units of the threshold DAC (fast shaper) and 150--182 counts
+  of the high-gain ADC (slow shaper, 25~ns) in the four channels scanned; 185--192 counts at
+  50~ns.
 \end{itemize}
 
 \begin{table}[H]
@@ -263,3 +296,4 @@ gain at 5~V, high gain, preamplifier gain 55 & 150--182 counts per photoelectron
 \end{table}
 
 \end{document}
+
