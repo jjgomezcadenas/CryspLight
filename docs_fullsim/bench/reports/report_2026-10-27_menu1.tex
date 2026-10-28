@@ -215,10 +215,23 @@ with HoldDelay 0 (bars to the extremes). Dashed: the cut at 0.75.}
 \item Every other channel: $b_i > 0.85$ (Figure~\ref{fig:slopes}).
 \end{itemize}
 
-\section{Values for the noise model}
+\section{Summary of results}
 
-High gain, preamplifier gain 55, ADC counts:
-\begin{center}
+Main findings:
+\begin{itemize}
+\item The pedestal noise of a channel has a coherent part, shared by the 32 channels of its
+  chip, and an incoherent part; at 25~ns the coherent part carries a quarter of the variance.
+\item The two chips of a board share their common mode (correlation 0.6); boards are
+  independent.
+\item The coherent part grows with the shaping time, the incoherent part falls slightly.
+\item Both parts narrow together with the window of the peak detector, to 0.59 at 496~ns; the
+  pedestal rises with the window, by board-dependent amounts.
+\item The six chips of boards 1, 2 and 4 agree within 0.8 counts; no chip jumps.
+\item Six channels are blind: two on board 1, four on board 4.
+\end{itemize}
+
+\begin{table}[H]
+\centering
 \small
 \begin{tabular}{lp{0.58\textwidth}}
 \toprule
@@ -230,6 +243,8 @@ low gain, 87.5 ns & 0.46 of $\sigma_\mathrm{tot}$ of the high gain \\
 blind channels & board 1: 61, 63; board 4: 3, 59, 61, 63 \\
 \bottomrule
 \end{tabular}
-\end{center}
+\caption{Values for the noise model: high gain, preamplifier gain 55, ADC counts.}
+\label{tab:values}
+\end{table}
 
 \end{document}

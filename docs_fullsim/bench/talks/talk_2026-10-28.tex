@@ -157,7 +157,21 @@ Run 91: high gain, 25~ns, HoldDelay 0, ADC counts; low gain at 87.5~ns.
 \end{columns}
 \end{frame}
 
-\begin{frame}{Values frozen for the noise model}
+\begin{frame}{Menu 1: summary of results}
+\begin{itemize}
+\item The pedestal noise of a channel has a coherent part, shared by the 32 channels of its
+  chip, and an incoherent part; at 25~ns the coherent part carries a quarter of the variance.
+\item The two chips of a board share their common mode (correlation 0.6); boards are
+  independent.
+\item The coherent part grows with the shaping time, the incoherent part falls slightly.
+\item Both parts narrow together with the window of the peak detector, to 0.59 at 496~ns; the
+  pedestal rises with the window, by board-dependent amounts.
+\item The six chips of boards 1, 2 and 4 agree within 0.8 counts; no chip jumps.
+\item Six channels are blind: two on board 1, four on board 4.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Menu 1: values for the noise model}
 High gain, preamplifier gain 55, ADC counts:
 \medskip
 
