@@ -27,6 +27,25 @@ this report & pedestal noise of the three boards; dependence on the shaping time
 \end{tabular}
 \end{center}
 
+\section{Goal}
+
+\begin{itemize}
+\item Every channel of the Citiroc stores, at each trigger, the maximum of its shaped signal
+  inside a window (peak-stretch mode). With the SiPMs below breakdown there is no signal: the
+  stored value is the pedestal of the channel, and its fluctuation is the noise of the
+  electronics.
+\item Menu 1 measures, for every channel of every board:
+  \begin{itemize}
+  \item the pedestal and its noise;
+  \item how the noise depends on the shaping time of the slow shaper and on the length of
+    the window (HoldDelay);
+  \item how much of the noise is common to the channels of a chip (coherent) and how much
+    is proper to each channel (incoherent).
+  \end{itemize}
+\item These are the inputs of the noise model of the simulation, and the reference against
+  which the channels without signal from their SiPM (blind channels) are found.
+\end{itemize}
+
 \section{Data}
 
 \begin{itemize}

@@ -12,20 +12,52 @@
 \begin{document}
 \maketitle
 
-\noindent On 27 October 2026 the single-photoelectron programme of the Citiroc~1A front end
-(menu~3) was run on boards 1, 2 and 4 with the periodic trigger, at three biases and three
-shaping times, and the threshold scans of board~1 were repeated at 5 and 3~V of overvoltage.
-This report gives the gain of every channel in ADC counts per photoelectron, its dependence on
-the bias and on the shaping, the breakdown voltage of every channel, the pedestal noise of
-menu~1 in photoelectrons, and the photoelectron spacing of the staircases.
+\begin{center}
+\small
+\begin{tabular}{lp{0.72\textwidth}}
+\toprule
+session & 27 October 2026, menu 3 of the Citiroc~1A calibration programme \\
+boards & 1, 2 and 4 (A5202, CAEN adapter boards, FPGA firmware 0xa7070800) \\
+SiPMs & 43, 42 and 41~V \\
+measurements & five runs with the periodic trigger at three biases and three shaping times;
+  three staircases of board 1 at 43 and 41~V \\
+this report & gain of every channel in ADC counts per photoelectron against bias and
+  shaping; breakdown voltage of every channel; pedestal noise of menu~1 in photoelectrons;
+  photoelectron spacing of the staircases \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Goal}
+
+\begin{itemize}
+\item The simulation expresses every charge in photoelectrons; the chip stores ADC counts.
+  The gain of a channel, in counts per photoelectron, is the unit of the whole chain.
+\item With the SiPMs above breakdown and a periodic trigger, the window of the peak detector
+  opens at a random time: it holds the pedestal, or the dark pulse of 1, 2, 3~pe that fell
+  inside. The spectrum of the channel is a ladder of equally spaced peaks, and the spacing is
+  the gain.
+\item Menu 3 measures, for every channel of every board:
+  \begin{itemize}
+  \item the gain at three biases and, at the highest, at three shaping times;
+  \item the breakdown voltage, from the gain against the bias;
+  \item the pedestal noise of menu~1 in photoelectrons, with the gain just measured.
+  \end{itemize}
+\item The staircases at two biases give the size of one photoelectron in units of the
+  threshold at each.
+\end{itemize}
 
 \section{Data}
 
-The five runs (Table~\ref{tab:runs}) use the periodic trigger at 1~kHz, a hold delay of 200~ns,
-the preamplifier gains at 55 and the peak detectors in peak-stretch mode, with 50\,000 events per
-board. The bias at the SiPM is the output of the HV module minus the 4.2~V of the individual
-adjustment: 43, 42 and 41~V. The three staircases (scans 113 to 115) count the triggers of each
-channel of board~1 against the threshold of its discriminator, at 25~ns, 0.5~s per point.
+\begin{itemize}
+\item Runs: five (Table~\ref{tab:runs}), periodic trigger at 1~kHz, HoldDelay 200~ns,
+  50\,000 events per board.
+\item SiPMs: 43, 42 and 41~V (the output of the HV module minus the 4.2~V of the individual
+  adjustment).
+\item Citiroc: preamplifier gains 55; peak-stretch mode; high gain at 25, 50 or 87.5~ns.
+\item Staircases (scans 113 to 115): board 1, trigger rate of each channel against the
+  threshold of its discriminator, 25~ns, 0.5~s per point.
+\end{itemize}
 
 \begin{table}[H]
 \centering
@@ -220,22 +252,46 @@ board.}
 \item The fits leave these entries out; their origin is open (finding F12).
 \end{itemize}
 
-\section{Values}
+\section{Summary of results}
 
-\begin{enumerate}
-\item Gain, high gain, preamplifier gain 55, 25~ns: 85--92 counts per photoelectron at 41~V,
+Main findings:
+\begin{itemize}
+\item At 25~ns the ladder of dark pulses is resolved in nearly every channel (183, 184 and
+  161 of 186 at 41, 42 and 43~V); at 50~ns in 110 channels; at 87.5~ns in 26, because the
+  dark pulses pile up in the longer shaping.
+\item The gain is linear in the bias, 41--42 counts per photoelectron per volt, and the
+  breakdown voltage is 38.8--39.0~V on the three boards, uniform within 0.3~V across the
+  channels. The bias of 43~V is 4.1~V above breakdown, not 5.
+\item The gain varies by 2.4--5.6\% across the channels of a board and little with the
+  shaping (165--182 counts per photoelectron at 43~V).
+\item The pedestal noise of the chain at 43~V and 25~ns is 0.07 photoelectrons per channel,
+  half of it coherent.
+\item One DAC unit of the threshold is 7.8 counts of the high gain at 43~V; one photoelectron
+  is 22 units at 43~V and 12.5 at 41~V.
+\item Open: at 43~V a fraction of the entries, growing with the shaping from 0.5 to 12\%,
+  reads 0 (finding F12).
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{p{0.3\textwidth}p{0.55\textwidth}}
+\toprule
+gain, 25 ns, high gain, preamplifier gain 55 & 85--92 counts per photoelectron at 41~V,
   127--134 at 42~V, 165--178 at 43~V (medians of the three boards); spread across the channels
-  of a board 2.4--5.6\%.
-\item Breakdown voltage: 38.8, 38.8 and 39.0~V (boards 1, 2, 4), rms 0.25--0.35~V across the
-  channels; 41--42 counts per photoelectron per volt. The bias of 43~V is 4.0--4.2~V above
-  breakdown.
-\item Gain at 43~V against shaping: 165--178 at 25~ns, 176--182 at 50~ns, 170--173 at 87.5~ns.
-\item Pedestal noise at 43~V, 25~ns, HoldDelay 0: 0.068--0.075 photoelectrons per channel,
-  0.033--0.038 coherent, 0.059--0.065 incoherent.
-\item Threshold: one photoelectron is 22 DAC units at 43~V and 12.5 at 41~V; the edge of the
-  noise at 190 and 182.
-\item Open: 0.5--12\% of the entries at 0 in the periodic-trigger runs at 43~V, growing with
-  the shaping.
-\end{enumerate}
+  of a board 2.4--5.6\% \\
+gain at 43 V against shaping & 165--178 at 25~ns, 176--182 at 50~ns, 170--173 at 87.5~ns \\
+breakdown voltage & 38.8, 38.8, 39.0~V (boards 1, 2, 4), rms 0.25--0.35~V across the
+  channels; 41--42 counts per photoelectron per volt; 43~V is 4.0--4.2~V above breakdown \\
+pedestal noise at 43 V, 25 ns, HoldDelay 0 & 0.068--0.075 photoelectrons per channel,
+  0.033--0.038 coherent, 0.059--0.065 incoherent \\
+threshold & one photoelectron = 22 DAC units at 43~V, 12.5 at 41~V; edge of the noise at
+  190 and 182 \\
+entries at 0, 43 V & 0.5--1.1\% at 25~ns, 3.8--6.1\% at 50~ns, 8.9--12\% at 87.5~ns \\
+\bottomrule
+\end{tabular}
+\caption{Values: gains, breakdown voltages, noise in photoelectrons, threshold units.}
+\label{tab:values}
+\end{table}
 
 \end{document}

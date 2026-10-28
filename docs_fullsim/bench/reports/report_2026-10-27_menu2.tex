@@ -21,18 +21,42 @@ board & 1 (A5202, CAEN adapter board, FPGA firmware 0xa7070800) \\
 SiPMs & 43~V, 5~V of overvoltage \\
 measurements & one threshold scan (staircase), six hold-delay scans at 25 and 50~ns \\
 this report & threshold of the discriminator; response of the peak detector to one
-  avalanche; minimum hold delay at 25 and 50~ns; single-photoelectron gain at 5~V \\
+  avalanche; minimum hold delay at 25 and 50~ns; single-photoelectron gain at 5~V of the
+  channels scanned \\
 \bottomrule
 \end{tabular}
 \end{center}
+
+\section{Goal}
+
+\begin{itemize}
+\item Above breakdown every channel produces dark pulses, several MHz per channel, almost all
+  of one photoelectron (pe); those with crosstalk are of 2, 3, \ldots~pe. They are the test
+  signal of this menu.
+\item Menu 2 sets two parameters of the data taking with the crystal:
+  \begin{itemize}
+  \item the threshold of the discriminator of each channel (TD\_CoarseThreshold, in DAC
+    units), to trigger on one photoelectron and not on the noise;
+  \item the hold delay (HoldDelay), so that the window of the peak detector contains the
+    maximum of the shaped pulse.
+  \end{itemize}
+\item Two measurements:
+  \begin{itemize}
+  \item the \emph{staircase}: trigger rate of each channel against its threshold; gives the
+    edge of the noise and the size of one photoelectron in DAC units;
+  \item the \emph{hold-delay scan}: stored value of a channel against the hold delay; gives
+    the response of the peak detector to one avalanche, hence the minimum hold delay, and the
+    gain of the channel at this bias.
+  \end{itemize}
+\end{itemize}
 
 \section{Data}
 
 \begin{itemize}
 \item Settings common to all scans: HV\_Vbias 47.2~V (43~V at the SiPM); TD\_CoarseThreshold
   185; preamplifier gains 55; peak-stretch mode; low gain at 87.5~ns.
-\item Staircase (scan 100): trigger rate of each of the 64 channels against the threshold of
-  its discriminator, 150 to 300 DAC units in steps of 1, 0.5~s per point, 25~ns.
+\item Staircase (scan 100): 64 channels, thresholds 150 to 300 in steps of 1, 0.5~s per
+  point, 25~ns.
 \item Hold-delay scans (Table~\ref{tab:scans}): trigger limited to one channel (the shooting
   channel); the high-gain spectrum of every channel stored at each delay; 10\,000 events per
   delay.
@@ -64,38 +88,80 @@ each scan still at the delay of the previous scan.}
 \section{Method}
 \label{sec:method}
 
-Staircase: for channel $i$ and threshold $\theta$ (DAC units), with $R_i(\theta)$ the trigger
-rate,
+\subsection{Staircase}
+
+What the DAQ does:
+\begin{itemize}
+\item sets the threshold $\theta$ of the 64 discriminators, counts the triggers of each
+  channel for 0.5~s, lowers $\theta$ by one unit, and repeats from 300 to 150;
+\item the result is the trigger rate $R_i(\theta)$ of each channel $i$.
+\end{itemize}
+What it shows:
+\begin{itemize}
+\item below the edge of the noise the discriminator fires on the noise of the fast shaper and
+  the rate saturates: the plateau;
+\item above the edge the rate falls in steps, one per photoelectron, because a dark pulse of
+  $n$~pe triggers only while $\theta$ is below its amplitude; the distance between steps is
+  one photoelectron in DAC units.
+\end{itemize}
+Definitions:
 \begin{align*}
 R_i^\mathrm{max} &= \max_\theta R_i(\theta), &
 \theta_i^\mathrm{e} &= \max\{\theta : R_i(\theta) \ge R_i^\mathrm{max}/2\}, &
 \Delta\theta &= \text{distance between consecutive steps of } R_i(\theta),
 \end{align*}
 \begin{itemize}
-\item $R_i^\mathrm{max}$ the plateau, where the discriminator triggers on the noise of the fast
-  shaper; $\theta_i^\mathrm{e}$ the edge of the plateau; $\Delta\theta$ one photoelectron in
-  DAC units.
+\item $R_i^\mathrm{max}$: the plateau;
+\item $\theta_i^\mathrm{e}$: the edge of the plateau, the highest threshold at which the
+  channel still triggers on the noise;
+\item $\Delta\theta$: one photoelectron in DAC units.
 \end{itemize}
 
-Hold-delay scan: for the shooting channel $i$ at delay $\tau$, with $S_i(v;\tau)$ its
-high-gain spectrum (bins of 16 counts) and $p_i$ its pedestal below breakdown at the same
-shaping,
+\subsection{Hold-delay scan}
+
+What the chip does (peak-stretch mode):
+\begin{itemize}
+\item a dark pulse crosses the threshold of the fast shaper at $t = 0$ and triggers;
+\item the board opens the window of the peak detector after its own latency and closes it
+  with the hold, a time HoldDelay later;
+\item the chip stores the maximum of the slow shaper inside the window.
+\end{itemize}
+What the DAQ does:
+\begin{itemize}
+\item limits the trigger to one channel, the shooting channel: every event is one of its dark
+  pulses;
+\item for each delay $\tau$ collects 10\,000 events and stores the spectrum $S_i(v;\tau)$ of
+  every channel $i$ (bins of 16 counts);
+\item repeats for $\tau$ from 0 to 248 or 496~ns.
+\end{itemize}
+What the spectrum of the shooting channel shows:
+\begin{itemize}
+\item a ladder of peaks at 1, 2, 3~pe: the dark pulse that triggered and its crosstalk;
+\item if the hold arrives before the maximum of the shaped pulse, the stored value lies on
+  its rising edge and the 1-pe peak sits below the full amplitude; once the window contains the
+  maximum, the peak sits at the full amplitude and stays there;
+\item the position of the 1-pe peak against $\tau$ is therefore the response of the peak
+  detector to one avalanche; its knee is the minimum hold delay;
+\item the mean of the spectrum is not used for the knee: it also counts the dark pulses and
+  the crosstalk that fall inside the window, and keeps growing with $\tau$.
+\end{itemize}
+Definitions, with $p_i$ the pedestal of the channel below breakdown at the same shaping:
 \begin{align*}
-q_1(\tau) &= \arg\max_{p_i + 48 \le v \le p_i + 400} S_i(v;\tau) \ \text{(parabolic refinement)}, &
-G &= \operatorname{median}_{\text{last 8 points}} q_1(\tau) - p_i, \\
-\tau_\mathrm{min} &= \min\{\tau : q_1(\tau) - p_i \ge 0.95\,G\}, &
-\bar{v}_i(\tau) &= \text{mean of } S_i(v;\tau),
+q_1(\tau) &= \text{position of the 1-pe peak of } S_i(v;\tau), \\
+G &= \operatorname{median}_{\text{last 8 points}} q_1(\tau) - p_i, \qquad
+\tau_\mathrm{min} = \min\{\tau : q_1(\tau) - p_i \ge 0.95\,G\},
 \end{align*}
 \begin{itemize}
-\item $q_1(\tau)$ the position of the 1-pe peak: the response of the peak detector to one
-  avalanche, read on the peak and not on the mean $\bar{v}_i$, which also collects the dark
-  pulses and the crosstalk inside the window;
-\item $G$ the plateau of the 1-pe peak above the pedestal: the single-photoelectron gain;
-\item $\tau_\mathrm{min}$ the knee of the response: the minimum hold delay;
-\item stale points: those before the minimum over the scan of the median of $\bar{v}_j(\tau)$
-  over the non-shooting channels $j$;
+\item $q_1(\tau)$: the centre of the most populated bin between $p_i + 48$ and $p_i + 400$
+  (the 1-pe region), interpolated with its two neighbouring bins;
+\item $G$: the plateau of the 1-pe peak above the pedestal, the single-photoelectron gain of
+  the channel at this bias;
+\item $\tau_\mathrm{min}$: the knee of the response, the minimum hold delay;
+\item stale points: the first points of a scan, at which the median over the non-shooting
+  channels of the mean stored value has not yet dropped to its minimum over the scan;
 \item model of the front end: the shaped pulse reaches its maximum 31~ns (25~ns of shaping)
-  and 58~ns (50~ns) after the crossing of the threshold.
+  and 58~ns (50~ns) after the crossing of the threshold; the knee is expected there, shifted
+  by the latency of the board.
 \end{itemize}
 
 \section{Results}
@@ -128,9 +194,9 @@ threshold of the scans, 185 & 4--6 units above the edge, below one photoelectron
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.95\textwidth]{hold_scan_response.png}
-\caption{Hold-delay scans of board 1 at 25~ns (top) and 50~ns (bottom). Left: mean
-$\bar{v}_i(\tau)$ of the shooting channel. Right: $q_1(\tau) - p_i$. Hollow: stale points.
-Dotted: the maximum of the shaped pulse in the model.}
+\caption{Hold-delay scans of board 1 at 25~ns (top) and 50~ns (bottom). Left: mean of the
+stored value of the shooting channel. Right: $q_1(\tau) - p_i$. Hollow: stale points. Dotted:
+the maximum of the shaped pulse in the model.}
 \label{fig:response}
 \end{figure}
 
@@ -156,26 +222,44 @@ channel, ADC counts of the high gain.}
   channels and stays flat to 248~ns (Figure~\ref{fig:response}, Table~\ref{tab:knees}); the
   model's maximum is at 31~ns.
 \item 50~ns: $q_1$ reaches its plateau at 128 to 160~ns; the model's maximum is at 58~ns.
-\item $\bar{v}_i$ rises with $q_1$ and keeps growing after the knee.
+\item The mean rises with $q_1$ and keeps growing after the knee.
 \item Scan 101 (Figure~\ref{fig:spectra}): 1-pe peak at 265 counts at $\tau = 0$, at 315 from
   32~ns on; 2 and 3~pe at 505 and 700, 190 counts apart.
 \item Gain $G$ at 5~V: 175, 150, 159 and 182 counts per photoelectron in channels 0, 20, 40
   and 60 at 25~ns; 185 and 192 in channel 0 at 50~ns.
 \end{itemize}
 
-\section{Values}
+\section{Summary of results}
 
-\begin{center}
+Main findings:
+\begin{itemize}
+\item The discriminator triggers on the noise below 179 to 182 DAC units and one photoelectron
+  is 20 units: a threshold of 185 is a clean single-photoelectron trigger.
+\item The peak detector reaches the maximum of a 25~ns pulse 32 to 40~ns after the trigger,
+  where the model of the front end puts it; at 50~ns it takes 130 to 160~ns, 70 to 100~ns more
+  than the model.
+\item Once the window contains the maximum, the stored amplitude of one avalanche stays
+  constant up to the longest delay scanned.
+\item The 1-pe peak, not the mean, is the observable of the scan: the mean keeps growing with
+  the dark pulses that the window collects.
+\item The four channels scanned have gains between 150 and 182 counts per photoelectron at
+  25~ns, 185 to 192 at 50~ns.
+\end{itemize}
+
+\begin{table}[H]
+\centering
 \small
 \begin{tabular}{p{0.3\textwidth}p{0.55\textwidth}}
 \toprule
-threshold, 5~V, 25~ns & edge of the noise at 179--182 DAC units; one photoelectron = 20 units;
-  185 is below one photoelectron \\
+threshold, 5~V, 25~ns & edge of the noise at 179--182 DAC units; one photoelectron = 20
+  units; 185 is below one photoelectron \\
 minimum hold delay & 40~ns at 25~ns of shaping; 160~ns at 50~ns \\
 gain at 5~V, high gain, preamplifier gain 55 & 150--182 counts per photoelectron at 25~ns
   (four channels); 185--192 at 50~ns \\
 \bottomrule
 \end{tabular}
-\end{center}
+\caption{Values: threshold, minimum hold delay and gain at 5~V.}
+\label{tab:values}
+\end{table}
 
 \end{document}

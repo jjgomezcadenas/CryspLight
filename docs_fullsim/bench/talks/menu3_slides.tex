@@ -1,5 +1,19 @@
 \section{Menu 3: single-photoelectron calibration}
 
+\begin{frame}{Menu 3: goal}
+\begin{itemize}
+\item The simulation expresses every charge in photoelectrons; the chip stores ADC counts.
+  The gain of a channel, in counts per photoelectron, is the unit of the whole chain.
+\item Above breakdown, with a periodic trigger, the window opens at a random time: it holds
+  the pedestal or a dark pulse of 1, 2, 3~pe. The spectrum is a ladder of equally spaced
+  peaks; the spacing is the gain.
+\item Measured for every channel of every board: the gain at three biases and three shaping
+  times; the breakdown voltage from the gain against the bias; the pedestal noise of menu~1 in
+  photoelectrons.
+\item Staircases at two biases: one photoelectron in units of the threshold.
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Menu 3: data and method}
 \begin{columns}
 \column{0.5\textwidth}
@@ -115,6 +129,23 @@ Periodic trigger at 1~kHz, HoldDelay 200~ns, preamplifier gains 55, peak-stretch
   unit is 7.8 and 7.1 counts of the high gain.
 \item Entries at 0 at 43~V: 0.5--1.1\% at 25~ns, 3.8--6.1\% at 50~ns, 8.9--12\% at 87.5~ns;
   none at 41~V. Open (F12).
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Menu 3: summary of results}
+\begin{itemize}
+\item At 25~ns the ladder is resolved in nearly every channel (183, 184, 161 of 186 at 41,
+  42, 43~V); at 50~ns in 110; at 87.5~ns in 26, where the dark pulses pile up.
+\item The gain is linear in the bias, 41--42 counts per photoelectron per volt; breakdown at
+  38.8--39.0~V on the three boards, uniform within 0.3~V across the channels. The bias of
+  43~V is 4.1~V above breakdown, not 5.
+\item The gain varies by 2.4--5.6\% across the channels of a board and little with the
+  shaping.
+\item The pedestal noise of the chain at 43~V and 25~ns is 0.07 photoelectrons per channel,
+  half of it coherent.
+\item One DAC unit of the threshold is 7.8 counts of the high gain at 43~V.
+\item Open: at 43~V a fraction of the entries, 0.5 to 12\% growing with the shaping, reads 0
+  (F12).
 \end{itemize}
 \end{frame}
 

@@ -37,6 +37,24 @@
 
 \section{Menu 1: pedestal noise}
 
+\begin{frame}{Menu 1: goal}
+\begin{itemize}
+\item At each trigger a channel stores the maximum of its shaped signal inside a window
+  (peak-stretch mode). With the SiPMs below breakdown there is no signal: the stored value is
+  the pedestal, and its fluctuation is the noise of the electronics.
+\item Measured for every channel of every board:
+  \begin{itemize}
+  \item the pedestal and its noise;
+  \item the dependence of the noise on the shaping time and on the length of the window
+    (HoldDelay);
+  \item the part of the noise common to the channels of a chip (coherent) and the part
+    proper to each channel (incoherent).
+  \end{itemize}
+\item These are the inputs of the noise model of the simulation, and the reference against
+  which the blind channels are found.
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Menu 1: data}
 \centering
 \begin{tabular}{llll}
@@ -196,6 +214,24 @@ same values.
 
 \section{Menu 2: threshold and hold delay}
 
+\begin{frame}{Menu 2: goal}
+\begin{itemize}
+\item Above breakdown every channel produces dark pulses, several MHz, almost all of one
+  photoelectron; with crosstalk, 2, 3, \ldots~pe. They are the test signal of this menu.
+\item Two parameters of the data taking with the crystal are set:
+  \begin{itemize}
+  \item the threshold of the discriminator (TD\_CoarseThreshold), to trigger on one
+    photoelectron and not on the noise;
+  \item the hold delay (HoldDelay), so that the window of the peak detector contains the
+    maximum of the shaped pulse.
+  \end{itemize}
+\item Two measurements: the \emph{staircase}, trigger rate against threshold, gives the edge
+  of the noise and one photoelectron in DAC units; the \emph{hold-delay scan}, stored value
+  against hold delay, gives the response of the peak detector to one avalanche, the minimum
+  hold delay and the gain of the channel.
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Menu 2: data}
 \begin{itemize}
 \item Board 1; HV\_Vbias 47.2~V, 43~V at the SiPM (5~V of overvoltage); TD\_CoarseThreshold
@@ -238,8 +274,9 @@ G &= \operatorname{median}_{\text{last 8 points}} q_1(\tau) - p_i, &
 \begin{itemize}
 \item $\theta^\mathrm{e}$ edge of the noise plateau; $\Delta\theta$ one photoelectron in DAC
   units.
-\item $q_1$ position of the 1-pe peak: the response of the peak detector to one avalanche,
-  read on the peak, not on the mean (which also collects the dark pulses in the window).
+\item $q_1$ position of the 1-pe peak (most populated bin in the 1-pe region, interpolated
+  with its two neighbours): the response of the peak detector to one avalanche, read on the
+  peak, not on the mean (which also collects the dark pulses in the window).
 \item $G$ single-photoelectron gain; $\tau_\mathrm{min}$ minimum hold delay.
 \item Model of the front end: maximum of the shaped pulse 31~ns (25~ns) and 58~ns (50~ns)
   after the crossing of the threshold.
@@ -303,6 +340,21 @@ threshold of the scans & 185: below 1~pe \\
   at the same shaping; ADC counts of the high gain.
 \item Minimum hold delay: 40~ns at 25~ns of shaping, 160~ns at 50~ns.
 \item Gain at 5~V: 150--182 counts per photoelectron at 25~ns (four channels), 185--192 at
+  50~ns.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Menu 2: summary of results}
+\begin{itemize}
+\item The discriminator triggers on the noise below 179--182 DAC units and one photoelectron
+  is 20 units: a threshold of 185 is a clean single-photoelectron trigger.
+\item The peak detector reaches the maximum of a 25~ns pulse 32--40~ns after the trigger,
+  where the model puts it; at 50~ns it takes 130--160~ns, 70--100~ns more than the model.
+\item Once the window contains the maximum, the stored amplitude of one avalanche stays
+  constant up to the longest delay scanned.
+\item The 1-pe peak, not the mean, is the observable of the scan: the mean keeps growing with
+  the dark pulses that the window collects.
+\item The four channels scanned: 150--182 counts per photoelectron at 25~ns, 185--192 at
   50~ns.
 \end{itemize}
 \end{frame}
