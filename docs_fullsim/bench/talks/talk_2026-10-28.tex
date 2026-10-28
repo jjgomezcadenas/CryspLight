@@ -187,4 +187,119 @@ High gain, preamplifier gain 55, ADC counts:
 The conversion to photoelectrons takes the single-photoelectron gain from menu 3.
 \end{frame}
 
+\section{Menu 2: threshold and hold delay}
+
+\begin{frame}{Menu 2: data}
+\begin{itemize}
+\item Board 1, SiPMs at 43~V (5~V of overvoltage), threshold 185, preamplifier gains 55,
+  peak-stretch mode.
+\item \textbf{Staircase} (scan 100): trigger rate of the 64 channels against the threshold of
+  the discriminator, 150--300 DAC units, 0.5~s per point, 25~ns.
+\item \textbf{Hold-delay scans}: the trigger limited to one channel (the shooting channel), the
+  high-gain spectrum of every channel stored at each delay, 10\,000 events per delay.
+\end{itemize}
+\medskip
+\centering
+\small
+\begin{tabular}{llll}
+\toprule
+Scan & Shooting channel & HG shaping & HoldDelay \\
+\midrule
+101 & 0 & 25 ns & 0--248 ns, steps of 8 \\
+102, 103 & 0 & 50 ns & 0--496 ns, steps of 16 \\
+104, 105, 106 & 20, 40, 60 & 25 ns & 0--248 ns, steps of 8 \\
+\bottomrule
+\end{tabular}
+\medskip
+
+\normalsize
+The DAQ applies a new delay with a lag of up to five points: the first points of a scan keep the
+values of the previous scan and are left out.
+\end{frame}
+
+\begin{frame}{Threshold: the staircase at 5 V}
+\begin{columns}
+\column{0.6\textwidth}
+\includegraphics[width=\textwidth]{staircase_100.png}
+\column{0.4\textwidth}
+\begin{itemize}
+\item Edge of the noise of the fast shaper at 179--182 DAC units.
+\item Above it the rate falls in steps of one photoelectron: 20 units per photoelectron.
+\item 30 units above the edge: dark pulses at $4.4\times 10^{5}$~Hz (median).
+\item Channels 61 and 63 fall to a few hertz within 10 units: no SiPM signal.
+\item The threshold of 185 is below one photoelectron.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Response of the peak detector}
+\begin{columns}
+\column{0.62\textwidth}
+\includegraphics[width=\textwidth]{hold_scan_response.png}
+\column{0.38\textwidth}
+\begin{itemize}
+\item Right: the 1-pe peak of the shooting channel, the response to a single avalanche. Left:
+  its mean, which keeps growing with the dark pulses in the window.
+\item 25~ns: plateau from 32--40~ns, flat to 248~ns; the model puts the maximum of the shaped
+  pulse at 31~ns.
+\item 50~ns: plateau from 130--160~ns; the model's maximum at 58~ns.
+\item Hollow: DAQ still at the previous delay.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Spectra of the shooting channel}
+\begin{columns}
+\column{0.62\textwidth}
+\includegraphics[width=\textwidth]{hold_scan_spectra.png}
+\column{0.38\textwidth}
+\begin{itemize}
+\item Shooting channel 0 at 25~ns: 1-pe peak at 265 counts at delay 0, at 315 from 32~ns on;
+  2 and 3~pe at 505 and 700, 190~counts apart.
+\item Channel 32, which does not trigger: the pedestal and a ladder of 1, 2, 3~pe that fills as
+  the window lengthens.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Knee and gain at 5 V}
+\centering
+\input{\results/hold_scan_knees.tex}
+
+\medskip
+\begin{itemize}
+\item Knee: first delay at which the 1-pe peak reaches 95\% of its plateau. Pedestal: below
+  breakdown at the same shaping. ADC counts of the high gain.
+\item Minimum hold delay: 40~ns at 25~ns of shaping, 160~ns at 50~ns.
+\item Gain at 5~V: 150--182 counts per photoelectron at 25~ns in the four channels scanned,
+  185--192 at 50~ns.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{A window at a random time}
+\begin{columns}
+\column{0.6\textwidth}
+\includegraphics[width=\textwidth]{hold_scan_window.png}
+\column{0.4\textwidth}
+\begin{itemize}
+\item The channels that do not trigger see the window at a random time with respect to their
+  own dark pulses.
+\item Their mean grows linearly with the window: 0.52 counts per ns at 25~ns, 0.42 at 50~ns.
+\item At the gain above, 3.0 and 2.2 photoelectrons per microsecond.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Menu 2: values}
+\begin{enumerate}
+\item Threshold: edge of the noise at 179--182 DAC units at 5~V and 25~ns; one photoelectron
+  is 20 units; the threshold of 185 is below one photoelectron.
+\item Minimum hold delay: 40~ns at 25~ns of shaping, 160~ns at 50~ns.
+\item Single-photoelectron gain at 5~V, high gain, preamplifier gain 55: 150--182 counts per
+  photoelectron at 25~ns in the four channels scanned, 185--192 at 50~ns.
+\item In a window at a random time, a channel at 5~V accumulates 3.0 photoelectrons per
+  microsecond at 25~ns and 2.2 at 50~ns.
+\end{enumerate}
+\end{frame}
+
 \end{document}

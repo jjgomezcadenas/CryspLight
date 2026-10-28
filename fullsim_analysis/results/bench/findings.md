@@ -29,6 +29,7 @@ and the temperatures agree, benchdata/README.md); in the entries below the 27 Oc
 | F11 | Two pedestal peaks in the quick-look plots grouped by node | 22 Oct, runs 26-34 | explained |
 | F12 | Periodic-trigger runs at 5 V: high gain at 0 in 1-11% of the measurements, growing with the shaping | 27 Oct, runs 108-112 | open |
 | F13 | Detector temperature of board 1 falls from 21.6 to 11.6 C along the session; boards 2 and 4 stable | 27 Oct, runs 91-112 | open |
+| F14 | Hold-delay scans: the DAQ applies a new delay with a lag of up to five points | 27 Oct, scans 102-106 | open |
 
 ## F1. All values at full scale
 
@@ -229,6 +230,21 @@ and the temperatures agree, benchdata/README.md); in the entries below the 27 Oc
 - **Action:** question to JMB (sensor type and reading of that board); check the sensor on the
   bench with the HV off and on.
 
+## F14. Lag of the DAQ in applying the hold delay of a scan
+
+- **Seen:** 27 Oct, hold-delay scans 102 to 106 (board 1, 10 000 events per point). At the
+  first one to five points of each scan, every channel keeps the value it had at the last delay
+  of the previous scan (for example the 63 non-shooting channels of scan 103 sit at 392 counts
+  for the points 0 to 64 ns and drop to 189 at 80 ns), although the file records the requested
+  delay as applied (effective_delay_ns = delay_ns). Scan 101, the first, starts clean. Evidence:
+  2026-10-27/hold_scan_points.csv (column stale, from hold_scan.jl), hold_scan_response.png
+  (hollow points).
+- **Consequence:** the first points of a scan are not measurements at their nominal delay; they
+  are flagged and left out. The rise of the 50 ns response is sampled from 80 ns only.
+- **Action:** question to JMB: is the delay written to the board before the events of the point
+  are collected, or does the scan start before the previous configuration is flushed? A scan
+  could start with a dummy point, or repeat the first delays at the end.
+
 ## Requests
 
 Open entries and what they need, by person. For Laura, menu 1 is complete; the next session
@@ -240,4 +256,5 @@ is menu 2 (bench note 2), with the corrections listed in the report of 22 Oct.
 - **Laura:** F11 (group by chain and node in the quick-look plots); F4 and F5 (staircases of the five boards, in menu 2; contacts and connector of
   the board-0 channels), F8 (logbook rows of scans 10-12), F10 (cabling and power of board 0);
   which SiPM matrix went on each of the boards 1, 2 and 4 on 27 Oct (F4).
-- **JMB:** F13 (the detector temperature of board 1 moves with the HV).
+- **JMB:** F13 (the detector temperature of board 1 moves with the HV); F14 (lag of the hold-delay
+  scans).
