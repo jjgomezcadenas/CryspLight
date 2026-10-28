@@ -13,18 +13,29 @@
 \begin{document}
 \maketitle
 
-\noindent On 27 October 2026 the noise programme of the Citiroc~1A front end (menu~1) was
-repeated on three A5202 boards, 1, 2 and 4, connected to their SiPM matrices through the CAEN
-adapter boards and running the upgraded FPGA firmware (0xa7070800). This report gives the
-pedestal noise of the three boards, its dependence on the shaping time and on the hold delay,
-and the values to be frozen for the noise model of the simulation.
+\begin{center}
+\small
+\begin{tabular}{lp{0.7\textwidth}}
+\toprule
+session & 27 October 2026, menu 1 of the Citiroc~1A calibration programme \\
+boards & 1, 2 and 4 (A5202, CAEN adapter boards, FPGA firmware 0xa7070800), read by the DAQ
+  as 0, 1, 2 \\
+measurements & nine pedestal runs, SiPMs below breakdown \\
+this report & pedestal noise of the three boards; dependence on the shaping time and on the
+  hold delay; blind channels; values frozen for the noise model \\
+\bottomrule
+\end{tabular}
+\end{center}
 
 \section{Data}
 
-Nine pedestal runs (Table~\ref{tab:runs}): SiPMs at 36.5~V, below breakdown; periodic trigger
-at 1~kHz; preamplifier gains 55 in both paths; peak detectors in peak-stretch mode; low gain
-shaped at 87.5~ns. The DAQ reads the boards as 0, 1 and 2; they are boards 1, 2 and 4 of the
-bench and are named so throughout.
+\begin{itemize}
+\item Runs: nine (Table~\ref{tab:runs}), 10\,000 events per board and run.
+\item SiPMs: HV\_Vbias 40.7~V, 36.5~V at the SiPM, below breakdown.
+\item Trigger: periodic, 1~kHz.
+\item Citiroc: preamplifier gains 55 in both paths; peak detectors in peak-stretch mode; low
+  gain shaped at 87.5~ns; high gain at 25, 50 or 87.5~ns.
+\end{itemize}
 
 \begin{table}[H]
 \centering
@@ -45,15 +56,18 @@ d_i(e) &= b_i\,\mathrm{CM}(e) + r_i(e), &
 \sigma_\mathrm{inc}^2 &= \langle r_i^2\rangle, \qquad
 \sigma_\mathrm{tot}^2 = \langle d_i^2\rangle = \sigma_\mathrm{coh}^2 + \sigma_\mathrm{inc}^2,
 \end{align*}
-where $p_i$ is the pedestal, $d_i$ the deviation, $\mathrm{CM}$ the common mode of the chip
-over its $n$ channels read at the same trigger, $b_i$ the slope of the channel against the
-common mode (a least-squares fit over the events), $r_i$ the incoherent part, and
-$\langle\,\rangle$ the mean over channels and events. Events with
-$|\mathrm{CM}| > 6\,s_\mathrm{CM}$ (jumps of the chip) and entries with
-$|d_i - \mathrm{CM}| > 5\,s_i$ (outliers) are set aside, $s$ being the robust width,
-1.4826 times the median absolute deviation. A \emph{blind channel} is one whose SiPM signal
-does not reach the chip; it takes no common mode ($b_i < 0.75$) and is excluded from $n$. Noise
-values are in ADC counts of the high gain unless stated.
+\begin{itemize}
+\item $p_i$ pedestal; $d_i$ deviation; $\mathrm{CM}$ common mode of the chip over its $n$
+  channels, read at the same trigger; $b_i$ slope of the channel against the common mode
+  (least squares over the events); $r_i$ incoherent part; $\langle\,\rangle$ mean over
+  channels and events.
+\item Set aside: events with $|\mathrm{CM}| > 6\,s_\mathrm{CM}$ (jumps of the chip); entries
+  with $|d_i - \mathrm{CM}| > 5\,s_i$ (outliers); $s$ the robust width, 1.4826 times the median
+  absolute deviation.
+\item Blind channel: its SiPM signal does not reach the chip; takes no common mode
+  ($b_i < 0.75$); excluded from $n$.
+\item Units: ADC counts of the high gain unless stated.
+\end{itemize}
 
 \section{Results}
 
@@ -184,7 +198,5 @@ blind channels & board 1: 61, 63; board 4: 3, 59, 61, 63 \\
 \bottomrule
 \end{tabular}
 \end{center}
-The conversion to photoelectrons takes the single-photoelectron gain from the calibration of
-menu~3.
 
 \end{document}

@@ -1,0 +1,133 @@
+\section{Menu 3: single-photoelectron calibration}
+
+\begin{frame}{Menu 3: data and method}
+\begin{columns}
+\column{0.5\textwidth}
+\small
+\begin{tabular}{llll}
+\toprule
+Run & Bias & HG shaping & Boards \\
+\midrule
+108--110 & 43 V & 25, 50, 87.5 ns & 1, 2, 4 \\
+111 & 42 V & 25 ns & 1, 2, 4 \\
+112 & 41 V & 25 ns & 1, 2, 4 \\
+\midrule
+Scan & Bias & Thresholds & Board \\
+\midrule
+113 & 43 V & 184--385 & 1 \\
+114, 115 & 41 V & 150--300, 190--275 & 1 \\
+\bottomrule
+\end{tabular}
+
+\medskip
+Periodic trigger at 1~kHz, HoldDelay 200~ns, preamplifier gains 55, peak-stretch mode,
+50\,000 events per board. Bias at the SiPM: HV output minus 4.2~V.
+\column{0.5\textwidth}
+\begin{itemize}
+\item The window opens at a random time: the spectrum is a ladder of 0, 1, 2, \ldots
+  photoelectrons.
+\item Each channel is fitted with a comb of six Gaussians at $p + n g$, widths
+  $\sqrt{\sigma_0^2 + n\sigma_1^2}$: $g$ is the gain in counts per photoelectron.
+\item Resolved when the 1-pe peak is narrower than half the gain.
+\item Breakdown voltage: intercept of the line through the gain at 41, 42 and 43~V.
+\item The six channels without SiPM signal are left out.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}{The ladder of one channel}
+\centering
+\includegraphics[width=0.88\textwidth]{spe_spectra.png}
+\end{frame}
+
+\begin{frame}{Gain of every channel}
+\begin{columns}
+\column{0.62\textwidth}
+\includegraphics[width=\textwidth]{spe_gains.png}
+\column{0.38\textwidth}
+\begin{itemize}
+\item At 25~ns the ladder is resolved in 183, 184 and 161 of the 186 channels at 41, 42 and
+  43~V.
+\item Gain, medians of the three boards: 85--92 counts per photoelectron at 41~V, 127--134 at
+  42~V, 165--178 at 43~V.
+\item Spread across the channels of a board: 2.4--5.6\%.
+\item Width of the 1-pe peak: 25--30 counts at 41~V, 49--52 at 43~V.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Breakdown voltage}
+\begin{columns}
+\column{0.62\textwidth}
+\includegraphics[width=\textwidth]{spe_breakdown.png}
+\column{0.38\textwidth}
+\begin{itemize}
+\item The gain is linear in the bias: 41--42 counts per photoelectron per volt.
+\item Breakdown at 38.8, 38.8 and 39.0~V (boards 1, 2, 4), rms 0.25--0.35~V across the
+  channels of a board.
+\item The bias of 43~V is 4.0--4.2~V above breakdown; the three biases are 2.1, 3.1 and
+  4.1~V of overvoltage.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Gain against shaping}
+\begin{columns}
+\column{0.58\textwidth}
+\includegraphics[width=\textwidth]{spe_shaping.png}
+\column{0.42\textwidth}
+\begin{itemize}
+\item At 43~V the ladder is resolved in 110 channels at 50~ns and 26 at 87.5~ns (1-pe width
+  61--67 counts).
+\item Gain: 165--178 at 25~ns, 176--182 at 50~ns, 170--173 at 87.5~ns.
+\item Menu 2 (stars) and menu 3 agree within 12 counts in the three channels of board 1 where
+  the ladder is resolved.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Pedestal noise in photoelectrons}
+\centering
+\scriptsize
+\input{\results/spe_noise_pe.tex}
+
+\medskip
+\normalsize
+\begin{itemize}
+\item At 43~V and 25~ns: 0.068--0.075 photoelectrons per channel, 0.033--0.038 coherent,
+  0.059--0.065 incoherent.
+\item At 50~ns: 0.067--0.074, coherent 0.041--0.046.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Staircases at 5 and 3 V, and the entries at zero}
+\centering
+\scriptsize
+\input{\results/spe_staircases.tex}
+
+\medskip
+\input{\results/spe_zeros.tex}
+
+\medskip
+\normalsize
+\begin{itemize}
+\item One photoelectron is 22 DAC units at 43~V and 12.5 at 41~V (gain ratio 1.8); one DAC
+  unit is 7.8 and 7.1 counts of the high gain.
+\item Entries at 0 at 43~V: 0.5--1.1\% at 25~ns, 3.8--6.1\% at 50~ns, 8.9--12\% at 87.5~ns;
+  none at 41~V. Open (F12).
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Menu 3: values}
+\begin{enumerate}
+\item Gain at 25~ns: 85--92 counts per photoelectron at 41~V, 127--134 at 42~V, 165--178 at
+  43~V; spread across the channels of a board 2.4--5.6\%.
+\item Breakdown voltage 38.8, 38.8, 39.0~V (boards 1, 2, 4), rms 0.25--0.35~V; 41--42 counts
+  per photoelectron per volt; 43~V is 4.0--4.2~V above breakdown.
+\item Gain at 43~V: 165--178 at 25~ns, 176--182 at 50~ns, 170--173 at 87.5~ns.
+\item Pedestal noise at 43~V, 25~ns: 0.068--0.075 photoelectrons, 0.033--0.038 coherent,
+  0.059--0.065 incoherent.
+\item Threshold: one photoelectron is 22 DAC units at 43~V, 12.5 at 41~V; edge of the noise at
+  190 and 182.
+\end{enumerate}
+\end{frame}
