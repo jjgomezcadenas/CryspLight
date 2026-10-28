@@ -6,8 +6,9 @@ only this README is.
 
 Layout: one folder per measurement day, `benchdata/YYYY-MM-DD/`, holding the files as
 they were downloaded (`run_N.0000.h5`, `run_N.histograms.h5`, `staircase.h5`,
-`hold-delay.h5` renamed with their run number, oscilloscope CSV files) and a copy of the
-day's logbook rows. Each file is described by its row in the Google Sheet logbook (bench
+`hold-delay.h5` renamed with their run number, oscilloscope CSV files). The logbook rows
+of each day are tracked in docs_fullsim/bench/logbooks/YYYY-MM-DD.csv (an export of the Google
+Sheet, one block per menu). Each file is described by its row in the Google Sheet logbook (bench
 note 0): run number or file name, menu and step, settings, temperature, incidents.
 
 Readers: fullsim_analysis/lib/io_daq.jl (`read_daq_run`, `read_daq_histograms`,
@@ -18,7 +19,7 @@ fullsim_analysis/scripts/bench/, their results in fullsim_analysis/results/.
 
 - 2026-10-21, 2026-10-22, 2026-10-23 (runs 42-50 with the red CAEN adapter boards; the test runs
   35-41 of that day in 2026-10-23_tests): five boards, DAQ board numbers 0-4 = chain,node
-  0,0 / 0,1 / 1,0 / 1,1 / 1,2. Logbook rows in logbook.csv.
+  0,0 / 0,1 / 1,0 / 1,1 / 1,2.
 - 2026-10-27: the whole programme of bench note 0 on three boards. Copied from
   jjgomez@hyperion.sw.ehu.es:/data/lnavarro/26_10_caen_measurements_jj/ (the remote folder also
   holds the runs 1-50 of 21-23 Oct; runs 51-90 and 107 are not there). Three boards on one chain,
@@ -44,4 +45,4 @@ fullsim_analysis/scripts/bench/, their results in fullsim_analysis/results/.
     113 at 43 V (5 V of overvoltage), thresholds 184-385, 1-2 pe spacing 20 DAC by Laura's
     reading; 114 and 115 at 41 V (3 V), thresholds 150-300 and 190-275, spacing 12 DAC. The
     HoldDelay was 200 ns in 113 and 0 in 114-115 (Laura asks whether it matters).
-  logbook.csv holds all the rows of the day (menus 1, 2 and 3), in three blocks as in the sheet.
+  The logbook of the day (docs_fullsim/bench/logbooks/2026-10-27.csv) has the three menus.

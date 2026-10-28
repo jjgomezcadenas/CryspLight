@@ -6,7 +6,8 @@ updated, not deleted, when the cause or the solution is found. Runs are DAQ run 
 data are in benchdata/<YYYY-MM-DD>/ (not in git), the tables and figures in
 fullsim_analysis/results/bench/<YYYY-MM-DD>/, produced by
 fullsim_analysis/scripts/bench/inspect_run.jl, noise_components.jl and fullsim_analysis/plots/staircase.py;
-the daily reports are in docs_fullsim/bench/. The requests that follow from the open entries
+the daily reports in docs_fullsim/bench/reports/, the talks in docs_fullsim/bench/talks/ and the
+logbook of each day in docs_fullsim/bench/logbooks/<YYYY-MM-DD>.csv. The requests that follow from the open entries
 are listed at the end.
 Boards are numbered as in the DAQ (board 0-4 = chain,node 0,0 / 0,1 / 1,0 / 1,1 / 1,2),
 channels 0-63. On 27 Oct only three boards were read, on one chain: DAQ boards 0, 1, 2 =
