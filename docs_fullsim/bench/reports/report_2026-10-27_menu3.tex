@@ -4,6 +4,7 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage{placeins}
 \usepackage{float}
+\usepackage{needspace}
 \graphicspath{{../../../fullsim_analysis/results/bench/2026-10-27/}}
 \newcommand{\results}{../../../fullsim_analysis/results/bench/2026-10-27}
 \title{Single-photoelectron calibration of the Citiroc front end:\\ menu 3 of 27 October 2026}
@@ -28,15 +29,20 @@ this report & gain of every channel in ADC counts per photoelectron against bias
 \end{tabular}
 \end{center}
 
-\section{Goal}
+\section{Dishes served}
 
 \begin{itemize}
-\item The simulation expresses every charge in photoelectrons; the chip stores ADC counts.
-  The gain of a channel, in counts per photoelectron, is the unit of the whole chain.
-\item With the SiPMs above breakdown and a periodic trigger, the window of the peak detector
-  opens at a random time: it holds the pedestal, or the dark pulse of 1, 2, 3~pe that fell
-  inside. The spectrum of the channel is a ladder of equally spaced peaks, and the spacing is
-  the gain.
+\item The peak detector is the stage of the Citiroc after the slow shaper. In peak-stretch
+  mode it follows the shaped signal from the opening of the window, holds the highest value
+  reached, and stops at the hold (HoldDelay after the trigger); that value is what the ADC
+  reads.
+\item The simulation expresses every charge in photoelectrons (pe); the chip stores ADC
+  counts. The gain of a channel, in counts per photoelectron, is the unit of the whole chain.
+\item Above breakdown every channel produces dark pulses, several MHz, almost all of one
+  photoelectron; with crosstalk, 2, 3, \ldots~pe. With a periodic trigger the window opens at
+  a random time: it holds the pedestal, or the dark pulse that fell inside. The spectrum of
+  the channel is a ladder of equally spaced peaks at 0, 1, 2, \ldots~pe; the spacing is the
+  gain.
 \item Menu 3 measures, for every channel of every board:
   \begin{itemize}
   \item the gain at three biases and, at the highest, at three shaping times;
@@ -50,11 +56,16 @@ this report & gain of every channel in ADC counts per photoelectron against bias
 \section{Data}
 
 \begin{itemize}
-\item Runs: five (Table~\ref{tab:runs}), periodic trigger at 1~kHz, HoldDelay 200~ns,
-  50\,000 events per board.
-\item SiPMs: 43, 42 and 41~V (the output of the HV module minus the 4.2~V of the individual
-  adjustment).
-\item Citiroc: preamplifier gains 55; peak-stretch mode; high gain at 25, 50 or 87.5~ns.
+\item Runs: five (Table~\ref{tab:runs}), 50\,000 events per board.
+\item SiPMs: 43, 42 and 41~V at the SiPM (HV\_Vbias 47.2, 46.2, 45.2~V minus the 4.2~V of
+  the individual adjustment).
+\item Trigger: periodic, 1~kHz (PtrgPeriod 1~ms).
+\item Citiroc:
+  \begin{itemize}
+  \item preamplifier gains 55 in both paths;
+  \item peak-stretch mode, HoldDelay 200~ns;
+  \item high gain at 25, 50 or 87.5~ns; low gain at 87.5~ns.
+  \end{itemize}
 \item Staircases (scans 113 to 115): board 1, trigger rate of each channel against the
   threshold of its discriminator, 25~ns, 0.5~s per point.
 \end{itemize}
@@ -82,22 +93,70 @@ Scan & Bias at the SiPM & Thresholds & Board \\
 
 \section{Method}
 
+\subsection{Gain}
+
+What the DAQ does:
 \begin{itemize}
-\item With the periodic trigger the window of 200~ns opens at a random time with respect to the
-  dark pulses of the channel: the spectrum of a channel is a ladder of peaks at 0, 1, 2, \ldots
-  photoelectrons.
-\item The spectrum of each channel is fitted with a comb of six Gaussians,
-  \begin{equation*}
-  f(x) = \sum_{n=0}^{5} A_n \exp\left[-\frac{(x - p - n g)^2}{2(\sigma_0^2 + n\sigma_1^2)}\right],
-  \end{equation*}
-  with $p$ the 0-pe peak, $g$ the gain in ADC counts per photoelectron, $\sigma_0$ the width of
-  the 0-pe peak and $\sigma_1$ the extra width per photoelectron.
-\item Seed of $g$: the peaks of the spectrum at 41~V, then the gain at the previous bias scaled
-  by the overvoltage.
-\item The ladder is resolved when $\sqrt{\sigma_0^2 + \sigma_1^2} < g / 2$.
-\item Breakdown voltage of a channel: intercept of the line through its gain at 41, 42 and 43~V.
-\item Left out: the six channels without signal from their SiPM (61 and 63 of board~1; 3, 59,
-  61 and 63 of board~4).
+\item triggers every millisecond, independently of the SiPMs; the window of 200~ns opens at
+  a random time with respect to the dark pulses of each channel;
+\item stores, for each event, the high gain of the 64 channels of each board;
+\item the result is the spectrum of each channel, $S_i(x)$, over 50\,000 events.
+\end{itemize}
+What the spectrum shows:
+\begin{itemize}
+\item a peak at the pedestal (0~pe), from the windows with no dark pulse;
+\item peaks at 1, 2, 3, \ldots~pe, from the windows that hold a dark pulse, with or without
+  crosstalk; the peaks are equally spaced by the gain;
+\item each peak is wider than the previous one, since each avalanche adds its own fluctuation;
+\item at the longest shaping the dark pulses pile up and the peaks merge.
+\end{itemize}
+Definitions:
+\begin{equation*}
+f(x) = \sum_{n=0}^{5} A_n \exp\left[-\frac{(x - p - n g)^2}{2(\sigma_0^2 + n\sigma_1^2)}\right],
+\qquad \text{resolved if } \sqrt{\sigma_0^2 + \sigma_1^2} < g/2,
+\end{equation*}
+\begin{itemize}
+\item $f$: the comb of six Gaussians fitted to the spectrum of each channel; $A_n$ the
+  population of the $n$-pe peak;
+\item $p$: the position of the 0-pe peak (the pedestal); $g$: the gain, in ADC counts per
+  photoelectron;
+\item $\sigma_0$: the width of the 0-pe peak; $\sigma_1$: the extra width per photoelectron;
+\item resolved: the 1-pe peak is narrower than half the spacing, so that neighbouring peaks
+  separate; only resolved channels enter the medians;
+\item seed of $g$: the spacing of the peaks found on the spectrum at 41~V, where the ladder is
+  cleanest; at each higher bias, the gain of the previous one scaled by the overvoltage;
+\item left out: the six blind channels (61 and 63 of board~1; 3, 59, 61 and 63 of board~4).
+\end{itemize}
+
+\subsection{Breakdown voltage}
+
+\begin{equation*}
+g = a\,(V - V_\mathrm{bd}),
+\end{equation*}
+\begin{itemize}
+\item $V$: the bias at the SiPM; $V_\mathrm{bd}$: the breakdown voltage of the channel, the
+  bias at which its gain vanishes; $a$: the gain per volt of overvoltage;
+\item the line is fitted through the gain of the channel at 41, 42 and 43~V, for the channels
+  resolved at the three biases.
+\end{itemize}
+
+\subsection{Noise in photoelectrons}
+
+\begin{equation*}
+\sigma^\mathrm{pe} = \sigma / g,
+\end{equation*}
+\begin{itemize}
+\item $\sigma$: the total, coherent or incoherent pedestal noise of menu~1 at HoldDelay 0
+  (noise note~\cite{noisenote}), in ADC counts;
+\item $g$: the median gain of the board at 43~V and the same shaping.
+\end{itemize}
+
+\subsection{Staircases}
+
+\begin{itemize}
+\item As in menu~2: the edge of the noise $\theta^\mathrm{e}$ and the photoelectron spacing
+  $\Delta\theta$ of each channel, from the steps of its trigger rate against the threshold;
+\item one DAC unit of the threshold in ADC counts of the high gain: $g / \Delta\theta$.
 \end{itemize}
 
 \section{Results}
@@ -109,7 +168,7 @@ Scan & Bias at the SiPM & Thresholds & Board \\
 \includegraphics[width=\textwidth]{spe_spectra.png}
 \caption{Channel 20 of board 2: the spectrum of the high gain at 41, 42 and 43~V with 25~ns of
 shaping (top) and at 43~V with 25, 50 and 87.5~ns (bottom), with the comb of Gaussians fitted
-to the ladder.}
+to the ladder (red) and the positions $p + ng$ (dotted).}
 \label{fig:spectra}
 \end{figure}
 
@@ -117,7 +176,7 @@ to the ladder.}
 \centering
 \includegraphics[width=0.95\textwidth]{spe_gains.png}
 \caption{Gain of every channel of the three boards at 41, 42 and 43~V, 25~ns of shaping;
-channels with the ladder resolved.}
+channels with the ladder resolved. Dotted: the blind channels.}
 \label{fig:gains}
 \end{figure}
 
@@ -130,13 +189,20 @@ the gain, and median width of the 1-pe peak, in ADC counts of the high gain.}
 \label{tab:gains}
 \end{table}
 
+Figure~\ref{fig:spectra} (one channel):
 \begin{itemize}
-\item Ladder resolved at 25~ns in 183, 184 and 161 of the 186 channels at 41, 42 and 43~V
-  (Figure~\ref{fig:spectra}, Table~\ref{tab:gains}).
-\item Gain, medians of the three boards: 85--92 counts per photoelectron at 41~V, 127--134 at
-  42~V, 165--178 at 43~V (Figure~\ref{fig:gains}).
-\item Spread across the channels of a board (rms over median): 2.4--5.6\%.
-\item Width of the 1-pe peak: 25--30 counts at 41~V, 49--52 at 43~V.
+\item top, 25~ns: the ladder at 41, 42 and 43~V, with the peaks 91, 135 and 164 counts apart
+  and the 1-pe peak 29, 44 and 59 counts wide;
+\item bottom, 43~V: at 50 and 87.5~ns the peaks merge (1-pe width 88 and 134 counts) and the
+  channel is not resolved.
+\end{itemize}
+Figure~\ref{fig:gains} and Table~\ref{tab:gains}:
+\begin{itemize}
+\item ladder resolved at 25~ns in 183, 184 and 161 of the 186 channels at 41, 42 and 43~V;
+\item gain, medians of the three boards: 85--92 counts per photoelectron at 41~V, 127--134 at
+  42~V, 165--178 at 43~V;
+\item spread across the channels of a board (rms over median): 2.4--5.6\%;
+\item width of the 1-pe peak: 25--30 counts at 41~V, 49--52 at 43~V.
 \end{itemize}
 
 \subsection{Gain against bias and breakdown voltage}
@@ -158,12 +224,20 @@ voltage and of the slope of the gain, and the detector temperature recorded by t
 \label{tab:breakdown}
 \end{table}
 
+Figure~\ref{fig:breakdown} and Table~\ref{tab:breakdown}:
 \begin{itemize}
-\item $g = a\,(V - V_\mathrm{bd})$ (Figure~\ref{fig:breakdown}, left): $a$ = 41--42 counts per
-  photoelectron per volt.
-\item $V_\mathrm{bd}$ = 38.8, 38.8, 39.0~V (medians of boards 1, 2, 4), rms 0.25--0.35~V across
-  the channels of a board (Table~\ref{tab:breakdown}).
-\item Overvoltage at 43, 42 and 41~V: 4.1, 3.1 and 2.1~V (4.0--4.2~V at 43~V).
+\item the gain is linear in the bias: $a$ = 41--42 counts per photoelectron per volt;
+\item $V_\mathrm{bd}$ = 38.8, 38.8, 39.0~V (medians of boards 1, 2, 4), rms 0.25--0.35~V
+  across the channels of a board;
+\item overvoltage at 43, 42 and 41~V: 4.1, 3.1 and 2.1~V (4.0--4.2~V at 43~V).
+\end{itemize}
+\needspace{6\baselineskip}
+Against expectations:
+\begin{itemize}
+\item Expected: the gain of a SiPM is proportional to the overvoltage; the bench set 43~V as
+  5~V of overvoltage, that is a breakdown of 38~V.
+\item Observed: linear, as expected; the breakdown is 38.8--39.0~V, so the three biases are
+  4.1, 3.1 and 2.1~V of overvoltage.
 \end{itemize}
 
 \subsection{Gain against shaping}
@@ -177,13 +251,21 @@ hold-delay scans of board 1 (menu 2).}
 \label{fig:shaping}
 \end{figure}
 
+Figure~\ref{fig:shaping} and Table~\ref{tab:gains}:
 \begin{itemize}
-\item Ladder resolved at 43~V in 110 channels at 50~ns and 26 at 87.5~ns (1-pe width
-  61--67 counts).
-\item Gain at 43~V: 165--178 at 25~ns, 176--182 at 50~ns, 170--173 at 87.5~ns
-  (Figure~\ref{fig:shaping}).
-\item Menu 2 against menu 3, board 1, 43~V: channels 0, 40, 60 at 25~ns, 175, 159, 182 against
-  176, 170, 169; channel 0 at 50~ns, 185 and 192 against 187. Channel 20: ladder not resolved.
+\item ladder resolved at 43~V in 110 channels at 50~ns and 26 at 87.5~ns (1-pe width
+  61--67 counts);
+\item gain at 43~V: 165--178 at 25~ns, 176--182 at 50~ns, 170--173 at 87.5~ns;
+\item menu 2 against menu 3, board 1, 43~V, channels 0, 40, 60 at 25~ns: 175, 159, 182 against
+  176, 170, 169; channel 0 at 50~ns: 185 and 192 against 187; channel 20: not resolved in
+  menu~3.
+\end{itemize}
+\needspace{6\baselineskip}
+Against expectations:
+\begin{itemize}
+\item Expected (bench note 3): the ladder is cleanest at 25~ns and blurred at 87.5~ns, where
+  the dark pulses pile up.
+\item Observed: resolved in 161 channels at 25~ns, 110 at 50~ns, 26 at 87.5~ns.
 \end{itemize}
 
 \subsection{Noise in photoelectrons}
@@ -205,15 +287,24 @@ noise of menu 1 (HoldDelay 0) in ADC counts and in photoelectrons.}
 \label{tab:noisepe}
 \end{table}
 
+Figure~\ref{fig:noisepe} and Table~\ref{tab:noisepe}:
 \begin{itemize}
-\item Noise in photoelectrons: $\sigma / g$, with $\sigma$ the pedestal noise of menu~1 at
-  HoldDelay 0 and $g$ the median gain of the board at 43~V and the same shaping.
 \item 25~ns: 0.068--0.075 photoelectrons per channel, 0.033--0.038 coherent, 0.059--0.065
-  incoherent (Table~\ref{tab:noisepe}, Figure~\ref{fig:noisepe}).
-\item 50~ns: 0.067--0.074, coherent 0.041--0.046.
+  incoherent;
+\item 50~ns: 0.067--0.074, coherent 0.041--0.046;
+\item 87.5~ns, board 1 (the only one with ten or more resolved channels): 0.080, coherent
+  0.057.
+\end{itemize}
+\needspace{6\baselineskip}
+Against expectations:
+\begin{itemize}
+\item Expected (noise model of the simulation, series white noise): 0.06 photoelectrons at
+  87.5~ns and 5~V, 0.08 at 50~ns, 0.11 at 25~ns, independent channels.
+\item Observed: 0.07 at the three shapings, with the coherent part growing from 0.035 to
+  0.057 between 25 and 87.5~ns: less noise than the model at 25~ns, more at 87.5~ns.
 \end{itemize}
 
-\subsection{Staircases at 5 and 3 V}
+\subsection{Staircases at 43 and 41 V}
 
 \begin{table}[H]
 \centering
@@ -225,13 +316,14 @@ their ranges.}
 \label{tab:staircases}
 \end{table}
 
+Table~\ref{tab:staircases}:
 \begin{itemize}
-\item Edge of the noise: 190 DAC units at 43~V, 182 at 41~V (Table~\ref{tab:staircases}; scan
-  115 starts above the edge).
-\item Photoelectron steps: 22 units at 43~V, 12.5 at 41~V; ratio 1.8, as the gains.
-\item One DAC unit of the threshold: 7.8 counts of the high gain at 43~V, 7.1 at 41~V.
-\item Dark rate 30 units above the edge: $1.4\times 10^{5}$~Hz at 43~V, $2.8\times 10^{3}$~Hz at
-  41~V.
+\item edge of the noise: 190 DAC units at 43~V, 182 at 41~V (scan 115 starts above the edge);
+\item photoelectron steps: 22 units at 43~V, 12.5 at 41~V; ratio 1.8, as the ratio of the
+  gains (165--178 over 85--92);
+\item one DAC unit of the threshold: 7.8 counts of the high gain at 43~V, 7.1 at 41~V;
+\item dark rate 30 units above the edge: $1.4\times 10^{5}$~Hz at 43~V, $2.8\times 10^{3}$~Hz
+  at 41~V.
 \end{itemize}
 
 \subsection{Entries at zero}
@@ -245,11 +337,12 @@ board.}
 \label{tab:zeros}
 \end{table}
 
+Table~\ref{tab:zeros}:
 \begin{itemize}
-\item High-gain entries at 0 (Table~\ref{tab:zeros}): 0.5--1.1\% at 43~V and 25~ns, 3.8--6.1\%
-  at 50~ns, 8.9--12.0\% at 87.5~ns; 0.1\% or less at 42~V; none at 41~V.
-\item The pedestal runs of menu~1 have no entry at 0.
-\item The fits leave these entries out; their origin is open (finding F12).
+\item high-gain entries at 0: 0.5--1.1\% at 43~V and 25~ns, 3.8--6.1\% at 50~ns, 8.9--12.0\%
+  at 87.5~ns; 0.1\% or less at 42~V; none at 41~V;
+\item the pedestal runs of menu~1 have no entry at 0;
+\item the fits leave these entries out; their origin is open (finding F12).
 \end{itemize}
 
 \section{Summary of results}
@@ -257,15 +350,16 @@ board.}
 Main findings:
 \begin{itemize}
 \item At 25~ns the ladder of dark pulses is resolved in nearly every channel (183, 184 and
-  161 of 186 at 41, 42 and 43~V); at 50~ns in 110 channels; at 87.5~ns in 26, because the
-  dark pulses pile up in the longer shaping.
-\item The gain is linear in the bias, 41--42 counts per photoelectron per volt, and the
+  161 of 186 at 41, 42 and 43~V); at 50~ns in 110 channels; at 87.5~ns in 26, where the dark
+  pulses pile up, as anticipated.
+\item The gain is linear in the bias, 41--42 counts per photoelectron per volt. The
   breakdown voltage is 38.8--39.0~V on the three boards, uniform within 0.3~V across the
-  channels. The bias of 43~V is 4.1~V above breakdown, not 5.
+  channels; the bias of 43~V, set as 5~V of overvoltage, is 4.1~V above breakdown.
 \item The gain varies by 2.4--5.6\% across the channels of a board and little with the
   shaping (165--182 counts per photoelectron at 43~V).
-\item The pedestal noise of the chain at 43~V and 25~ns is 0.07 photoelectrons per channel,
-  half of it coherent.
+\item The pedestal noise of the chain at 43~V is 0.07 photoelectrons per channel at the three
+  shapings, half of it coherent at 25~ns; the model of the simulation has 0.11 at 25~ns and
+  0.06 at 87.5~ns.
 \item One DAC unit of the threshold is 7.8 counts of the high gain at 43~V; one photoelectron
   is 22 units at 43~V and 12.5 at 41~V.
 \item Open: at 43~V a fraction of the entries, growing with the shaping from 0.5 to 12\%,
@@ -293,5 +387,10 @@ entries at 0, 43 V & 0.5--1.1\% at 25~ns, 3.8--6.1\% at 50~ns, 8.9--12\% at 87.5
 \caption{Values: gains, breakdown voltages, noise in photoelectrons, threshold units.}
 \label{tab:values}
 \end{table}
+
+\begin{thebibliography}{1}
+\bibitem{noisenote} J.\,J.~Gómez-Cadenas, \emph{Noise Model for CRYSP}, CRYSP note,
+  October 2026.
+\end{thebibliography}
 
 \end{document}

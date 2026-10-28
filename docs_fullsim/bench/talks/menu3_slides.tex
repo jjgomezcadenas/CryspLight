@@ -2,6 +2,8 @@
 
 \begin{frame}{Menu 3: goal}
 \begin{itemize}
+\item The peak detector, after the slow shaper, follows the signal from the opening of the
+  window, holds the highest value reached and stops at the hold; the ADC reads that value.
 \item The simulation expresses every charge in photoelectrons; the chip stores ADC counts.
   The gain of a channel, in counts per photoelectron, is the unit of the whole chain.
 \item Above breakdown, with a periodic trigger, the window opens at a random time: it holds
@@ -81,6 +83,8 @@ Periodic trigger at 1~kHz, HoldDelay 200~ns, preamplifier gains 55, peak-stretch
   channels of a board.
 \item The bias of 43~V is 4.0--4.2~V above breakdown; the three biases are 2.1, 3.1 and
   4.1~V of overvoltage.
+\item Expected: linear in the overvoltage, breakdown at 38~V (43~V set as 5~V of
+  overvoltage). Observed: linear; breakdown 0.8--1.0~V higher.
 \end{itemize}
 \end{columns}
 \end{frame}
@@ -111,6 +115,8 @@ Periodic trigger at 1~kHz, HoldDelay 200~ns, preamplifier gains 55, peak-stretch
 \item At 43~V and 25~ns: 0.068--0.075 photoelectrons per channel, 0.033--0.038 coherent,
   0.059--0.065 incoherent.
 \item At 50~ns: 0.067--0.074, coherent 0.041--0.046.
+\item Expected (model of the simulation): 0.11, 0.08, 0.06 photoelectrons at 25, 50, 87.5~ns.
+  Observed: 0.07 at the three shapings.
 \end{itemize}
 \end{frame}
 
